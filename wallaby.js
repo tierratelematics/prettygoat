@@ -2,20 +2,18 @@ module.exports = function (wallaby) {
   return {
     files: [
       "scripts/**/*.ts",
-      "typings/**/*.d.ts"
+      "typings/**/*.d.ts",
+      "!test/**/*Spec.ts"
     ],
     tests: [
-      "test/**/*.ts"
+      "test/**/*Spec.ts"
     ],
     compilers: {
-      "**/*.ts*": wallaby.compilers.typeScript({module: 'es6'})
+      "**/*.ts*": wallaby.compilers.typeScript()
     },
     env: {
       type: "node"
     },
-    testFramework: "mocha",
-    bootstrap: function () {
-      global.expect = require("expect.js");
-    }
+    testFramework: "mocha"
   };
 };
