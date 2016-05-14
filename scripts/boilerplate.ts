@@ -4,17 +4,14 @@ export class ProjectionEngine {
 }
 
 export interface IProjection {
-    definition(source: IProjectionSource): IProjectionDefinition;
+    definition(source: IProjectionSource): void;
     snapshotStrategy?(): ISnapshotStrategy;
 }
 
 interface ISnapshotStrategy { }
 
-export interface IProjectionFrom { }
-
-export interface IProjectionDefinition {
-    $init?: () => any;
-    $any?: (state: any, event: any) => any;
+export interface IProjectionSplit {
+    when(definition: any): void;
 }
 
 export function Projection(uri: string) {
@@ -22,10 +19,10 @@ export function Projection(uri: string) {
 }
 
 export interface IProjectionSource {
-    fromAll(): IProjectionGroup;
+    fromAll(): IProjectionHandling;
 }
 
-export interface IProjectionGroup {
-    when: IProjectionDefinition;
-    groupBy(groupByDefinition: any): IProjectionFrom;
+export interface IProjectionHandling {
+    when(definition: any): void;
+    splitBy(splitByDefinition: any): IProjectionSplit;
 }

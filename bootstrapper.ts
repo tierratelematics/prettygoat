@@ -1,10 +1,10 @@
-import { ProjectionEngine } from "./scripts/boilerplate"
-import { CountProjection, SimpleProjection, GroupedProjection } from "./scripts/projections"
+import { ProjectionEngine } from "./scripts/boilerplate";
+import { CountProjection, SimpleProjection, SplitProjection } from "./scripts/projections";
 
-let engine = new ProjectionEngine()
+let engine = new ProjectionEngine();
 
-engine.register(new CountProjection())
-engine.register(new SimpleProjection())
-engine.register(new GroupedProjection())
+engine.register(new CountProjection());
+engine.register(new SimpleProjection());
+engine.register(new SplitProjection());
 
-engine.run()
+engine.run();

@@ -9,8 +9,8 @@ describe("Given a ProjectionAnalyzer", () => {
             it("should assign a default snapshotting strategy");
         });
         it("should check it has an event application definition");
-        describe("and the definition splits the projection into groups", () => {
-            it("should check it has a group definition");
+        describe("and the definition splits the projection into multiple ones", () => {
+            it("should check it has a split definition");
         });
         describe("and one or more checks fail", () => {
             it("should return all the failed checks");

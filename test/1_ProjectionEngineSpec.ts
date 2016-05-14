@@ -23,6 +23,13 @@ describe("Given a ProjectionEngine", () => {
         describe("and an event is received from the stream", () => {
             it("should match the event coming from the stream with a definition from the projection");
             it("should apply the event to the projection with respect to the given state");
+            it("should check if a snapshot is needed");
+            describe("and a snapshot is needed", () => {
+               it("should save a snapshot of the state");
+               describe("and an error occurs when saving the snapshot", () => {
+                   it("should keep processing events");
+               });
+            });
             it("should publish the new state of the projection");
             describe("and an error occurs when applying the event to the projection", () => {
                it("should unsubscribe to the event stream");

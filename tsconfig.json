@@ -1,9 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "es6",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "module": "commonjs"
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "pretty": true
     },
     "exclude": [
         "node_modules",
