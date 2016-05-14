@@ -1,14 +1,14 @@
-import { Projection, IProjection } from "./boilerplate"
+import { Projection, IProjection } from "./boilerplate";
 
 @Projection("count") // will be /count
 export class CountProjection implements IProjection {
-    
+
     public definition(source) {
         return source.fromAll()
             .when({
-                $init: () => { return 0 },
-                $any: (s, e) => { return s++ }
-            })
+                $init: () => { return 0; },
+                $any: (s, e) => { return s++; }
+            });
     }
 }
 
@@ -18,13 +18,13 @@ export class SimpleProjection implements IProjection {
     public definition(source) {
         return source.fromAll()
             .when({
-                FarmRegistered: (s, e) => { 
-                    s.id = e.farmId
-                    s.name = e.name
-                     
+                FarmRegistered: (s, e) => {
+                    s.id = e.farmId;
+                    s.name = e.name;
+
                     return s
-                }  
-            })
+                }
+            });
     }
 }
 
@@ -38,10 +38,10 @@ export class GroupedProjection implements IProjection {
                 $default: e => e.id
             })
             .when({
-                FarmRegistered: (s, e) => { 
-                    s.id = e.farmId
-                    return s
-                }  
-            })
+                FarmRegistered: (s, e) => {
+                    s.id = e.farmId;
+                    return s;
+                }
+            });
     }
 }
