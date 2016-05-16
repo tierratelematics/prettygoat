@@ -3,17 +3,34 @@ import * as _ from "lodash";
 const wildcard = require("wildcard2");
 
 export type EventMatch = (state: any, event: any) => any;
+export type InitMatch = () => any;
 
-export class Matcher<T extends Function> {
+export class SpecialNames {
+    public static Init: string = "$init";
+    public static Any: string = "$any";
+    public static Default: string = "$default";
+}
+
+const emptyState = () => { return {}; };
+
+export class Matcher {
     constructor(private definition: any) { }
 
-    match(name: string): T {
+    match(name: string): Function {
         this.guardAmbiguousDefinition();
 
-        if (name === "$any" || name === "$default")
+        if (name === SpecialNames.Any || name === SpecialNames.Default)
             return this.explicitMatch(name, true);
 
-        let found = this.explicitMatch(name) || this.wildcardMatch(name) || this.explicitMatch("$any") || this.explicitMatch("$default");
+        if (name === SpecialNames.Init)
+            return this.explicitMatch(name) || emptyState;
+
+        let found = this.explicitMatch(name)
+            || this.wildcardMatch(name)
+            || this.explicitMatch(SpecialNames.Any)
+            || this.explicitMatch(SpecialNames.Default)
+            || this.explicitMatch(SpecialNames.Init);
+
         if (found !== undefined)
             return found;
 
@@ -23,8 +40,8 @@ export class Matcher<T extends Function> {
     private guardAmbiguousDefinition() {
         const _definition = _(this.definition);
 
-        if (_definition.has("$any") && _definition.has("$default"))
-            throw new Error(`Matcher has an ambiguous default match defined both as $any and $default`);
+        if (_definition.has(SpecialNames.Any) && _definition.has(SpecialNames.Default))
+            throw new Error(`Matcher has an ambiguous default match defined both as ${SpecialNames.Any} and ${SpecialNames.Default}`);
     }
 
     private explicitMatch(name: string, throwOnNotFound?: boolean): T {
@@ -35,10 +52,10 @@ export class Matcher<T extends Function> {
         return undefined;
     }
 
-    private wildcardMatch(name: string): T {
+    private wildcardMatch(name: string): Function {
         const found = _(this.definition).toPairs().filter((pair: [string, Function]) => wildcard(name, pair[0])).first();
         if (found !== undefined && _.isFunction(found[1]))
-            return <T>found[1];
+            return <Function>found[1];
         return undefined;
     }
 }
