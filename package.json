@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "lodash": "^4.12.0",
+    "rx": "^4.1.0",
     "wildcard2": "0.0.2"
   }
 }

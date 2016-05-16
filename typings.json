@@ -5,7 +5,8 @@
         "sinon": "registry:dt/sinon#1.16.0+20160317120654"
     },
     "ambientDependencies": {
-        "node": "registry:dt/node#4.0.0+20160509154515"
+        "node": "registry:dt/node#4.0.0+20160509154515",
+        "rx": "npm:rx/ts/rx.all.d.ts"
     },
     "dependencies": {
         "lodash": "registry:npm/lodash#4.0.0+20160416211519"
