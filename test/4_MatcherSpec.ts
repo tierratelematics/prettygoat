@@ -27,13 +27,13 @@ describe("Given a Matcher", () => {
         beforeEach(() => {
             subject = new Matcher<EventMatch>(definitionWithWildcards);
         });
-        describe("and both $default and $any are defined", () => {
+        context("and both $default and $any are defined", () => {
             beforeEach(() => subject = new Matcher<EventMatch>(definitionWithAnyAndDefault));
             it("should raise an error", () => {
                expect(() => subject.match("notdefined")).to.throwError();
             });
         });
-        describe("and no match is found", () => {
+        context("and no match is found", () => {
             beforeEach(() => {
                 subject = new Matcher<EventMatch>(definitionWithoutWildcards);
             });
@@ -47,19 +47,19 @@ describe("Given a Matcher", () => {
             expect(subject.match("foo")).to.be.a(Function);
         });
 
-        describe("and a match by full name is not available", () => {
+        context("and a match by full name is not available", () => {
             it("should find a match by partial name using wildcartds", () => {
                 expect(subject.match("fooable")).to.be.a(Function);
             });
 
-            describe("and a match by wildcard is not available", () => {
-                describe("and $any is defined", () => {
+            context("and a match by wildcard is not available", () => {
+                context("and $any is defined", () => {
                     beforeEach(() => subject = new Matcher<EventMatch>(definitionWithAny));
                     it("should return the $any member", () => {
                         expect(subject.match("notdefined")).to.be.a(Function);
                     });
                 });
-                describe("and $default is defined", () => {
+                context("and $default is defined", () => {
                     beforeEach(() => subject = new Matcher<EventMatch>(definitionWithDefault));
                     it("should return the $default member", () => {
                         expect(subject.match("notdefined")).to.be.a(Function);
@@ -68,24 +68,24 @@ describe("Given a Matcher", () => {
             });
         });
     });
-    describe("when requesting a match for $any", () => {
+    context("when requesting a match for $any", () => {
         beforeEach(() => subject = new Matcher<EventMatch>(definitionWithAny));
         it("should find a match only if $any exists", () => {
             expect(subject.match("$any")).to.be.a(Function);
         });
-        describe("and $any is not defined", () => {
+        context("and $any is not defined", () => {
             beforeEach(() => subject = new Matcher<EventMatch>(definitionWithDefault));
             it("should raise an error", () => {
                 expect(() => subject.match("$any")).to.throwError();
             });
         });
     });
-    describe("when requesting a match for $default", () => {
+    context("when requesting a match for $default", () => {
         beforeEach(() => subject = new Matcher<EventMatch>(definitionWithDefault));
         it("should find a match only if $default exists", () => {
             expect(subject.match("$default")).to.be.a(Function);
         });
-        describe("and $default is not defined", () => {
+        context("and $default is not defined", () => {
            beforeEach(() => subject = new Matcher<EventMatch>(definitionWithAny));
            it("should raise an error", () => {
                expect(() => subject.match("$default")).to.throwError();

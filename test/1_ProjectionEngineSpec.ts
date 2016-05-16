@@ -1,37 +1,37 @@
 /// <reference path="../typings/main.d.ts" />
 
 describe("Given a ProjectionEngine", () => {
-    describe("when registering a new projection", () => {
+    context("when registering a new projection", () => {
         it("should check for its formal correctness");
         it("should analyze its definition");
-        describe("and the projection is invalid", () => {
+        context("and the projection is invalid", () => {
             it("should signal an error");
             it("should state why the projection is invalid");
         });
     });
-    describe("when running a projection", () => {
+    context("when running a projection", () => {
         it("should subscribe to the event stream according to the definition");
-        describe("and an error occurs when subscribing to the event stream", () => {
+        context("and an error occurs when subscribing to the event stream", () => {
            it("should publish an error state");
         });
         it("should initialize the state of the projection");
         it("should publish the initial state of the projection");
-        describe("and an error occurs when initializing the state of the projection", () => {
+        context("and an error occurs when initializing the state of the projection", () => {
             it("should unsubscribe to the event stream");
             it("should publish an error state");
         });
-        describe("and an event is received from the stream", () => {
+        context("and an event is received from the stream", () => {
             it("should match the event coming from the stream with a definition from the projection");
             it("should apply the event to the projection with respect to the given state");
             it("should check if a snapshot is needed");
-            describe("and a snapshot is needed", () => {
+            context("and a snapshot is needed", () => {
                it("should save a snapshot of the state");
-               describe("and an error occurs when saving the snapshot", () => {
+               context("and an error occurs when saving the snapshot", () => {
                    it("should keep processing events");
                });
             });
             it("should publish the new state of the projection");
-            describe("and an error occurs when applying the event to the projection", () => {
+            context("and an error occurs when applying the event to the projection", () => {
                it("should unsubscribe to the event stream");
                it("should publish an error state");
             });
