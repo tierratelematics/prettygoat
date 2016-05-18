@@ -1,5 +1,7 @@
-/// <reference path="../typings/main.d.ts" />
-import { Matcher, SpecialNames } from "../scripts/Matcher";
+/// <reference path="../typings/index.d.ts" />
+import { Matcher } from "../scripts/Matcher";
+import { SpecialNames } from "../scripts/SpecialNames";
+
 import expect = require("expect.js");
 
 describe("Given a Matcher", () => {

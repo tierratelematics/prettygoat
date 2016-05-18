@@ -6,7 +6,7 @@ module.exports = function (wallaby) {
       "!test/**/*Spec.ts"
     ],
     tests: [
-      "test/**/*Spec.ts"
+      "test/**/*.ts"
     ],
     compilers: {
       "**/*.ts*": wallaby.compilers.typeScript()
