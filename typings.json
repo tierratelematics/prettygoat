@@ -1,10 +1,9 @@
 {
-    "ambientDevDependencies": {
+    "globalDevDependencies": {
         "expect.js": "registry:dt/expect.js#0.3.1+20160317120654",
-        "mocha": "registry:dt/mocha#2.2.5+20160317120654",
-        "sinon": "registry:dt/sinon#1.16.0+20160317120654"
+        "mocha": "registry:dt/mocha#2.2.5+20160317120654"
     },
-    "ambientDependencies": {
+    "globalDependencies": {
         "node": "registry:dt/node#4.0.0+20160509154515",
         "rx": "npm:rx/ts/rx.all.d.ts"
     },
