@@ -1,19 +1,15 @@
-/// <reference path="../typings/main.d.ts" />
+import { IMatcher } from "./interfaces/IMatcher";
+import { SpecialNames } from "./SpecialNames";
 import * as _ from "lodash";
+
 const wildcard = require("wildcard2");
 
 export type EventMatch = (state: any, event: any) => any;
 export type InitMatch = () => any;
 
-export class SpecialNames {
-    public static Init: string = "$init";
-    public static Any: string = "$any";
-    public static Default: string = "$default";
-}
-
 const emptyState = () => { return {}; };
 
-export class Matcher {
+export class Matcher implements IMatcher {
     constructor(private definition: any) { }
 
     match(name: string): Function {
@@ -44,9 +40,9 @@ export class Matcher {
             throw new Error(`Matcher has an ambiguous default match defined both as ${SpecialNames.Any} and ${SpecialNames.Default}`);
     }
 
-    private explicitMatch(name: string, throwOnNotFound?: boolean): T {
+    private explicitMatch(name: string, throwOnNotFound?: boolean): Function {
         if (_(this.definition).has(name) && _.isFunction(this.definition[name]))
-            return <T>this.definition[name];
+            return this.definition[name];
         if (throwOnNotFound)
             throw new Error(`Matcher doesn't have a ${name} member`);
         return undefined;
