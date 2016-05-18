@@ -1,19 +1,37 @@
 /// <reference path="../typings/index.d.ts" />
+import { IProjection } from "../scripts/interfaces/IProjection";
+import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/ProjectionAnalyzer";
+import expect = require("expect.js");
 
 describe("Given a ProjectionAnalyzer", () => {
+    let subject: ProjectionAnalyzer;
+
+    beforeEach(() => subject = new ProjectionAnalyzer());
+
     context("when analyzing a projection", () => {
-        it("should check it has a name");
-        it("should check it has a source stream definition");
-        it("should check it has a snapshotting strategy");
-        context("and there is no snapshotting strategy", () => {
-            it("should assign a default snapshotting strategy");
+        it("should check it has a name", () => {
+            let result = subject.analyze(<IProjection<number>>{ definition: {}, streamSource: {} });
+            expect(result).to.eql([ProjectionErrors.NoName]);
         });
-        it("should check it has an event application definition");
+        it("should check it has a source stream definition", () => {
+            let result = subject.analyze(<IProjection<number>>{ definition: {}, name: "-" });
+            expect(result).to.eql([ProjectionErrors.NoSource]);
+        });
+        it("should check it has an event application definition", () => {
+            let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {}});
+            expect(result).to.eql([ProjectionErrors.NoDefinition]);
+        });
         context("and the definition splits the projection into multiple ones", () => {
-            it("should check it has a split definition");
+            it("should check it has a split definition", () => {
+                let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {}, definition: {}, splits: true });
+                expect(result).to.eql([ProjectionErrors.NoSplits]);
+            });
         });
         context("and one or more checks fail", () => {
-            it("should return all the failed checks");
+            it("should return all the failed checks", () => { 
+                let result = subject.analyze(<IProjection<number>>{});
+                expect(result).to.eql([ProjectionErrors.NoName, ProjectionErrors.NoSource, ProjectionErrors.NoDefinition]);
+            });
         });
     });
 });
