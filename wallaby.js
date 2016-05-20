@@ -3,10 +3,10 @@ module.exports = function (wallaby) {
     files: [
       "scripts/**/*.ts",
       "typings/**/*.d.ts",
-      "!test/**/*Spec.ts"
+      "test/fixtures/*.ts"
     ],
     tests: [
-      "test/**/*.ts"
+      "test/**/*Spec.ts"
     ],
     compilers: {
       "**/*.ts*": wallaby.compilers.typeScript()
