@@ -18,17 +18,12 @@ describe("Given a ProjectionAnalyzer", () => {
             expect(result).to.eql([ProjectionErrors.NoSource]);
         });
         it("should check it has an event application definition", () => {
-            let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {}});
+            let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {} });
             expect(result).to.eql([ProjectionErrors.NoDefinition]);
         });
-        context("and the definition splits the projection into multiple ones", () => {
-            it("should check it has a split definition", () => {
-                let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {}, definition: {}, splits: true });
-                expect(result).to.eql([ProjectionErrors.NoSplits]);
-            });
-        });
+
         context("and one or more checks fail", () => {
-            it("should return all the failed checks", () => { 
+            it("should return all the failed checks", () => {
                 let result = subject.analyze(<IProjection<number>>{});
                 expect(result).to.eql([ProjectionErrors.NoName, ProjectionErrors.NoSource, ProjectionErrors.NoDefinition]);
             });
