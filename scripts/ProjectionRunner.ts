@@ -1,4 +1,4 @@
-import { IObservable, Subject, IDisposable } from "rx";
+import { IObservable, Subject, IDisposable, Scheduler } from "rx";
 import { ISnapshotRepository, Snapshot } from "./interfaces/ISnapshotRepository";
 import { SpecialNames } from "./SpecialNames";
 import { IMatcher } from "./interfaces/IMatcher";
@@ -9,6 +9,7 @@ export class ProjectionRunner<T> implements IObservable<T>, IDisposable {
     private subject: Subject<T>;
     private subscription: IDisposable;
     private isDisposed: boolean;
+    private isFailed: boolean;
 
     constructor(private name: string, private stream: IStreamFactory, private repository: ISnapshotRepository, private matcher: IMatcher) {
         this.subject = new Subject<T>();
@@ -33,6 +34,7 @@ export class ProjectionRunner<T> implements IObservable<T>, IDisposable {
                 this.state = this.matcher.match(event.name)(this.state, event);
                 this.subject.onNext(this.state);
             } catch (error) {
+                this.isFailed = true;
                 this.subject.onError(error);
                 this.stop();
             }
@@ -40,14 +42,18 @@ export class ProjectionRunner<T> implements IObservable<T>, IDisposable {
     }
 
     stop(): void {
-        this.dispose();
+        this.isDisposed = true;
+
+        if (this.subscription)
+            this.subscription.dispose();
+        if (!this.isFailed)
+            this.subject.onCompleted();
     }
 
     dispose(): void {
-        this.isDisposed = true;
-        this.subscription.dispose();
-        this.subject.onCompleted();
-        this.subject.dispose();
+        this.stop();
+        if (!this.subject.isDisposed)
+            this.subject.dispose();
     }
 
     subscribe(observer: Rx.IObserver<T>): Rx.IDisposable
