@@ -35,12 +35,14 @@ describe("Given a Matcher", () => {
         beforeEach(() => {
             subject = new Matcher(definitionWithWildcards);
         });
+
         context("and both $default and $any are defined", () => {
             beforeEach(() => subject = new Matcher(definitionWithAnyAndDefault));
             it("should raise an error", () => {
-               expect(() => subject.match("notdefined")).to.throwError();
+                expect(() => subject.match("notdefined")).to.throwError();
             });
         });
+
         context("and no match is found", () => {
             beforeEach(() => {
                 subject = new Matcher(definitionWithoutWildcards);
@@ -67,6 +69,7 @@ describe("Given a Matcher", () => {
                         expect(subject.match("notdefined")).to.be.a(Function);
                     });
                 });
+
                 context("and $default is defined", () => {
                     beforeEach(() => subject = new Matcher(definitionWithDefault));
                     it("should return the $default member", () => {
@@ -76,11 +79,13 @@ describe("Given a Matcher", () => {
             });
         });
     });
+
     context(`when requesting a match for ${SpecialNames.Any}`, () => {
         beforeEach(() => subject = new Matcher(definitionWithAny));
         it(`should find a match only if ${SpecialNames.Any} exists`, () => {
             expect(subject.match(SpecialNames.Any)).to.be.a(Function);
         });
+
         context(`and ${SpecialNames.Any} is not defined`, () => {
             beforeEach(() => subject = new Matcher(definitionWithDefault));
             it("should raise an error", () => {
@@ -88,23 +93,27 @@ describe("Given a Matcher", () => {
             });
         });
     });
+
     context(`when requesting a match for ${SpecialNames.Default}`, () => {
         beforeEach(() => subject = new Matcher(definitionWithDefault));
         it(`should find a match only if ${SpecialNames.Default} exists`, () => {
             expect(subject.match(SpecialNames.Default)).to.be.a(Function);
         });
+
         context(`and ${SpecialNames.Default} is not defined`, () => {
-           beforeEach(() => subject = new Matcher(definitionWithAny));
-           it("should raise an error", () => {
-               expect(() => subject.match(SpecialNames.Default)).to.throwError();
-           });
+            beforeEach(() => subject = new Matcher(definitionWithAny));
+            it("should raise an error", () => {
+                expect(() => subject.match(SpecialNames.Default)).to.throwError();
+            });
         });
     });
+
     context(`when requesting a match for ${SpecialNames.Init}`, () => {
         beforeEach(() => subject = new Matcher(definitionWithInit));
         it(`should find a match only if ${SpecialNames.Init} exists`, () => {
             expect(subject.match(SpecialNames.Init)).to.be.a(Function);
         });
+
         context(`and ${SpecialNames.Init} is not defined`, () => {
             beforeEach(() => subject = new Matcher(definitionWithoutInit));
             it("should return a default function returning an empty literal", () => {
