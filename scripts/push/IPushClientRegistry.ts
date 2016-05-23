@@ -1,10 +1,10 @@
 import PushContext from "./PushContext";
 import ClientEntry from "./ClientEntry";
 
-interface IPushClientRegister {
+interface IPushClientRegistry {
     add(clientId:string, context:PushContext):void;
     clientsFor(context:PushContext):ClientEntry[];
     remove(clientId:string, context:PushContext):void;
 }
 
-export default IPushClientRegister
+export default IPushClientRegistry

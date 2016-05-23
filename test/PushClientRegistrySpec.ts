@@ -1,16 +1,16 @@
 import expect = require("expect.js");
 import sinon = require("sinon");
 import PushContext from "../scripts/push/PushContext";
-import IPushClientRegister from "../scripts/push/IPushClientRegister";
-import PushClientRegister from "../scripts/push/PushClientRegister";
+import PushClientRegistry from "../scripts/push/PushClientRegistry";
+import IPushClientRegistry from "../scripts/push/IPushClientRegistry";
 
-describe("PushClientRegister, given a client", () => {
+describe("PushClientRegistry, given a client", () => {
 
-    let subject:IPushClientRegister,
+    let subject:IPushClientRegistry,
         clientId = "288287sh";
 
     beforeEach(() => {
-        subject = new PushClientRegister();
+        subject = new PushClientRegistry();
     });
 
     context("when push notifications are needed for a viewmodel", () => {
@@ -18,7 +18,7 @@ describe("PushClientRegister, given a client", () => {
             let context = new PushContext("Admin", "Foo");
             subject.add(clientId, context);
             expect(subject.clientsFor(context)).to.have.length(1);
-            expect(subject.clientsFor(context)[0]).to.eql({id: clientId});
+            expect(subject.clientsFor(context)[0]).to.eql({id: clientId, parameters: undefined});
         });
 
         context("and custom parameters are passed during the registration", () => {
