@@ -6,8 +6,10 @@
     "typemoq": "0.0.6"
   },
   "dependencies": {
+    "express": "^4.13.4",
     "lodash": "^4.12.0",
     "rx": "^4.1.0",
+    "socket.io": "^1.4.6",
     "wildcard2": "0.0.2"
   }
 }
