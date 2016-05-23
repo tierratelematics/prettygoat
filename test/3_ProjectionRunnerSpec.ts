@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 /// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import { ProjectionRunner } from "../scripts/ProjectionRunner";
 import { SpecialNames } from "../scripts/SpecialNames";

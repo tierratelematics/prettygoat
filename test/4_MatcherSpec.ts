@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 import { Matcher } from "../scripts/Matcher";
 import { SpecialNames } from "../scripts/SpecialNames";
 

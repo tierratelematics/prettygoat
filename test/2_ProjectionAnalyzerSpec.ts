@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 import { IProjection } from "../scripts/interfaces/IProjection";
 import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/ProjectionAnalyzer";
 import expect = require("expect.js");

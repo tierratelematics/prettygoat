@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 describe("Given a ProjectionEngine", () => {
     context("when registering a new projection", () => {
         it("should check for its formal correctness");
