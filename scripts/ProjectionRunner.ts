@@ -3,9 +3,10 @@ import { ISnapshotRepository, Snapshot } from "./interfaces/ISnapshotRepository"
 import { SpecialNames } from "./SpecialNames";
 import { IMatcher } from "./interfaces/IMatcher";
 import { IStreamFactory } from "./interfaces/IStreamFactory";
+import IProjectionRunner from "./interfaces/IProjectionRunner";
 
-export class ProjectionRunner<T> implements IObservable<T>, IDisposable {
-    public state: T;
+export class ProjectionRunner<T> implements IProjectionRunner<T> {
+    public state:T;
     private subject: Subject<T>;
     private subscription: IDisposable;
     private isDisposed: boolean;

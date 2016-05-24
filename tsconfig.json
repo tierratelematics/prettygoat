@@ -15,5 +15,8 @@
         "typings",
         "test",
         "dts"
+    ],
+    "files": [
+        "typings/index.d.ts"
     ]
 }
