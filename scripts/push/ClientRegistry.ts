@@ -3,6 +3,7 @@ import PushContext from "./PushContext";
 import ClientEntry from "./ClientEntry";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
+import ContextOperations from "./ContextOperations";
 
 class ClientRegistry implements IClientRegistry {
 
@@ -11,23 +12,18 @@ class ClientRegistry implements IClientRegistry {
     add(clientId:string, context:PushContext):void {
         if (!clientId)
             throw new Error("Client id is invalid");
-        let key = this.getKeyFromContext(context);
+        let key = ContextOperations.getChannel(context);
         if (!this.registry[key])
             this.registry[key] = [];
         this.registry[key].push(new ClientEntry(clientId, context.parameters));
     }
 
     clientsFor(context:PushContext):ClientEntry[] {
-        return this.registry[this.getKeyFromContext(context)];
+        return this.registry[ContextOperations.getChannel(context)];
     }
 
     remove(clientId:string, context:PushContext):void {
-        let key = this.getKeyFromContext(context);
-        _.remove<ClientEntry>(this.registry[key], entry => entry.id === clientId);
-    }
-
-    private getKeyFromContext(context:PushContext):string {
-        return `${context.area}:${context.viewmodelId}`;
+        _.remove<ClientEntry>(this.registry[ContextOperations.getChannel(context)], entry => entry.id === clientId);
     }
 }
 
