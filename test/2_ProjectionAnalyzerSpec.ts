@@ -1,5 +1,5 @@
-import { IProjection } from "../scripts/interfaces/IProjection";
-import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/ProjectionAnalyzer";
+import { IProjection } from "../scripts/projections/IProjection";
+import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/projections/ProjectionAnalyzer";
 import expect = require("expect.js");
 
 describe("Given a ProjectionAnalyzer", () => {

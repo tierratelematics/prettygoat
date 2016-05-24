@@ -1,5 +1,5 @@
 /// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
-import { ProjectionRunner } from "../scripts/ProjectionRunner";
+import { ProjectionRunner } from "../scripts/projections/ProjectionRunner";
 import { SpecialNames } from "../scripts/SpecialNames";
 import { IMatcher } from "../scripts/interfaces/IMatcher";
 import { ISnapshotRepository, Snapshot } from "../scripts/interfaces/ISnapshotRepository";

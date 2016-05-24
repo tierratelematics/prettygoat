@@ -1,5 +1,5 @@
 import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
-import {IProjection, AllStreamSource} from "../../../scripts/interfaces/IProjection";
+import {IProjection, AllStreamSource} from "../../../scripts/projections/IProjection";
 import Projection from "../../../scripts/registry/ProjectionDecorator";
 
 @Projection("Mock")

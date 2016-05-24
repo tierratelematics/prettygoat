@@ -1,7 +1,7 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import IProjectionDefinition from "../registry/IProjectionDefinition";
-import IProjectionRunner from "../interfaces/IProjectionRunner";
-import {ProjectionRunner} from "../ProjectionRunner";
+import IProjectionRunner from "./IProjectionRunner";
+import {ProjectionRunner} from "./ProjectionRunner";
 import {Matcher} from "../Matcher";
 
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {

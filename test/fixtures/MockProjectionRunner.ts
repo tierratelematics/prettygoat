@@ -1,4 +1,4 @@
-import IProjectionRunner from "../../scripts/interfaces/IProjectionRunner";
+import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
 

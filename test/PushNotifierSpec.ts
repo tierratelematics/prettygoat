@@ -4,7 +4,7 @@ import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import PushContext from "../scripts/push/PushContext";
-import IProjectionRunner from "../scripts/interfaces/IProjectionRunner";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockModel from "./fixtures/MockModel";
 import IProjectionRouter from "../scripts/push/IProjectionRouter";
 import MockProjectionRouter from "./fixtures/MockProjectionRouter";

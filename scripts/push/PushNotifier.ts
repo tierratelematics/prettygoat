@@ -1,5 +1,5 @@
 import IPushNotifier from "./IPushNotifier";
-import IProjectionRunner from "../interfaces/IProjectionRunner";
+import IProjectionRunner from "../projections/IProjectionRunner";
 import PushContext from "./PushContext";
 import IProjectionRouter from "./IProjectionRouter";
 import ContextOperations from "./ContextOperations";

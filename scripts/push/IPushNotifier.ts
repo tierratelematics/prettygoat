@@ -1,4 +1,4 @@
-import IProjectionRunner from "../interfaces/IProjectionRunner";
+import IProjectionRunner from "../projections/IProjectionRunner";
 import PushContext from "./PushContext";
 
 interface IPushNotifier {

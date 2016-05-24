@@ -11,9 +11,9 @@ import SinonStub = Sinon.SinonStub;
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import {ProjectionRunner} from "../scripts/ProjectionRunner";
+import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/Matcher";
-import IProjectionRunner from "../scripts/interfaces/IProjectionRunner";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import PushContext from "../scripts/push/PushContext";
 import Constants from "../scripts/Constants";
 
