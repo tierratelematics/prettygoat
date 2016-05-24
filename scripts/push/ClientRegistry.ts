@@ -1,10 +1,10 @@
-import IPushClientRegistry from "./IPushClientRegistry";
+import IClientRegistry from "./IClientRegistry";
 import PushContext from "./PushContext";
 import ClientEntry from "./ClientEntry";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
 
-class PushClientRegistry implements IPushClientRegistry {
+class ClientRegistry implements IClientRegistry {
 
     private registry:Dictionary<ClientEntry[]> = {};
 
@@ -31,4 +31,4 @@ class PushClientRegistry implements IPushClientRegistry {
     }
 }
 
-export default PushClientRegistry
+export default ClientRegistry

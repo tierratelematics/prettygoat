@@ -1,16 +1,16 @@
 import expect = require("expect.js");
 import sinon = require("sinon");
 import PushContext from "../scripts/push/PushContext";
-import PushClientRegistry from "../scripts/push/PushClientRegistry";
-import IPushClientRegistry from "../scripts/push/IPushClientRegistry";
+import ClientRegistry from "../scripts/push/ClientRegistry";
+import IClientRegistry from "../scripts/push/IClientRegistry";
 
-describe("PushClientRegistry, given a client", () => {
+describe("ClientRegistry, given a client", () => {
 
-    let subject:IPushClientRegistry,
+    let subject:IClientRegistry,
         clientId = "288287sh";
 
     beforeEach(() => {
-        subject = new PushClientRegistry();
+        subject = new ClientRegistry();
     });
 
     context("when push notifications are needed for a viewmodel", () => {
