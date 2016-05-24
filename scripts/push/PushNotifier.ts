@@ -21,7 +21,8 @@ class PushNotifier implements IPushNotifier {
             let clients = this.registry.clientsFor(context);
             _.forEach<ClientEntry>(clients, client => this.eventEmitter.emitTo(
                 client.id,
-                ContextOperations.getChannel(context), {
+                ContextOperations.getChannel(context),
+                {
                     url: ContextOperations.getEndpoint(context)
                 })
             );
