@@ -1,16 +1,11 @@
-import RegistryEntry from "./RegistryEntry";
 import AreaRegistry from "./AreaRegistry";
-import {IProjection} from "../interfaces/IProjection";
-import PushContext from "../push/PushContext";
+import IProjectionDefinition from "./IProjectionDefinition";
 
 interface IProjectionRegistry {
-    master<T>(projection:IProjection<T>):AreaRegistry;
-    index<T>(projection:IProjection<T>):AreaRegistry;
-    add<T>(projection:IProjection<T>, context:PushContext):IProjectionRegistry;
+    master<T>(projection:IProjectionDefinition<T>):AreaRegistry;
+    index<T>(projection:IProjectionDefinition<T>):AreaRegistry;
+    add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry;
     forArea(area:string):AreaRegistry;
-    getArea(areaId:string):AreaRegistry;
-    getAreas():AreaRegistry[];
-    getEntry<T>(area:string, id:string):RegistryEntry<T>;
 }
 
 export default IProjectionRegistry;

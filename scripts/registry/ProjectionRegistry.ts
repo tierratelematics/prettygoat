@@ -1,39 +1,39 @@
 import IProjectionRegistry from "./IProjectionRegistry";
-import {IProjection} from "../interfaces/IProjection";
 import AreaRegistry from "./AreaRegistry";
-import PushContext from "../push/PushContext";
 import RegistryEntry from "./RegistryEntry";
+import * as _ from "lodash";
+import IProjectionDefinition from "./IProjectionDefinition";
 
 class ProjectionRegistry implements IProjectionRegistry {
-    
-    master<T>(projection:IProjection<T>):AreaRegistry {
+
+    private registry:AreaRegistry[] = [];
+    private unregisteredEntries:RegistryEntry<any>[] = [];
+
+    master<T>(projection:IProjectionDefinition<T>):AreaRegistry {
+        //return this.add(construct, observable).forArea(Area.Master);
+        return null;
+    }
+
+    index<T>(projection:IProjectionDefinition<T>):AreaRegistry {
         return undefined;
     }
 
-    index<T>(projection:IProjection<T>):AreaRegistry {
-        return undefined;
-    }
-
-    add<T>(projection:IProjection<T>, context:PushContext):IProjectionRegistry {
-        return undefined;
+    add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry {
+        /* let id = Reflect.getMetadata("ninjagoat:viewmodel", construct);
+         if (!id)
+         throw new Error("Missing ViewModel decorator");
+         this.unregisteredEntries.push(new RegistryEntry<T>(construct, id, observable, parameters));
+         return this;*/
+        return null;
     }
 
     forArea(area:string):AreaRegistry {
-        return undefined;
+        _.remove(this.registry, (entry:AreaRegistry) => entry.area === area);
+        let areaRegistry = new AreaRegistry(area, this.unregisteredEntries);
+        this.registry.push(areaRegistry);
+        this.unregisteredEntries = [];
+        return areaRegistry;
     }
-
-    getArea(areaId:string):AreaRegistry {
-        return undefined;
-    }
-
-    getAreas():AreaRegistry[] {
-        return undefined;
-    }
-
-    getEntry<T>(area:string, id:string):RegistryEntry<T> {
-        return undefined;
-    }
-
 }
 
 export default ProjectionRegistry
