@@ -12,18 +12,18 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isDisposed: boolean;
     private isFailed: boolean;
 
-    constructor(private name: string, private stream: IStreamFactory, private repository: ISnapshotRepository, private matcher: IMatcher) {
+    constructor(private streamId: string, private stream: IStreamFactory, private repository: ISnapshotRepository, private matcher: IMatcher) {
         this.subject = new Subject<T>();
     }
 
     run(): void {
         if (this.isDisposed)
-            throw new Error(`${name}: cannot run a disposed projection`);
+            throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
 
-        let snapshot = this.repository.getSnapshot<T>(this.name);
+        let snapshot = this.repository.getSnapshot<T>(this.streamId);
         if (snapshot !== Snapshot.Empty)
             this.state = snapshot.memento;
         else
@@ -32,7 +32,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event: any) => {
             try {
-                this.state = this.matcher.match(event.name)(this.state, event);
+                this.state = this.matcher.match(event.streamId)(this.state, event);
                 this.subject.onNext(this.state);
             } catch (error) {
                 this.isFailed = true;
