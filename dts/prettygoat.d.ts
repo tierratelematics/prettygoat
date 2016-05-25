@@ -1,6 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 
 import {IObservable, IDisposable, Observable} from "rx";
+import {IKernelModule} from "inversify";
 
 declare module prettygoat {
 
@@ -126,6 +127,7 @@ declare module prettygoat {
         index<T>(projection:IProjectionDefinition<T>):AreaRegistry;
         add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
+        getAreas():AreaRegistry[];
     }
 
     export class AreaRegistry {
@@ -141,6 +143,26 @@ declare module prettygoat {
     }
 
     export function Projection(name:string);
+
+    export class Engine {
+
+        register(module:IModule);
+
+        run(overrides?:any);
+    }
+
+    export interface IModule {
+        modules?:IKernelModule;
+        register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void;
+    }
+
+    export  interface IServiceLocator {
+        get<T>(key:string, name?:string):T;
+    }
+
+    export interface IProjectionEngine {
+        run():void;
+    }
 }
 
 export = prettygoat;

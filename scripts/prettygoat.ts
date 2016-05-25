@@ -1,4 +1,5 @@
 /// <reference path="../typings/index.d.ts" />
+import Engine from "./bootstrap/Engine";
 import {ProjectionRunner} from "./projections/ProjectionRunner";
 import ProjectionRunnerFactory from "./projections/ProjectionRunnerFactory";
 import PushContext from "./push/PushContext";
@@ -10,3 +11,4 @@ export {ProjectionRunnerFactory}
 export {PushContext}
 export {PushNotifier}
 export {Projection}
+export {Engine}
