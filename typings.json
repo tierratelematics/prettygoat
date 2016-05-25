@@ -10,10 +10,10 @@
         "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160322035842",
         "mime": "registry:dt/mime#0.0.0+20160316155526",
         "node": "registry:dt/node#4.0.0+20160509154515",
+        "reflect-metadata": "npm:reflect-metadata/reflect-metadata.d.ts",
         "rx": "npm:rx/ts/rx.all.d.ts",
         "serve-static": "registry:dt/serve-static#0.0.0+20160501131543",
-        "socket.io": "registry:dt/socket.io#1.4.4+20160317120654",
-        "reflect-metadata": "npm:reflect-metadata/reflect-metadata.d.ts"
+        "socket.io": "registry:dt/socket.io#1.4.4+20160317120654"
     },
     "dependencies": {
         "lodash": "registry:npm/lodash#4.0.0+20160416211519"
