@@ -3,35 +3,41 @@ import AreaRegistry from "./AreaRegistry";
 import RegistryEntry from "./RegistryEntry";
 import * as _ from "lodash";
 import IProjectionDefinition from "./IProjectionDefinition";
+import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
+import IPushNotifier from "../push/IPushNotifier";
+import Constants from "../Constants";
+import PushContext from "../push/PushContext";
 
 class ProjectionRegistry implements IProjectionRegistry {
 
-    private registry:AreaRegistry[] = [];
     private unregisteredEntries:RegistryEntry<any>[] = [];
 
+    constructor(private runnerFactory:IProjectionRunnerFactory, private pushNotifier:IPushNotifier) {
+
+    }
+
     master<T>(projection:IProjectionDefinition<T>):AreaRegistry {
-        //return this.add(construct, observable).forArea(Area.Master);
-        return null;
+        return this.add(projection).forArea(Constants.MASTER_AREA);
     }
 
     index<T>(projection:IProjectionDefinition<T>):AreaRegistry {
-        return undefined;
+        return this.add(projection).forArea(Constants.INDEX_AREA);
     }
 
     add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry {
-        /* let id = Reflect.getMetadata("ninjagoat:viewmodel", construct);
-         if (!id)
-         throw new Error("Missing ViewModel decorator");
-         this.unregisteredEntries.push(new RegistryEntry<T>(construct, id, observable, parameters));
-         return this;*/
-        return null;
+        let name = Reflect.getMetadata("prettygoat:projection", projection.constructor);
+        if (!name)
+            throw new Error("Missing Projection decorator");
+        this.unregisteredEntries.push(new RegistryEntry<T>(projection, name, parameters));
+        return this;
     }
 
     forArea(area:string):AreaRegistry {
-        _.remove(this.registry, (entry:AreaRegistry) => entry.area === area);
         let areaRegistry = new AreaRegistry(area, this.unregisteredEntries);
-        this.registry.push(areaRegistry);
         this.unregisteredEntries = [];
+        _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
+            this.pushNotifier.register(this.runnerFactory.create(entry.projection), new PushContext(areaRegistry.area, entry.name));
+        });
         return areaRegistry;
     }
 }

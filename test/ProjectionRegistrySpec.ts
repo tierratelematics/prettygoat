@@ -30,7 +30,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner = new ProjectionRunner<number>("test", null, null, new Matcher({}));
         pushNotifier = new PushNotifier(null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory();
-        subject = new ProjectionRegistry();
+        subject = new ProjectionRegistry(projectionRunnerFactory, pushNotifier);
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
         factoryStub = sinon.stub(projectionRunnerFactory, "create", () => runner);
@@ -44,14 +44,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     context("when they are registered under a specific area", () => {
         it("should register the projection runners with the right contexts", () => {
             subject.add(new MockProjectionDefinition()).forArea("Admin");
-            expect(notifyStub.calledWith(runner, new PushContext("Admin", "test"))).to.be(true);
-        });
-    });
-
-    context("when an area is already registered", () => {
-        it("should not override the registration", () => {
-            subject.add(new MockProjectionDefinition()).forArea("Admin");
-            expect(() => subject.add(new MockProjectionDefinition()).forArea("Admin")).to.throwError();
+            expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
         });
     });
 
@@ -63,15 +56,15 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when the projection corresponding to the index page has to be registered", () => {
         it("should be registered with a default area name", () => {
-            subject.master(new MockProjectionDefinition());
-            expect(notifyStub.calledWith(runner, new PushContext(Constants.MASTER_AREA))).to.be(true);
+            subject.index(new MockProjectionDefinition());
+            expect(notifyStub.calledWith(runner, new PushContext(Constants.INDEX_AREA, "Mock"))).to.be(true);
         });
     });
 
     context("when the projection corresponding to the master page has to be registered", () => {
         it("should be registered with a default area name", () => {
             subject.master(new MockProjectionDefinition());
-            expect(notifyStub.calledWith(runner, new PushContext(Constants.INDEX_AREA))).to.be(true);
+            expect(notifyStub.calledWith(runner, new PushContext(Constants.MASTER_AREA, "Mock"))).to.be(true);
         });
     });
 });
