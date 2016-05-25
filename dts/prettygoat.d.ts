@@ -133,7 +133,7 @@ declare module prettygoat {
     }
 
     export class RegistryEntry<T> {
-        projection:IProjectionDefinition<T>;
+        projection:IProjection<T>;
         name:string;
         parameters:any;
 

@@ -1,13 +1,14 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
-import IProjectionDefinition from "../registry/IProjectionDefinition";
 import IProjectionRunner from "./IProjectionRunner";
 import {ProjectionRunner} from "./ProjectionRunner";
 import {Matcher} from "../Matcher";
+import {injectable} from "inversify";
+import {IProjection} from "./IProjection";
 
+@injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
-    create<T>(definition:IProjectionDefinition<T>):IProjectionRunner<T> {
-        let projection = definition.define();
+    create<T>(projection:IProjection<T>):IProjectionRunner<T> {
         return new ProjectionRunner<T>(projection.name, null, null, new Matcher(projection.definition));
     }
 

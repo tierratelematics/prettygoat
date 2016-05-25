@@ -7,12 +7,17 @@ import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IPushNotifier from "../push/IPushNotifier";
 import Constants from "../Constants";
 import PushContext from "../push/PushContext";
+import {injectable, inject} from "inversify";
+import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 
+@injectable()
 class ProjectionRegistry implements IProjectionRegistry {
 
     private unregisteredEntries:RegistryEntry<any>[] = [];
 
-    constructor(private runnerFactory:IProjectionRunnerFactory, private pushNotifier:IPushNotifier) {
+    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
+                @inject("IPushNotifier") private pushNotifier:IPushNotifier,
+                @inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer) {
 
     }
 
@@ -24,10 +29,14 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this.add(projection).forArea(Constants.INDEX_AREA);
     }
 
-    add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry {
-        let name = Reflect.getMetadata("prettygoat:projection", projection.constructor);
+    add<T>(definition:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry {
+        let name = Reflect.getMetadata("prettygoat:projection", definition.constructor);
         if (!name)
             throw new Error("Missing Projection decorator");
+        let projection = definition.define();
+        let validationErrors = this.analyzer.analyze(projection);
+        if (validationErrors.length > 0)
+            throw new Error(validationErrors[0]);
         this.unregisteredEntries.push(new RegistryEntry<T>(projection, name, parameters));
         return this;
     }

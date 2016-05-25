@@ -17,14 +17,14 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
 
     context("when all the required properties are defined", () => {
         it("should return a constructed projection", () => {
-            let projectionRunner = subject.create(new MockProjectionDefinition());
+            let projectionRunner = subject.create(new MockProjectionDefinition().define());
             expect((<any>projectionRunner).streamId).to.eql("test");
         });
     });
 
     context("when not all the required properties are defined", () => {
         it("should throw an error", () => {
-            expect(() => subject.create(new UnnamedProjectionDefinition())).to.throwError();
+            expect(() => subject.create(new UnnamedProjectionDefinition().define())).to.throwError();
         });
     });
 });

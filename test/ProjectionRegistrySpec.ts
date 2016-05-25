@@ -16,6 +16,8 @@ import {Matcher} from "../scripts/Matcher";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import PushContext from "../scripts/push/PushContext";
 import Constants from "../scripts/Constants";
+import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
+import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -30,7 +32,8 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner = new ProjectionRunner<number>("test", null, null, new Matcher({}));
         pushNotifier = new PushNotifier(null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory();
-        subject = new ProjectionRegistry(projectionRunnerFactory, pushNotifier);
+        let analyzer = new ProjectionAnalyzer();
+        subject = new ProjectionRegistry(projectionRunnerFactory, pushNotifier, analyzer);
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
         factoryStub = sinon.stub(projectionRunnerFactory, "create", () => runner);
@@ -51,6 +54,12 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     context("when a projection has no name", () => {
         it("should throw an error regarding the missing decorator", () => {
             expect(() => subject.add(new UnnamedProjectionDefinition())).to.throwError();
+        });
+    });
+
+    context("when a projection isn't formally correct", () => {
+        it("should throw an error", () => {
+            expect(() => subject.add(new MockBadProjectionDefinition())).to.throwError();
         });
     });
 
