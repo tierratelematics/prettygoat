@@ -14,8 +14,6 @@ import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFact
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/matcher/Matcher";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import PushContext from "../scripts/push/PushContext";
-import Constants from "../scripts/registry/Constants";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 
@@ -23,9 +21,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject:IProjectionRegistry,
         pushNotifier:IPushNotifier,
-        notifyStub:SinonStub,
         projectionRunnerFactory:IProjectionRunnerFactory,
-        factoryStub:SinonStub,
         runner:IProjectionRunner<number>;
 
     beforeEach(() => {
@@ -33,21 +29,15 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         pushNotifier = new PushNotifier(null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory();
         let analyzer = new ProjectionAnalyzer();
-        subject = new ProjectionRegistry(projectionRunnerFactory, pushNotifier, analyzer);
-        notifyStub = sinon.stub(pushNotifier, "register", () => {
-        });
-        factoryStub = sinon.stub(projectionRunnerFactory, "create", () => runner);
-    });
-
-    afterEach(() => {
-        notifyStub.restore();
-        factoryStub.restore();
+        subject = new ProjectionRegistry(analyzer);
     });
 
     context("when they are registered under a specific area", () => {
         it("should register the projection runners with the right contexts", () => {
             subject.add(new MockProjectionDefinition()).forArea("Admin");
-            expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
+            let areas = subject.getAreas();
+
+            expect(areas[0].area).to.be("Admin");
         });
     });
 
@@ -63,28 +53,21 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
     });
 
-    context("when all the projections registered should be retrieved", () => {
-        it("should list all the projections", () => {
-            subject.add(new MockProjectionDefinition()).forArea("Admin");
-            subject.add(new MockProjectionDefinition()).forArea("Tools");
-            let areas = subject.getAreas();
-
-            expect(areas[0].area).to.be("Admin");
-            expect(areas[1].area).to.be("Tools");
-        });
-    });
-
     context("when the projection corresponding to the index page has to be registered", () => {
         it("should be registered with a default area name", () => {
             subject.index(new MockProjectionDefinition());
-            expect(notifyStub.calledWith(runner, new PushContext(Constants.INDEX_AREA, "Mock"))).to.be(true);
+            let areas = subject.getAreas();
+
+            expect(areas[0].area).to.be("Index");
         });
     });
 
     context("when the projection corresponding to the master page has to be registered", () => {
         it("should be registered with a default area name", () => {
             subject.master(new MockProjectionDefinition());
-            expect(notifyStub.calledWith(runner, new PushContext(Constants.MASTER_AREA, "Mock"))).to.be(true);
+            let areas = subject.getAreas();
+
+            expect(areas[0].area).to.be("Master");
         });
     });
 });

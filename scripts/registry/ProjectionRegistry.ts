@@ -1,12 +1,8 @@
 import IProjectionRegistry from "./IProjectionRegistry";
 import AreaRegistry from "./AreaRegistry";
 import RegistryEntry from "./RegistryEntry";
-import * as _ from "lodash";
 import IProjectionDefinition from "./IProjectionDefinition";
-import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import IPushNotifier from "../push/IPushNotifier";
 import Constants from "./Constants";
-import PushContext from "../push/PushContext";
 import {injectable, inject} from "inversify";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 
@@ -16,9 +12,7 @@ class ProjectionRegistry implements IProjectionRegistry {
     private registry:AreaRegistry[] = [];
     private unregisteredEntries:RegistryEntry<any>[] = [];
 
-    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
-                @inject("IPushNotifier") private pushNotifier:IPushNotifier,
-                @inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer) {
+    constructor(@inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer) {
 
     }
 
@@ -46,9 +40,6 @@ class ProjectionRegistry implements IProjectionRegistry {
         let areaRegistry = new AreaRegistry(area, this.unregisteredEntries);
         this.registry.push(areaRegistry);
         this.unregisteredEntries = [];
-        _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-            this.pushNotifier.register(this.runnerFactory.create(entry.projection), new PushContext(areaRegistry.area, entry.name));
-        });
         return areaRegistry;
     }
 
