@@ -5,8 +5,9 @@ import IModule from "./IModule";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
-import {server} from "./Socket";
+import {server, socket} from "./Socket";
 import IProjectionEngine from "../projections/IProjectionEngine";
+import IClientRegistry from "../push/IClientRegistry";
 
 class Engine {
 
@@ -24,9 +25,14 @@ class Engine {
 
     run(overrides?:any) {
         let registry = this.kernel.get<IProjectionRegistry>("IProjectionRegistry"),
-            projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine");
+            projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine"),
+            clientRegistry = this.kernel.get<IClientRegistry>("IClientRegistry");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
         server.listen(3000);
+        socket.on('connection', client => {
+            client.on('subscribe', message => clientRegistry.add(client.id, message));
+            client.on('unsubscribe', message => clientRegistry.remove(client.id, message));
+        });
         projectionEngine.run();
     }
 }
