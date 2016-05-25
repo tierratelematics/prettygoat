@@ -4,7 +4,7 @@ import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import PushContext from "../scripts/push/PushContext";
-import IProjectionRunner from "../scripts/interfaces/IProjectionRunner";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockModel from "./fixtures/MockModel";
 import IProjectionRouter from "../scripts/push/IProjectionRouter";
 import MockProjectionRouter from "./fixtures/MockProjectionRouter";
@@ -16,6 +16,7 @@ import ClientRegistry from "../scripts/push/ClientRegistry";
 import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
+import Constants from "../scripts/Constants";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 
@@ -67,6 +68,20 @@ describe("PushNotifier, given a projection runner and a context", () => {
             expect(emitterSpy.calledWith('shh3', 'Admin:Foo', {
                 url: '/admin/foo'
             })).to.be(true);
+        });
+    });
+
+    context("when they are registered under the master context", () => {
+        it("should use a default endpoint", () => {
+            subject.register(projectionRunner, new PushContext(Constants.MASTER_AREA));
+            expect(routerSpy.calledWith("/master")).to.be(true);
+        });
+    });
+
+    context("when they are registered under the index context", () => {
+        it("should use a default endpoint", () => {
+            subject.register(projectionRunner, new PushContext(Constants.INDEX_AREA));
+            expect(routerSpy.calledWith("/index")).to.be(true);
         });
     });
 });

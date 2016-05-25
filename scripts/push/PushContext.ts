@@ -1,11 +1,11 @@
 class PushContext {
     area:string;
-    viewmodelId:string;
+    projectionName:string;
     parameters:any;
 
-    constructor(area:string, viewmodelId:string, parameters?:any) {
+    constructor(area:string, projectionName?:string, parameters?:any) {
         this.area = area;
-        this.viewmodelId = viewmodelId;
+        this.projectionName = projectionName;
         this.parameters = parameters;
     }
 }

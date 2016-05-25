@@ -1,5 +1,5 @@
 /// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
-import { ProjectionRunner } from "../scripts/ProjectionRunner";
+import { ProjectionRunner } from "../scripts/projections/ProjectionRunner";
 import { SpecialNames } from "../scripts/SpecialNames";
 import { IMatcher } from "../scripts/interfaces/IMatcher";
 import { ISnapshotRepository, Snapshot } from "../scripts/interfaces/ISnapshotRepository";
@@ -57,7 +57,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
                 stream.setup(s => s.from(undefined)).returns(_ => Observable.empty());
-                matcher.setup(m => m.match(SpecialNames.Init)).returns(name => () => 42);
+                matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
                 subject.run();
             });
 
@@ -84,13 +84,13 @@ describe("Given a ProjectionRunner", () => {
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(name => () => 42);
-            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { name: "increment", value: n }; }));
+            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { streamId: "increment", value: n }; }));
         });
 
         context("and no error occurs", () => {
             beforeEach(() => {
-                matcher.setup(m => m.match("increment")).returns(name => (s: number, e: any) => s + e.value);
+                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e.value);
                 subject.run();
             });
 
@@ -115,7 +115,7 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
-                matcher.setup(m => m.match("increment")).returns(name => (s: number, e: any) => { throw new Error("Kaboom!"); });
+                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => { throw new Error("Kaboom!"); });
                 subject.run();
             });
             it("should notify an error", () => {
@@ -128,17 +128,17 @@ describe("Given a ProjectionRunner", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
             repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(name => () => 42);
-            matcher.setup(m => m.match("increment")).returns(name => (s: number, e: any) => s + e.value);
+            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e.value);
             stream.setup(s => s.from(undefined)).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({ name: "increment", value: 1 });
-            streamSubject.onNext({ name: "increment", value: 2 });
-            streamSubject.onNext({ name: "increment", value: 3 });
-            streamSubject.onNext({ name: "increment", value: 4 });
+            streamSubject.onNext({ streamId: "increment", value: 1 });
+            streamSubject.onNext({ streamId: "increment", value: 2 });
+            streamSubject.onNext({ streamId: "increment", value: 3 });
+            streamSubject.onNext({ streamId: "increment", value: 4 });
             subject.stop();
-            streamSubject.onNext({ name: "increment", value: 5 });
+            streamSubject.onNext({ streamId: "increment", value: 5 });
         });
         it("should not process any more events", () => {
             expect(notifications).to.eql([

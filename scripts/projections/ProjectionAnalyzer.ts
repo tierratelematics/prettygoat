@@ -1,4 +1,4 @@
-import { IProjection } from "./interfaces/IProjection";
+import { IProjection } from "./IProjection";
 
 export class ProjectionErrors {
     public static NoName = "Projection has no name";
