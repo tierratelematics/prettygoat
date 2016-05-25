@@ -10,6 +10,12 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
         this.subject = subject;
     }
 
+    run():void {
+    }
+
+    stop():void {
+    }
+
     subscribe(observer:Rx.IObserver<MockModel>):Rx.IDisposable
     subscribe(onNext?:(value:MockModel) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
     subscribe(observerOrOnNext?:(Rx.IObserver<MockModel>) | ((value:MockModel) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {

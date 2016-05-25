@@ -15,6 +15,8 @@ import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import PushNotifier from "../push/PushNotifier";
 import IPushNotifier from "../push/IPushNotifier";
 import {socket} from "./Socket";
+import IProjectionEngine from "../projections/IProjectionEngine";
+import ProjectionEngine from "../projections/ProjectionEngine";
 
 class PrettyGoatModule implements IModule {
 
@@ -27,6 +29,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry);
         kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer);
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier);
+        kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine);
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

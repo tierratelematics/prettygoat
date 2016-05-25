@@ -3,6 +3,10 @@ import IPushNotifier from "../push/IPushNotifier";
 import {injectable, inject} from "inversify";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
+import * as _ from "lodash";
+import AreaRegistry from "../registry/AreaRegistry";
+import RegistryEntry from "../registry/RegistryEntry";
+import PushContext from "../push/PushContext";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -14,14 +18,16 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     run():void {
+        let areas = this.registry.getAreas();
+        _.forEach<AreaRegistry>(areas, areaRegistry => {
+            _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
+                let runner = this.runnerFactory.create(entry.projection);
+                this.pushNotifier.register(runner, new PushContext(areaRegistry.area, entry.name));
+                runner.run();
+            });
+        });
     }
 
 }
-
-/*
- _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
- this.pushNotifier.register(this.runnerFactory.create(entry.projection), new PushContext(areaRegistry.area, entry.name));
- });
- */
 
 export default ProjectionEngine

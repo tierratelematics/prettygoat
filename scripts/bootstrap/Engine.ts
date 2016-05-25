@@ -6,6 +6,7 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import {server} from "./Socket";
+import IProjectionEngine from "../projections/IProjectionEngine";
 
 class Engine {
 
@@ -22,10 +23,11 @@ class Engine {
     }
 
     run(overrides?:any) {
-        let registry = this.kernel.get<IProjectionRegistry>("IProjectionRegistry");
+        let registry = this.kernel.get<IProjectionRegistry>("IProjectionRegistry"),
+            projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
         server.listen(3000);
-        //TODO: run projections
+        projectionEngine.run();
     }
 }
 
