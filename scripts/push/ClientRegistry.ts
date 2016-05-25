@@ -4,7 +4,9 @@ import ClientEntry from "./ClientEntry";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
 import ContextOperations from "./ContextOperations";
+import {injectable} from "inversify";
 
+@injectable()
 class ClientRegistry implements IClientRegistry {
 
     private registry:Dictionary<ClientEntry[]> = {};

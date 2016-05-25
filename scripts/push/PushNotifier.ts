@@ -9,10 +9,14 @@ import IEventEmitter from "./IEventEmitter";
 import IClientRegistry from "./IClientRegistry";
 import * as _ from "lodash";
 import ClientEntry from "./ClientEntry";
+import {injectable, inject} from "inversify";
 
+@injectable()
 class PushNotifier implements IPushNotifier {
 
-    constructor(private router:IProjectionRouter, private eventEmitter:IEventEmitter, private registry:IClientRegistry) {
+    constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
+                @inject("IEventEmitter") private eventEmitter:IEventEmitter,
+                @inject("IClientRegistry") private registry:IClientRegistry) {
 
     }
 

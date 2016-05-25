@@ -6,6 +6,7 @@ interface IProjectionRegistry {
     index<T>(projection:IProjectionDefinition<T>):AreaRegistry;
     add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry;
     forArea(area:string):AreaRegistry;
+    getAreas():AreaRegistry[];
 }
 
 export default IProjectionRegistry;

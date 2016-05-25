@@ -1,8 +1,10 @@
 import IEventEmitter from "./IEventEmitter";
+import {injectable, inject} from "inversify";
 
+@injectable()
 class SocketEventEmitter implements IEventEmitter {
 
-    constructor(private socket:SocketIO.Socket) {
+    constructor(@inject("SocketIO.Socket") private socket:SocketIO.Socket) {
 
     }
 
