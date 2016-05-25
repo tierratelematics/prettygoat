@@ -5,7 +5,7 @@ import * as _ from "lodash";
 import IProjectionDefinition from "./IProjectionDefinition";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IPushNotifier from "../push/IPushNotifier";
-import Constants from "../Constants";
+import Constants from "./Constants";
 import PushContext from "../push/PushContext";
 import {injectable, inject} from "inversify";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";

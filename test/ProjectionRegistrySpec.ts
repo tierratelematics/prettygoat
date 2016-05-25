@@ -12,10 +12,10 @@ import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectio
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
-import {Matcher} from "../scripts/Matcher";
+import {Matcher} from "../scripts/matcher/Matcher";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import PushContext from "../scripts/push/PushContext";
-import Constants from "../scripts/Constants";
+import Constants from "../scripts/registry/Constants";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 

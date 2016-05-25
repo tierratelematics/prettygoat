@@ -18,7 +18,7 @@ import ClientRegistry from "../scripts/push/ClientRegistry";
 import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
-import Constants from "../scripts/Constants";
+import Constants from "../scripts/registry/Constants";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 

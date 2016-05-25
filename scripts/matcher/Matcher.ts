@@ -1,4 +1,4 @@
-import { IMatcher } from "./interfaces/IMatcher";
+import { IMatcher } from "./IMatcher";
 import { SpecialNames } from "./SpecialNames";
 import * as _ from "lodash";
 

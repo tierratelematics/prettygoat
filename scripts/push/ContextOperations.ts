@@ -1,5 +1,5 @@
 import PushContext from "./PushContext";
-import Constants from "../Constants";
+import Constants from "../registry/Constants";
 
 class ContextOperations {
     static getChannel(context:PushContext):string {

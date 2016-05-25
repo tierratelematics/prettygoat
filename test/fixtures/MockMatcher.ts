@@ -1,4 +1,4 @@
-import { IMatcher } from "../../scripts/interfaces/IMatcher";
+import { IMatcher } from "../../scripts/matcher/IMatcher";
 
 export class MockMatcher implements IMatcher {
     match(name: string): Function {

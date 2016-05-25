@@ -1,4 +1,4 @@
-import { ISnapshotStrategy } from "../interfaces/ISnapshotStrategy";
+import { ISnapshotStrategy } from "./ISnapshotStrategy";
 
 export abstract class StreamSource {
     private "stream source member for structural type" = "";

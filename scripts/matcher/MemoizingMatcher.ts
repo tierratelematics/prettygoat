@@ -1,4 +1,4 @@
-import { IMatcher } from "./interfaces/IMatcher";
+import { IMatcher } from "./IMatcher";
 import _ = require("lodash");
 
 export class MemoizingMatcher implements IMatcher {

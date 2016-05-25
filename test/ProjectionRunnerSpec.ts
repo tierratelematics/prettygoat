@@ -2,10 +2,10 @@
 import "bluebird";
 import "reflect-metadata";
 import { ProjectionRunner } from "../scripts/projections/ProjectionRunner";
-import { SpecialNames } from "../scripts/SpecialNames";
-import { IMatcher } from "../scripts/interfaces/IMatcher";
-import { ISnapshotRepository, Snapshot } from "../scripts/interfaces/ISnapshotRepository";
-import { IStreamFactory } from "../scripts/interfaces/IStreamFactory";
+import { SpecialNames } from "../scripts/matcher/SpecialNames";
+import { IMatcher } from "../scripts/matcher/IMatcher";
+import { ISnapshotRepository, Snapshot } from "../scripts/projections/ISnapshotRepository";
+import { IStreamFactory } from "../scripts/projections/IStreamFactory";
 import { MockMatcher } from "./fixtures/MockMatcher";
 import { MockSnapshotRepository } from "./fixtures/MockSnapshotRepository";
 import { MockStreamFactory } from "./fixtures/MockStreamFactory";

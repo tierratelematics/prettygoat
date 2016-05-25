@@ -1,7 +1,7 @@
 import "bluebird";
 import "reflect-metadata";
-import { Matcher } from "../scripts/Matcher";
-import { SpecialNames } from "../scripts/SpecialNames";
+import { Matcher } from "../scripts/matcher/Matcher";
+import { SpecialNames } from "../scripts/matcher/SpecialNames";
 
 import expect = require("expect.js");
 

@@ -1,3 +1,8 @@
+import "bluebird";
+import "reflect-metadata";
+import expect = require("expect.js");
+import sinon = require("sinon");
+
 describe("Given a ProjectionEngine", () => {
     context("when registering a new projection", () => {
         it("should check for its formal correctness");
