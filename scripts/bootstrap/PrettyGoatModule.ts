@@ -22,7 +22,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
-        kernel.bind<IEventEmitter>("IEventEmitter").toConstantValue(SocketEventEmitter);
+        kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter);
         kernel.bind<SocketIO.Socket>("SocketIO.Socket>").toConstantValue(socket);
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry);
         kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer);
