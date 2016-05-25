@@ -1,3 +1,5 @@
+import "bluebird";
+import "reflect-metadata";
 import expect = require('expect.js');
 import sinon = require('sinon');
 import IPushNotifier from "../scripts/push/IPushNotifier";
