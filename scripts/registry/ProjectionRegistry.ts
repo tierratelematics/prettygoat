@@ -13,6 +13,7 @@ import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
 
+    private registry:AreaRegistry[] = [];
     private unregisteredEntries:RegistryEntry<any>[] = [];
 
     constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
@@ -43,11 +44,16 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     forArea(area:string):AreaRegistry {
         let areaRegistry = new AreaRegistry(area, this.unregisteredEntries);
+        this.registry.push(areaRegistry);
         this.unregisteredEntries = [];
         _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
             this.pushNotifier.register(this.runnerFactory.create(entry.projection), new PushContext(areaRegistry.area, entry.name));
         });
         return areaRegistry;
+    }
+
+    getAreas():AreaRegistry[] {
+        return this.registry;
     }
 }
 

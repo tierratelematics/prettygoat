@@ -63,6 +63,17 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
     });
 
+    context("when all the projections registered should be retrieved", () => {
+        it("should list all the projections", () => {
+            subject.add(new MockProjectionDefinition()).forArea("Admin");
+            subject.add(new MockProjectionDefinition()).forArea("Tools");
+            let areas = subject.getAreas();
+
+            expect(areas[0].area).to.be("Admin");
+            expect(areas[1].area).to.be("Tools");
+        });
+    });
+
     context("when the projection corresponding to the index page has to be registered", () => {
         it("should be registered with a default area name", () => {
             subject.index(new MockProjectionDefinition());
