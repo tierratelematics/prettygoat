@@ -3,14 +3,14 @@
     // for the documentation about the tasks.json format
     "version": "0.1.0",
     "command": "smild",
-    "isShellCommand": false,
+    "isShellCommand": true,
     "showOutput": "always",
     "tasks": [
  {
             "taskName": "test",
-            "args": ["--color"],
-            "isTestCommand": true,
-            "problemMatcher": "$tsc"
+            "args": [],
+            "isBuildCommand": false,
+            "isTestCommand": true
         }       
     ]
 }

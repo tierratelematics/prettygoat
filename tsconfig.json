@@ -3,12 +3,19 @@
         "target": "es5",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "module": "commonjs"
+        "module": "commonjs",
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "pretty": true
     },
     "exclude": [
         "node_modules",
         "typings",
         "test",
         "dts"
+    ],
+    "files": [
+        "typings/index.d.ts"
     ]
 }
