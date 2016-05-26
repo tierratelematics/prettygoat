@@ -23,16 +23,17 @@ import ObjectContainer from "./ObjectContainer";
 class PrettyGoatModule implements IModule {
 
     modules:IKernelModule = (kernel:IKernel) => {
+        kernel.bind<IKernel>("IKernel").toConstantValue(kernel);
         kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
-        kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter);
-        kernel.bind<SocketIO.Socket>("SocketIO.Socket>").toConstantValue(socket);
-        kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry);
-        kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer);
-        kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier);
-        kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine);
-        kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer);
+        kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
+        kernel.bind<SocketIO.Socket>("SocketIO.Socket").toConstantValue(socket);
+        kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
+        kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
+        kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
+        kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
+        kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
