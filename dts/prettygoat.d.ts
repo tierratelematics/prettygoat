@@ -1,7 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 
 import {IObservable, IDisposable, Observable} from "rx";
-import {IKernelModule} from "inversify";
+import {IKernelModule, INewable} from "inversify";
 
 declare module prettygoat {
 
@@ -51,15 +51,17 @@ declare module prettygoat {
     }
 
     export interface IProjectionRunner<T> extends IObservable<T>, IDisposable {
-        state:T
+        state:T;
+        run():void;
+        stop():void;
     }
 
     export interface IProjectionRunnerFactory {
-        create<T>(definition:IProjectionDefinition<T>):IProjectionRunner<T>
+        create<T>(projection:IProjection<T>):IProjectionRunner<T>
     }
 
     export interface IProjectionDefinition<T> {
-        define():IProjection<T>
+        define():IProjection<T>;
     }
 
     export class ProjectionRunner<T> implements IProjectionRunner<T> {
@@ -123,15 +125,16 @@ declare module prettygoat {
     }
 
     export interface IProjectionRegistry {
-        master<T>(projection:IProjectionDefinition<T>):AreaRegistry;
-        index<T>(projection:IProjectionDefinition<T>):AreaRegistry;
-        add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry;
+        master<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
+        index<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
+        add<T>(constructor:INewable<IProjectionDefinition<T>>, parameters?:any):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
         getAreas():AreaRegistry[];
     }
 
+
     export class AreaRegistry {
-        constructor(public area:string, public entries:RegistryEntry<any>[]);
+        constructor(area:string, entries:RegistryEntry<any>[]);
     }
 
     export class RegistryEntry<T> {
@@ -139,7 +142,7 @@ declare module prettygoat {
         name:string;
         parameters:any;
 
-        constructor(projection:IProjectionDefinition<T>, name:string, parameters?:any);
+        constructor(projection:IProjection<T>, name:string, parameters?:any);
     }
 
     export function Projection(name:string);

@@ -16,6 +16,7 @@ import {Matcher} from "../scripts/matcher/Matcher";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
+import MockObjectContainer from "./fixtures/MockObjectContainer";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -29,12 +30,12 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         pushNotifier = new PushNotifier(null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory();
         let analyzer = new ProjectionAnalyzer();
-        subject = new ProjectionRegistry(analyzer);
+        subject = new ProjectionRegistry(analyzer, new MockObjectContainer());
     });
 
     context("when they are registered under a specific area", () => {
         it("should register the projection runners with the right contexts", () => {
-            subject.add(new MockProjectionDefinition()).forArea("Admin");
+            subject.add(MockProjectionDefinition).forArea("Admin");
             let areas = subject.getAreas();
 
             expect(areas[0].area).to.be("Admin");
@@ -43,19 +44,19 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection has no name", () => {
         it("should throw an error regarding the missing decorator", () => {
-            expect(() => subject.add(new UnnamedProjectionDefinition())).to.throwError();
+            expect(() => subject.add(UnnamedProjectionDefinition)).to.throwError();
         });
     });
 
     context("when a projection isn't formally correct", () => {
         it("should throw an error", () => {
-            expect(() => subject.add(new MockBadProjectionDefinition())).to.throwError();
+            expect(() => subject.add(MockBadProjectionDefinition)).to.throwError();
         });
     });
 
     context("when the projection corresponding to the index page has to be registered", () => {
         it("should be registered with a default area name", () => {
-            subject.index(new MockProjectionDefinition());
+            subject.index(MockProjectionDefinition);
             let areas = subject.getAreas();
 
             expect(areas[0].area).to.be("Index");
@@ -64,7 +65,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when the projection corresponding to the master page has to be registered", () => {
         it("should be registered with a default area name", () => {
-            subject.master(new MockProjectionDefinition());
+            subject.master(MockProjectionDefinition);
             let areas = subject.getAreas();
 
             expect(areas[0].area).to.be("Master");

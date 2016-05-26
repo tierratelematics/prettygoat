@@ -18,6 +18,7 @@ import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFa
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import MockModel from "./fixtures/MockModel";
 import SinonSpy = Sinon.SinonSpy;
+import MockObjectContainer from "./fixtures/MockObjectContainer";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -34,7 +35,7 @@ describe("Given a ProjectionEngine", () => {
         runner = new MockProjectionRunner(null);
         pushNotifier = new PushNotifier(null, null, null);
         runnerFactory = new ProjectionRunnerFactory();
-        registry = new ProjectionRegistry(new ProjectionAnalyzer());
+        registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
@@ -51,7 +52,7 @@ describe("Given a ProjectionEngine", () => {
     describe("when running", () => {
 
         it("should run all the registered projections", () => {
-            registry.add(new MockProjectionDefinition()).forArea("Admin");
+            registry.add(MockProjectionDefinition).forArea("Admin");
             subject.run();
             expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
             expect(runnerSpy.called).to.be(true);

@@ -1,10 +1,11 @@
 import AreaRegistry from "./AreaRegistry";
 import IProjectionDefinition from "./IProjectionDefinition";
+import {INewable} from "inversify";
 
 interface IProjectionRegistry {
-    master<T>(projection:IProjectionDefinition<T>):AreaRegistry;
-    index<T>(projection:IProjectionDefinition<T>):AreaRegistry;
-    add<T>(projection:IProjectionDefinition<T>, parameters?:any):IProjectionRegistry;
+    master<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
+    index<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
+    add<T>(constructor:INewable<IProjectionDefinition<T>>, parameters?:any):IProjectionRegistry;
     forArea(area:string):AreaRegistry;
     getAreas():AreaRegistry[];
 }
