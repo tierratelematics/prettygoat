@@ -105,10 +105,10 @@ declare module prettygoat {
 
     export class PushContext {
         area:string;
-        projectionName:string;
+        viewmodelId:string;
         parameters:any;
 
-        constructor(area:string, projectionName?:string, parameters?:any);
+        constructor(area:string, viewmodelId?:string, parameters?:any);
     }
 
     export interface IClientRegistry {
