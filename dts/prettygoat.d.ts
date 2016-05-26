@@ -167,6 +167,12 @@ declare module prettygoat {
     export interface IProjectionEngine {
         run():void;
     }
+
+    export interface IEndpointConfig {
+        host:string;
+        port:number;
+        protocol:string;
+    }
 }
 
 export = prettygoat;

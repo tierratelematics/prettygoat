@@ -21,13 +21,11 @@ import MockObjectContainer from "./fixtures/MockObjectContainer";
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject:IProjectionRegistry,
-        pushNotifier:IPushNotifier,
         projectionRunnerFactory:IProjectionRunnerFactory,
         runner:IProjectionRunner<number>;
 
     beforeEach(() => {
         runner = new ProjectionRunner<number>("test", null, null, new Matcher({}));
-        pushNotifier = new PushNotifier(null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory();
         let analyzer = new ProjectionAnalyzer();
         subject = new ProjectionRegistry(analyzer, new MockObjectContainer());

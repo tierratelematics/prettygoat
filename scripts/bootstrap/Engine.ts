@@ -9,6 +9,7 @@ import {server, socket} from "./Socket";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import IClientRegistry from "../push/IClientRegistry";
 import IPushNotifier from "../push/IPushNotifier";
+import IEndpointConfig from "../configs/IEndpointConfig";
 
 class Engine {
 
@@ -28,9 +29,10 @@ class Engine {
         let registry = this.kernel.get<IProjectionRegistry>("IProjectionRegistry"),
             projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine"),
             clientRegistry = this.kernel.get<IClientRegistry>("IClientRegistry"),
-            pushNotifier = this.kernel.get<IPushNotifier>("IPushNotifier");
+            pushNotifier = this.kernel.get<IPushNotifier>("IPushNotifier"),
+            config = this.kernel.get<IEndpointConfig>("IEndpointConfig");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
-        server.listen(3000);
+        server.listen(config.port);
         socket.on('connection', client => {
             client.on('subscribe', message => {
                 clientRegistry.add(client.id, message);

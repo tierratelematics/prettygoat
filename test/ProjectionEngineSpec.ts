@@ -33,7 +33,7 @@ describe("Given a ProjectionEngine", () => {
 
     beforeEach(() => {
         runner = new MockProjectionRunner(null);
-        pushNotifier = new PushNotifier(null, null, null);
+        pushNotifier = new PushNotifier(null, null, null, {host: 'test', protocol: 'http', port: 80});
         runnerFactory = new ProjectionRunnerFactory();
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);

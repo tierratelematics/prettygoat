@@ -38,7 +38,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
         projectionRunner = new MockProjectionRunner(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
-        subject = new PushNotifier(router, eventEmitter, clientRegistry);
+        subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http', port: 80});
         routerSpy = sinon.spy(router, "get");
         clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3")]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");
@@ -65,10 +65,10 @@ describe("PushNotifier, given a projection runner and a context", () => {
             newModel.name = "testName";
             dataSubject.onNext(newModel);
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
-                url: '/admin/foo'
+                url: 'http://test:80/admin/foo'
             })).to.be(true);
             expect(emitterSpy.calledWith('shh3', 'Admin:Foo', {
-                url: '/admin/foo'
+                url: 'http://test:80/admin/foo'
             })).to.be(true);
         });
     });

@@ -10,13 +10,15 @@ import IClientRegistry from "./IClientRegistry";
 import * as _ from "lodash";
 import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
+import IEndpointConfig from "../configs/IEndpointConfig";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
 
     constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
                 @inject("IEventEmitter") private eventEmitter:IEventEmitter,
-                @inject("IClientRegistry") private registry:IClientRegistry) {
+                @inject("IClientRegistry") private registry:IClientRegistry,
+                @inject("IEndpointConfig") private config:IEndpointConfig) {
 
     }
 
@@ -28,12 +30,13 @@ class PushNotifier implements IPushNotifier {
     }
 
     notify(context):void {
-        let clients = this.registry.clientsFor(context);
+        let clients = this.registry.clientsFor(context),
+            endpoint = ContextOperations.getEndpoint(context);
         _.forEach<ClientEntry>(clients, client => this.eventEmitter.emitTo(
             client.id,
             ContextOperations.getChannel(context),
             {
-                url: ContextOperations.getEndpoint(context)
+                url: `${this.config.protocol}://${this.config.host}:${this.config.port}${endpoint}`
             })
         );
     }
