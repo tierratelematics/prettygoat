@@ -100,7 +100,8 @@ declare module prettygoat {
     }
 
     export interface IPushNotifier {
-        register<T>(projectionRunner:IProjectionRunner<T>, pushContext:PushContext):void;
+        register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void;
+        notify(context:PushContext):void;
     }
 
     export class PushContext {

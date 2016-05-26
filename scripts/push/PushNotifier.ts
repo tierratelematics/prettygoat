@@ -21,19 +21,21 @@ class PushNotifier implements IPushNotifier {
     }
 
     register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void {
-        projectionRunner.subscribe(state => {
-            let clients = this.registry.clientsFor(context);
-            _.forEach<ClientEntry>(clients, client => this.eventEmitter.emitTo(
-                client.id,
-                ContextOperations.getChannel(context),
-                {
-                    url: ContextOperations.getEndpoint(context)
-                })
-            );
-        });
+        projectionRunner.subscribe(state => this.notify(context));
         this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
             response.json(projectionRunner.state);
         });
+    }
+
+    notify(context):void {
+        let clients = this.registry.clientsFor(context);
+        _.forEach<ClientEntry>(clients, client => this.eventEmitter.emitTo(
+            client.id,
+            ContextOperations.getChannel(context),
+            {
+                url: ContextOperations.getEndpoint(context)
+            })
+        );
     }
 }
 
