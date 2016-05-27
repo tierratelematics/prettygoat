@@ -19,7 +19,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 .on('readable', function () {
                     let row;
                     while (row = this.read()) {
-                        observer.onNext(row);
+                        observer.onNext(JSON.parse(row.event.toString('utf8')));
                     }
                 })
                 .on('end', () => observer.onCompleted())

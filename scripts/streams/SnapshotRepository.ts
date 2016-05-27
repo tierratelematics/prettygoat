@@ -1,5 +1,7 @@
 import {Snapshot, ISnapshotRepository} from "./ISnapshotRepository";
+import {injectable} from "inversify";
 
+@injectable()
 class SnapshotRepository implements ISnapshotRepository {
 
     getSnapshot<T>(streamId:string):Snapshot<T> {
