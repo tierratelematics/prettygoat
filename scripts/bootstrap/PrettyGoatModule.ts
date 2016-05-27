@@ -19,6 +19,10 @@ import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "./IObjectContainer";
 import ObjectContainer from "./ObjectContainer";
+import CassandraStreamFactory from "../streams/CassandraStreamFactory";
+import SnapshotRepository from "../streams/SnapshotRepository";
+import {IStreamFactory} from "../streams/IStreamFactory";
+import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 
 class PrettyGoatModule implements IModule {
 
@@ -34,6 +38,8 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
+        kernel.bind<IStreamFactory>("IStreamFactory").to(CassandraStreamFactory);
+        kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(SnapshotRepository);
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
