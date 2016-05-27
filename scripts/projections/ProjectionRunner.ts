@@ -1,8 +1,8 @@
 import { IObservable, Subject, IDisposable, Scheduler } from "rx";
-import { ISnapshotRepository, Snapshot } from "./ISnapshotRepository";
+import { ISnapshotRepository, Snapshot } from "../streams/ISnapshotRepository";
 import { SpecialNames } from "../matcher/SpecialNames";
 import { IMatcher } from "../matcher/IMatcher";
-import { IStreamFactory } from "./IStreamFactory";
+import { IStreamFactory } from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
