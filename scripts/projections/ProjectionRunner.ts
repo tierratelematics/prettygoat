@@ -32,7 +32,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event: any) => {
             try {
-                this.state = this.matcher.match(event.streamId)(this.state, event);
+                this.state = this.matcher.match(event.type)(this.state, event.payload);
                 this.subject.onNext(this.state);
             } catch (error) {
                 this.isFailed = true;

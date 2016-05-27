@@ -87,12 +87,12 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { streamId: "increment", value: n }; }));
+            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment", payload: n }; }));
         });
 
         context("and no error occurs", () => {
             beforeEach(() => {
-                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e.value);
+                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
                 subject.run();
             });
 
@@ -131,16 +131,16 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e.value);
+            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             stream.setup(s => s.from(undefined)).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({ streamId: "increment", value: 1 });
-            streamSubject.onNext({ streamId: "increment", value: 2 });
-            streamSubject.onNext({ streamId: "increment", value: 3 });
-            streamSubject.onNext({ streamId: "increment", value: 4 });
+            streamSubject.onNext({ type: "increment", payload: 1 });
+            streamSubject.onNext({ type: "increment", payload: 2 });
+            streamSubject.onNext({ type: "increment", payload: 3 });
+            streamSubject.onNext({ type: "increment", payload: 4 });
             subject.stop();
-            streamSubject.onNext({ streamId: "increment", value: 5 });
+            streamSubject.onNext({ type: "increment", payload: 5 });
         });
         it("should not process any more events", () => {
             expect(notifications).to.eql([
