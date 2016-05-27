@@ -173,6 +173,11 @@ declare module prettygoat {
         port:number;
         protocol:string;
     }
+
+    interface ICassandraConfig {
+        hosts:string[];
+        keyspace:string;
+    }
 }
 
 export = prettygoat;
