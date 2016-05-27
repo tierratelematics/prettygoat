@@ -1,4 +1,4 @@
-import { IStreamFactory } from "../../scripts/projections/IStreamFactory";
+import { IStreamFactory } from "../../scripts/streams/IStreamFactory";
 import { Observable } from "rx";
 
 export class MockStreamFactory implements IStreamFactory {

@@ -1,4 +1,4 @@
-import { ISnapshotRepository, Snapshot } from "../../scripts/projections/ISnapshotRepository";
+import { ISnapshotRepository, Snapshot } from "../../scripts/streams/ISnapshotRepository";
 
 export class MockSnapshotRepository implements ISnapshotRepository {
     getSnapshot<T>(streamId: string): Snapshot<T> {
