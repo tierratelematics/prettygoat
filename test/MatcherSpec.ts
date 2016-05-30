@@ -4,6 +4,7 @@ import { Matcher } from "../scripts/matcher/Matcher";
 import { SpecialNames } from "../scripts/matcher/SpecialNames";
 
 import expect = require("expect.js");
+import * as Rx from "rx";
 
 describe("Given a Matcher", () => {
     let subject: Matcher;
@@ -49,8 +50,9 @@ describe("Given a Matcher", () => {
                 subject = new Matcher(definitionWithoutWildcards);
             });
 
-            it("should raise an error", () => {
-                expect(() => subject.match("notfoo")).to.throwError();
+            it("should return an identity function", () => {
+                let fn = subject.match("notfoo");
+                expect(fn).to.be(Rx.helpers.identity);
             });
         });
 
@@ -124,4 +126,6 @@ describe("Given a Matcher", () => {
             });
         });
     });
+
+
 });

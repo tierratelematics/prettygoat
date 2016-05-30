@@ -63,14 +63,6 @@ describe("Given a ProjectionEngine", () => {
         });
     });
 
-    context("when registering a new projection", () => {
-        it("should check for its formal correctness");
-        it("should analyze its definition");
-        context("and the projection is invalid", () => {
-            it("should signal an error");
-            it("should state why the projection is invalid");
-        });
-    });
     context("when running a projection", () => {
         it("should subscribe to the event stream according to the definition");
         context("and an error occurs when subscribing to the event stream", () => {
