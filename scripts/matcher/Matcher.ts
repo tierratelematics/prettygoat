@@ -25,8 +25,7 @@ export class Matcher implements IMatcher {
         let found = this.explicitMatch(name)
             || this.wildcardMatch(name)
             || this.explicitMatch(SpecialNames.Any)
-            || this.explicitMatch(SpecialNames.Default)
-            || this.explicitMatch(SpecialNames.Init);
+            || this.explicitMatch(SpecialNames.Default);
 
         if (found !== undefined)
             return found;
