@@ -12,6 +12,7 @@ import { MockStreamFactory } from "./fixtures/MockStreamFactory";
 import { Observable, Subject, IDisposable } from "rx";
 import {Mock, Times} from "typemoq";
 import expect = require("expect.js");
+import * as Rx from "rx";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -113,6 +114,26 @@ describe("Given a ProjectionRunner", () => {
                 ]);
             });
 
+        });
+
+        context("and no match is found for this event", () => {
+            beforeEach(() => {
+                stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment" + n, payload: n }; }));
+                matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
+                matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
+                matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
+                matcher.setup(m => m.match("increment4")).returns(streamId => Rx.helpers.identity);
+                matcher.setup(m => m.match("increment5")).returns(streamId => Rx.helpers.identity);
+            });
+
+            it("should not notify a state change", () => {
+                subject.run();
+                expect(notifications).to.be.eql([
+                    42,
+                    42 + 2,
+                    42 + + 2 + 3
+                ]);
+            });
         });
 
         context("and an error occurs while processing the event", () => {

@@ -4,6 +4,7 @@ import { SpecialNames } from "../matcher/SpecialNames";
 import { IMatcher } from "../matcher/IMatcher";
 import { IStreamFactory } from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
+import * as Rx from "rx";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -32,8 +33,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event: any) => {
             try {
-                this.state = this.matcher.match(event.type)(this.state, event.payload);
-                this.subject.onNext(this.state);
+                let matchFunction = this.matcher.match(event.type);
+                if (matchFunction !== Rx.helpers.identity) {
+                    this.state = matchFunction(this.state, event.payload);
+                    this.subject.onNext(this.state);
+                }
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
