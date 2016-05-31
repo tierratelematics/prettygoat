@@ -6,13 +6,15 @@ import * as Rx from "rx";
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
 
-    constructor(@inject("StreamFactory") private streamFactory:IStreamFactory,
-                @inject("IPollToPushConfig") private config:IPollToPushConfig) {
-
+    private source:Rx.Observable<any>;
+    
+    constructor(@inject("StreamFactory") streamFactory:IStreamFactory,
+                @inject("IPollToPushConfig") config:IPollToPushConfig) {
+        this.source = Rx.Observable.interval(config.interval || 30000).flatMap(_ => streamFactory.from(null)).share();
     }
 
     from(lastEvent:string):Rx.Observable<any> {
-        return Rx.Observable.interval(this.config.interval || 30000).flatMap(_ => this.streamFactory.from(null));
+        return this.source;
     }
 }
 
