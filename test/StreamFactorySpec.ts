@@ -28,7 +28,7 @@ describe("StreamFactory, given a list of events", () => {
     context("when an events has not been processed", () => {
         it("should be processed", (done) => {
             let events = [];
-            subject.from(null).subscribe(event => events.push(event), error => {}, () => {
+            subject.from(null).subscribe(event => events.push(event), null, () => {
                 expect(events).to.have.length(3);
                 done();
             });
@@ -39,9 +39,19 @@ describe("StreamFactory, given a list of events", () => {
         beforeEach(() => streamState.lastEvent = "26b");
         it("should not be processed anymore", (done) => {
             let events = [];
-            subject.from(null).subscribe(event => events.push(event), error => {}, () => {
+            subject.from(null).subscribe(event => events.push(event), null, () => {
                 expect(events).to.have.length(1);
                 expect(events[0]).to.eql("eventC");
+                done();
+            });
+        });
+    });
+
+    context("when all the events have been processed", () => {
+        it("should set correctly the id of the last event proceseed", (done) => {
+            let events = [];
+            subject.from(null).subscribe(event => events.push(event), null, () => {
+                expect(streamState.lastEvent).to.eql("26c");
                 done();
             });
         });
