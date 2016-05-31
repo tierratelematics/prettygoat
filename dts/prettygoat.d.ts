@@ -174,9 +174,13 @@ declare module prettygoat {
         protocol:string;
     }
 
-    interface ICassandraConfig {
+    export interface ICassandraConfig {
         hosts:string[];
         keyspace:string;
+    }
+
+    export interface IPollToPushConfig {
+        interval:number
     }
 }
 

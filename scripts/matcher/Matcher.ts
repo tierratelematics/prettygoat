@@ -1,6 +1,7 @@
 import { IMatcher } from "./IMatcher";
 import { SpecialNames } from "./SpecialNames";
 import * as _ from "lodash";
+import * as Rx from "rx";
 
 const wildcard = require("wildcard2");
 
@@ -24,13 +25,12 @@ export class Matcher implements IMatcher {
         let found = this.explicitMatch(name)
             || this.wildcardMatch(name)
             || this.explicitMatch(SpecialNames.Any)
-            || this.explicitMatch(SpecialNames.Default)
-            || this.explicitMatch(SpecialNames.Init);
+            || this.explicitMatch(SpecialNames.Default);
 
         if (found !== undefined)
             return found;
 
-        throw new Error(`Matcher cannot find a match for ${name}`);
+        return Rx.helpers.identity;
     }
 
     private guardAmbiguousDefinition() {
