@@ -24,6 +24,7 @@ import SnapshotRepository from "../streams/SnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 import StreamState from "../streams/StreamState";
+import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -39,9 +40,10 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
-        kernel.bind<IStreamFactory>("IStreamFactory").to(CassandraStreamFactory).inSingletonScope();
+        kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(SnapshotRepository).inSingletonScope();
         kernel.bind<StreamState>("StreamState").to(StreamState).inSingletonScope();
+        kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

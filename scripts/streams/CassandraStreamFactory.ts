@@ -10,14 +10,15 @@ class CassandraStreamFactory implements IStreamFactory {
 
     private client:any;
 
-    constructor(@inject("ICassandraConfig") config:ICassandraConfig, @inject("StreamState") private streamState:StreamState) {
+    constructor(@inject("ICassandraConfig") config:ICassandraConfig,
+                @inject("StreamState") private streamState:StreamState) {
         this.client = new cassandra.Client({contactPoints: config.hosts, keyspace: config.keyspace});
     }
 
     from(lastEvent:string):Rx.Observable<any> {
         return Rx.Observable.create(observer => {
             let self = this;
-            this.client.stream("SELECT * FROM messages")
+            this.client.stream("SELECT event,timestamp FROM messages")
                 .on('readable', function () {
                     let row;
                     while (row = this.read()) {
