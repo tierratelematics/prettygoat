@@ -10,9 +10,11 @@ describe("StreamFactory, given a list of events", () => {
 
     let subject:CassandraStreamFactory,
         streamState:StreamState,
-        streamStub:SinonStub;
+        streamStub:SinonStub,
+        events:any[];
 
     beforeEach(() => {
+        events = [];
         streamState = new StreamState();
         subject = new CassandraStreamFactory(new MockClientFactory(), null, streamState);
         streamStub = sinon.stub(subject, "streamSource", () => {
@@ -26,34 +28,25 @@ describe("StreamFactory, given a list of events", () => {
     });
 
     context("when an events has not been processed", () => {
-        it("should be processed", (done) => {
-            let events = [];
-            subject.from(null).subscribe(event => events.push(event), null, () => {
-                expect(events).to.have.length(3);
-                done();
-            });
+        it("should be processed", () => {
+            subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
+            expect(events).to.have.length(3);
         });
     });
 
     context("when an event has been processed", () => {
         beforeEach(() => streamState.lastEvent = "26b");
-        it("should not be processed anymore", (done) => {
-            let events = [];
-            subject.from(null).subscribe(event => events.push(event), null, () => {
-                expect(events).to.have.length(1);
-                expect(events[0]).to.eql("eventC");
-                done();
-            });
+        it("should not be processed anymore", () => {
+            subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
+            expect(events).to.have.length(1);
+            expect(events[0]).to.eql("eventC");
         });
     });
 
     context("when all the events have been processed", () => {
-        it("should set correctly the id of the last event proceseed", (done) => {
-            let events = [];
-            subject.from(null).subscribe(event => events.push(event), null, () => {
-                expect(streamState.lastEvent).to.eql("26c");
-                done();
-            });
+        it("should set correctly the id of the last event proceseed", () => {
+            subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
+            expect(streamState.lastEvent).to.eql("26c");
         });
     });
 });
