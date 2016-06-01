@@ -86,4 +86,8 @@ describe("PushNotifier, given a projection runner and a context", () => {
             expect(routerSpy.calledWith("/index")).to.be(true);
         });
     });
+
+    context("when the context has some parameters", () => {
+        it("should notify only the clients that sent those specific parameters");
+    });
 });
