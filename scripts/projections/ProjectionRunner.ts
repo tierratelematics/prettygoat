@@ -8,12 +8,12 @@ import * as Rx from "rx";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
-    private subject: Subject<T>;
-    private subscription: IDisposable;
-    private isDisposed: boolean;
-    private isFailed: boolean;
+    protected subject: Subject<T>;
+    protected subscription: IDisposable;
+    protected isDisposed: boolean;
+    protected isFailed: boolean;
 
-    constructor(private streamId: string, private stream: IStreamFactory, private repository: ISnapshotRepository, private matcher: IMatcher) {
+    constructor(protected streamId: string, protected stream: IStreamFactory, protected repository: ISnapshotRepository, protected matcher: IMatcher) {
         this.subject = new Subject<T>();
     }
 

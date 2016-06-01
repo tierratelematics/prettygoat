@@ -11,5 +11,7 @@ describe("Split projection, given a projection with a split definition", () => {
         context("and a projection runner has already been created", () => {
             it("should calculate the new state of the projection");
         });
+
+        it("the projection should be exposed under a namespace area/viewmodel/key");
     });
 });
