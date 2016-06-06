@@ -10,10 +10,11 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
             name: "test",
             streamSource: new AllStreamSource(),
             definition: {
-                $init: () => 10
+                $init: () => 10,
+                TestEvent: (s, e:any) => s + e.count
             },
             split: {
-                test: (e:any) => e.id
+                TestEvent: (e:any) => e.id
             }
         };
     }

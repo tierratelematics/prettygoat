@@ -2,7 +2,7 @@ import { ISnapshotRepository, Snapshot } from "../../scripts/streams/ISnapshotRe
 
 export class MockSnapshotRepository implements ISnapshotRepository {
     getSnapshot<T>(streamId: string): Snapshot<T> {
-        return null;
+        return Snapshot.Empty;
     }
     saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void {
     }

@@ -90,4 +90,8 @@ describe("PushNotifier, given a projection runner and a context", () => {
     context("when the context has some parameters", () => {
         it("should notify only the clients that sent those specific parameters");
     });
+
+    context("when a split projection is registered", () => {
+        it("should be exposed under a namespace area/viewmodel/key");
+    });
 });
