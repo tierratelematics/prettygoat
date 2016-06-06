@@ -1,17 +1,20 @@
-import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
-import {SpecialNames} from "../matcher/SpecialNames";
+import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
 import IProjectionRunner from "./IProjectionRunner";
+import {IProjection} from "./IProjection";
+import {Matcher} from "../matcher/Matcher";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
-    state:T;
+    public state:T;
     private subject:Rx.Subject<T>;
+    private streamId:string;
+    private splitMatcher:IMatcher;
 
-    constructor(streamId:string, stream:IStreamFactory, repository:ISnapshotRepository,
-                definitionMatcher:IMatcher, private splitMatcher:IMatcher) {
-
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher) {
+        this.streamId = projection.name;
+        this.splitMatcher = new Matcher(projection.split);
     }
 
     run():void {
