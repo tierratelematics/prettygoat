@@ -34,7 +34,7 @@ describe("Split projection, given a projection with a split definition", () => {
                         count: 20
                     }
                 });
-                expect(subject.getRunnerFor("20f8").state).to.be(30);
+                expect(subject.runnerFor("20f8").state).to.be(30);
             });
         });
 
@@ -55,14 +55,8 @@ describe("Split projection, given a projection with a split definition", () => {
                         count: 20
                     }
                 });
-                expect(subject.getRunnerFor("20f8").state).to.be(50);
+                expect(subject.runnerFor("20f8").state).to.be(50);
             });
-        });
-    });
-
-    context("when a split projection is registered", () => {
-        it("should be exposed under a namespace area/viewmodel/key", () => {
-            
         });
     });
 

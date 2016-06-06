@@ -1,4 +1,4 @@
-import {IObservable, Subject, IDisposable, Scheduler} from "rx";
+import {Subject, IDisposable} from "rx";
 import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
@@ -15,7 +15,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isFailed:boolean;
     private streamId:string;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher) {
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher, public splitKey?:string) {
         this.subject = new Subject<T>();
         this.streamId = projection.name;
     }

@@ -19,11 +19,16 @@ import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
 import Constants from "../scripts/registry/Constants";
+import {SplitProjectionRunner} from "../scripts/projections/SplitProjectionRunner";
+import {IProjection} from "../scripts/projections/IProjection";
+import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 
     let subject:IPushNotifier,
         projectionRunner:IProjectionRunner<MockModel>,
+        splitProjectionRunner:SplitProjectionRunner<number>,
+        splitProjection:IProjection<number>,
         router:IProjectionRouter,
         dataSubject:Subject<MockModel>,
         routerSpy:SinonSpy,
@@ -36,11 +41,13 @@ describe("PushNotifier, given a projection runner and a context", () => {
         router = new MockProjectionRouter();
         dataSubject = new Subject<MockModel>();
         projectionRunner = new MockProjectionRunner(dataSubject);
+        splitProjection = new SplitProjectionDefinition().define();
+        splitProjectionRunner = new SplitProjectionRunner(splitProjection, null, null, null);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
         subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http', port: 80});
         routerSpy = sinon.spy(router, "get");
-        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3")]);
+        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");
     });
 
@@ -97,7 +104,10 @@ describe("PushNotifier, given a projection runner and a context", () => {
         });
     });
 
-    context("when the context has some parameters", () => {
-        it("should notify only the clients that sent those specific parameters");
+    context("when the projection contains a split definition", () => {
+        it("should register the viewmodel under the endpoint /area/viewmodelId/splitKey", () => {
+            subject.register(splitProjectionRunner, new PushContext("Admin", "Foo"));
+            expect(routerSpy.calledWith("/admin/foo/:key")).to.be(true);
+        });
     });
 });

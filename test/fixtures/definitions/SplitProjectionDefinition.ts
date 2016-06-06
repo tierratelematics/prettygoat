@@ -15,7 +15,8 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
             },
             split: {
                 TestEvent: (e:any) => e.id
-            }
+            },
+            parametersKey: (p:any) => p.id
         };
     }
 

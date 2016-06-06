@@ -5,9 +5,9 @@ import * as Rx from "rx";
 import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import {Matcher} from "../matcher/Matcher";
-import {Dictionary} from "~lodash/index";
 import {ProjectionRunner} from "./ProjectionRunner";
 import SplitStreamFactory from "../streams/SplitStreamFactory";
+import Dictionary from "../Dictionary";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -38,11 +38,13 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 let splitKey = this.splitMatcher.match(event.type)(event.payload);
                 if (!this.runners[splitKey]) {
                     this.subjects[splitKey] = new Rx.Subject<any>();
-                    let runner = new ProjectionRunner(this.projection, new SplitStreamFactory(this.subjects[splitKey]), this.repository, this.matcher);
+                    let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
+                    let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, splitKey);
                     this.runners[splitKey] = runner;
                     runner.run();
                 }
                 this.subjects[splitKey].onNext(event);
+                this.subject.onNext(splitKey);
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
@@ -66,7 +68,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    getRunnerFor(key:string):IProjectionRunner<T> {
+    runnerFor(key:string):IProjectionRunner<T> {
         return this.runners[key];
     }
 
