@@ -99,11 +99,6 @@ declare module prettygoat {
         emitTo(clientId:string, event:string, parameters:any):void;
     }
 
-    export interface IPushNotifier {
-        register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void;
-        notify(context:PushContext):void;
-    }
-
     export class PushContext {
         area:string;
         viewmodelId:string;

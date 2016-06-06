@@ -60,6 +60,12 @@ describe("Split projection, given a projection with a split definition", () => {
         });
     });
 
+    context("when a split projection is registered", () => {
+        it("should be exposed under a namespace area/viewmodel/key", () => {
+            
+        });
+    });
+
     context("when it's running and needs to be stopped", () => {
         it("should stop all the registered projections");
     });

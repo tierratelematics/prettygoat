@@ -87,11 +87,17 @@ describe("PushNotifier, given a projection runner and a context", () => {
         });
     });
 
-    context("when the context has some parameters", () => {
-        it("should notify only the clients that sent those specific parameters");
+    context("when a single client needs to be notified", () => {
+        it("should not broadcast to the other clients", () => {
+            subject.notify(new PushContext("Admin", "Foo"), "25f");
+            expect(emitterSpy.calledOnce);
+            expect(emitterSpy.calledWith('25f', 'Admin:Foo', {
+                url: 'http://test:80/admin/foo'
+            })).to.be(true);
+        });
     });
 
-    context("when a split projection is registered", () => {
-        it("should be exposed under a namespace area/viewmodel/key");
+    context("when the context has some parameters", () => {
+        it("should notify only the clients that sent those specific parameters");
     });
 });

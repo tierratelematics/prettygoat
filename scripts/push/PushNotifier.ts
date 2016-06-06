@@ -29,16 +29,22 @@ class PushNotifier implements IPushNotifier {
         });
     }
 
-    notify(context):void {
-        let clients = this.registry.clientsFor(context),
-            endpoint = ContextOperations.getEndpoint(context);
-        _.forEach<ClientEntry>(clients, client => this.eventEmitter.emitTo(
-            client.id,
+    notify(context:PushContext, clientId?:string):void {
+        let clients = this.registry.clientsFor(context);
+        if (clientId)
+            this.emitToClient(clientId, context);
+        else
+            _.forEach<ClientEntry>(clients, client => this.emitToClient(client.id, context));
+    }
+
+    private emitToClient(clientId:string, context):void {
+        let endpoint = ContextOperations.getEndpoint(context);
+        this.eventEmitter.emitTo(
+            clientId,
             ContextOperations.getChannel(context),
             {
                 url: `${this.config.protocol}://${this.config.host}:${this.config.port}${endpoint}`
-            })
-        );
+            });
     }
 }
 
