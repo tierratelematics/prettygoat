@@ -136,9 +136,9 @@ declare module prettygoat {
     export class RegistryEntry<T> {
         projection:IProjection<T>;
         name:string;
-        parameters:any;
+        parametersKey:(parameters:any) => string;
 
-        constructor(projection:IProjection<T>, name:string, parameters?:any);
+        constructor(projection:IProjection<T>, name:string, parametersKey?:(parameters:any) => string);
     }
 
     export function Projection(name:string);
