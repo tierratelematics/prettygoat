@@ -2,7 +2,7 @@ import {injectable} from "inversify";
 
 @injectable()
 class StreamState {
-    lastEvent:string = null;
+    lastEvent:Date = null;
 }
 
 export default StreamState

@@ -4,11 +4,13 @@ import ICassandraConfig from "../configs/ICassandraConfig";
 import * as Rx from "rx";
 import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
+import TimePartitioner from "./TimePartitioner";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
     private client:any;
+    private timePartitioner = new TimePartitioner();
 
     constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
                 @inject("ICassandraConfig") config:ICassandraConfig,
@@ -18,20 +20,25 @@ class CassandraStreamFactory implements IStreamFactory {
 
     from(lastEvent:string):Rx.Observable<any> {
         return this.streamSource()
-            .where((event, index, obs) => !this.streamState.lastEvent || (event.timestamp > this.streamState.lastEvent))
             .do(event => this.streamState.lastEvent = event.timestamp)
             .map(event => event.event);
     }
 
     streamSource():Rx.Observable<any> {
         return Rx.Observable.create(observer => {
-            this.client.stream("SELECT event,timestamp FROM messages")
+            let query = "SELECT blobAsText(event), dateOf(timestamp) FROM event_by_timestamp";
+            if (this.streamState.lastEvent) {
+                let buckets = this.timePartitioner.bucketsFrom(this.streamState.lastEvent).join(", "),
+                    timestamp = this.streamState.lastEvent.toISOString();
+                query += ` WHERE timebucket IN (${buckets}) AND timestamp > maxTimeUuid('${timestamp}')`;
+            }
+            this.client.stream(query)
                 .on('readable', function () {
                     let row;
                     while (row = this.read()) {
                         observer.onNext({
-                            timestamp: row.timestamp.toString(),
-                            event: JSON.parse(row.event.toString('utf8'))
+                            timestamp: row['system.dateof(timestamp)'],
+                            event: JSON.parse(row['system.blobastext(event)'])
                         });
                     }
                 })

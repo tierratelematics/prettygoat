@@ -27,22 +27,6 @@ describe("StreamFactory, given a list of events", () => {
         });
     });
 
-    context("when an events has not been processed", () => {
-        it("should be processed", () => {
-            subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
-            expect(events).to.have.length(3);
-        });
-    });
-
-    context("when an event has been processed", () => {
-        beforeEach(() => streamState.lastEvent = "26b");
-        it("should not be processed anymore", () => {
-            subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
-            expect(events).to.have.length(1);
-            expect(events[0]).to.eql("eventC");
-        });
-    });
-
     context("when all the events have been processed", () => {
         it("should set correctly the id of the last event proceseed", () => {
             subject.from(null).subscribeOn(Rx.Scheduler.immediate).subscribe(event => events.push(event));
