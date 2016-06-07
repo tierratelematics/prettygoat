@@ -6,6 +6,8 @@ import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFa
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
+import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
+import {SplitProjectionRunner} from "../scripts/projections/SplitProjectionRunner";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 
@@ -27,4 +29,11 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
             expect(() => subject.create(new UnnamedProjectionDefinition().define())).to.throwError();
         });
     });
+
+    context("when it contains a split definition", () => {
+        it("should create a split projection runner", () => {
+            let projectionRunner = subject.create(new SplitProjectionDefinition().define());
+            expect(projectionRunner instanceof SplitProjectionRunner).to.be(true);
+        });
+    })
 });

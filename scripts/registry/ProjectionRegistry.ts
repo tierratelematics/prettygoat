@@ -27,7 +27,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this.add(constructor).forArea(Constants.INDEX_AREA);
     }
 
-    add<T>(constructor:INewable<IProjectionDefinition<T>>, parameters?:any):IProjectionRegistry {
+    add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?: (parameters:any) => string):IProjectionRegistry {
         let name = Reflect.getMetadata("prettygoat:projection", constructor);
         if (!name)
             throw new Error("Missing Projection decorator");
@@ -35,7 +35,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         let validationErrors = this.analyzer.analyze(projection);
         if (validationErrors.length > 0)
             throw new Error(validationErrors[0]);
-        this.unregisteredEntries.push(new RegistryEntry<T>(projection, name, parameters));
+        this.unregisteredEntries.push(new RegistryEntry<T>(projection, name, parametersKey));
         return this;
     }
 
