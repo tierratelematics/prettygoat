@@ -72,10 +72,10 @@ describe("PushNotifier, given a projection runner and a context", () => {
             newModel.name = "testName";
             dataSubject.onNext(newModel);
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
-                url: 'http://test:80/admin/foo'
+                url: 'http://test:80/admin/foo/'
             })).to.be(true);
             expect(emitterSpy.calledWith('shh3', 'Admin:Foo', {
-                url: 'http://test:80/admin/foo'
+                url: 'http://test:80/admin/foo/'
             })).to.be(true);
         });
     });
@@ -99,7 +99,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             subject.notify(new PushContext("Admin", "Foo"), "25f");
             expect(emitterSpy.calledOnce);
             expect(emitterSpy.calledWith('25f', 'Admin:Foo', {
-                url: 'http://test:80/admin/foo'
+                url: 'http://test:80/admin/foo/'
             })).to.be(true);
         });
     });
