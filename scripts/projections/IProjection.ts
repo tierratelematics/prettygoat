@@ -26,5 +26,6 @@ export interface IProjection<T> {
     split?: ISplit;
     streamSource: StreamSource;
     definition: IWhen<T>;
-    snapshotStrategy?: ISnapshotStrategy;
+    snapshotStrategy?: ISnapshotStrategy,
+    parametersKey?: (parameters:any) => string
 }

@@ -7,9 +7,11 @@
     "globalDependencies": {
         "bluebird": "registry:dt/bluebird#2.0.0+20160319051630",
         "express": "registry:dt/express#4.0.0+20160317120654",
-        "inversify-dts": "npm:inversify-dts/inversify/inversify.d.ts",
         "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160322035842",
+        "inversify-dts": "npm:inversify-dts/inversify/inversify.d.ts",
         "mime": "registry:dt/mime#0.0.0+20160316155526",
+        "moment": "registry:dt/moment#2.8.0+20160316155526",
+        "moment-node": "registry:dt/moment-node#2.11.1+20160511043338",
         "node": "registry:dt/node#4.0.0+20160509154515",
         "reflect-metadata": "npm:reflect-metadata/reflect-metadata.d.ts",
         "rx": "npm:rx/ts/rx.all.d.ts",

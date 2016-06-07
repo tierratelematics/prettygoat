@@ -7,10 +7,16 @@ import * as Rx from "rx";
 class PollToPushStreamFactory implements IStreamFactory {
 
     private source:Rx.Observable<any>;
-    
+
     constructor(@inject("StreamFactory") streamFactory:IStreamFactory,
                 @inject("IPollToPushConfig") config:IPollToPushConfig) {
-        this.source = Rx.Observable.interval(config.interval || 30000).flatMap(_ => streamFactory.from(null)).share();
+        this.source = streamFactory
+            .from(null)
+            .concat(
+                Rx.Observable
+                    .interval(config.interval || 30000)
+                    .flatMap(_ => streamFactory.from(null)))
+            .share();
     }
 
     from(lastEvent:string):Rx.Observable<any> {

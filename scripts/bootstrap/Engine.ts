@@ -34,9 +34,9 @@ class Engine {
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
         server.listen(config.port);
         socket.on('connection', client => {
-            client.on('subscribe', message => {
-                clientRegistry.add(client.id, message);
-                pushNotifier.notify(message);
+            client.on('subscribe', context => {
+                clientRegistry.add(client.id, context);
+                pushNotifier.notify(context, client.id);
             });
             client.on('unsubscribe', message => clientRegistry.remove(client.id, message));
         });

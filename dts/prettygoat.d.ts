@@ -99,11 +99,6 @@ declare module prettygoat {
         emitTo(clientId:string, event:string, parameters:any):void;
     }
 
-    export interface IPushNotifier {
-        register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void;
-        notify(context:PushContext):void;
-    }
-
     export class PushContext {
         area:string;
         viewmodelId:string;
@@ -128,7 +123,7 @@ declare module prettygoat {
     export interface IProjectionRegistry {
         master<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
         index<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
-        add<T>(constructor:INewable<IProjectionDefinition<T>>, parameters?:any):IProjectionRegistry;
+        add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
         getAreas():AreaRegistry[];
     }
@@ -141,9 +136,9 @@ declare module prettygoat {
     export class RegistryEntry<T> {
         projection:IProjection<T>;
         name:string;
-        parameters:any;
+        parametersKey:(parameters:any) => string;
 
-        constructor(projection:IProjection<T>, name:string, parameters?:any);
+        constructor(projection:IProjection<T>, name:string, parametersKey?:(parameters:any) => string);
     }
 
     export function Projection(name:string);

@@ -12,7 +12,6 @@ import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectio
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
-import {Matcher} from "../scripts/matcher/Matcher";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
@@ -25,7 +24,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner:IProjectionRunner<number>;
 
     beforeEach(() => {
-        runner = new ProjectionRunner<number>("test", null, null, new Matcher({}));
+        runner = new ProjectionRunner<number>(new MockProjectionDefinition().define(), null, null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory(null, null);
         let analyzer = new ProjectionAnalyzer();
         subject = new ProjectionRegistry(analyzer, new MockObjectContainer());

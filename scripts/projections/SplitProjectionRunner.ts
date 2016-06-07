@@ -1,23 +1,29 @@
-import {Subject, IDisposable} from "rx";
 import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
-import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
+import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
+import {Matcher} from "../matcher/Matcher";
+import {ProjectionRunner} from "./ProjectionRunner";
+import SplitStreamFactory from "../streams/SplitStreamFactory";
+import Dictionary from "../Dictionary";
 
-export class ProjectionRunner<T> implements IProjectionRunner<T> {
+export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
-    private subject:Subject<T>;
-    private subscription:IDisposable;
+    private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
+    private subject:Rx.Subject<T>;
     private streamId:string;
+    private splitMatcher:IMatcher;
+    private runners:Dictionary<IProjectionRunner<T>> = {};
+    private subjects:Dictionary<Rx.Subject<any>> = {};
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher, public splitKey?:string) {
-        this.subject = new Subject<T>();
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher) {
+        this.subject = new Rx.Subject<T>();
         this.streamId = projection.name;
+        this.splitMatcher = new Matcher(projection.split);
     }
 
     run():void {
@@ -27,20 +33,18 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        let snapshot = this.repository.getSnapshot<T>(this.streamId);
-        if (snapshot !== Snapshot.Empty)
-            this.state = snapshot.memento;
-        else
-            this.state = this.matcher.match(SpecialNames.Init)();
-        this.subject.onNext(this.state);
-
-        this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event:any) => {
+        this.subscription = this.stream.from(null).subscribe((event:any) => {
             try {
-                let matchFunction = this.matcher.match(event.type);
-                if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload);
-                    this.subject.onNext(this.state);
+                let splitKey = this.splitMatcher.match(event.type)(event.payload);
+                if (!this.runners[splitKey]) {
+                    this.subjects[splitKey] = new Rx.Subject<any>();
+                    let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
+                    let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, splitKey);
+                    this.runners[splitKey] = runner;
+                    runner.run();
                 }
+                this.subjects[splitKey].onNext(event);
+                this.subject.onNext(splitKey);
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
@@ -62,6 +66,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.stop();
         if (!this.subject.isDisposed)
             this.subject.dispose();
+    }
+
+    runnerFor(key:string):IProjectionRunner<T> {
+        return this.runners[key];
     }
 
     subscribe(observer:Rx.IObserver<T>):Rx.IDisposable

@@ -13,6 +13,7 @@ import { Observable, Subject, IDisposable } from "rx";
 import {Mock, Times} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -31,7 +32,7 @@ describe("Given a ProjectionRunner", () => {
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
-        subject = new ProjectionRunner<number>("stream", stream.object, repository.object, matcher.object);
+        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object);
         subscription = subject.subscribe((state: number) => notifications.push(state), e => failed = true, () => stopped = true);
     });
 
@@ -41,13 +42,13 @@ describe("Given a ProjectionRunner", () => {
 
         context("and a snapshot is present", () => {
             beforeEach(() => {
-                repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => new Snapshot<number>(42, "lastEvent"));
+                repository.setup(r => r.getSnapshot<number>("test")).returns(_ => new Snapshot<number>(42, "lastEvent"));
                 stream.setup(s => s.from("lastEvent")).returns(_ => Observable.empty());
                 matcher.setup(m => m.match(SpecialNames.Init)).throws(new Error("match called for $init when a snapshot was present"));
                 subject.run();
             });
             it("should consider the snapshot as the initial state", () => {
-                repository.verify(r => r.getSnapshot<number>("stream"), Times.once());
+                repository.verify(r => r.getSnapshot<number>("test"), Times.once());
             });
             it("should subscribe to the event stream starting from the snapshot point in time", () => {
                 stream.verify(s => s.from("lastEvent"), Times.once());
@@ -58,7 +59,7 @@ describe("Given a ProjectionRunner", () => {
 
         context("and a snapshot is not present", () => {
             beforeEach(() => {
-                repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
+                repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
                 stream.setup(s => s.from(undefined)).returns(_ => Observable.empty());
                 matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
                 subject.run();
@@ -86,7 +87,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
-            repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
+            repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment", payload: n }; }));
         });
@@ -150,7 +151,7 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
-            repository.setup(r => r.getSnapshot<number>("stream")).returns(_ => Snapshot.Empty);
+            repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             stream.setup(s => s.from(undefined)).returns(_ => streamSubject);
