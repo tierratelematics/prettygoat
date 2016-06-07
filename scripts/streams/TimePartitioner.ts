@@ -7,7 +7,7 @@ class TimePartitioner {
             buckets:string[] = [];
 
         while (now.toDate() >= date) {
-            buckets.push("'" + moment(date).format("YYYYMMDD") + "'");
+            buckets.push(moment(date).format("YYYYMMDD"));
             date = moment(date).add(1, 'days').toDate();
         }
         return buckets;

@@ -30,7 +30,7 @@ class CassandraStreamFactory implements IStreamFactory {
             if (this.streamState.lastEvent) {
                 let buckets = this.timePartitioner.bucketsFrom(this.streamState.lastEvent).join(", "),
                     timestamp = this.streamState.lastEvent.toISOString();
-                query += ` WHERE timebucket IN (${buckets}) AND timestamp > maxTimeUuid('${timestamp}')`;
+                query += ` WHERE timebucket IN ('${buckets}') AND timestamp > maxTimeUuid('${timestamp}')`;
             }
             this.client.stream(query)
                 .on('readable', function () {
