@@ -177,6 +177,10 @@ declare module prettygoat {
     export interface IPollToPushConfig {
         interval:number
     }
+
+    export interface ISocketConfig {
+        path:string;
+    }
 }
 
 export = prettygoat;

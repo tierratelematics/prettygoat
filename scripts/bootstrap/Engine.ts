@@ -5,11 +5,12 @@ import IModule from "./IModule";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
-import {server, socket} from "./Socket";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import IClientRegistry from "../push/IClientRegistry";
 import IPushNotifier from "../push/IPushNotifier";
 import IEndpointConfig from "../configs/IEndpointConfig";
+import {server} from "./Server";
+import SocketFactory from "../push/SocketFactory";
 
 class Engine {
 
@@ -30,10 +31,11 @@ class Engine {
             projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine"),
             clientRegistry = this.kernel.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.kernel.get<IPushNotifier>("IPushNotifier"),
-            config = this.kernel.get<IEndpointConfig>("IEndpointConfig");
+            config = this.kernel.get<IEndpointConfig>("IEndpointConfig"),
+            socketFactory = this.kernel.get<SocketFactory>("SocketFactory");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
         server.listen(config.port);
-        socket.on('connection', client => {
+        socketFactory.socketForPath().on('connection', client => {
             client.on('subscribe', context => {
                 clientRegistry.add(client.id, context);
                 pushNotifier.notify(context, client.id);
