@@ -5,6 +5,7 @@ import * as Rx from "rx";
 import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
 import TimePartitioner from "./TimePartitioner";
+import * as Promise from "bluebird";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -26,28 +27,46 @@ class CassandraStreamFactory implements IStreamFactory {
 
     streamSource():Rx.Observable<any> {
         return Rx.Observable.create(observer => {
-            let query = "SELECT blobAsText(event), dateOf(timestamp) FROM event_by_timestamp";
-            if (this.streamState.lastEvent) {
-                let buckets = this.timePartitioner.bucketsFrom(this.streamState.lastEvent).join(", "),
-                    timestamp = this.streamState.lastEvent.toISOString();
-                query += ` WHERE timebucket IN ('${buckets}') AND timestamp > maxTimeUuid('${timestamp}')`;
-            }
-            this.client.stream(query)
-                .on('readable', function () {
-                    let row;
-                    while (row = this.read()) {
-                        observer.onNext({
-                            timestamp: row['system.dateof(timestamp)'],
-                            event: JSON.parse(row['system.blobastext(event)'])
-                        });
-                    }
-                })
-                .on('end', () => observer.onCompleted())
-                .on('error', (error) => observer.onError(error));
+            Promise.resolve()
+                .then(() => this.getBuckets())
+                .then(buckets => this.buildQueryFromBuckets(buckets))
+                .then(query => {
+                    this.client.stream(query)
+                        .on('readable', function () {
+                            let row;
+                            while (row = this.read()) {
+                                observer.onNext({
+                                    timestamp: row.timestamp,
+                                    event: JSON.parse(row['system.blobastext(event)'])
+                                });
+                            }
+                        })
+                        .on('end', () => observer.onCompleted())
+                        .on('error', (error) => observer.onError(error));
+                });
+
             return Rx.Disposable.empty;
         });
     }
 
+    private getBuckets():string[] | Promise<string[]> {
+        if (this.streamState.lastEvent)
+            return this.timePartitioner.bucketsFrom(this.streamState.lastEvent.getDate());
+        else
+            return Promise.fromNode(callback => {
+                this.client.execute("select distinct timebucket from event_by_timestamp", callback)
+            }).then(buckets => buckets.rows).map<any, string>(row => row.timebucket);
+    }
+
+    private buildQueryFromBuckets(buckets:string[]):string {
+        let bucketsString = buckets.join("', '"),
+            query = `SELECT blobAsText(event), timestamp FROM event_by_timestamp WHERE timebucket IN ('${bucketsString}')`;
+        if (this.streamState.lastEvent) {
+            let timestamp = this.streamState.lastEvent.getDate().toISOString();
+            query += ` AND timestamp > maxTimeUuid('${timestamp}')`;
+        }
+        return query;
+    }
 }
 
 export default CassandraStreamFactory
