@@ -14,7 +14,6 @@ import IClientRegistry from "../push/IClientRegistry";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import PushNotifier from "../push/PushNotifier";
 import IPushNotifier from "../push/IPushNotifier";
-import {socket} from "./Socket";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "./IObjectContainer";
@@ -27,6 +26,7 @@ import StreamState from "../streams/StreamState";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 import ICassandraClientFactory from "../streams/ICassandraClientFactory";
 import CassandraClientFactory from "../streams/CassandraClientFactory";
+import SocketFactory from "../push/SocketFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -36,7 +36,6 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
         kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
-        kernel.bind<SocketIO.Socket>("SocketIO.Socket").toConstantValue(socket);
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
         kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
@@ -47,6 +46,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<StreamState>("StreamState").to(StreamState).inSingletonScope();
         kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
+        kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
