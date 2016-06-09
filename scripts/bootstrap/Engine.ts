@@ -34,7 +34,7 @@ class Engine {
             config = this.kernel.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.kernel.get<SocketFactory>("SocketFactory");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
-        server.listen(config.port);
+        server.listen(config.port || 80);
         socketFactory.socketForPath().on('connection', client => {
             client.on('subscribe', context => {
                 clientRegistry.add(client.id, context);
