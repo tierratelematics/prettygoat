@@ -69,13 +69,14 @@ class PushNotifier implements IPushNotifier {
     }
 
     private emitToClient(clientId:string, context:PushContext, splitKey:string = ""):void {
-        let endpoint = ContextOperations.getEndpoint(context);
-        this.eventEmitter.emitTo(
-            clientId,
-            ContextOperations.getChannel(context),
-            {
-                url: `${this.config.protocol}://${this.config.host}:${this.config.port}${endpoint}/${splitKey}`
-            });
+        let endpoint = ContextOperations.getEndpoint(context),
+            url = `${this.config.protocol}://${this.config.host}`;
+        if (this.config.port)
+            url += `:${this.config.port}`;
+        if (this.config.path)
+            url += this.config.path;
+        url += `${endpoint}/${splitKey}`;
+        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), {url: url});
     }
 }
 

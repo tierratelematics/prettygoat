@@ -78,6 +78,32 @@ describe("PushNotifier, given a projection runner and a context", () => {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
         });
+
+        context("and no port is passed in the config", () => {
+            it("should not append the port in the notification url", () => {
+                subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http'});
+                subject.register(projectionRunner, new PushContext("Admin", "Foo"));
+                dataSubject.onNext(new MockModel());
+                expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
+                    url: 'http://test/admin/foo/'
+                })).to.be(true);
+            });
+        });
+
+        context("and a custom path is passed in the config", () => {
+            it("should prepend this path to the endpoint", () => {
+                subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+                    host: 'test',
+                    protocol: 'http',
+                    path: '/projections'
+                });
+                subject.register(projectionRunner, new PushContext("Admin", "Foo"));
+                dataSubject.onNext(new MockModel());
+                expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
+                    url: 'http://test/projections/admin/foo/'
+                })).to.be(true);
+            });
+        });
     });
 
     context("when they are registered under the master context", () => {

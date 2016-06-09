@@ -165,8 +165,9 @@ declare module prettygoat {
 
     export interface IEndpointConfig {
         host:string;
-        port:number;
+        port?:number;
         protocol:string;
+        path?:string;
     }
 
     export interface ICassandraConfig {
