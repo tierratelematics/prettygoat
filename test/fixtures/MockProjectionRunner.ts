@@ -6,7 +6,7 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
     private subject:Subject<MockModel>;
 
-    constructor(subject:Subject<MockModel>) {
+    constructor(subject?:Subject<MockModel>) {
         this.subject = subject;
     }
 
