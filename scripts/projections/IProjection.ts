@@ -28,5 +28,4 @@ export interface IProjection<T> {
     definition: IWhen<T>;
     snapshotStrategy?: ISnapshotStrategy;
     parametersKey?: (parameters:any) => string;
-    dependencies?: string[];
 }
