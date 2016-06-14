@@ -81,7 +81,12 @@ declare module prettygoat {
     }
 
     export interface IStreamFactory {
-        from(lastEvent:string):Observable<any>;
+        from(lastEvent:string):Observable<Event>;
+    }
+
+    export interface Event {
+        type:string;
+        payload:any;
     }
 
     export interface ISnapshotRepository {

@@ -43,7 +43,7 @@ describe("Given a ProjectionRunner", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
                 repository.setup(r => r.getSnapshot<number>("test")).returns(_ => new Snapshot<number>(42, "lastEvent"));
-                stream.setup(s => s.from("lastEvent")).returns(_ => Observable.empty());
+                stream.setup(s => s.from("lastEvent")).returns(_ => Observable.just({ type: null,  payload:null }));
                 matcher.setup(m => m.match(SpecialNames.Init)).throws(new Error("match called for $init when a snapshot was present"));
                 subject.run();
             });
@@ -60,7 +60,7 @@ describe("Given a ProjectionRunner", () => {
         context("and a snapshot is not present", () => {
             beforeEach(() => {
                 repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
-                stream.setup(s => s.from(undefined)).returns(_ => Observable.empty());
+                stream.setup(s => s.from(undefined)).returns(_ => Observable.just({ type: null,  payload:null }));
                 matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
                 subject.run();
             });
