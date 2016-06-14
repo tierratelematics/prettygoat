@@ -16,6 +16,7 @@ import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
+import Event from "../scripts/streams/Event";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -26,7 +27,7 @@ describe("Given a ProjectionRunner", () => {
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let aggregateFactory:Mock<IReadModelFactory>;
+    let readModelFactory:Mock<IReadModelFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -35,10 +36,10 @@ describe("Given a ProjectionRunner", () => {
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
-        aggregateFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, aggregateFactory.object);
+        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, readModelFactory.object);
         subscription = subject.subscribe((state: number) => notifications.push(state), e => failed = true, () => stopped = true);
-        aggregateFactory.setup(a => a.publish(It.isAny())).returns(null);
+        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
     });
 
     afterEach(() => subscription.dispose());
@@ -78,7 +79,7 @@ describe("Given a ProjectionRunner", () => {
             });
 
             it("should subscribe to the aggregates stream to build linked projections", () => {
-                aggregateFactory.verify(a => a.from(undefined), Times.once());
+                readModelFactory.verify(a => a.from(null), Times.once());
             });
 
             context("should behave regularly", behavesRegularly);
@@ -125,7 +126,7 @@ describe("Given a ProjectionRunner", () => {
             });
 
             it("should publish on the event stream the new aggregate state", () => {
-               aggregateFactory.verify(a => a.publish({ type: "test", payload: 42 + 1 + 2 + 3 + 4}), Times.once());
+               readModelFactory.verify(a => a.publish(It.isValue({ type: "test", payload: 42})), Times.atLeastOnce());
             });
 
         });

@@ -11,7 +11,8 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
             streamSource: new AllStreamSource(),
             definition: {
                 $init: () => 10,
-                TestEvent: (s, e:any) => s + e.count
+                TestEvent: (s, e:any) => s + e.count,
+                LinkedState: (s, e:{ count2:number }) => s + e.count2
             },
             split: {
                 TestEvent: (e:any) => e.id

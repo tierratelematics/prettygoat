@@ -34,14 +34,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.state = snapshot.memento;
         else
             this.state = this.matcher.match(SpecialNames.Init)();
-        this.subject.onNext(this.state);
+        this.publishReadModel();
 
-        this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event:any) => {
+        this.subscription = this.stream.from(snapshot.lastEvent).merge(this.readModelFactory.from(null)).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
                     this.state = matchFunction(this.state, event.payload);
-                    this.subject.onNext(this.state);
+                    this.publishReadModel();
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -65,6 +65,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
+
+    private publishReadModel() {
+        this.subject.onNext(this.state);
+        this.readModelFactory.publish({
+            type: this.projection.name,
+            payload: this.state
+        });
+    };
 
     subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
     subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
