@@ -1,7 +1,9 @@
 import IReadModelFactory from "./IReadModelFactory";
 import {Subject, ReplaySubject} from "rx";
 import Event from "./Event";
+import {injectable} from "inversify";
 
+@injectable()
 class ReadModelFactory implements IReadModelFactory {
 
     private subject:Subject<Event>;
