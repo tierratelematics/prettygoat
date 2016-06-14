@@ -20,11 +20,14 @@ describe("Split projection, given a projection with a split definition", () => {
         subject = new SplitProjectionRunner<number>(projection,
             new MockStreamFactory(eventSubject),
             new MockSnapshotRepository(),
-            new Matcher(projection.definition));
+            new Matcher(projection.definition), null);
     });
 
     context("when a new event is emitted", () => {
         context("and a projection runner has not been created yet", () => {
+
+            it("should push all the aggregates states to the projection runner");
+
             it("should add a projection runner to the list of runners with the result key", () => {
                 subject.run();
                 eventSubject.onNext({

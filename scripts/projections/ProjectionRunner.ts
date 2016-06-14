@@ -6,6 +6,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import {IProjection} from "./IProjection";
+import IAggregateFactory from "../streams/IAggregateFactory";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -15,7 +16,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isFailed:boolean;
     private streamId:string;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher, public splitKey?:string) {
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
+                private matcher:IMatcher, private aggregateFactory:IAggregateFactory) {
         this.subject = new Subject<T>();
         this.streamId = projection.name;
     }

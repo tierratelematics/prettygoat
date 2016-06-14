@@ -10,10 +10,12 @@ import { MockMatcher } from "./fixtures/MockMatcher";
 import { MockSnapshotRepository } from "./fixtures/MockSnapshotRepository";
 import { MockStreamFactory } from "./fixtures/MockStreamFactory";
 import { Observable, Subject, IDisposable } from "rx";
-import {Mock, Times} from "typemoq";
+import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import IAggregateFactory from "../scripts/streams/IAggregateFactory";
+import AggregateFactory from "../scripts/streams/AggregateFactory";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -24,6 +26,7 @@ describe("Given a ProjectionRunner", () => {
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
+    let aggregateFactory:Mock<IAggregateFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -32,8 +35,10 @@ describe("Given a ProjectionRunner", () => {
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
-        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object);
+        aggregateFactory = Mock.ofType<IAggregateFactory>(AggregateFactory);
+        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, aggregateFactory.object);
         subscription = subject.subscribe((state: number) => notifications.push(state), e => failed = true, () => stopped = true);
+        aggregateFactory.setup(a => a.publish(It.isAny())).returns(null);
     });
 
     afterEach(() => subscription.dispose());
@@ -70,6 +75,10 @@ describe("Given a ProjectionRunner", () => {
             });
             it("should subscribe to the event stream starting from the stream's beginning", () => {
                 stream.verify(s => s.from(undefined), Times.once());
+            });
+
+            it("should subscribe to the aggregates stream to build linked projections", () => {
+                aggregateFactory.verify(a => a.from(undefined), Times.once());
             });
 
             context("should behave regularly", behavesRegularly);
@@ -113,6 +122,10 @@ describe("Given a ProjectionRunner", () => {
                     42 + 1 + 2 + 3 + 4,
                     42 + 1 + 2 + 3 + 4 + 5
                 ]);
+            });
+
+            it("should publish on the event stream the new aggregate state", () => {
+               aggregateFactory.verify(a => a.publish({ type: "test", payload: 42 + 1 + 2 + 3 + 4}), Times.once());
             });
 
         });
