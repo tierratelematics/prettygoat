@@ -6,7 +6,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import {IProjection} from "./IProjection";
-import IAggregateFactory from "../streams/IAggregateFactory";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -17,7 +17,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
-                private matcher:IMatcher, private aggregateFactory:IAggregateFactory) {
+                private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<T>();
         this.streamId = projection.name;
     }

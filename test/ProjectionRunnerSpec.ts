@@ -14,8 +14,8 @@ import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import IAggregateFactory from "../scripts/streams/IAggregateFactory";
-import AggregateFactory from "../scripts/streams/AggregateFactory";
+import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -26,7 +26,7 @@ describe("Given a ProjectionRunner", () => {
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let aggregateFactory:Mock<IAggregateFactory>;
+    let aggregateFactory:Mock<IReadModelFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -35,7 +35,7 @@ describe("Given a ProjectionRunner", () => {
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
-        aggregateFactory = Mock.ofType<IAggregateFactory>(AggregateFactory);
+        aggregateFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, aggregateFactory.object);
         subscription = subject.subscribe((state: number) => notifications.push(state), e => failed = true, () => stopped = true);
         aggregateFactory.setup(a => a.publish(It.isAny())).returns(null);

@@ -7,14 +7,14 @@ import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {SplitProjectionRunner} from "./SplitProjectionRunner";
 import {Matcher} from "../matcher/Matcher";
-import IAggregateFactory from "../streams/IAggregateFactory";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     constructor(@inject("ISnapshotRepository") private snapshotRespository:ISnapshotRepository,
                 @inject("IStreamFactory") private streamFactory:IStreamFactory,
-                @inject("IAggregateFactory") private aggregateFactory:IAggregateFactory) {
+                @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory) {
 
     }
 

@@ -1,7 +1,7 @@
-import IAggregateFactory from "./IAggregateFactory";
+import IReadModelFactory from "./IReadModelFactory";
 import Event from "./Event";
 
-class AggregateFactory implements IAggregateFactory {
+class ReadModelFactory implements IReadModelFactory {
 
     publish(event:Event):void {
         
@@ -12,4 +12,4 @@ class AggregateFactory implements IAggregateFactory {
     }
 }
 
-export default AggregateFactory
+export default ReadModelFactory

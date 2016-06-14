@@ -8,7 +8,7 @@ import {Matcher} from "../matcher/Matcher";
 import {ProjectionRunner} from "./ProjectionRunner";
 import SplitStreamFactory from "../streams/SplitStreamFactory";
 import Dictionary from "../Dictionary";
-import IAggregateFactory from "../streams/IAggregateFactory";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -22,7 +22,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private subjects:Dictionary<Rx.Subject<any>> = {};
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
-                private matcher:IMatcher, private aggregateFactory:IAggregateFactory) {
+                private matcher:IMatcher, private aggregateFactory:IReadModelFactory) {
         this.subject = new Rx.Subject<T>();
         this.streamId = projection.name;
         this.splitMatcher = new Matcher(projection.split);
