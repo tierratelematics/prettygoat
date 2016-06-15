@@ -8,6 +8,7 @@ import {Matcher} from "../matcher/Matcher";
 import {ProjectionRunner} from "./ProjectionRunner";
 import SplitStreamFactory from "../streams/SplitStreamFactory";
 import Dictionary from "../Dictionary";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -20,7 +21,8 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private runners:Dictionary<IProjectionRunner<T>> = {};
     private subjects:Dictionary<Rx.Subject<any>> = {};
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher) {
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
+                private matcher:IMatcher, private aggregateFactory:IReadModelFactory) {
         this.subject = new Rx.Subject<T>();
         this.streamId = projection.name;
         this.splitMatcher = new Matcher(projection.split);
@@ -39,7 +41,8 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 if (!this.runners[splitKey]) {
                     this.subjects[splitKey] = new Rx.Subject<any>();
                     let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
-                    let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, splitKey);
+                    let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.aggregateFactory);
+                    runner.setSplitKey(splitKey);
                     this.runners[splitKey] = runner;
                     runner.run();
                 }

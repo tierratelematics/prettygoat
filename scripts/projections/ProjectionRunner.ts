@@ -6,6 +6,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import {IProjection} from "./IProjection";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -14,8 +15,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isDisposed:boolean;
     private isFailed:boolean;
     private streamId:string;
+    private splitKey:string;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository, private matcher:IMatcher, public splitKey?:string) {
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
+                private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<T>();
         this.streamId = projection.name;
     }
@@ -32,14 +35,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.state = snapshot.memento;
         else
             this.state = this.matcher.match(SpecialNames.Init)();
-        this.subject.onNext(this.state);
+        this.publishReadModel();
 
-        this.subscription = this.stream.from(snapshot.lastEvent).subscribe((event:any) => {
+        this.subscription = this.stream.from(snapshot.lastEvent).merge(this.readModelFactory.from(null)).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
                     this.state = matchFunction(this.state, event.payload);
-                    this.subject.onNext(this.state);
+                    this.publishReadModel();
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -63,6 +66,20 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
+    
+    setSplitKey(key:string) {
+        this.splitKey = key;  
+    }
+
+    private publishReadModel() {
+        this.subject.onNext(this.state);
+        if (!this.splitKey) {
+            this.readModelFactory.publish({
+                type: this.projection.name,
+                payload: this.state
+            });
+        }
+    };
 
     subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
     subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable

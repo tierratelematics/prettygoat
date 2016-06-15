@@ -6,6 +6,7 @@ import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
 import TimePartitioner from "./TimePartitioner";
 import * as Promise from "bluebird";
+import Event from "./Event";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -19,7 +20,7 @@ class CassandraStreamFactory implements IStreamFactory {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:string):Rx.Observable<any> {
+    from(lastEvent:string):Rx.Observable<Event> {
         return this.streamSource()
             .do(event => this.streamState.lastEvent = event.timestamp)
             .map(event => event.event);
