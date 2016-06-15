@@ -99,7 +99,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment", payload: n }; }));
+            stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment", payload: n }; }).observeOn(Rx.Scheduler.immediate));
         });
 
         context("and no error occurs", () => {
