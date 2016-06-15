@@ -7,20 +7,24 @@ import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {SplitProjectionRunner} from "./SplitProjectionRunner";
 import {Matcher} from "../matcher/Matcher";
+import IReadModelFactory from "../streams/IReadModelFactory";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     constructor(@inject("ISnapshotRepository") private snapshotRespository:ISnapshotRepository,
-                @inject("IStreamFactory") private streamFactory:IStreamFactory) {
+                @inject("IStreamFactory") private streamFactory:IStreamFactory,
+                @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory) {
 
     }
 
     create<T>(projection:IProjection<T>):IProjectionRunner<T> {
         if (!projection.split)
-            return new ProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository, new Matcher(projection.definition));
+            return new ProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository,
+                new Matcher(projection.definition), this.aggregateFactory);
         else
-            return new SplitProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository, new Matcher(projection.definition));
+            return new SplitProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository,
+                new Matcher(projection.definition), this.aggregateFactory);
     }
 
 }

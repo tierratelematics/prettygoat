@@ -34,7 +34,7 @@ describe("Given a ProjectionEngine", () => {
     beforeEach(() => {
         runner = new MockProjectionRunner(null);
         pushNotifier = new PushNotifier(null, null, null, {host: 'test', protocol: 'http', port: 80});
-        runnerFactory = new ProjectionRunnerFactory(null, null);
+        runnerFactory = new ProjectionRunnerFactory(null, null, null);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);
         notifyStub = sinon.stub(pushNotifier, "register", () => {

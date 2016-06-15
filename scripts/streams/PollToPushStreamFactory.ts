@@ -2,6 +2,7 @@ import {IStreamFactory} from "./IStreamFactory";
 import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
 import * as Rx from "rx";
+import Event from "./Event";
 
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
@@ -19,7 +20,7 @@ class PollToPushStreamFactory implements IStreamFactory {
             .share();
     }
 
-    from(lastEvent:string):Rx.Observable<any> {
+    from(lastEvent:string):Rx.Observable<Event> {
         return this.source;
     }
 }

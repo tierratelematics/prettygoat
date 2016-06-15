@@ -10,10 +10,13 @@ import { MockMatcher } from "./fixtures/MockMatcher";
 import { MockSnapshotRepository } from "./fixtures/MockSnapshotRepository";
 import { MockStreamFactory } from "./fixtures/MockStreamFactory";
 import { Observable, Subject, IDisposable } from "rx";
-import {Mock, Times} from "typemoq";
+import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import ReadModelFactory from "../scripts/streams/ReadModelFactory";
+import Event from "../scripts/streams/Event";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;
@@ -24,6 +27,7 @@ describe("Given a ProjectionRunner", () => {
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
+    let readModelFactory:Mock<IReadModelFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -32,8 +36,10 @@ describe("Given a ProjectionRunner", () => {
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
-        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object);
+        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, readModelFactory.object);
         subscription = subject.subscribe((state: number) => notifications.push(state), e => failed = true, () => stopped = true);
+        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
     });
 
     afterEach(() => subscription.dispose());
@@ -43,7 +49,7 @@ describe("Given a ProjectionRunner", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
                 repository.setup(r => r.getSnapshot<number>("test")).returns(_ => new Snapshot<number>(42, "lastEvent"));
-                stream.setup(s => s.from("lastEvent")).returns(_ => Observable.empty());
+                stream.setup(s => s.from("lastEvent")).returns(_ => Observable.just({ type: null,  payload:null }));
                 matcher.setup(m => m.match(SpecialNames.Init)).throws(new Error("match called for $init when a snapshot was present"));
                 subject.run();
             });
@@ -60,7 +66,7 @@ describe("Given a ProjectionRunner", () => {
         context("and a snapshot is not present", () => {
             beforeEach(() => {
                 repository.setup(r => r.getSnapshot<number>("test")).returns(_ => Snapshot.Empty);
-                stream.setup(s => s.from(undefined)).returns(_ => Observable.empty());
+                stream.setup(s => s.from(undefined)).returns(_ => Observable.just({ type: null,  payload:null }));
                 matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
                 subject.run();
             });
@@ -70,6 +76,10 @@ describe("Given a ProjectionRunner", () => {
             });
             it("should subscribe to the event stream starting from the stream's beginning", () => {
                 stream.verify(s => s.from(undefined), Times.once());
+            });
+
+            it("should subscribe to the aggregates stream to build linked projections", () => {
+                readModelFactory.verify(a => a.from(null), Times.once());
             });
 
             context("should behave regularly", behavesRegularly);
@@ -113,6 +123,10 @@ describe("Given a ProjectionRunner", () => {
                     42 + 1 + 2 + 3 + 4,
                     42 + 1 + 2 + 3 + 4 + 5
                 ]);
+            });
+
+            it("should publish on the event stream the new aggregate state", () => {
+               readModelFactory.verify(a => a.publish(It.isValue({ type: "test", payload: 42})), Times.atLeastOnce());
             });
 
         });
