@@ -15,6 +15,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isDisposed:boolean;
     private isFailed:boolean;
     private streamId:string;
+    private splitKey:string;
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
                 private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
@@ -65,13 +66,19 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
+    
+    setSplitKey(key:string) {
+        this.splitKey = key;  
+    }
 
     private publishReadModel() {
         this.subject.onNext(this.state);
-        this.readModelFactory.publish({
-            type: this.projection.name,
-            payload: this.state
-        });
+        if (!this.splitKey) {
+            this.readModelFactory.publish({
+                type: this.projection.name,
+                payload: this.state
+            });
+        }
     };
 
     subscribe(observer:Rx.IObserver<T>):Rx.IDisposable

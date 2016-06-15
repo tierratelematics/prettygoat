@@ -42,6 +42,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                     this.subjects[splitKey] = new Rx.Subject<any>();
                     let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
                     let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.aggregateFactory);
+                    runner.setSplitKey(splitKey);
                     this.runners[splitKey] = runner;
                     runner.run();
                 }
