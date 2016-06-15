@@ -8,7 +8,7 @@ import * as Rx from "rx";
 import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import {MockSnapshotRepository} from "./fixtures/MockSnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import ReadModelFactory from "../scripts/streams/ReadModelFactory";
+import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 
 describe("Split projection, given a projection with a split definition", () => {
 
@@ -20,7 +20,7 @@ describe("Split projection, given a projection with a split definition", () => {
     beforeEach(() => {
         eventSubject = new Rx.Subject<any>();
         projection = new SplitProjectionDefinition().define();
-        readModelFactory = new ReadModelFactory();
+        readModelFactory = new MockReadModelFactory();
         subject = new SplitProjectionRunner<number>(projection,
             new MockStreamFactory(eventSubject),
             new MockSnapshotRepository(),

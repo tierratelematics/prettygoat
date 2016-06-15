@@ -17,6 +17,7 @@ class PollToPushStreamFactory implements IStreamFactory {
                 Rx.Observable
                     .interval(config.interval || 30000)
                     .flatMap(_ => streamFactory.from(null)))
+            .observeOn(Rx.Scheduler.default)
             .share();
     }
 

@@ -1,12 +1,12 @@
-import IReadModelFactory from "./IReadModelFactory";
 import {Subject, Observable, Scheduler} from "rx";
 import {injectable} from "inversify";
-import Dictionary from "../Dictionary";
-import Event from "./Event";
 import {values} from "lodash";
+import Dictionary from "../../scripts/Dictionary";
+import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
+import Event from "../../scripts/streams/Event";
 
 @injectable()
-class ReadModelFactory implements IReadModelFactory {
+class MockReadModelFactory implements IReadModelFactory {
 
     private subject:Subject<Event>;
     private readModels:Dictionary<Event> = {};  // Caching the read models instead of using a replaySubject because after a while
@@ -24,10 +24,10 @@ class ReadModelFactory implements IReadModelFactory {
     from(lastEvent:string):Rx.Observable<Event> {
         let readModels = values<Event>(this.readModels);
         if (readModels.length)
-            return Observable.from(readModels).merge(this.subject).observeOn(Scheduler.default);
+            return Observable.from(readModels).merge(this.subject);
         else
-            return this.subject.observeOn(Scheduler.default);
+            return this.subject;
     }
 }
 
-export default ReadModelFactory
+export default MockReadModelFactory
