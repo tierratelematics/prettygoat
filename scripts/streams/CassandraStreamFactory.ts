@@ -12,11 +12,11 @@ import Event from "./Event";
 class CassandraStreamFactory implements IStreamFactory {
 
     private client:any;
-    private timePartitioner = new TimePartitioner();
 
     constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
                 @inject("ICassandraConfig") config:ICassandraConfig,
-                @inject("StreamState") private streamState:StreamState) {
+                @inject("StreamState") private streamState:StreamState,
+                @inject("TimePartitioner") private timePartitioner:TimePartitioner) {
         this.client = clientFactory.clientFor(config);
     }
 

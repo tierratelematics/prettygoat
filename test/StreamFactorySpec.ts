@@ -5,6 +5,8 @@ import CassandraStreamFactory from "../scripts/streams/CassandraStreamFactory";
 import MockClientFactory from "./fixtures/MockClientFactory";
 import StreamState from "../scripts/streams/StreamState";
 import SinonStub = Sinon.SinonStub;
+import TimePartitioner from "../scripts/streams/TimePartitioner";
+import DateRetriever from "../scripts/util/DateRetriever";
 
 describe("StreamFactory, given a list of events", () => {
 
@@ -16,7 +18,7 @@ describe("StreamFactory, given a list of events", () => {
     beforeEach(() => {
         events = [];
         streamState = new StreamState();
-        subject = new CassandraStreamFactory(new MockClientFactory(), null, streamState);
+        subject = new CassandraStreamFactory(new MockClientFactory(), null, streamState, new TimePartitioner(new DateRetriever()));
         streamStub = sinon.stub(subject, "streamSource", () => {
             let rxSubject = new Rx.ReplaySubject<any>();
             rxSubject.onNext({timestamp: "26a", event: "eventA"});
