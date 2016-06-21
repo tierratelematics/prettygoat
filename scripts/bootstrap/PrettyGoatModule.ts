@@ -31,7 +31,7 @@ import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
-import TimePartitioner from "../streams/TimePartitioner";
+import TimePartitioner from "../util/TimePartitioner";
 
 class PrettyGoatModule implements IModule {
 

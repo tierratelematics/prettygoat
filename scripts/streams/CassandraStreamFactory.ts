@@ -4,7 +4,7 @@ import ICassandraConfig from "../configs/ICassandraConfig";
 import * as Rx from "rx";
 import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
-import TimePartitioner from "./TimePartitioner";
+import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import Event from "../events/Event";
 
