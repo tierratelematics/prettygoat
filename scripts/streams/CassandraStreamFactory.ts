@@ -55,9 +55,13 @@ class CassandraStreamFactory implements IStreamFactory {
         if (this.streamState.lastEvent)
             return this.timePartitioner.bucketsFrom(this.streamState.lastEvent.getDate());
         else
-            return Promise.fromNode(callback => {
-                this.client.execute("select distinct timebucket from event_by_timestamp", callback)
-            }).then(buckets => buckets.rows).map<any, string>(row => row.timebucket);
+            return Promise
+                .fromNode(callback => {
+                    this.client.execute("select distinct timebucket from event_by_timestamp", callback)
+                })
+                .then(buckets => buckets.rows)
+                .map<any, string>(row => row.timebucket)
+                .then(buckets => !buckets || (buckets && !buckets.length) ? this.timePartitioner.bucketsFrom(new Date()) : buckets);
     }
 
     private buildQueryFromBuckets(buckets:string[]):string {
