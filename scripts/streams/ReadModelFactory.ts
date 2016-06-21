@@ -2,7 +2,7 @@ import IReadModelFactory from "./IReadModelFactory";
 import {Subject, Observable, Scheduler} from "rx";
 import {injectable} from "inversify";
 import Dictionary from "../Dictionary";
-import Event from "./Event";
+import Event from "../events/Event";
 import {values} from "lodash";
 
 @injectable()

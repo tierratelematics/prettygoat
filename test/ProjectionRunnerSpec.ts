@@ -16,7 +16,7 @@ import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
-import Event from "../scripts/streams/Event";
+import Event from "../scripts/events/Event";
 
 describe("Given a ProjectionRunner", () => {
     let stream: Mock<IStreamFactory>;

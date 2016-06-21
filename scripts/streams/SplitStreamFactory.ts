@@ -1,6 +1,6 @@
 import {IStreamFactory} from "../../scripts/streams/IStreamFactory";
 import {Observable} from "rx";
-import Event from "./Event";
+import Event from "../events/Event";
 
 class SplitStreamFactory implements IStreamFactory {
 
