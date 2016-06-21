@@ -11,22 +11,18 @@ describe("Given a ProjectionAnalyzer", () => {
 
     context("when analyzing a projection", () => {
         it("should check it has a name", () => {
-            let result = subject.analyze(<IProjection<number>>{ definition: {}, streamSource: {} });
+            let result = subject.analyze(<IProjection<number>>{ definition: {} });
             expect(result).to.eql([ProjectionErrors.NoName]);
         });
-        it("should check it has a source stream definition", () => {
-            let result = subject.analyze(<IProjection<number>>{ definition: {}, name: "-" });
-            expect(result).to.eql([ProjectionErrors.NoSource]);
-        });
         it("should check it has an event application definition", () => {
-            let result = subject.analyze(<IProjection<number>>{ name: "-", streamSource: {} });
+            let result = subject.analyze(<IProjection<number>>{ name: "-" });
             expect(result).to.eql([ProjectionErrors.NoDefinition]);
         });
 
         context("and one or more checks fail", () => {
             it("should return all the failed checks", () => {
                 let result = subject.analyze(<IProjection<number>>{});
-                expect(result).to.eql([ProjectionErrors.NoName, ProjectionErrors.NoSource, ProjectionErrors.NoDefinition]);
+                expect(result).to.eql([ProjectionErrors.NoName, ProjectionErrors.NoDefinition]);
             });
         });
     });

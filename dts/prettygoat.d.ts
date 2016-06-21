@@ -12,7 +12,6 @@ declare module prettygoat {
     export interface IProjection<T> {
         name:string;
         split?:ISplit;
-        streamSource:StreamSource;
         definition:IWhen<T>;
         snapshotStrategy?:ISnapshotStrategy;
     }
@@ -31,23 +30,6 @@ declare module prettygoat {
     export interface ISnapshotStrategy {
         processedEvent(lastDate:Date):void;
         needsSnapshot():boolean;
-    }
-
-
-    export abstract class StreamSource {
-
-    }
-
-    export class AllStreamSource extends StreamSource {
-    }
-
-
-    export class NamedStreamSource extends StreamSource {
-        name:string;
-    }
-
-    export class MultipleStreamSource extends StreamSource {
-        names:Array<string>;
     }
 
     export interface IProjectionRunner<T> extends IObservable<T>, IDisposable {

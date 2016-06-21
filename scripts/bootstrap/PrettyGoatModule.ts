@@ -29,6 +29,9 @@ import CassandraClientFactory from "../streams/CassandraClientFactory";
 import SocketFactory from "../push/SocketFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
+import IDateRetriever from "../util/IDateRetriever";
+import DateRetriever from "../util/DateRetriever";
+import TimePartitioner from "../streams/TimePartitioner";
 
 class PrettyGoatModule implements IModule {
 
@@ -50,6 +53,8 @@ class PrettyGoatModule implements IModule {
         kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
+        kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
+        kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

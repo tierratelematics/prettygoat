@@ -37,17 +37,20 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.stream.from(null).subscribe((event:any) => {
             try {
-                let splitKey = this.splitMatcher.match(event.type)(event.payload);
-                if (!this.runners[splitKey]) {
-                    this.subjects[splitKey] = new Rx.Subject<any>();
-                    let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
-                    let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.aggregateFactory);
-                    runner.setSplitKey(splitKey);
-                    this.runners[splitKey] = runner;
-                    runner.run();
+                let splitFn = this.splitMatcher.match(event.type),
+                    splitKey = splitFn(event.payload);
+                if (splitFn !== Rx.helpers.identity) {
+                    if (!this.runners[splitKey]) {
+                        this.subjects[splitKey] = new Rx.Subject<any>();
+                        let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
+                        let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.aggregateFactory);
+                        runner.setSplitKey(splitKey);
+                        this.runners[splitKey] = runner;
+                        runner.run();
+                    }
+                    this.subjects[splitKey].onNext(event);
+                    this.subject.onNext(splitKey);
                 }
-                this.subjects[splitKey].onNext(event);
-                this.subject.onNext(splitKey);
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);

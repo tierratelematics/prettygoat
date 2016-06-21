@@ -7,7 +7,6 @@ class MockBadProjectionDefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
         return <any>{
-            name: "test",
             definition: {
                 $init: () => 10
             }

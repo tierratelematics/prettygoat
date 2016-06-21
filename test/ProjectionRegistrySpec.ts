@@ -37,13 +37,13 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection has no name", () => {
         it("should throw an error regarding the missing decorator", () => {
-            expect(() => subject.add(UnnamedProjectionDefinition)).to.throwError();
+            expect(() => subject.add(UnnamedProjectionDefinition).forArea("Test")).to.throwError();
         });
     });
 
     context("when a projection isn't formally correct", () => {
         it("should throw an error", () => {
-            expect(() => subject.add(MockBadProjectionDefinition)).to.throwError();
+            expect(() => subject.add(MockBadProjectionDefinition).forArea("Test")).to.throwError();
         });
     });
 
