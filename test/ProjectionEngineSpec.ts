@@ -57,27 +57,5 @@ describe("Given a ProjectionEngine", () => {
             expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
             expect(runnerSpy.called).to.be(true);
         });
-
-        describe("and a projection fails", () => {
-            it("should keep running all the remaining projections");
-        });
-    });
-
-    context("when running a projection", () => {
-        it("should subscribe to the event stream according to the definition");
-        context("and an error occurs when subscribing to the event stream", () => {
-            it("should publish an error state");
-        });
-        context("and an error occurs when initializing the state of the projection", () => {
-            it("should unsubscribe to the event stream");
-            it("should publish an error state");
-        });
-        it("should check if a snapshot is needed");
-        context("and a snapshot is needed", () => {
-            it("should save a snapshot of the state");
-            context("and an error occurs when saving the snapshot", () => {
-                it("should keep processing events");
-            });
-        });
     });
 });
