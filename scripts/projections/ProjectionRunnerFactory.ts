@@ -19,14 +19,9 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
     }
 
     create<T>(projection:IProjection<T>):IProjectionRunner<T> {
-        if (!projection.split)
-            return new ProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository,
-                new Matcher(projection.definition), this.aggregateFactory);
-        else
-            return new SplitProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository,
-                new Matcher(projection.definition), this.aggregateFactory);
+        return new ProjectionRunner<T>(projection, this.streamFactory, this.snapshotRespository,
+            new Matcher(projection.definition), this.aggregateFactory);
     }
-
 }
 
 export default ProjectionRunnerFactory

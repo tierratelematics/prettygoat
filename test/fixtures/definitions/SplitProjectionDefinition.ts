@@ -7,7 +7,7 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
         return {
-            name: "test",
+            name: "split",
             definition: {
                 $init: () => 10,
                 TestEvent: (s, e:any) => s + e.count,

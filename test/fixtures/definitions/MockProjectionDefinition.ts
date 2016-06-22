@@ -9,7 +9,8 @@ class MockProjectionDefinition implements IProjectionDefinition<number> {
         return {
             name: "test",
             definition: {
-                $init: () => 10
+                $init: () => 10,
+                OnlyEvent: (s, e) => s
             }
         };
     }

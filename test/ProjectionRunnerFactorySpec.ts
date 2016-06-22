@@ -23,11 +23,4 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
             expect((<any>projectionRunner).streamId).to.eql("test");
         });
     });
-
-    context("when it contains a split definition", () => {
-        it("should create a split projection runner", () => {
-            let projectionRunner = subject.create(new SplitProjectionDefinition().define());
-            expect(projectionRunner instanceof SplitProjectionRunner).to.be(true);
-        });
-    })
 });
