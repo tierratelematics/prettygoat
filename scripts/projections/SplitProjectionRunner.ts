@@ -9,13 +9,14 @@ import {ProjectionRunner} from "./ProjectionRunner";
 import SplitStreamFactory from "../streams/SplitStreamFactory";
 import Dictionary from "../Dictionary";
 import IReadModelFactory from "../streams/IReadModelFactory";
+import NotificationState from "../push/NotificationState";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private subject:Rx.Subject<T>;
+    private subject:Rx.Subject<NotificationState<T>>;
     private streamId:string;
     private splitMatcher:IMatcher;
     private runners:Dictionary<IProjectionRunner<T>> = {};
@@ -23,7 +24,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
                 private matcher:IMatcher, private aggregateFactory:IReadModelFactory) {
-        this.subject = new Rx.Subject<T>();
+        this.subject = new Rx.Subject<NotificationState<T>>();
         this.streamId = projection.name;
         this.splitMatcher = new Matcher(projection.split);
     }
@@ -49,7 +50,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                         runner.run();
                     }
                     this.subjects[splitKey].onNext(event);
-                    this.subject.onNext(splitKey);
+                    this.subject.onNext({splitKey: splitKey, state: null});
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -78,9 +79,9 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         return this.runners[key];
     }
 
-    subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
-    subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<T>) | ((value:T) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
+    subscribe(observer:Rx.IObserver<NotificationState<T>>):Rx.IDisposable
+    subscribe(onNext?:(value:NotificationState<T>) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
+    subscribe(observerOrOnNext?:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
         if (isObserver(observerOrOnNext))
             return this.subject.subscribe(observerOrOnNext);
         else
@@ -88,7 +89,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     }
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<T>) | ((value:T) => void)):observerOrOnNext is Rx.IObserver<T> {
-    return (<Rx.IObserver<T>>observerOrOnNext).onNext !== undefined;
+function isObserver<T>(observerOrOnNext:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void)):observerOrOnNext is Rx.IObserver<NotificationState<T>> {
+    return (<Rx.IObserver<NotificationState<T>>>observerOrOnNext).onNext !== undefined;
 }
 

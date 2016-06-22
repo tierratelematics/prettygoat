@@ -22,6 +22,7 @@ import Constants from "../scripts/registry/Constants";
 import {SplitProjectionRunner} from "../scripts/projections/SplitProjectionRunner";
 import {IProjection} from "../scripts/projections/IProjection";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
+import NotificationState from "../scripts/push/NotificationState";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 
@@ -30,7 +31,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
         splitProjectionRunner:SplitProjectionRunner<number>,
         splitProjection:IProjection<number>,
         router:IProjectionRouter,
-        dataSubject:Subject<MockModel>,
+        dataSubject:Subject<NotificationState<MockModel>>,
         routerSpy:SinonSpy,
         clientRegistry:IClientRegistry,
         clientsStub:SinonStub,
@@ -39,7 +40,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
 
     beforeEach(() => {
         router = new MockProjectionRouter();
-        dataSubject = new Subject<MockModel>();
+        dataSubject = new Subject<NotificationState<MockModel>>();
         projectionRunner = new MockProjectionRunner(dataSubject);
         splitProjection = new SplitProjectionDefinition().define();
         splitProjectionRunner = new SplitProjectionRunner(splitProjection, null, null, null, null);
@@ -70,7 +71,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             let newModel = new MockModel();
             newModel.id = "test";
             newModel.name = "testName";
-            dataSubject.onNext(newModel);
+            dataSubject.onNext({ splitKey: null, state: newModel});
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
@@ -83,7 +84,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             it("should not append the port in the notification url", () => {
                 subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http'});
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext(new MockModel());
+                dataSubject.onNext({ splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/admin/foo/'
                 })).to.be(true);
@@ -98,7 +99,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
                     path: '/projections'
                 });
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext(new MockModel());
+                dataSubject.onNext({ splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/projections/admin/foo/'
                 })).to.be(true);
