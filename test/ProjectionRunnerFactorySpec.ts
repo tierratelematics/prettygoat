@@ -24,12 +24,6 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
         });
     });
 
-    context("when not all the required properties are defined", () => {
-        it("should throw an error", () => {
-            expect(() => subject.create(new UnnamedProjectionDefinition().define())).to.throwError();
-        });
-    });
-
     context("when it contains a split definition", () => {
         it("should create a split projection runner", () => {
             let projectionRunner = subject.create(new SplitProjectionDefinition().define());

@@ -6,7 +6,7 @@ import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
 import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
-import Event from "../events/Event";
+import Event from "./Event";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {

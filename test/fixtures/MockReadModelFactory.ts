@@ -3,7 +3,7 @@ import {injectable} from "inversify";
 import {values} from "lodash";
 import Dictionary from "../../scripts/Dictionary";
 import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
-import Event from "../../scripts/events/Event";
+import Event from "../../scripts/streams/Event";
 
 @injectable()
 class MockReadModelFactory implements IReadModelFactory {
