@@ -7,10 +7,11 @@ import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
+import NotificationState from "../push/NotificationState";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
-    private subject:Subject<T>;
+    private subject:Subject<NotificationState<T>>;
     private subscription:IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
@@ -19,7 +20,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
                 private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
-        this.subject = new Subject<T>();
+        this.subject = new Subject<NotificationState<T>>();
         this.streamId = projection.name;
     }
 
@@ -66,13 +67,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
-    
+
     setSplitKey(key:string) {
-        this.splitKey = key;  
+        this.splitKey = key;
     }
 
     private publishReadModel() {
-        this.subject.onNext(this.state);
+        this.subject.onNext({splitKey: this.splitKey, state: this.state});
         if (!this.splitKey) {
             this.readModelFactory.publish({
                 type: this.projection.name,
@@ -81,9 +82,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         }
     };
 
-    subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
-    subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<T>) | ((value:T) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
+    subscribe(observer:Rx.IObserver<NotificationState<T>>):Rx.IDisposable
+    subscribe(onNext?:(value:NotificationState<T>) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
+    subscribe(observerOrOnNext?:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
         if (isObserver(observerOrOnNext))
             return this.subject.subscribe(observerOrOnNext);
         else
@@ -91,7 +92,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<T>) | ((value:T) => void)):observerOrOnNext is Rx.IObserver<T> {
-    return (<Rx.IObserver<T>>observerOrOnNext).onNext !== undefined;
+function isObserver<T>(observerOrOnNext:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void)):observerOrOnNext is Rx.IObserver<NotificationState<T>> {
+    return (<Rx.IObserver<NotificationState<T>>>observerOrOnNext).onNext !== undefined;
 }
 
