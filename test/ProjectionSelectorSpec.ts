@@ -1,5 +1,3 @@
-/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
-import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import sinon = require("sinon");
 import IProjectionSelector from "../scripts/projections/IProjectionSelector";
@@ -13,35 +11,72 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import IPushNotifier from "../scripts/push/IPushNotifier";
+import PushNotifier from "../scripts/push/PushNotifier";
+import PushContext from "../scripts/push/PushContext";
+import {MockSnapshotRepository} from "./fixtures/MockSnapshotRepository";
+import {Matcher} from "../scripts/matcher/Matcher";
+import {MockStreamFactory} from "./fixtures/MockStreamFactory";
+import MockReadModelFactory from "./fixtures/MockReadModelFactory";
+import * as Rx from "rx";
+import Event from "../scripts/streams/Event";
+import SinonSpy = Sinon.SinonSpy;
+import SinonStub = Sinon.SinonStub;
+import SinonSandbox = Sinon.SinonSandbox;
 
 describe("Projection selector, given some registered projections", () => {
 
     let subject:IProjectionSelector,
-        registry:Mock<IProjectionRegistry>,
-        projectionRunnerFactory:Mock<IProjectionRunnerFactory>,
+        registry:IProjectionRegistry,
+        projectionRunnerFactory:IProjectionRunnerFactory,
+        pushNotifier:IPushNotifier,
+        runnerStub:SinonStub,
+        pushStub:SinonStub,
+        sandbox:SinonSandbox,
         mockProjection = new MockProjectionDefinition().define(),
         splitProjection = new SplitProjectionDefinition().define(),
-        mockRunner = new ProjectionRunner(mockProjection, null, null, null, null),
-        splitRunner = new ProjectionRunner(splitProjection, null, null, null, null);
+        mockRunner = new ProjectionRunner(
+            mockProjection,
+            new MockStreamFactory(Rx.Observable.empty<Event>()),
+            new MockSnapshotRepository(),
+            new Matcher(mockProjection.definition),
+            new MockReadModelFactory()),
+        splitRunner = new ProjectionRunner(
+            splitProjection,
+            new MockStreamFactory(Rx.Observable.empty<Event>()),
+            new MockSnapshotRepository(),
+            new Matcher(splitProjection.definition),
+            new MockReadModelFactory());
 
     beforeEach(() => {
-        registry = Mock.ofType<IProjectionRegistry>(ProjectionRegistry);
-        projectionRunnerFactory = Mock.ofType<IProjectionRunnerFactory>(ProjectionRunnerFactory);
-        registry.setup(r => r.getAreas()).returns(_ => [new AreaRegistry("Test", [
+        sandbox = sinon.sandbox.create();
+        registry = new ProjectionRegistry(null, null);
+        projectionRunnerFactory = new ProjectionRunnerFactory(null, null, null);
+        sandbox.stub(registry, "getAreas", () => [new AreaRegistry("Test", [
             new RegistryEntry(mockProjection, "Mock"),
             new RegistryEntry(splitProjection, "Split"),
         ])]);
-        projectionRunnerFactory.setup(p => p.create(It.isAny())).returns(projection => {
+        runnerStub = sandbox.stub(projectionRunnerFactory, "create", projection => {
             return projection.name === "test" ? mockRunner : splitRunner;
         });
-        subject = new ProjectionSelector(registry.object, projectionRunnerFactory.object);
+        pushNotifier = new PushNotifier(null, null, null, null);
+        pushStub = sandbox.stub(pushNotifier, "register");
+        subject = new ProjectionSelector(registry, projectionRunnerFactory, pushNotifier);
     });
+
+    afterEach(() => sandbox.restore());
 
     context("at startup", () => {
         it("should create the projection runners for those projections", () => {
             subject.initialize();
-            projectionRunnerFactory.verify(p => p.create(It.isValue(mockProjection)), Times.once());
-            projectionRunnerFactory.verify(p => p.create(It.isValue(splitProjection)), Times.once());
+            expect(runnerStub.calledWith(mockProjection)).to.be(true);
+            expect(runnerStub.calledWith(splitProjection)).to.be(true);
+        });
+
+        it("should register the created runners on the push notifier", () => {
+            subject.initialize();
+            expect(pushStub.calledWith(mockRunner, new PushContext("Test", "Mock"), undefined)).to.be(true);
+            expect(pushStub.calledWith(splitRunner, new PushContext("Test", "Split"), undefined)).to.be(true);
         });
     });
 
