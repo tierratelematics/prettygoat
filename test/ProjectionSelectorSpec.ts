@@ -102,7 +102,7 @@ describe("Projection selector, given some registered projections", () => {
                         count: 30
                     }
                 });
-                expect(runners).to.have.length(2);
+                expect(runners).to.have.length(1);
                 expect(runners[0].state).to.be(10);
             });
         });
