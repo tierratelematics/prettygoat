@@ -52,10 +52,12 @@ class ProjectionSelector implements IProjectionSelector {
                     if (splitFn !== Rx.helpers.identity) {
                         let handler = _.find(runner.handlers, 'splitKey', splitKey);
                         if (!handler) {
+                            let childRunner = this.runnerFactory.create(runner.projection.name, runner.projection.definition);
                             handler = {
                                 splitKey: splitKey,
-                                runner: this.runnerFactory.create(runner.projection.name, runner.projection.definition)
+                                runner: childRunner
                             };
+                            childRunner.initializeWith(null);
                             runner.handlers.push(handler);
                         }
                         return [handler];

@@ -1,3 +1,4 @@
+/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
@@ -7,46 +8,49 @@ import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import SinonStub = Sinon.SinonStub;
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import PushNotifier from "../scripts/push/PushNotifier";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
-import PushContext from "../scripts/push/PushContext";
-import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockProjectionRunner from "./fixtures/MockProjectionRunner";
-import MockModel from "./fixtures/MockModel";
 import SinonSpy = Sinon.SinonSpy;
 import MockObjectContainer from "./fixtures/MockObjectContainer";
+import {Mock, Times} from "typemoq";
+import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import {IStreamFactory} from "../scripts/streams/IStreamFactory";
+import {MockStreamFactory} from "./fixtures/MockStreamFactory";
+import ReadModelFactory from "../scripts/streams/ReadModelFactory";
+import Event from "../scripts/streams/Event";
 
 describe("Given a ProjectionEngine", () => {
 
     let subject:IProjectionEngine,
         registry:IProjectionRegistry,
-        runnerFactory:IProjectionRunnerFactory,
-        runnerFactoryStub:SinonStub,
         pushNotifier:IPushNotifier,
         notifyStub:SinonStub,
-        runner:IProjectionRunner<MockModel>,
-        runnerSpy:SinonSpy;
+        stream:Mock<IStreamFactory>,
+        readModelFactory:Mock<IReadModelFactory>;
 
     beforeEach(() => {
-        runner = new MockProjectionRunner(null);
         pushNotifier = new PushNotifier(null, null, null, {host: 'test', protocol: 'http', port: 80});
-        runnerFactory = new ProjectionRunnerFactory(null, null, null);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
-        subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);
+        stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
+        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
+        subject = new ProjectionEngine(pushNotifier, registry, stream.object, readModelFactory.object);
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
-        runnerFactoryStub = sinon.stub(runnerFactory, "create", () => runner);
-        runnerSpy = sinon.stub(runner, "run");
     });
 
     afterEach(() => {
         notifyStub.restore();
-        runnerFactoryStub.restore();
-        runnerSpy.restore();
+    });
+
+    it("should subscribe to the event stream starting from the stream's beginning", () => {
+        stream.verify(s => s.from(undefined), Times.once());
+    });
+
+    it("should subscribe to the aggregates stream to build linked projections", () => {
+        readModelFactory.verify(a => a.from(null), Times.once());
     });
 
     describe("when running", () => {
@@ -54,8 +58,16 @@ describe("Given a ProjectionEngine", () => {
         it("should run all the registered projections", () => {
             registry.add(MockProjectionDefinition).forArea("Admin");
             subject.run();
-            expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
-            expect(runnerSpy.called).to.be(true);
+            //TODO: test projection selector to be called
+        });
+
+        context("and an event from the stream is received", () => {
+            beforeEach(() => {
+
+            });
+            it("should apply these event to all the matching projection runners", () => {
+                // stream.setup(s => s.from(undefined)).returns(_ => Observable.range(1, 5).map(n => { return { type: "increment", payload: n }; }).observeOn(Rx.Scheduler.immediate));
+            });
         });
     });
 });
