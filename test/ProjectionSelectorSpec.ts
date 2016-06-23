@@ -2,13 +2,11 @@ import expect = require("expect.js");
 import sinon = require("sinon");
 import IProjectionSelector from "../scripts/projections/IProjectionSelector";
 import ProjectionSelector from "../scripts/projections/ProjectionSelector";
-import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
-import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
@@ -27,7 +25,6 @@ import SinonSandbox = Sinon.SinonSandbox;
 describe("Projection selector, given some registered projections", () => {
 
     let subject:IProjectionSelector,
-        registry:IProjectionRegistry,
         projectionRunnerFactory:IProjectionRunnerFactory,
         pushNotifier:IPushNotifier,
         runnerStub:SinonStub,
@@ -50,19 +47,17 @@ describe("Projection selector, given some registered projections", () => {
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
-        registry = new ProjectionRegistry(null, null);
         projectionRunnerFactory = new ProjectionRunnerFactory(null, null, null);
-        sandbox.stub(registry, "getAreas", () => [new AreaRegistry("Test", [
-            new RegistryEntry(mockProjection, "Mock"),
-            new RegistryEntry(splitProjection, "Split"),
-        ])]);
         runnerStub = sandbox.stub(projectionRunnerFactory, "create", projection => {
             return projection.name === "test" ? mockRunner : splitRunner;
         });
         pushNotifier = new PushNotifier(null, null, null, null);
         pushStub = sandbox.stub(pushNotifier, "register");
-        subject = new ProjectionSelector(registry, projectionRunnerFactory, pushNotifier);
-        subject.initialize();
+        subject = new ProjectionSelector(projectionRunnerFactory, pushNotifier);
+        subject.addProjections(new AreaRegistry("Test", [
+            new RegistryEntry(mockProjection, "Mock"),
+            new RegistryEntry(splitProjection, "Split"),
+        ]));
     });
 
     afterEach(() => sandbox.restore());
