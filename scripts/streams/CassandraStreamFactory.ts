@@ -23,7 +23,13 @@ class CassandraStreamFactory implements IStreamFactory {
     from(lastEvent:string):Rx.Observable<Event> {
         return this.streamSource()
             .do(event => this.streamState.lastEvent = event.timestamp)
-            .map(event => event.event)
+            .map(event => {
+                return {
+                    type: event.event.type,
+                    payload: event.event.payload,
+                    timestamp: event.timestamp
+                }
+            })
             .observeOn(Rx.Scheduler.default);
     }
 
