@@ -14,7 +14,7 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
                 LinkedState: (s, e:{ count2:number }) => s + e.count2
             },
             split: {
-                TestEvent: (e:any) => e.id
+                TestEvent: (e:any) => e.id.toString()
             }
         };
     }

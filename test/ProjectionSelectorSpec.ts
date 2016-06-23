@@ -62,26 +62,24 @@ describe("Projection selector, given some registered projections", () => {
         pushNotifier = new PushNotifier(null, null, null, null);
         pushStub = sandbox.stub(pushNotifier, "register");
         subject = new ProjectionSelector(registry, projectionRunnerFactory, pushNotifier);
+        subject.initialize();
     });
 
     afterEach(() => sandbox.restore());
 
     context("at startup", () => {
         it("should create the projection runners for those projections", () => {
-            subject.initialize();
             expect(runnerStub.calledWith(mockProjection)).to.be(true);
             expect(runnerStub.calledWith(splitProjection)).to.be(true);
         });
 
         it("should register the created runners on the push notifier", () => {
-            subject.initialize();
             expect(pushStub.calledWith(mockRunner, new PushContext("Test", "Mock"), undefined)).to.be(true);
             expect(pushStub.calledWith(splitRunner, new PushContext("Test", "Split"), undefined)).to.be(true);
         });
     });
 
     context("when a new event is received", () => {
-        beforeEach(() => subject.initialize());
         it("should return a list of the matching projection runners", () => {
             let runners = subject.projectionsFor({type: "OnlyEvent", payload: null});
             expect(runners).to.have.length(1);
@@ -110,7 +108,19 @@ describe("Projection selector, given some registered projections", () => {
 
     context("when the state of a split projection is needed", () => {
         it("should return the right projection runner", () => {
-            let runner = subject.projectionFor("Test", "Mock", "10");
+            subject.projectionsFor({
+                type: "TestEvent", payload: {
+                    id: 10,
+                    count: 30
+                }
+            });
+            subject.projectionsFor({
+                type: "TestEvent", payload: {
+                    id: 20,
+                    count: 30
+                }
+            });
+            let runner = subject.projectionFor("Test", "Split", "10");
             expect(runner.state).to.be(10);
         });
     });

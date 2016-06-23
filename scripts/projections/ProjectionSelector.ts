@@ -55,7 +55,10 @@ class ProjectionSelector implements IProjectionSelector {
                     if (splitFn !== Rx.helpers.identity) {
                         let handler = _.find(runner.handlers, 'splitKey', splitKey);
                         if (!handler) {
-                            handler = {splitKey: splitKey, runner: this.runnerFactory.create({ name: "Test", definition: {}})};
+                            handler = {
+                                splitKey: splitKey,
+                                runner: this.runnerFactory.create({name: "Test", definition: {}})
+                            };
                             runner.handlers.push(handler);
                         }
                         return [handler];
@@ -69,7 +72,15 @@ class ProjectionSelector implements IProjectionSelector {
     }
 
     projectionFor(area:string, projectionName:string, splitKey:string):IProjectionRunner<any> {
-        return null;
+        return <IProjectionRunner<any>>_(this.runners)
+            .filter((runner:RunnerEntry<any>) => {
+                return runner.area === area && runner.viewmodelId === projectionName;
+            })
+            .map((runner:RunnerEntry<any>) => runner.handlers)
+            .flatten<{ splitKey?:string, runner:IProjectionRunner<any> }>()
+            .filter(handler => handler.splitKey === splitKey)
+            .map(handler => handler.runner)
+            .valueOf()[0];
     }
 }
 
