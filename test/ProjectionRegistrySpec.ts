@@ -21,7 +21,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner:IProjectionRunner<number>;
 
     beforeEach(() => {
-        runner = new ProjectionRunner<number>(new MockProjectionDefinition().define(), null, null, null, null);
+        runner = new ProjectionRunner<number>("test", null, null);
         let analyzer = new ProjectionAnalyzer();
         subject = new ProjectionRegistry(analyzer, new MockObjectContainer());
     });

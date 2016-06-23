@@ -1,13 +1,11 @@
 import {Subject, IDisposable} from "rx";
-import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
-import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
-import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import NotificationState from "../push/NotificationState";
+import Event from "../streams/Event";
+import {SpecialNames} from "../matcher/SpecialNames";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -15,71 +13,53 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription:IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private streamId:string;
     private splitKey:string;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
-                private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
+    constructor(private projectionName:string, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<NotificationState<T>>();
-        this.streamId = projection.name;
     }
 
-    run():void {
+    initializeWith(value:T) {
         if (this.isDisposed)
-            throw new Error(`${this.streamId}: cannot run a disposed projection`);
+            throw new Error(`${this.projectionName}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
 
-        let snapshot = this.repository.getSnapshot<T>(this.streamId);
-        if (snapshot !== Snapshot.Empty)
-            this.state = snapshot.memento;
-        else
-            this.state = this.matcher.match(SpecialNames.Init)();
+        this.state = value || this.matcher.match(SpecialNames.Init)();
         this.publishReadModel();
-
-        this.subscription = this.stream.from(snapshot.lastEvent).merge(this.readModelFactory.from(null)).subscribe(event => {
-            try {
-                let matchFunction = this.matcher.match(event.type);
-                if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload);
-                    this.publishReadModel();
-                }
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
     }
 
-    stop():void {
-        this.isDisposed = true;
+    handle(event:Event) {
+        try {
+            let matchFunction = this.matcher.match(event.type);
+            if (matchFunction !== Rx.helpers.identity) {
+                this.state = matchFunction(this.state, event.payload);
+                this.publishReadModel();
+            }
+        } catch (error) {
+            this.isFailed = true;
+            this.subject.onError(error);
+            this.dispose();
+        }
+    }
 
+    dispose():void {
+        this.isDisposed = true;
         if (this.subscription)
             this.subscription.dispose();
         if (!this.isFailed)
             this.subject.onCompleted();
-    }
-
-    dispose():void {
-        this.stop();
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
 
-    setSplitKey(key:string) {
-        this.splitKey = key;
-    }
-
     private publishReadModel() {
         this.subject.onNext({splitKey: this.splitKey, state: this.state});
-        if (!this.splitKey) {
-            this.readModelFactory.publish({
-                type: this.projection.name,
-                payload: this.state
-            });
-        }
+        this.readModelFactory.publish({
+            type: this.projectionName,
+            payload: this.state
+        });
     };
 
     subscribe(observer:Rx.IObserver<NotificationState<T>>):Rx.IDisposable

@@ -1,8 +1,8 @@
 import IProjectionRunner from "./IProjectionRunner";
-import {IProjection} from "./IProjection";
+import {IProjection, IWhen} from "./IProjection";
 
 interface IProjectionRunnerFactory {
-    create<T>(projection:IProjection<T>):IProjectionRunner<T>
+    create<T>(projectionName:string, definition:IWhen<T>):IProjectionRunner<T>;
 }
 
 export default IProjectionRunnerFactory

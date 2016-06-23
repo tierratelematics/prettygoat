@@ -2,22 +2,26 @@ import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
 import NotificationState from "../../scripts/push/NotificationState";
+import Event from "../../scripts/streams/Event";
 
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
+
     private subject:Subject<NotificationState<MockModel>>;
 
     constructor(subject?:Subject<NotificationState<MockModel>>) {
         this.subject = subject;
     }
 
-    run():void {
+    initializeWith(value:MockModel) {
+
     }
 
-    stop():void {
+    handle(event:Event) {
+
     }
 
-    dispose():void {
+    dispose() {
 
     }
 

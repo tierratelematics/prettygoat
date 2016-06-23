@@ -4,23 +4,22 @@ import expect = require("expect.js");
 import sinon = require("sinon");
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
-import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
-import {SplitProjectionRunner} from "../scripts/projections/SplitProjectionRunner";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 
     let subject:IProjectionRunnerFactory;
 
     beforeEach(() => {
-        subject = new ProjectionRunnerFactory(null, null, null);
+        subject = new ProjectionRunnerFactory(null);
     });
 
     context("when all the required properties are defined", () => {
         it("should return a constructed projection", () => {
-            let projectionRunner = subject.create(new MockProjectionDefinition().define());
-            expect((<any>projectionRunner).streamId).to.eql("test");
+            let projectionRunner = subject.create("test", {
+                $init: () => 10,
+                OnlyEvent: (s, e) => s
+            });
+            expect((<any>projectionRunner).projectionName).to.eql("test");
         });
     });
 });

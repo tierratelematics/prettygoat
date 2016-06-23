@@ -5,7 +5,7 @@ import Event from "../streams/Event";
 
 interface IProjectionRunner<T> extends IObservable<NotificationState<T>>, IDisposable {
     state:T;
-    initWithSnapshot(snapshot:Snapshot<T>);
+    initializeWith(value:T);
     handle(event:Event);
 }
 

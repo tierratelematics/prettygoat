@@ -11,7 +11,6 @@ import * as _ from "lodash";
 import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import {SplitProjectionRunner} from "../projections/SplitProjectionRunner";
 import Dictionary from "../Dictionary";
 
 @injectable()
@@ -28,7 +27,7 @@ class PushNotifier implements IPushNotifier {
 
     register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext, parametersKey?:(p:any) => string):void {
         this.parameterKeys[ContextOperations.getChannel(context)] = parametersKey; //Memoize parameters key to notify clients on subscribe
-        if (projectionRunner instanceof SplitProjectionRunner) {
+        /*if (projectionRunner instanceof SplitProjectionRunner) {
             projectionRunner.subscribe(state => this.notifyWithParameters(context, state.splitKey));
             this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
                 let runner = <SplitProjectionRunner<any>>projectionRunner.runnerFor(request.params['key']);
@@ -37,12 +36,12 @@ class PushNotifier implements IPushNotifier {
                 else
                     response.status(404).json({error: "Projection not found"});
             });
-        } else {
+        } else {*/
             projectionRunner.subscribe(state => this.notify(context));
             this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
                 response.json(projectionRunner.state);
             });
-        }
+        //}
     }
 
     notify(context:PushContext, clientId?:string):void {

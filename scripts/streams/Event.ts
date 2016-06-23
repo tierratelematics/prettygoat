@@ -1,7 +1,7 @@
 interface Event {
     type:string;
     payload:any;
-    timestamp:string;
+    timestamp?:string;
 }
 
 export default Event

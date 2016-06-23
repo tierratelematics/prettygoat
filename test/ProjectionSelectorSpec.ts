@@ -12,12 +12,8 @@ import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
 import PushContext from "../scripts/push/PushContext";
-import {MockSnapshotRepository} from "./fixtures/MockSnapshotRepository";
 import {Matcher} from "../scripts/matcher/Matcher";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
-import * as Rx from "rx";
-import Event from "../scripts/streams/Event";
 import SinonSpy = Sinon.SinonSpy;
 import SinonStub = Sinon.SinonStub;
 import SinonSandbox = Sinon.SinonSandbox;
@@ -33,23 +29,19 @@ describe("Projection selector, given some registered projections", () => {
         mockProjection = new MockProjectionDefinition().define(),
         splitProjection = new SplitProjectionDefinition().define(),
         mockRunner = new ProjectionRunner(
-            mockProjection,
-            new MockStreamFactory(Rx.Observable.empty<Event>()),
-            new MockSnapshotRepository(),
+            mockProjection.name,
             new Matcher(mockProjection.definition),
             new MockReadModelFactory()),
         splitRunner = new ProjectionRunner(
-            splitProjection,
-            new MockStreamFactory(Rx.Observable.empty<Event>()),
-            new MockSnapshotRepository(),
+            splitProjection.name,
             new Matcher(splitProjection.definition),
             new MockReadModelFactory());
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
-        projectionRunnerFactory = new ProjectionRunnerFactory(null, null, null);
-        runnerStub = sandbox.stub(projectionRunnerFactory, "create", projection => {
-            return projection.name === "test" ? mockRunner : splitRunner;
+        projectionRunnerFactory = new ProjectionRunnerFactory(null);
+        runnerStub = sandbox.stub(projectionRunnerFactory, "create", (name, definition) => {
+            return name === "test" ? mockRunner : splitRunner;
         });
         pushNotifier = new PushNotifier(null, null, null, null);
         pushStub = sandbox.stub(pushNotifier, "register");
@@ -64,8 +56,7 @@ describe("Projection selector, given some registered projections", () => {
 
     context("at startup", () => {
         it("should create the projection runners for those projections", () => {
-            expect(runnerStub.calledWith(mockProjection)).to.be(true);
-            expect(runnerStub.calledWith(splitProjection)).to.be(true);
+            expect(runnerStub.calledTwice).to.be(true);
         });
 
         it("should register the created runners on the push notifier", () => {

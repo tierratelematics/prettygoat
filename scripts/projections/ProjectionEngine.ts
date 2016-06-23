@@ -21,9 +21,7 @@ class ProjectionEngine implements IProjectionEngine {
         let areas = this.registry.getAreas();
         _.forEach<AreaRegistry>(areas, areaRegistry => {
             _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-                let runner = this.runnerFactory.create(entry.projection);
-                this.pushNotifier.register(runner, new PushContext(areaRegistry.area, entry.name), entry.parametersKey);
-                runner.run();
+
             });
         });
     }
