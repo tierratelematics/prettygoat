@@ -85,6 +85,11 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
                 subject.initializeWith(null);
+                subject.handle({type: "increment", payload: 1});
+                subject.handle({type: "increment", payload: 2});
+                subject.handle({type: "increment", payload: 3});
+                subject.handle({type: "increment", payload: 4});
+                subject.handle({type: "increment", payload: 5});
             });
 
             it("should match the event with the projection definition", () => {
@@ -115,10 +120,11 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
-                matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => {
+                matcher.setup(m => m.match("increment")).returns(f => (s:number, e:any) => {
                     throw new Error("Kaboom!");
                 });
                 subject.initializeWith(null);
+                subject.handle(null);
             });
             it("should notify an error", () => {
                 expect(failed).to.be.ok();
