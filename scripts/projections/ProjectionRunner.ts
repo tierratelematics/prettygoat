@@ -1,5 +1,5 @@
 import {Subject, IDisposable} from "rx";
-import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
+import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";

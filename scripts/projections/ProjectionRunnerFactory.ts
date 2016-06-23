@@ -3,7 +3,7 @@ import IProjectionRunner from "./IProjectionRunner";
 import {ProjectionRunner} from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
-import {ISnapshotRepository} from "../streams/ISnapshotRepository";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {SplitProjectionRunner} from "./SplitProjectionRunner";
 import {Matcher} from "../matcher/Matcher";
