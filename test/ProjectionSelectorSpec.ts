@@ -22,9 +22,7 @@ describe("Projection selector, given some registered projections", () => {
 
     let subject:IProjectionSelector,
         projectionRunnerFactory:IProjectionRunnerFactory,
-        pushNotifier:IPushNotifier,
         runnerStub:SinonStub,
-        pushStub:SinonStub,
         sandbox:SinonSandbox,
         mockProjection = new MockProjectionDefinition().define(),
         splitProjection = new SplitProjectionDefinition().define(),
@@ -43,9 +41,7 @@ describe("Projection selector, given some registered projections", () => {
         runnerStub = sandbox.stub(projectionRunnerFactory, "create", (name, definition) => {
             return name === "test" ? mockRunner : splitRunner;
         });
-        pushNotifier = new PushNotifier(null, null, null, null, null);
-        pushStub = sandbox.stub(pushNotifier, "register");
-        subject = new ProjectionSelector(projectionRunnerFactory, pushNotifier);
+        subject = new ProjectionSelector(projectionRunnerFactory);
         subject.addProjections(new AreaRegistry("Test", [
             new RegistryEntry(mockProjection, "Mock"),
             new RegistryEntry(splitProjection, "Split"),
@@ -57,11 +53,6 @@ describe("Projection selector, given some registered projections", () => {
     context("at startup", () => {
         it("should create the projection runners for those projections", () => {
             expect(runnerStub.calledTwice).to.be(true);
-        });
-
-        it("should register the created runners on the push notifier", () => {
-            expect(pushStub.calledWith(mockRunner, new PushContext("Test", "Mock"), undefined)).to.be(true);
-            expect(pushStub.calledWith(splitRunner, new PushContext("Test", "Split"), undefined)).to.be(true);
         });
     });
 

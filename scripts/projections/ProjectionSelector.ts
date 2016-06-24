@@ -2,12 +2,10 @@ import IProjectionSelector from "./IProjectionSelector";
 import IProjectionRunner from "./IProjectionRunner";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import Event from "../streams/Event";
-import IPushNotifier from "../push/IPushNotifier";
 import {inject, injectable} from "inversify";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
-import PushContext from "../push/PushContext";
 import {IMatcher} from "../matcher/IMatcher";
 import {Matcher} from "../matcher/Matcher";
 import * as Rx from "rx";
@@ -18,15 +16,13 @@ class ProjectionSelector implements IProjectionSelector {
 
     private runners:RunnerEntry<any>[] = [];
 
-    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
-                @inject("IPushNotifier") private pushNotifier:IPushNotifier) {
+    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory) {
 
     }
 
     addProjections(areaRegistry:AreaRegistry):IProjectionRunner<any>[] {
         return _.map(areaRegistry.entries, (entry:RegistryEntry<any>) => {
             let runner = this.runnerFactory.create(entry.projection.name, entry.projection.definition);
-            this.pushNotifier.register(runner, new PushContext(areaRegistry.area, entry.name), entry.parametersKey);
             runner.initializeWith(null);
             this.runners.push({
                 handlers: [{runner: runner}],
@@ -51,7 +47,7 @@ class ProjectionSelector implements IProjectionSelector {
                     let splitFn = runner.splitMatcher.match(event.type),
                         splitKey = splitFn(event.payload);
                     if (splitFn !== Rx.helpers.identity) {
-                        let handler = _.find(runner.handlers, 'splitKey', splitKey);
+                        let handler = _.find(runner.handlers, ['splitKey', splitKey]);
                         if (!handler) {
                             let childRunner = this.runnerFactory.create(runner.projection.name, runner.projection.definition);
                             handler = {
