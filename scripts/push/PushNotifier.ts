@@ -54,13 +54,11 @@ class PushNotifier implements IPushNotifier {
             } else {
                 this.emitToClient(clientId, context);
             }
-        } else if (!splitKey) {
-            _.forEach<ClientEntry>(clients, client => this.emitToClient(client.id, context));
         } else {
             _.forEach<ClientEntry>(clients, client => {
                 let parametersKey = this.parameterKeys[ContextOperations.getChannel(context)];
-                if (parametersKey(client.parameters) === splitKey)
-                    this.emitToClient(client.id, context, splitKey);
+                if (!splitKey || (splitKey && parametersKey(client.parameters) === splitKey))
+                    this.emitToClient(client.id, context, splitKey || "");
             });
         }
     }
