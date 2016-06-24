@@ -23,8 +23,8 @@ class ProjectionSelector implements IProjectionSelector {
 
     }
 
-    addProjections(areaRegistry:AreaRegistry):void {
-        _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
+    addProjections(areaRegistry:AreaRegistry):IProjectionRunner<any>[] {
+        return _.map(areaRegistry.entries, (entry:RegistryEntry<any>) => {
             let runner = this.runnerFactory.create(entry.projection.name, entry.projection.definition);
             this.pushNotifier.register(runner, new PushContext(areaRegistry.area, entry.name), entry.parametersKey);
             runner.initializeWith(null);
@@ -36,6 +36,7 @@ class ProjectionSelector implements IProjectionSelector {
                 splitMatcher: entry.projection.split ? new Matcher(entry.projection.split) : null,
                 projection: entry.projection
             });
+            return runner;
         });
     }
 
@@ -70,7 +71,7 @@ class ProjectionSelector implements IProjectionSelector {
             .valueOf();
     }
 
-    projectionFor(area:string, projectionName:string, splitKey:string):IProjectionRunner<any> {
+    projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionRunner<any> {
         return <IProjectionRunner<any>>_(this.runners)
             .filter((runner:RunnerEntry<any>) => {
                 return runner.area === area && runner.viewmodelId === projectionName;

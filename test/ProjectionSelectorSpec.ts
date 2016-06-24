@@ -92,22 +92,34 @@ describe("Projection selector, given some registered projections", () => {
         });
     });
 
-    context("when the state of a split projection is needed", () => {
-        it("should return the right projection runner", () => {
-            subject.projectionsFor({
-                type: "TestEvent", payload: {
-                    id: 10,
-                    count: 30
-                }
+    context("when the state of a projection is needed", () => {
+        context("and no split key is provided", () => {
+            it("should return the right projection runner", () => {
+                subject.projectionsFor({
+                    type: "OnlyEvent", payload: null
+                });
+                let runner = subject.projectionFor("Test", "Mock");
+                expect(runner.state).to.be(20);
             });
-            subject.projectionsFor({
-                type: "TestEvent", payload: {
-                    id: 20,
-                    count: 30
-                }
+        });
+
+        context("and a split key is provided", () => {
+            it("should return the right split projection runner", () => {
+                subject.projectionsFor({
+                    type: "TestEvent", payload: {
+                        id: 10,
+                        count: 30
+                    }
+                });
+                subject.projectionsFor({
+                    type: "TestEvent", payload: {
+                        id: 20,
+                        count: 30
+                    }
+                });
+                let runner = subject.projectionFor("Test", "Split", "10");
+                expect(runner.state).to.be(10);
             });
-            let runner = subject.projectionFor("Test", "Split", "10");
-            expect(runner.state).to.be(10);
         });
     });
 });
