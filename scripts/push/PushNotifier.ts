@@ -12,6 +12,7 @@ import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import Dictionary from "../Dictionary";
+import IProjectionSelector from "../projections/IProjectionSelector";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
@@ -21,30 +22,30 @@ class PushNotifier implements IPushNotifier {
     constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
                 @inject("IEventEmitter") private eventEmitter:IEventEmitter,
                 @inject("IClientRegistry") private registry:IClientRegistry,
-                @inject("IEndpointConfig") private config:IEndpointConfig) {
+                @inject("IEndpointConfig") private config:IEndpointConfig,
+                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector) {
 
     }
 
     register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext, parametersKey?:(p:any) => string):void {
         this.parameterKeys[ContextOperations.getChannel(context)] = parametersKey; //Memoize parameters key to notify clients on subscribe
-        /*if (projectionRunner instanceof SplitProjectionRunner) {
-            projectionRunner.subscribe(state => this.notifyWithParameters(context, state.splitKey));
+        if (parametersKey) {
             this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
-                let runner = <SplitProjectionRunner<any>>projectionRunner.runnerFor(request.params['key']);
+                let runner = this.projectionSelector.projectionFor(context.area, context.viewmodelId, request.params['key']);
                 if (runner)
                     response.json(runner.state);
                 else
                     response.status(404).json({error: "Projection not found"});
             });
-        } else {*/
-            projectionRunner.subscribe(state => this.notify(context));
+        } else {
             this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
                 response.json(projectionRunner.state);
             });
-        //}
+        }
+        projectionRunner.subscribe(state => this.notify(context, null, state.splitKey));
     }
 
-    notify(context:PushContext, clientId?:string):void {
+    notify(context:PushContext, clientId?:string, splitKey?:string):void {
         let clients = this.registry.clientsFor(context);
         if (clientId) {
             if (!_.isEmpty(context.parameters)) {
@@ -53,18 +54,15 @@ class PushNotifier implements IPushNotifier {
             } else {
                 this.emitToClient(clientId, context);
             }
-        }
-        else
+        } else if (!splitKey) {
             _.forEach<ClientEntry>(clients, client => this.emitToClient(client.id, context));
-    }
-
-    private notifyWithParameters(context:PushContext, splitKey?:string):void {
-        let clients = this.registry.clientsFor(context),
-            parametersKey = this.parameterKeys[ContextOperations.getChannel(context)];
-        _.forEach<ClientEntry>(clients, client => {
-            if (parametersKey(client.parameters) === splitKey)
-                this.emitToClient(client.id, context, splitKey);
-        });
+        } else {
+            _.forEach<ClientEntry>(clients, client => {
+                let parametersKey = this.parameterKeys[ContextOperations.getChannel(context)];
+                if (parametersKey(client.parameters) === splitKey)
+                    this.emitToClient(client.id, context, splitKey);
+            });
+        }
     }
 
     private emitToClient(clientId:string, context:PushContext, splitKey:string = ""):void {

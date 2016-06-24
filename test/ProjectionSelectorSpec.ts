@@ -43,7 +43,7 @@ describe("Projection selector, given some registered projections", () => {
         runnerStub = sandbox.stub(projectionRunnerFactory, "create", (name, definition) => {
             return name === "test" ? mockRunner : splitRunner;
         });
-        pushNotifier = new PushNotifier(null, null, null, null);
+        pushNotifier = new PushNotifier(null, null, null, null, null);
         pushStub = sandbox.stub(pushNotifier, "register");
         subject = new ProjectionSelector(projectionRunnerFactory, pushNotifier);
         subject.addProjections(new AreaRegistry("Test", [

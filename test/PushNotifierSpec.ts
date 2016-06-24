@@ -39,7 +39,11 @@ describe("PushNotifier, given a projection runner and a context", () => {
         projectionRunner = new MockProjectionRunner(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
-        subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http', port: 80});
+        subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+            host: 'test',
+            protocol: 'http',
+            port: 80
+        }, null);
         routerSpy = sinon.spy(router, "get");
         clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");
@@ -75,7 +79,10 @@ describe("PushNotifier, given a projection runner and a context", () => {
 
         context("and no port is passed in the config", () => {
             it("should not append the port in the notification url", () => {
-                subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http'});
+                subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+                    host: 'test',
+                    protocol: 'http'
+                }, null);
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
                 dataSubject.onNext({splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
@@ -90,7 +97,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
                     host: 'test',
                     protocol: 'http',
                     path: '/projections'
-                });
+                }, null);
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
                 dataSubject.onNext({splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
