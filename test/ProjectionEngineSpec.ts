@@ -20,6 +20,7 @@ import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import Event from "../scripts/streams/Event";
+import {Observable, Scheduler} from "rx";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -35,10 +36,14 @@ describe("Given a ProjectionEngine", () => {
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
+        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
         subject = new ProjectionEngine(pushNotifier, registry, stream.object, readModelFactory.object);
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
+        stream.setup(s => s.from(null)).returns(_ => Observable.just({
+            type: "increment",
+            payload: 1
+        }).observeOn(Scheduler.immediate));
     });
 
     afterEach(() => {
@@ -46,10 +51,12 @@ describe("Given a ProjectionEngine", () => {
     });
 
     it("should subscribe to the event stream starting from the stream's beginning", () => {
-        stream.verify(s => s.from(undefined), Times.once());
+        subject.run();
+        stream.verify(s => s.from(null), Times.once());
     });
 
     it("should subscribe to the aggregates stream to build linked projections", () => {
+        subject.run();
         readModelFactory.verify(a => a.from(null), Times.once());
     });
 
