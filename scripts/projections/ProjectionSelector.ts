@@ -9,12 +9,12 @@ import RegistryEntry from "../registry/RegistryEntry";
 import {IMatcher} from "../matcher/IMatcher";
 import {Matcher} from "../matcher/Matcher";
 import * as Rx from "rx";
-import {IProjection} from "./IProjection";
+import {IProjection, IWhen} from "./IProjection";
 
 @injectable()
 class ProjectionSelector implements IProjectionSelector {
 
-    private runners:RunnerEntry<any>[] = [];
+    private entries:Entry<any>[] = [];
 
     constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory) {
 
@@ -22,70 +22,77 @@ class ProjectionSelector implements IProjectionSelector {
 
     addProjections(areaRegistry:AreaRegistry):IProjectionRunner<any>[] {
         return _.map(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-            let runner = this.runnerFactory.create(entry.projection.name, entry.projection.definition);
-            runner.initializeWith(null);
-            this.runners.push({
-                handlers: [{runner: runner}],
+            let handler = this.runnerFactory.create(entry.projection.name, entry.projection.definition);
+            handler.initializeWith(null);
+            this.entries.push({
+                handlers: [{handler: handler}],
                 area: areaRegistry.area,
-                viewmodelId: entry.name,
+                projectionName: entry.name,
                 matcher: new Matcher(entry.projection.definition),
                 splitMatcher: entry.projection.split ? new Matcher(entry.projection.split) : null,
                 projection: entry.projection
             });
-            return runner;
+            return handler;
         });
     }
 
     projectionsFor(event:Event):IProjectionRunner<any>[] {
-        return _(this.runners)
-            .filter((runner:RunnerEntry<any>) => {
-                let matchFunction = runner.matcher.match(event.type);
+        return _(this.entries)
+            .filter((entry:Entry<any>) => {
+                let matchFunction = entry.matcher.match(event.type);
                 return matchFunction !== Rx.helpers.identity;
             })
-            .map((runner:RunnerEntry<any>) => {
-                if (runner.splitMatcher) {
-                    let splitFn = runner.splitMatcher.match(event.type),
+            .map((entry:Entry<any>) => {
+                if (entry.splitMatcher) {
+                    let splitFn = entry.splitMatcher.match(event.type),
                         splitKey = splitFn(event.payload);
                     if (splitFn !== Rx.helpers.identity) {
-                        let handler = _.find(runner.handlers, ['splitKey', splitKey]);
-                        if (!handler) {
-                            let childRunner = this.runnerFactory.create(runner.projection.name, runner.projection.definition);
-                            handler = {
-                                splitKey: splitKey,
-                                runner: childRunner
-                            };
-                            childRunner.initializeWith(null);
-                            runner.handlers.push(handler);
-                        }
-                        return [handler];
+                        return [this.getSplitHandler(entry, splitKey)];
                     }
                 }
-                return runner.handlers;
+                return entry.handlers;
             })
-            .flatten<{ splitKey?:string, runner:IProjectionRunner<any> }>()
-            .map(handler => handler.runner)
+            .flatten<{ splitKey?:string, handler:IProjectionRunner<any> }>()
+            .map(entry => entry.handler)
             .valueOf();
     }
 
+    private getSplitHandler(entry:Entry<any>, splitKey:string) {
+        let handler = _.find(entry.handlers, ['splitKey', splitKey]);
+        if (!handler) {
+            handler = this.createSplitHandler(entry.projectionName, entry.projection.definition, splitKey);
+            entry.handlers.push(handler);
+        }
+        return handler;
+    }
+
+    private createSplitHandler(projectionName:string, definition:IWhen<any>, splitKey:string) {
+        let childHandler = this.runnerFactory.create(projectionName, definition),
+            handler = {
+                splitKey: splitKey,
+                handler: childHandler
+            };
+        childHandler.initializeWith(null);
+        return handler;
+    };
+
     projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionRunner<any> {
-        return <IProjectionRunner<any>>_(this.runners)
-            .filter((runner:RunnerEntry<any>) => {
-                return runner.area === area && runner.viewmodelId === projectionName;
-            })
-            .map((runner:RunnerEntry<any>) => runner.handlers)
-            .flatten<{ splitKey?:string, runner:IProjectionRunner<any> }>()
-            .filter(handler => handler.splitKey === splitKey)
-            .map(handler => handler.runner)
+        return <IProjectionRunner<any>>_(this.entries)
+            .filter((entry:Entry<any>) => entry.area === area && entry.projectionName === projectionName)
+            .map((entry:Entry<any>) => entry.handlers)
+            .flatten<{ splitKey?:string, handler:IProjectionRunner<any> }>()
+            .filter(entry => entry.splitKey === splitKey)
+            .map(entry => entry.handler)
             .valueOf()[0];
     }
 }
 
-interface RunnerEntry<T> {
+interface Entry<T> {
     area:string;
-    viewmodelId:string;
+    projectionName:string;
     matcher:IMatcher;
     splitMatcher?:IMatcher;
-    handlers:{ splitKey?:string, runner:IProjectionRunner<T>}[];
+    handlers:{ splitKey?:string, handler:IProjectionRunner<T>}[];
     projection:IProjection<T>;
 }
 

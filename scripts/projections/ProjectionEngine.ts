@@ -25,7 +25,8 @@ class ProjectionEngine implements IProjectionEngine {
         _.forEach<AreaRegistry>(areas, areaRegistry => {
             let projections = this.projectionSelector.addProjections(areaRegistry);
             _.forEach(projections, (projection, index) => {
-                this.pushNotifier.register(projection, new PushContext(areaRegistry.area, areaRegistry.entries[index].name), areaRegistry.entries[index].parametersKey);
+                let entry = areaRegistry.entries[index];
+                this.pushNotifier.register(projection, new PushContext(areaRegistry.area, entry.name), entry.parametersKey);
             });
         });
         this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
