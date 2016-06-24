@@ -53,6 +53,7 @@ describe("Given a ProjectionEngine", () => {
         projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionRunner.object]);
         stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));
         subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object);
+        registry.add(MockProjectionDefinition).forArea("Admin");
     });
 
     describe("at startup", () => {
@@ -69,7 +70,6 @@ describe("Given a ProjectionEngine", () => {
 
     describe("when an event from the stream is received", () => {
         beforeEach(() => {
-            registry.add(MockProjectionDefinition).forArea("Admin");
             subject.run();
         });
 

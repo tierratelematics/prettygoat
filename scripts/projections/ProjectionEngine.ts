@@ -4,10 +4,10 @@ import {injectable, inject} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
-import RegistryEntry from "../registry/RegistryEntry";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IProjectionSelector from "./IProjectionSelector";
+import PushContext from "../push/PushContext";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -23,8 +23,9 @@ class ProjectionEngine implements IProjectionEngine {
     run():void {
         let areas = this.registry.getAreas();
         _.forEach<AreaRegistry>(areas, areaRegistry => {
-            _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-                
+            let projections = this.projectionSelector.addProjections(areaRegistry);
+            _.forEach(projections, (projection, index) => {
+                this.pushNotifier.register(projection, new PushContext(areaRegistry.area, areaRegistry.entries[index].name), areaRegistry.entries[index].parametersKey);
             });
         });
         this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
