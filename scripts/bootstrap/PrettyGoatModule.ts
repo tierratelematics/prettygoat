@@ -32,6 +32,8 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
 import TimePartitioner from "../util/TimePartitioner";
+import IProjectionSelector from "../projections/IProjectionSelector";
+import ProjectionSelector from "../projections/ProjectionSelector";
 
 class PrettyGoatModule implements IModule {
 
@@ -55,6 +57,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
+        kernel.bind<IProjectionSelector>("IProjectionSelector").to(ProjectionSelector).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
