@@ -18,8 +18,13 @@ import ClientRegistry from "../scripts/push/ClientRegistry";
 import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
-import Constants from "../scripts/registry/Constants";
 import Event from "../scripts/streams/Event";
+import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
+import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
+import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import MockReadModelFactory from "./fixtures/MockReadModelFactory";
+import RegistryEntry from "../scripts/registry/RegistryEntry";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 
@@ -31,7 +36,10 @@ describe("PushNotifier, given a projection runner and a context", () => {
         clientRegistry:IClientRegistry,
         clientsStub:SinonStub,
         eventEmitter:IEventEmitter,
-        emitterSpy:SinonSpy;
+        emitterSpy:SinonSpy,
+        registry:IProjectionRegistry,
+        registryStub:SinonStub,
+        readModelFactory:IReadModelFactory;
 
     beforeEach(() => {
         router = new MockProjectionRouter();
@@ -39,36 +47,37 @@ describe("PushNotifier, given a projection runner and a context", () => {
         projectionRunner = new MockProjectionRunner(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
+        registry = new ProjectionRegistry(null, null);
+        readModelFactory = new MockReadModelFactory();
+        routerSpy = sinon.spy(router, "get");
+        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
+        emitterSpy = sinon.spy(eventEmitter, "emitTo");
+        registryStub = sinon.stub(registry, "getEntry", () => {
+            return {
+                area: "Admin",
+                data: new RegistryEntry(new MockProjectionDefinition().define(), "Foo")
+            }
+        });
         subject = new PushNotifier(router, eventEmitter, clientRegistry, {
             host: 'test',
             protocol: 'http',
             port: 80
-        }, null, null);
-        routerSpy = sinon.spy(router, "get");
-        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
-        emitterSpy = sinon.spy(eventEmitter, "emitTo");
+        }, null, registry, readModelFactory);
     });
 
     afterEach(() => {
         routerSpy.restore();
         clientsStub.restore();
         emitterSpy.restore();
-    });
-
-    context("when they are registered together", () => {
-        it("should create an endpoint to retrieve the latest model emitted by the projection", () => {
-            subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-            expect(routerSpy.calledWith("/admin/foo")).to.be(true);
-        });
+        registryStub.restore();
     });
 
     context("when a new state is triggered by the projection", () => {
         it("should emit a notification on the corresponding context", () => {
-            subject.register(projectionRunner, new PushContext("Admin", "Foo"));
             let newModel = new MockModel();
             newModel.id = "test";
             newModel.name = "testName";
-            dataSubject.onNext({splitKey: null, state: newModel});
+            readModelFactory.publish({payload: newModel, type: "Foo"});
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
@@ -82,9 +91,8 @@ describe("PushNotifier, given a projection runner and a context", () => {
                 subject = new PushNotifier(router, eventEmitter, clientRegistry, {
                     host: 'test',
                     protocol: 'http'
-                }, null);
-                subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext({splitKey: null, state: new MockModel()});
+                }, null, registry, readModelFactory);
+                readModelFactory.publish({payload: new MockModel(), type: "Foo"});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/admin/foo/'
                 })).to.be(true);
@@ -97,27 +105,12 @@ describe("PushNotifier, given a projection runner and a context", () => {
                     host: 'test',
                     protocol: 'http',
                     path: '/projections'
-                }, null);
-                subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext({splitKey: null, state: new MockModel()});
+                }, null, registry, readModelFactory);
+                readModelFactory.publish({payload: new MockModel(), type: "Foo"});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/projections/admin/foo/'
                 })).to.be(true);
             });
-        });
-    });
-
-    context("when they are registered under the master context", () => {
-        it("should use a default endpoint", () => {
-            subject.register(projectionRunner, new PushContext(Constants.MASTER_AREA));
-            expect(routerSpy.calledWith("/master")).to.be(true);
-        });
-    });
-
-    context("when they are registered under the index context", () => {
-        it("should use a default endpoint", () => {
-            subject.register(projectionRunner, new PushContext(Constants.INDEX_AREA));
-            expect(routerSpy.calledWith("/index")).to.be(true);
         });
     });
 
@@ -128,13 +121,6 @@ describe("PushNotifier, given a projection runner and a context", () => {
             expect(emitterSpy.calledWith('25f', 'Admin:Foo', {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
-        });
-    });
-
-    context("when the projection contains a parameters key", () => {
-        it("should register the viewmodel under the endpoint /area/viewmodelId/splitKey", () => {
-            subject.register(projectionRunner, new PushContext("Admin", "Foo"), p => null);
-            expect(routerSpy.calledWith("/admin/foo/:key")).to.be(true);
         });
     });
 });

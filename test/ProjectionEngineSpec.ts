@@ -8,7 +8,6 @@ import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import PushNotifier from "../scripts/push/PushNotifier";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import SinonSpy = Sinon.SinonSpy;
@@ -25,6 +24,7 @@ import ProjectionSelector from "../scripts/projections/ProjectionSelector";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import SinonStub = Sinon.SinonStub;
+import MockPushNotifier from "./fixtures/MockPushNotifier";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -43,7 +43,7 @@ describe("Given a ProjectionEngine", () => {
     beforeEach(() => {
         projectionRunner = Mock.ofType<IProjectionRunner<any>>(ProjectionRunner);
         projectionRunner.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
-        pushNotifier = Mock.ofType<IPushNotifier>(PushNotifier);
+        pushNotifier = Mock.ofType<IPushNotifier>(MockPushNotifier);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);

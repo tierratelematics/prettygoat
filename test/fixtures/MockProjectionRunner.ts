@@ -16,7 +16,7 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
 
     }
 
-    handle(event:Event) {
+    handle(event:Event<MockModel>) {
 
     }
 

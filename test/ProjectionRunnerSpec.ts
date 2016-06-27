@@ -108,7 +108,8 @@ describe("Given a ProjectionRunner", () => {
             it("should publish on the event stream the new read models states", () => {
                 readModelFactory.verify(a => a.publish(It.isValue({
                     type: "test",
-                    payload: 42
+                    payload: 42,
+                    splitKey: undefined
                 })), Times.atLeastOnce());
             });
         });
