@@ -30,7 +30,7 @@ class PushNotifier implements IPushNotifier {
     register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext, parametersKey?:(p:any) => string):void {
         this.parameterKeys[ContextOperations.getChannel(context)] = parametersKey; //Memoize parameters key to notify clients on subscribe
         if (parametersKey) {
-            this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
+            this.router.get(ContextOperations.getEndpoint(context, parametersKey), (request:Request, response:Response) => {
                 let runner = this.projectionSelector.projectionFor(context.area, context.viewmodelId, request.params['key']);
                 if (runner)
                     response.json(runner.state);
@@ -38,7 +38,7 @@ class PushNotifier implements IPushNotifier {
                     response.status(404).json({error: "Projection not found"});
             });
         } else {
-            this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
+            this.router.get(ContextOperations.getEndpoint(context, parametersKey), (request:Request, response:Response) => {
                 response.json(projectionRunner.state);
             });
         }

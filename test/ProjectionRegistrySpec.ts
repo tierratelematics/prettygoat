@@ -64,4 +64,24 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(areas[0].area).to.be("Master");
         });
     });
+
+    context("when a projection needs to be retrieved", () => {
+        beforeEach(() => subject.add(MockProjectionDefinition).forArea("Admin"));
+
+        context("and I supply the stream name", () => {
+            it("should retrieve it", () => {
+                let entry = subject.getEntry("Admin", "test");
+
+                expect(entry.data.projection.name).to.be("test");
+            });
+        });
+
+        context("and I supply the registered projection name", () => {
+            it("should retrieve it", () => {
+                let entry = subject.getEntry("Admin", "Mock");
+
+                expect(entry.data.projection.name).to.be("test");
+            });
+        });
+    });
 });

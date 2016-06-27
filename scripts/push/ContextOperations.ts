@@ -6,11 +6,11 @@ class ContextOperations {
         return `${context.area}:${context.viewmodelId}`;
     }
 
-    static getEndpoint(context:PushContext, isSplit:boolean = false):string {
+    static getEndpoint(context:PushContext, parametersKey?:(p:any) => string):string {
         if (context.area === Constants.MASTER_AREA || context.area === Constants.INDEX_AREA)
             return `/${context.area}`.toLowerCase();
         let endpoint = `/${context.area}/${context.viewmodelId}`.toLowerCase();
-        if (isSplit) endpoint += '/:key';
+        if (parametersKey) endpoint += '/:key';
         return endpoint
     }
 }
