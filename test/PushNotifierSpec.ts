@@ -8,8 +8,6 @@ import MockProjectionHandler from "./fixtures/MockProjectionHandler";
 import PushContext from "../scripts/push/PushContext";
 import IProjectionHandler from "../scripts/projections/IProjectionHandler";
 import MockModel from "./fixtures/MockModel";
-import IProjectionRouter from "../scripts/push/IProjectionRouter";
-import MockProjectionRouter from "./fixtures/MockProjectionRouter";
 import SinonSpy = Sinon.SinonSpy;
 import {Subject} from "rx";
 import IClientRegistry from "../scripts/push/IClientRegistry";
@@ -30,9 +28,7 @@ describe("Given a push notifier", () => {
 
     let subject:IPushNotifier,
         projectionHandler:IProjectionHandler<MockModel>,
-        router:IProjectionRouter,
         dataSubject:Subject<Event<MockModel>>,
-        routerSpy:SinonSpy,
         clientRegistry:IClientRegistry,
         clientsStub:SinonStub,
         eventEmitter:IEventEmitter,
@@ -42,14 +38,12 @@ describe("Given a push notifier", () => {
         readModelFactory:IReadModelFactory;
 
     beforeEach(() => {
-        router = new MockProjectionRouter();
         dataSubject = new Subject<Event<MockModel>>();
         projectionHandler = new MockProjectionHandler(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
         registry = new ProjectionRegistry(null, null);
         readModelFactory = new MockReadModelFactory();
-        routerSpy = sinon.spy(router, "get");
         clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");
         registryStub = sinon.stub(registry, "getEntry", () => {
@@ -58,7 +52,7 @@ describe("Given a push notifier", () => {
                 data: new RegistryEntry(new MockProjectionDefinition().define(), "Foo")
             }
         });
-        subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+        subject = new PushNotifier(eventEmitter, clientRegistry, {
             host: 'test',
             protocol: 'http',
             port: 80
@@ -66,7 +60,6 @@ describe("Given a push notifier", () => {
     });
 
     afterEach(() => {
-        routerSpy.restore();
         clientsStub.restore();
         emitterSpy.restore();
         registryStub.restore();
@@ -88,7 +81,7 @@ describe("Given a push notifier", () => {
 
         context("and no port is passed in the config", () => {
             it("should not append the port in the notification url", () => {
-                subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+                subject = new PushNotifier(eventEmitter, clientRegistry, {
                     host: 'test',
                     protocol: 'http'
                 }, null, registry, readModelFactory);
@@ -101,7 +94,7 @@ describe("Given a push notifier", () => {
 
         context("and a custom path is passed in the config", () => {
             it("should prepend this path to the endpoint", () => {
-                subject = new PushNotifier(router, eventEmitter, clientRegistry, {
+                subject = new PushNotifier(eventEmitter, clientRegistry, {
                     host: 'test',
                     protocol: 'http',
                     path: '/projections'

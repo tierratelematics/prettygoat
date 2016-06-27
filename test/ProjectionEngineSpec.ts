@@ -25,6 +25,7 @@ import IProjectionHandler from "../scripts/projections/IProjectionHandler";
 import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
 import SinonStub = Sinon.SinonStub;
 import MockPushNotifier from "./fixtures/MockPushNotifier";
+import MockStatePublisher from "./fixtures/MockStatePublisher";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -51,7 +52,7 @@ describe("Given a ProjectionEngine", () => {
         projectionSelector = Mock.ofType<IProjectionSelector>(ProjectionSelector);
         projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionHandler.object]);
         stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));
-        subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object);
+        subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object, new MockStatePublisher());
         registry.add(MockProjectionDefinition).forArea("Admin");
     });
 

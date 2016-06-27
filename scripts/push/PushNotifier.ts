@@ -17,26 +17,13 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 @injectable()
 class PushNotifier implements IPushNotifier {
 
-    constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
-                @inject("IEventEmitter") private eventEmitter:IEventEmitter,
+    constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
                 @inject("IClientRegistry") private clientRegistry:IClientRegistry,
                 @inject("IEndpointConfig") private config:IEndpointConfig,
                 @inject("IProjectionSelector") private projectionSelector:IProjectionSelector,
                 @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry,
                 @inject("IReadModelFactory") private readModelFactory:IReadModelFactory) {
-        this.expose();
         this.subscribeToReadModels(readModelFactory);
-    }
-
-    private expose() {
-        this.router.get("/:area/:projection?/:splitKey?", (request:Request, response:Response) => {
-            let entry = this.projectionRegistry.getEntry(request.params["projection"], request.params["area"]),
-                handler = this.projectionSelector.projectionFor(entry.area, entry.data.name, request.params["splitKey"]);
-            if (handler)
-                response.json(handler.state);
-            else
-                response.status(404).json({error: "Projection not found"});
-        });
     }
 
     private subscribeToReadModels(readModelFactory:IReadModelFactory) {

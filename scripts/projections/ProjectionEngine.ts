@@ -7,6 +7,7 @@ import AreaRegistry from "../registry/AreaRegistry";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IProjectionSelector from "./IProjectionSelector";
+import IStatePublisher from "./IStatePublisher";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -15,7 +16,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry,
                 @inject("IStreamFactory") private streamFactory:IStreamFactory,
                 @inject("IReadModelFactory") private readModelFactory:IReadModelFactory,
-                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector) {
+                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector,
+                @inject("IStatePublisher") private statePublisher:IStatePublisher) {
 
     }
 
@@ -26,6 +28,7 @@ class ProjectionEngine implements IProjectionEngine {
             let projections = this.projectionSelector.projectionsFor(event);
             _.invokeMap(projections, 'handle', event);
         });
+        this.statePublisher.publish();
     }
 
 }

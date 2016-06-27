@@ -34,6 +34,8 @@ import DateRetriever from "../util/DateRetriever";
 import TimePartitioner from "../util/TimePartitioner";
 import IProjectionSelector from "../projections/IProjectionSelector";
 import ProjectionSelector from "../projections/ProjectionSelector";
+import ExpressStatePublisher from "../projections/ExpressStatePublisher";
+import IStatePublisher from "../projections/IStatePublisher";
 
 class PrettyGoatModule implements IModule {
 
@@ -58,6 +60,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         kernel.bind<IProjectionSelector>("IProjectionSelector").to(ProjectionSelector).inSingletonScope();
+        kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
