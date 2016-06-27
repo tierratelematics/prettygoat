@@ -1,12 +1,12 @@
 import {Subject, IDisposable} from "rx";
 import {IMatcher} from "../matcher/IMatcher";
-import IProjectionRunner from "./IProjectionRunner";
+import IProjectionHandler from "./IProjectionHandler";
 import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import Event from "../streams/Event";
 import {SpecialNames} from "../matcher/SpecialNames";
 
-export class ProjectionRunner<T> implements IProjectionRunner<T> {
+export class ProjectionHandler<T> implements IProjectionHandler<T> {
     public state:T;
     private subject:Subject<Event<T>>;
     private subscription:IDisposable;

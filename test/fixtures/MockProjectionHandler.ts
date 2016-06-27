@@ -1,9 +1,9 @@
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
+import IProjectionHandler from "../../scripts/projections/IProjectionHandler";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
 import Event from "../../scripts/streams/Event";
 
-class MockProjectionRunner implements IProjectionRunner<MockModel> {
+class MockProjectionHandler implements IProjectionHandler<MockModel> {
     state:MockModel;
 
     private subject:Subject<Event<MockModel>>;
@@ -39,4 +39,4 @@ function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event<T>>) | ((value:Event
 }
 
 
-export default MockProjectionRunner
+export default MockProjectionHandler

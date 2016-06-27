@@ -2,16 +2,13 @@ import expect = require("expect.js");
 import sinon = require("sinon");
 import IProjectionSelector from "../scripts/projections/IProjectionSelector";
 import ProjectionSelector from "../scripts/projections/ProjectionSelector";
-import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
+import IProjectionHandlerFactory from "../scripts/projections/IProjectionHandlerFactory";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
-import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
-import IPushNotifier from "../scripts/push/IPushNotifier";
-import PushNotifier from "../scripts/push/PushNotifier";
-import PushContext from "../scripts/push/PushContext";
+import ProjectionHandlerFactory from "../scripts/projections/ProjectionHandlerFactory";
+import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
 import {Matcher} from "../scripts/matcher/Matcher";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import SinonSpy = Sinon.SinonSpy;
@@ -21,27 +18,27 @@ import SinonSandbox = Sinon.SinonSandbox;
 describe("Projection selector, given some registered projections", () => {
 
     let subject:IProjectionSelector,
-        projectionRunnerFactory:IProjectionRunnerFactory,
-        runnerStub:SinonStub,
+        projectionHandlerFactory:IProjectionHandlerFactory,
+        handlerStub:SinonStub,
         sandbox:SinonSandbox,
         mockProjection = new MockProjectionDefinition().define(),
         splitProjection = new SplitProjectionDefinition().define(),
-        mockRunner = new ProjectionRunner(
+        mockHandler = new ProjectionHandler(
             mockProjection.name,
             new Matcher(mockProjection.definition),
             new MockReadModelFactory()),
-        splitRunner = new ProjectionRunner(
+        splitHandler = new ProjectionHandler(
             splitProjection.name,
             new Matcher(splitProjection.definition),
             new MockReadModelFactory());
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
-        projectionRunnerFactory = new ProjectionRunnerFactory(null);
-        runnerStub = sandbox.stub(projectionRunnerFactory, "create", (name, definition) => {
-            return name === "test" ? mockRunner : splitRunner;
+        projectionHandlerFactory = new ProjectionHandlerFactory(null);
+        handlerStub = sandbox.stub(projectionHandlerFactory, "create", (name, definition) => {
+            return name === "test" ? mockHandler : splitHandler;
         });
-        subject = new ProjectionSelector(projectionRunnerFactory);
+        subject = new ProjectionSelector(projectionHandlerFactory);
         subject.addProjections(new AreaRegistry("Test", [
             new RegistryEntry(mockProjection, "Mock"),
             new RegistryEntry(splitProjection, "Split"),
@@ -51,51 +48,51 @@ describe("Projection selector, given some registered projections", () => {
     afterEach(() => sandbox.restore());
 
     context("at startup", () => {
-        it("should create the projection runners for those projections", () => {
-            expect(runnerStub.calledTwice).to.be(true);
+        it("should create the projection handlers for those projections", () => {
+            expect(handlerStub.calledTwice).to.be(true);
         });
     });
 
     context("when a new event is received", () => {
-        it("should return a list of the matching projection runners", () => {
-            let runners = subject.projectionsFor({type: "OnlyEvent", payload: null});
-            expect(runners).to.have.length(1);
-            expect(runners[0]).to.be(mockRunner);
+        it("should return a list of the matching projection handlers", () => {
+            let handlers = subject.projectionsFor({type: "OnlyEvent", payload: null});
+            expect(handlers).to.have.length(1);
+            expect(handlers[0]).to.be(mockHandler);
         });
 
         context("and needs to be handled on a split projection", () => {
-            it("should create the child projection and return the list of matching projection runners", () => {
+            it("should create the child projection and return the list of matching projection handlers", () => {
                 subject.projectionsFor({
                     type: "TestEvent", payload: {
                         id: 10,
                         count: 30
                     }
                 });
-                let runners = subject.projectionsFor({
+                let handlers = subject.projectionsFor({
                     type: "TestEvent", payload: {
                         id: 20,
                         count: 30
                     }
                 });
-                expect(runners).to.have.length(1);
-                expect(runners[0].state).to.be(10);
+                expect(handlers).to.have.length(1);
+                expect(handlers[0].state).to.be(10);
             });
         });
     });
 
     context("when the state of a projection is needed", () => {
         context("and no split key is provided", () => {
-            it("should return the right projection runner", () => {
+            it("should return the right projection handler", () => {
                 subject.projectionsFor({
                     type: "OnlyEvent", payload: null
                 });
-                let runner = subject.projectionFor("Test", "Mock");
-                expect(runner.state).to.be(20);
+                let handler = subject.projectionFor("Test", "Mock");
+                expect(handler.state).to.be(20);
             });
         });
 
         context("and a split key is provided", () => {
-            it("should return the right split projection runner", () => {
+            it("should return the right split projection handler", () => {
                 subject.projectionsFor({
                     type: "TestEvent", payload: {
                         id: 10,
@@ -108,8 +105,8 @@ describe("Projection selector, given some registered projections", () => {
                         count: 30
                     }
                 });
-                let runner = subject.projectionFor("Test", "Split", "10");
-                expect(runner.state).to.be(10);
+                let handler = subject.projectionFor("Test", "Split", "10");
+                expect(handler.state).to.be(10);
             });
         });
     });

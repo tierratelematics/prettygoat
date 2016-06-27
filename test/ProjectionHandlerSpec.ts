@@ -1,7 +1,7 @@
 /// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {MockMatcher} from "./fixtures/MockMatcher";
@@ -13,8 +13,8 @@ import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import Event from "../scripts/streams/Event";
 
-describe("Given a ProjectionRunner", () => {
-    let subject:ProjectionRunner<number>;
+describe("Given a ProjectionHandler", () => {
+    let subject:ProjectionHandler<number>;
     let matcher:Mock<IMatcher>;
     let notifications:number[];
     let stopped:boolean;
@@ -29,7 +29,7 @@ describe("Given a ProjectionRunner", () => {
         matcher = Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event<number>>());
-        subject = new ProjectionRunner<number>("test", matcher.object, readModelFactory.object);
+        subject = new ProjectionHandler<number>("test", matcher.object, readModelFactory.object);
         subscription = subject.subscribe((event:Event<number>) => notifications.push(event.payload), e => failed = true, () => stopped = true);
     });
 

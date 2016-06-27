@@ -21,8 +21,8 @@ import Event from "../scripts/streams/Event";
 import {Observable, Scheduler} from "rx";
 import IProjectionSelector from "../scripts/projections/IProjectionSelector";
 import ProjectionSelector from "../scripts/projections/ProjectionSelector";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import IProjectionHandler from "../scripts/projections/IProjectionHandler";
+import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
 import SinonStub = Sinon.SinonStub;
 import MockPushNotifier from "./fixtures/MockPushNotifier";
 
@@ -34,22 +34,22 @@ describe("Given a ProjectionEngine", () => {
         stream:Mock<IStreamFactory>,
         readModelFactory:Mock<IReadModelFactory>,
         projectionSelector:Mock<IProjectionSelector>,
-        projectionRunner:Mock<IProjectionRunner<any>>,
+        projectionHandler:Mock<IProjectionHandler<any>>,
         testEvent = {
             type: "increment",
             payload: 1
         };
 
     beforeEach(() => {
-        projectionRunner = Mock.ofType<IProjectionRunner<any>>(ProjectionRunner);
-        projectionRunner.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
+        projectionHandler = Mock.ofType<IProjectionHandler<any>>(ProjectionHandler);
+        projectionHandler.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
         pushNotifier = Mock.ofType<IPushNotifier>(MockPushNotifier);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event<any>>());
         projectionSelector = Mock.ofType<IProjectionSelector>(ProjectionSelector);
-        projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionRunner.object]);
+        projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionHandler.object]);
         stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));
         subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object);
         registry.add(MockProjectionDefinition).forArea("Admin");
@@ -72,8 +72,8 @@ describe("Given a ProjectionEngine", () => {
             subject.run();
         });
 
-        it("should apply the event to all the matching projection runners", () => {
-            projectionRunner.verify(p => p.handle(It.isValue(testEvent)), Times.once());
+        it("should apply the event to all the matching projection handlers", () => {
+            projectionHandler.verify(p => p.handle(It.isValue(testEvent)), Times.once());
         });
     });
 });

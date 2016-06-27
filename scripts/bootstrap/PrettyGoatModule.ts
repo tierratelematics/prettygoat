@@ -3,8 +3,8 @@ import {IKernelModule, IKernel} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "./IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
+import IProjectionHandlerFactory from "../projections/IProjectionHandlerFactory";
+import ProjectionHandlerFactory from "../projections/ProjectionHandlerFactory";
 import IProjectionRouter from "../push/IProjectionRouter";
 import ExpressApp from "./ExpressApp";
 import IEventEmitter from "../push/IEventEmitter";
@@ -40,7 +40,7 @@ class PrettyGoatModule implements IModule {
     modules:IKernelModule = (kernel:IKernel) => {
         kernel.bind<IKernel>("IKernel").toConstantValue(kernel);
         kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
-        kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
+        kernel.bind<IProjectionHandlerFactory>("IProjectionHandlerFactory").to(ProjectionHandlerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
         kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();

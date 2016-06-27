@@ -1,11 +1,11 @@
-import IProjectionRunner from "./IProjectionRunner";
+import IProjectionHandler from "./IProjectionHandler";
 import Event from "../streams/Event";
 import AreaRegistry from "../registry/AreaRegistry";
 
 interface IProjectionSelector {
-    addProjections(areaRegistry:AreaRegistry):IProjectionRunner<any>[];
-    projectionsFor(event:Event<any>):IProjectionRunner<any>[];
-    projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionRunner<any>;
+    addProjections(areaRegistry:AreaRegistry):IProjectionHandler<any>[];
+    projectionsFor(event:Event<any>):IProjectionHandler<any>[];
+    projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionHandler<any>;
 }
 
 export default IProjectionSelector

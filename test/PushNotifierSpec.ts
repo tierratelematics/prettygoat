@@ -4,9 +4,9 @@ import expect = require('expect.js');
 import sinon = require('sinon');
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
-import MockProjectionRunner from "./fixtures/MockProjectionRunner";
+import MockProjectionHandler from "./fixtures/MockProjectionHandler";
 import PushContext from "../scripts/push/PushContext";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import IProjectionHandler from "../scripts/projections/IProjectionHandler";
 import MockModel from "./fixtures/MockModel";
 import IProjectionRouter from "../scripts/push/IProjectionRouter";
 import MockProjectionRouter from "./fixtures/MockProjectionRouter";
@@ -26,10 +26,10 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
-describe("PushNotifier, given a projection runner and a context", () => {
+describe("Given a push notifier", () => {
 
     let subject:IPushNotifier,
-        projectionRunner:IProjectionRunner<MockModel>,
+        projectionHandler:IProjectionHandler<MockModel>,
         router:IProjectionRouter,
         dataSubject:Subject<Event<MockModel>>,
         routerSpy:SinonSpy,
@@ -44,7 +44,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
     beforeEach(() => {
         router = new MockProjectionRouter();
         dataSubject = new Subject<Event<MockModel>>();
-        projectionRunner = new MockProjectionRunner(dataSubject);
+        projectionHandler = new MockProjectionHandler(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
         registry = new ProjectionRegistry(null, null);

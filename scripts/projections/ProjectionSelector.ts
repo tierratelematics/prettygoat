@@ -1,6 +1,6 @@
 import IProjectionSelector from "./IProjectionSelector";
-import IProjectionRunner from "./IProjectionRunner";
-import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
+import IProjectionHandler from "./IProjectionHandler";
+import IProjectionHandlerFactory from "./IProjectionHandlerFactory";
 import Event from "../streams/Event";
 import {inject, injectable} from "inversify";
 import * as _ from "lodash";
@@ -16,13 +16,13 @@ class ProjectionSelector implements IProjectionSelector {
 
     private entries:Entry<any>[] = [];
 
-    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory) {
+    constructor(@inject("IProjectionHandlerFactory") private handlerFactory:IProjectionHandlerFactory) {
 
     }
 
-    addProjections(areaRegistry:AreaRegistry):IProjectionRunner<any>[] {
+    addProjections(areaRegistry:AreaRegistry):IProjectionHandler<any>[] {
         return _.map(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-            let handler = this.runnerFactory.create(entry.projection.name, entry.projection.definition);
+            let handler = this.handlerFactory.create(entry.projection.name, entry.projection.definition);
             handler.initializeWith(null);
             this.entries.push({
                 handlers: [{handler: handler}],
@@ -36,7 +36,7 @@ class ProjectionSelector implements IProjectionSelector {
         });
     }
 
-    projectionsFor(event:Event<any>):IProjectionRunner<any>[] {
+    projectionsFor(event:Event<any>):IProjectionHandler<any>[] {
         return _(this.entries)
             .filter((entry:Entry<any>) => {
                 let matchFunction = entry.matcher.match(event.type);
@@ -52,7 +52,7 @@ class ProjectionSelector implements IProjectionSelector {
                 }
                 return entry.handlers;
             })
-            .flatten<{ splitKey?:string, handler:IProjectionRunner<any> }>()
+            .flatten<{ splitKey?:string, handler:IProjectionHandler<any> }>()
             .map(entry => entry.handler)
             .valueOf();
     }
@@ -67,7 +67,7 @@ class ProjectionSelector implements IProjectionSelector {
     }
 
     private createSplitHandler(projectionName:string, definition:IWhen<any>, splitKey:string) {
-        let splitHandler = this.runnerFactory.create(projectionName, definition, splitKey),
+        let splitHandler = this.handlerFactory.create(projectionName, definition, splitKey),
             entry = {
                 splitKey: splitKey,
                 handler: splitHandler
@@ -76,11 +76,11 @@ class ProjectionSelector implements IProjectionSelector {
         return entry;
     };
 
-    projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionRunner<any> {
-        return <IProjectionRunner<any>>_(this.entries)
+    projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionHandler<any> {
+        return <IProjectionHandler<any>>_(this.entries)
             .filter((entry:Entry<any>) => entry.area === area && entry.projectionName === projectionName)
             .map((entry:Entry<any>) => entry.handlers)
-            .flatten<{ splitKey?:string, handler:IProjectionRunner<any> }>()
+            .flatten<{ splitKey?:string, handler:IProjectionHandler<any> }>()
             .filter(entry => entry.splitKey === splitKey)
             .map(entry => entry.handler)
             .valueOf()[0];
@@ -92,7 +92,7 @@ interface Entry<T> {
     projectionName:string;
     matcher:IMatcher;
     splitMatcher?:IMatcher;
-    handlers:{ splitKey?:string, handler:IProjectionRunner<T>}[];
+    handlers:{ splitKey?:string, handler:IProjectionHandler<T>}[];
     projection:IProjection<T>;
 }
 

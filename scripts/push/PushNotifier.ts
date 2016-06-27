@@ -31,9 +31,9 @@ class PushNotifier implements IPushNotifier {
     private expose() {
         this.router.get("/:area/:projection?/:splitKey?", (request:Request, response:Response) => {
             let entry = this.projectionRegistry.getEntry(request.params["projection"], request.params["area"]),
-                runner = this.projectionSelector.projectionFor(entry.area, entry.data.name, request.params["splitKey"]);
-            if (runner)
-                response.json(runner.state);
+                handler = this.projectionSelector.projectionFor(entry.area, entry.data.name, request.params["splitKey"]);
+            if (handler)
+                response.json(handler.state);
             else
                 response.status(404).json({error: "Projection not found"});
         });
