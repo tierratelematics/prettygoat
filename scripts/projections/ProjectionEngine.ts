@@ -21,9 +21,7 @@ class ProjectionEngine implements IProjectionEngine {
 
     run():void {
         let areas = this.registry.getAreas();
-        _.forEach<AreaRegistry>(areas, areaRegistry => {
-            let projections = this.projectionSelector.addProjections(areaRegistry);
-        });
+        _.forEach<AreaRegistry>(areas, areaRegistry => this.projectionSelector.addProjections(areaRegistry));
         this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
             let projections = this.projectionSelector.projectionsFor(event);
             _.invokeMap(projections, 'handle', event);

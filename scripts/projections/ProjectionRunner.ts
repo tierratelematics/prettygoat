@@ -53,15 +53,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private publishReadModel() {
-        this.subject.onNext({
+        let readModel = {
             splitKey: this.splitKey,
             type: this.projectionName,
             payload: this.state
-        });
-        this.readModelFactory.publish({
-            type: this.projectionName,
-            payload: this.state
-        });
+        };
+        this.subject.onNext(readModel);
+        this.readModelFactory.publish(readModel);
     };
 
     subscribe(observer:Rx.IObserver<Event<T>>):Rx.IDisposable

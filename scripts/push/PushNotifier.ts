@@ -49,7 +49,8 @@ class PushNotifier implements IPushNotifier {
     notify(context:PushContext, clientId?:string, splitKey?:string):void {
         let clients = this.clientRegistry.clientsFor(context),
             entry = this.projectionRegistry.getEntry(context.viewmodelId, context.area),
-            parametersKey = entry.data.parametersKey;
+            parametersKey = entry.data.parametersKey,
+            isSplit = entry.data.projection.split;
         if (clientId) {
             if (!_.isEmpty(context.parameters)) {
                 this.emitToClient(clientId, context, parametersKey(context.parameters));
@@ -58,7 +59,7 @@ class PushNotifier implements IPushNotifier {
             }
         } else {
             _.forEach<ClientEntry>(clients, client => {
-                if (!splitKey || (splitKey && parametersKey(client.parameters) === splitKey))
+                if (!isSplit || (isSplit && parametersKey(client.parameters) === splitKey))
                     this.emitToClient(client.id, context, splitKey || "");
             });
         }
