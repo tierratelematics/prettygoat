@@ -12,7 +12,7 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:string):Rx.Observable<Event> {
+    from(lastEvent:string):Rx.Observable<Event<any>> {
         return this.streamFactory
             .from(null)
             .concat(

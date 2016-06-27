@@ -1,12 +1,10 @@
 import {IObservable, IDisposable} from "rx";
-import NotificationState from "../push/NotificationState";
-import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Event from "../streams/Event";
 
-interface IProjectionRunner<T> extends IObservable<NotificationState<T>>, IDisposable {
+interface IProjectionRunner<T> extends IObservable<Event<T>>, IDisposable {
     state:T;
     initializeWith(value:T);
-    handle(event:Event);
+    handle(event:Event<T>);
 }
 
 export default IProjectionRunner

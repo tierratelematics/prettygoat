@@ -13,8 +13,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     }
 
-    create<T>(projectionName:string, definition:IWhen<T>):IProjectionRunner<T> {
-        return new ProjectionRunner<T>(projectionName, new Matcher(definition), this.readModelFactory);
+    create<T>(projectionName:string, definition:IWhen<T>, splitKey?:string):IProjectionRunner<T> {
+        return new ProjectionRunner<T>(projectionName, new Matcher(definition), this.readModelFactory, splitKey);
     }
 }
 

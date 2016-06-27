@@ -19,14 +19,14 @@ import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
 import Constants from "../scripts/registry/Constants";
-import NotificationState from "../scripts/push/NotificationState";
+import Event from "../scripts/streams/Event";
 
 describe("PushNotifier, given a projection runner and a context", () => {
 
     let subject:IPushNotifier,
         projectionRunner:IProjectionRunner<MockModel>,
         router:IProjectionRouter,
-        dataSubject:Subject<NotificationState<MockModel>>,
+        dataSubject:Subject<Event<MockModel>>,
         routerSpy:SinonSpy,
         clientRegistry:IClientRegistry,
         clientsStub:SinonStub,
@@ -35,7 +35,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
 
     beforeEach(() => {
         router = new MockProjectionRouter();
-        dataSubject = new Subject<NotificationState<MockModel>>();
+        dataSubject = new Subject<Event<MockModel>>();
         projectionRunner = new MockProjectionRunner(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
@@ -43,7 +43,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             host: 'test',
             protocol: 'http',
             port: 80
-        }, null);
+        }, null, null);
         routerSpy = sinon.spy(router, "get");
         clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");

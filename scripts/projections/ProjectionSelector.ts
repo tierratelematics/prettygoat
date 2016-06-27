@@ -36,7 +36,7 @@ class ProjectionSelector implements IProjectionSelector {
         });
     }
 
-    projectionsFor(event:Event):IProjectionRunner<any>[] {
+    projectionsFor(event:Event<any>):IProjectionRunner<any>[] {
         return _(this.entries)
             .filter((entry:Entry<any>) => {
                 let matchFunction = entry.matcher.match(event.type);
@@ -67,13 +67,13 @@ class ProjectionSelector implements IProjectionSelector {
     }
 
     private createSplitHandler(projectionName:string, definition:IWhen<any>, splitKey:string) {
-        let childHandler = this.runnerFactory.create(projectionName, definition),
-            handler = {
+        let splitHandler = this.runnerFactory.create(projectionName, definition, splitKey),
+            entry = {
                 splitKey: splitKey,
-                handler: childHandler
+                handler: splitHandler
             };
-        childHandler.initializeWith(null);
-        return handler;
+        splitHandler.initializeWith(null);
+        return entry;
     };
 
     projectionFor(area:string, projectionName:string, splitKey?:string):IProjectionRunner<any> {

@@ -1,15 +1,14 @@
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
-import NotificationState from "../../scripts/push/NotificationState";
 import Event from "../../scripts/streams/Event";
 
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
 
-    private subject:Subject<NotificationState<MockModel>>;
+    private subject:Subject<Event<MockModel>>;
 
-    constructor(subject?:Subject<NotificationState<MockModel>>) {
+    constructor(subject?:Subject<Event<MockModel>>) {
         this.subject = subject;
     }
 
@@ -25,9 +24,9 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
 
     }
 
-    subscribe(observer:Rx.IObserver<NotificationState<MockModel>>):Rx.IDisposable
-    subscribe(onNext?:(value:NotificationState<MockModel>) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<NotificationState<MockModel>>) | ((value:NotificationState<MockModel>) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
+    subscribe(observer:Rx.IObserver<Event<MockModel>>):Rx.IDisposable
+    subscribe(onNext?:(value:Event<MockModel>) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
+    subscribe(observerOrOnNext?:(Rx.IObserver<Event<MockModel>>) | ((value:Event<MockModel>) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
         if (isObserver(observerOrOnNext))
             return this.subject.subscribe(observerOrOnNext);
         else
@@ -35,8 +34,8 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     }
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void)):observerOrOnNext is Rx.IObserver<NotificationState<T>> {
-    return (<Rx.IObserver<NotificationState<T>>>observerOrOnNext).onNext !== undefined;
+function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event<T>>) | ((value:Event<T>) => void)):observerOrOnNext is Rx.IObserver<Event<T>> {
+    return (<Rx.IObserver<Event<T>>>observerOrOnNext).onNext !== undefined;
 }
 
 

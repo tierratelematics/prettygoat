@@ -44,11 +44,10 @@ describe("Given a ProjectionEngine", () => {
         projectionRunner = Mock.ofType<IProjectionRunner<any>>(ProjectionRunner);
         projectionRunner.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
         pushNotifier = Mock.ofType<IPushNotifier>(PushNotifier);
-        pushNotifier.setup(p => p.register(It.isValue(projectionRunner.object), It.isAny())).returns(_ => null);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
+        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event<any>>());
         projectionSelector = Mock.ofType<IProjectionSelector>(ProjectionSelector);
         projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionRunner.object]);
         stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));

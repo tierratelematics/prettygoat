@@ -7,7 +7,6 @@ import AreaRegistry from "../registry/AreaRegistry";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IProjectionSelector from "./IProjectionSelector";
-import PushContext from "../push/PushContext";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -24,10 +23,6 @@ class ProjectionEngine implements IProjectionEngine {
         let areas = this.registry.getAreas();
         _.forEach<AreaRegistry>(areas, areaRegistry => {
             let projections = this.projectionSelector.addProjections(areaRegistry);
-            _.forEach(projections, (projection, index) => {
-                let entry = areaRegistry.entries[index];
-                this.pushNotifier.register(projection, new PushContext(areaRegistry.area, entry.name), entry.parametersKey);
-            });
         });
         this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
             let projections = this.projectionSelector.projectionsFor(event);

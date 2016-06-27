@@ -4,11 +4,7 @@ import "reflect-metadata";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
-import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {MockMatcher} from "./fixtures/MockMatcher";
-import {MockSnapshotRepository} from "./fixtures/MockSnapshotRepository";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import {Observable, Subject, IDisposable} from "rx";
 import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
@@ -16,7 +12,6 @@ import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import Event from "../scripts/streams/Event";
-import NotificationState from "../scripts/push/NotificationState";
 
 describe("Given a ProjectionRunner", () => {
     let subject:ProjectionRunner<number>;
@@ -33,9 +28,9 @@ describe("Given a ProjectionRunner", () => {
         failed = false;
         matcher = Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
+        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event<number>>());
         subject = new ProjectionRunner<number>("test", matcher.object, readModelFactory.object);
-        subscription = subject.subscribe((state:NotificationState<number>) => notifications.push(state.state), e => failed = true, () => stopped = true);
+        subscription = subject.subscribe((event:Event<number>) => notifications.push(event.payload), e => failed = true, () => stopped = true);
     });
 
     afterEach(() => subscription.dispose());

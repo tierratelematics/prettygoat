@@ -66,25 +66,31 @@ class ProjectionRegistry implements IProjectionRegistry {
     }
 
     getArea(areaId:string):AreaRegistry {
-        return _.find(this.registry, (entry:AreaRegistry) => entry.area.toLowerCase() === areaId.toLowerCase());
+        return _.find(this.registry, (entry:AreaRegistry) => {
+            return entry.area.toLowerCase() === areaId.toLowerCase();
+        });
     }
 
     getEntry<T>(id:string, area:string):{ area:string, data:RegistryEntry<T>} {
-        let entry = null;
+        let projection = null;
         if (area) {
+            //Find by projection exposed name
             let areaRegistry = this.getArea(area);
-            entry = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
+            projection = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
             area = areaRegistry.area;
         } else {
+            //Find by stream id
             let areas = this.getAreas();
             _.forEach(areas, (areaRegistry:AreaRegistry) => {
-                if (!entry)
-                    entry = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.projection.name.toLowerCase() === id.toLowerCase());
+                if (!projection) {
+                    projection = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.projection.name.toLowerCase() === id.toLowerCase());
+                    area = areaRegistry.area;
+                }
             });
         }
         return {
             area: area,
-            data: entry
+            data: projection
         };
     }
 }

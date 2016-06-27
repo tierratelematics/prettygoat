@@ -20,7 +20,7 @@ class CassandraStreamFactory implements IStreamFactory {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:string):Rx.Observable<Event> {
+    from(lastEvent:string):Rx.Observable<Event<any>> {
         return this.streamSource()
             .do(event => this.streamState.lastEvent = event.timestamp)
             .map(event => {
