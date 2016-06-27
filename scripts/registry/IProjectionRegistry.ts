@@ -10,7 +10,7 @@ interface IProjectionRegistry {
     forArea(area:string):AreaRegistry;
     getAreas():AreaRegistry[];
     getArea(areaId: string): AreaRegistry;
-    getEntry<T>(area:string, id:string):{ area:string, data:RegistryEntry<T>};
+    getEntry<T>(id:string, area?:string):{ area:string, data:RegistryEntry<T>};
 }
 
 export default IProjectionRegistry;

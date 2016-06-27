@@ -70,7 +70,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and I supply the stream name", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("Admin", "test");
+                let entry = subject.getEntry("test");
 
                 expect(entry.data.projection.name).to.be("test");
             });
@@ -78,7 +78,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and I supply the registered projection name", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("Admin", "Mock");
+                let entry = subject.getEntry("Mock", "Admin");
 
                 expect(entry.data.projection.name).to.be("test");
             });
