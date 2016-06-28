@@ -7,7 +7,7 @@ import AreaRegistry from "../registry/AreaRegistry";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IProjectionSelector from "./IProjectionSelector";
-import IStatePublisher from "./IStatePublisher";
+import IStatePublisher from "../routing/IStatePublisher";
 import PushContext from "../push/PushContext";
 import Event from "../streams/Event";
 
@@ -27,8 +27,8 @@ class ProjectionEngine implements IProjectionEngine {
         let areas = this.registry.getAreas();
         _.forEach<AreaRegistry>(areas, areaRegistry => this.projectionSelector.addProjections(areaRegistry));
         this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
-            //When a new event is received it can be an event from cassandra or a read model
-            //If an entry is retrieved that it means it's a read models and it needs to be notified to the frontend but not processed
+            //When a new event is received it can be an event from the stream or a read model
+            //If an entry is retrieved it means it's a read models and needs to be notified to the frontend but not processed
             //since I cannot depend on a split projection
             this.notifyReadModel(event);
             if (event.splitKey) return;

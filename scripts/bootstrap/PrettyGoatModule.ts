@@ -5,7 +5,7 @@ import IServiceLocator from "./IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
 import IProjectionHandlerFactory from "../projections/IProjectionHandlerFactory";
 import ProjectionHandlerFactory from "../projections/ProjectionHandlerFactory";
-import IProjectionRouter from "../push/IProjectionRouter";
+import IProjectionRouter from "../routing/IProjectionRouter";
 import ExpressApp from "./ExpressApp";
 import IEventEmitter from "../push/IEventEmitter";
 import SocketEventEmitter from "../push/SocketEventEmitter";
@@ -34,8 +34,8 @@ import DateRetriever from "../util/DateRetriever";
 import TimePartitioner from "../util/TimePartitioner";
 import IProjectionSelector from "../projections/IProjectionSelector";
 import ProjectionSelector from "../projections/ProjectionSelector";
-import ExpressStatePublisher from "../projections/ExpressStatePublisher";
-import IStatePublisher from "../projections/IStatePublisher";
+import ExpressStatePublisher from "../routing/ExpressStatePublisher";
+import IStatePublisher from "../routing/IStatePublisher";
 
 class PrettyGoatModule implements IModule {
 

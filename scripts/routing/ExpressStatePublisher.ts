@@ -1,8 +1,8 @@
 import IStatePublisher from "./IStatePublisher";
 import {Request} from "express";
-import IProjectionRouter from "../push/IProjectionRouter";
+import IProjectionRouter from "./IProjectionRouter";
 import {inject, injectable} from "inversify";
-import IProjectionSelector from "./IProjectionSelector";
+import IProjectionSelector from "../projections/IProjectionSelector";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {Response} from "express";
 

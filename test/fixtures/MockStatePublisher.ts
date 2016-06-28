@@ -1,4 +1,4 @@
-import IStatePublisher from "../../scripts/projections/IStatePublisher";
+import IStatePublisher from "../../scripts/routing/IStatePublisher";
 
 class MockStatePublisher implements IStatePublisher {
 
