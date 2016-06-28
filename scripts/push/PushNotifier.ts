@@ -1,18 +1,13 @@
 import IPushNotifier from "./IPushNotifier";
 import PushContext from "./PushContext";
-import IProjectionRouter from "./IProjectionRouter";
 import ContextOperations from "./ContextOperations";
-import {Request} from "express";
-import {Response} from "express";
 import IEventEmitter from "./IEventEmitter";
 import IClientRegistry from "./IClientRegistry";
 import * as _ from "lodash";
 import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import IProjectionSelector from "../projections/IProjectionSelector";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import IReadModelFactory from "../streams/IReadModelFactory";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
@@ -20,17 +15,8 @@ class PushNotifier implements IPushNotifier {
     constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
                 @inject("IClientRegistry") private clientRegistry:IClientRegistry,
                 @inject("IEndpointConfig") private config:IEndpointConfig,
-                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector,
-                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry,
-                @inject("IReadModelFactory") private readModelFactory:IReadModelFactory) {
-        this.subscribeToReadModels(readModelFactory);
-    }
+                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
 
-    private subscribeToReadModels(readModelFactory:IReadModelFactory) {
-        readModelFactory.from(null).subscribe(event => {
-            let entry = this.projectionRegistry.getEntry(event.type);
-            this.notify(new PushContext(entry.area, entry.data.name), null, event.splitKey);
-        });
     }
 
     notify(context:PushContext, clientId?:string, splitKey?:string):void {

@@ -26,6 +26,7 @@ import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
 import SinonStub = Sinon.SinonStub;
 import MockPushNotifier from "./fixtures/MockPushNotifier";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
+import PushContext from "../scripts/push/PushContext";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -69,12 +70,54 @@ describe("Given a ProjectionEngine", () => {
     });
 
     describe("when an event from the stream is received", () => {
-        beforeEach(() => {
-            subject.run();
+
+        context("and it's not a read model", () => {
+            it("should apply the event to all the matching projection handlers", () => {
+                subject.run();
+                projectionHandler.verify(p => p.handle(It.isValue(testEvent)), Times.once());
+            });
         });
 
-        it("should apply the event to all the matching projection handlers", () => {
-            projectionHandler.verify(p => p.handle(It.isValue(testEvent)), Times.once());
+        context("and it's a read model", () => {
+            beforeEach(() => {
+                stream.setup(s => s.from(null)).returns(_ => Observable.empty<Event<any>>().observeOn(Scheduler.immediate));
+                pushNotifier.setup(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined)).returns(_ => null);
+            });
+
+            context("when it contains a split key", () => {
+                beforeEach(() => {
+                    readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
+                        type: "test",
+                        payload: {
+                            id: 20
+                        },
+                        splitKey: "key"
+                    }));
+                    subject.run();
+                });
+
+                it("should not apply the event to the projections", () => {
+                    projectionHandler.verify(p => p.handle(It.isValue({
+                        type: "test",
+                        payload: {
+                            id: 20
+                        },
+                        splitKey: "key"
+                    })), Times.never());
+                });
+            });
+
+
+            it("should notify the read model", () => {
+                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
+                    type: "test",
+                    payload: {
+                        id: 20
+                    }
+                }));
+                subject.run();
+                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined), Times.atLeastOnce());
+            });
         });
     });
 });

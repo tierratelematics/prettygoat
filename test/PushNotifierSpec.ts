@@ -19,8 +19,6 @@ import MockEventEmitter from "./fixtures/MockEventEmitter";
 import Event from "../scripts/streams/Event";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
@@ -34,8 +32,7 @@ describe("Given a push notifier", () => {
         eventEmitter:IEventEmitter,
         emitterSpy:SinonSpy,
         registry:IProjectionRegistry,
-        registryStub:SinonStub,
-        readModelFactory:IReadModelFactory;
+        registryStub:SinonStub;
 
     beforeEach(() => {
         dataSubject = new Subject<Event<MockModel>>();
@@ -43,8 +40,9 @@ describe("Given a push notifier", () => {
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
         registry = new ProjectionRegistry(null, null);
-        readModelFactory = new MockReadModelFactory();
-        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})]);
+        clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [
+            new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})
+        ]);
         emitterSpy = sinon.spy(eventEmitter, "emitTo");
         registryStub = sinon.stub(registry, "getEntry", () => {
             return {
@@ -56,7 +54,7 @@ describe("Given a push notifier", () => {
             host: 'test',
             protocol: 'http',
             port: 80
-        }, null, registry, readModelFactory);
+        }, registry);
     });
 
     afterEach(() => {
@@ -67,10 +65,7 @@ describe("Given a push notifier", () => {
 
     context("when a new state is triggered by the projection", () => {
         it("should emit a notification on the corresponding context", () => {
-            let newModel = new MockModel();
-            newModel.id = "test";
-            newModel.name = "testName";
-            readModelFactory.publish({payload: newModel, type: "Foo"});
+            subject.notify(new PushContext("Admin", "Foo"));
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
@@ -84,8 +79,8 @@ describe("Given a push notifier", () => {
                 subject = new PushNotifier(eventEmitter, clientRegistry, {
                     host: 'test',
                     protocol: 'http'
-                }, null, registry, readModelFactory);
-                readModelFactory.publish({payload: new MockModel(), type: "Foo"});
+                }, registry);
+                subject.notify(new PushContext("Admin", "Foo"));
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/admin/foo/'
                 })).to.be(true);
@@ -98,8 +93,8 @@ describe("Given a push notifier", () => {
                     host: 'test',
                     protocol: 'http',
                     path: '/projections'
-                }, null, registry, readModelFactory);
-                readModelFactory.publish({payload: new MockModel(), type: "Foo"});
+                }, registry);
+                subject.notify(new PushContext("Admin", "Foo"));
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/projections/admin/foo/'
                 })).to.be(true);
