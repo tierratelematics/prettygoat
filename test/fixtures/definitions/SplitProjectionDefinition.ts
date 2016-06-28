@@ -7,14 +7,14 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
         return {
-            name: "test",
+            name: "split",
             definition: {
                 $init: () => 10,
                 TestEvent: (s, e:any) => s + e.count,
                 LinkedState: (s, e:{ count2:number }) => s + e.count2
             },
             split: {
-                TestEvent: (e:any) => e.id
+                TestEvent: (e:any) => e.id.toString()
             }
         };
     }

@@ -1,4 +1,4 @@
-import { ISnapshotStrategy } from "../streams/ISnapshotStrategy";
+import { ISnapshotStrategy } from "../snapshots/ISnapshotStrategy";
 
 export interface IWhen<T extends Object> {
     $init?: () => T;

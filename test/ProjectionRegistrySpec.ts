@@ -9,8 +9,8 @@ import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
 import SinonStub = Sinon.SinonStub;
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
+import IProjectionHandler from "../scripts/projections/IProjectionHandler";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import MockObjectContainer from "./fixtures/MockObjectContainer";
@@ -18,16 +18,16 @@ import MockObjectContainer from "./fixtures/MockObjectContainer";
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject:IProjectionRegistry,
-        runner:IProjectionRunner<number>;
+        handler:IProjectionHandler<number>;
 
     beforeEach(() => {
-        runner = new ProjectionRunner<number>(new MockProjectionDefinition().define(), null, null, null, null);
+        handler = new ProjectionHandler<number>("test", null, null);
         let analyzer = new ProjectionAnalyzer();
         subject = new ProjectionRegistry(analyzer, new MockObjectContainer());
     });
 
     context("when they are registered under a specific area", () => {
-        it("should register the projection runners with the right contexts", () => {
+        it("should register the projection handler with the right contexts", () => {
             subject.add(MockProjectionDefinition).forArea("Admin");
             let areas = subject.getAreas();
 
@@ -62,6 +62,26 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             let areas = subject.getAreas();
 
             expect(areas[0].area).to.be("Master");
+        });
+    });
+
+    context("when a projection needs to be retrieved", () => {
+        beforeEach(() => subject.add(MockProjectionDefinition).forArea("Admin"));
+
+        context("and I supply the stream name", () => {
+            it("should retrieve it", () => {
+                let entry = subject.getEntry("test");
+
+                expect(entry.data.projection.name).to.be("test");
+            });
+        });
+
+        context("and I supply the registered projection name", () => {
+            it("should retrieve it", () => {
+                let entry = subject.getEntry("Mock", "Admin");
+
+                expect(entry.data.projection.name).to.be("test");
+            });
         });
     });
 });

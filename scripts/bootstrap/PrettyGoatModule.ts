@@ -3,9 +3,9 @@ import {IKernelModule, IKernel} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "./IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
-import IProjectionRouter from "../push/IProjectionRouter";
+import IProjectionHandlerFactory from "../projections/IProjectionHandlerFactory";
+import ProjectionHandlerFactory from "../projections/ProjectionHandlerFactory";
+import IProjectionRouter from "../routing/IProjectionRouter";
 import ExpressApp from "./ExpressApp";
 import IEventEmitter from "../push/IEventEmitter";
 import SocketEventEmitter from "../push/SocketEventEmitter";
@@ -19,9 +19,9 @@ import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "./IObjectContainer";
 import ObjectContainer from "./ObjectContainer";
 import CassandraStreamFactory from "../streams/CassandraStreamFactory";
-import SnapshotRepository from "../streams/SnapshotRepository";
+import SnapshotRepository from "../snapshots/SnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {ISnapshotRepository} from "../streams/ISnapshotRepository";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import StreamState from "../streams/StreamState";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 import ICassandraClientFactory from "../streams/ICassandraClientFactory";
@@ -31,14 +31,18 @@ import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
-import TimePartitioner from "../streams/TimePartitioner";
+import TimePartitioner from "../util/TimePartitioner";
+import IProjectionSelector from "../projections/IProjectionSelector";
+import ProjectionSelector from "../projections/ProjectionSelector";
+import ExpressStatePublisher from "../routing/ExpressStatePublisher";
+import IStatePublisher from "../routing/IStatePublisher";
 
 class PrettyGoatModule implements IModule {
 
     modules:IKernelModule = (kernel:IKernel) => {
         kernel.bind<IKernel>("IKernel").toConstantValue(kernel);
         kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
-        kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
+        kernel.bind<IProjectionHandlerFactory>("IProjectionHandlerFactory").to(ProjectionHandlerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
         kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
@@ -55,6 +59,8 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
+        kernel.bind<IProjectionSelector>("IProjectionSelector").to(ProjectionSelector).inSingletonScope();
+        kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

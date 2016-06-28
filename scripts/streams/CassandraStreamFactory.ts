@@ -4,7 +4,7 @@ import ICassandraConfig from "../configs/ICassandraConfig";
 import * as Rx from "rx";
 import StreamState from "./StreamState";
 import ICassandraClientFactory from "./ICassandraClientFactory";
-import TimePartitioner from "./TimePartitioner";
+import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import Event from "./Event";
 
@@ -20,10 +20,16 @@ class CassandraStreamFactory implements IStreamFactory {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:string):Rx.Observable<Event> {
+    from(lastEvent:string):Rx.Observable<Event<any>> {
         return this.streamSource()
             .do(event => this.streamState.lastEvent = event.timestamp)
-            .map(event => event.event)
+            .map(event => {
+                return {
+                    type: event.event.type,
+                    payload: event.event.payload,
+                    timestamp: event.timestamp
+                }
+            })
             .observeOn(Rx.Scheduler.default);
     }
 
