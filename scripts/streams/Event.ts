@@ -1,6 +1,8 @@
-interface Event {
+interface Event<T> {
     type:string;
-    payload:any;
+    payload:T;
+    timestamp?:string;
+    splitKey?:string;
 }
 
 export default Event

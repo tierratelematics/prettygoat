@@ -5,7 +5,7 @@ import CassandraStreamFactory from "../scripts/streams/CassandraStreamFactory";
 import MockClientFactory from "./fixtures/MockClientFactory";
 import StreamState from "../scripts/streams/StreamState";
 import SinonStub = Sinon.SinonStub;
-import TimePartitioner from "../scripts/streams/TimePartitioner";
+import TimePartitioner from "../scripts/util/TimePartitioner";
 import DateRetriever from "../scripts/util/DateRetriever";
 
 describe("StreamFactory, given a list of events", () => {

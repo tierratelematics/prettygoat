@@ -1,3 +1,4 @@
+/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
@@ -5,78 +6,117 @@ import sinon = require("sinon");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import SinonStub = Sinon.SinonStub;
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import PushNotifier from "../scripts/push/PushNotifier";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
-import PushContext from "../scripts/push/PushContext";
-import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockProjectionRunner from "./fixtures/MockProjectionRunner";
-import MockModel from "./fixtures/MockModel";
 import SinonSpy = Sinon.SinonSpy;
 import MockObjectContainer from "./fixtures/MockObjectContainer";
+import {Mock, Times, It} from "typemoq";
+import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import {IStreamFactory} from "../scripts/streams/IStreamFactory";
+import {MockStreamFactory} from "./fixtures/MockStreamFactory";
+import ReadModelFactory from "../scripts/streams/ReadModelFactory";
+import Event from "../scripts/streams/Event";
+import {Observable, Scheduler} from "rx";
+import IProjectionSelector from "../scripts/projections/IProjectionSelector";
+import ProjectionSelector from "../scripts/projections/ProjectionSelector";
+import IProjectionHandler from "../scripts/projections/IProjectionHandler";
+import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
+import SinonStub = Sinon.SinonStub;
+import MockPushNotifier from "./fixtures/MockPushNotifier";
+import MockStatePublisher from "./fixtures/MockStatePublisher";
+import PushContext from "../scripts/push/PushContext";
 
 describe("Given a ProjectionEngine", () => {
 
     let subject:IProjectionEngine,
         registry:IProjectionRegistry,
-        runnerFactory:IProjectionRunnerFactory,
-        runnerFactoryStub:SinonStub,
-        pushNotifier:IPushNotifier,
-        notifyStub:SinonStub,
-        runner:IProjectionRunner<MockModel>,
-        runnerSpy:SinonSpy;
+        pushNotifier:Mock<IPushNotifier>,
+        stream:Mock<IStreamFactory>,
+        readModelFactory:Mock<IReadModelFactory>,
+        projectionSelector:Mock<IProjectionSelector>,
+        projectionHandler:Mock<IProjectionHandler<any>>,
+        testEvent = {
+            type: "increment",
+            payload: 1
+        };
 
     beforeEach(() => {
-        runner = new MockProjectionRunner(null);
-        pushNotifier = new PushNotifier(null, null, null, {host: 'test', protocol: 'http', port: 80});
-        runnerFactory = new ProjectionRunnerFactory(null, null, null);
+        projectionHandler = Mock.ofType<IProjectionHandler<any>>(ProjectionHandler);
+        projectionHandler.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
+        pushNotifier = Mock.ofType<IPushNotifier>(MockPushNotifier);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
-        subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);
-        notifyStub = sinon.stub(pushNotifier, "register", () => {
-        });
-        runnerFactoryStub = sinon.stub(runnerFactory, "create", () => runner);
-        runnerSpy = sinon.stub(runner, "run");
+        stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
+        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event<any>>());
+        projectionSelector = Mock.ofType<IProjectionSelector>(ProjectionSelector);
+        projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionHandler.object]);
+        stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));
+        subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object, new MockStatePublisher());
+        registry.add(MockProjectionDefinition).forArea("Admin");
     });
 
-    afterEach(() => {
-        notifyStub.restore();
-        runnerFactoryStub.restore();
-        runnerSpy.restore();
-    });
+    describe("at startup", () => {
+        beforeEach(() => subject.run());
 
-    describe("when running", () => {
-
-        it("should run all the registered projections", () => {
-            registry.add(MockProjectionDefinition).forArea("Admin");
-            subject.run();
-            expect(notifyStub.calledWith(runner, new PushContext("Admin", "Mock"))).to.be(true);
-            expect(runnerSpy.called).to.be(true);
+        it("should subscribe to the event stream starting from the stream's beginning", () => {
+            stream.verify(s => s.from(null), Times.once());
         });
 
-        describe("and a projection fails", () => {
-            it("should keep running all the remaining projections");
+        it("should subscribe to the aggregates stream to build linked projections", () => {
+            readModelFactory.verify(a => a.from(null), Times.once());
         });
     });
 
-    context("when running a projection", () => {
-        it("should subscribe to the event stream according to the definition");
-        context("and an error occurs when subscribing to the event stream", () => {
-            it("should publish an error state");
+    describe("when an event from the stream is received", () => {
+
+        context("and it's not a read model", () => {
+            it("should apply the event to all the matching projection handlers", () => {
+                subject.run();
+                projectionHandler.verify(p => p.handle(It.isValue(testEvent)), Times.once());
+            });
         });
-        context("and an error occurs when initializing the state of the projection", () => {
-            it("should unsubscribe to the event stream");
-            it("should publish an error state");
-        });
-        it("should check if a snapshot is needed");
-        context("and a snapshot is needed", () => {
-            it("should save a snapshot of the state");
-            context("and an error occurs when saving the snapshot", () => {
-                it("should keep processing events");
+
+        context("and it's a read model", () => {
+            beforeEach(() => {
+                stream.setup(s => s.from(null)).returns(_ => Observable.empty<Event<any>>().observeOn(Scheduler.immediate));
+                pushNotifier.setup(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined)).returns(_ => null);
+            });
+
+            context("when it contains a split key", () => {
+                beforeEach(() => {
+                    readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
+                        type: "test",
+                        payload: {
+                            id: 20
+                        },
+                        splitKey: "key"
+                    }));
+                    subject.run();
+                });
+
+                it("should not apply the event to the projections", () => {
+                    projectionHandler.verify(p => p.handle(It.isValue({
+                        type: "test",
+                        payload: {
+                            id: 20
+                        },
+                        splitKey: "key"
+                    })), Times.never());
+                });
+            });
+
+
+            it("should notify the read model", () => {
+                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
+                    type: "test",
+                    payload: {
+                        id: 20
+                    }
+                }));
+                subject.run();
+                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined), Times.atLeastOnce());
             });
         });
     });

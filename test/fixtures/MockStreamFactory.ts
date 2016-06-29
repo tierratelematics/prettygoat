@@ -4,11 +4,11 @@ import Event from "../../scripts/streams/Event";
 
 export class MockStreamFactory implements IStreamFactory {
 
-    constructor(private observable?:Observable<Event>) {
+    constructor(private observable?:Observable<Event<any>>) {
 
     }
 
-    from(lastEvent:string):Observable<Event> {
+    from(lastEvent:string):Observable<Event<any>> {
         return this.observable;
     }
 }

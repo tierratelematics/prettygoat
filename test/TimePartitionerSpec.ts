@@ -1,6 +1,6 @@
 import expect = require("expect.js");
 import sinon = require("sinon");
-import TimePartitioner from "../scripts/streams/TimePartitioner";
+import TimePartitioner from "../scripts/util/TimePartitioner";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("TimePartitioner, given a date", () => {

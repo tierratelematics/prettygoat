@@ -7,22 +7,19 @@ import Event from "./Event";
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
 
-    private source:Rx.Observable<any>;
+    constructor(@inject("StreamFactory") private streamFactory:IStreamFactory,
+                @inject("IPollToPushConfig") private config:IPollToPushConfig) {
 
-    constructor(@inject("StreamFactory") streamFactory:IStreamFactory,
-                @inject("IPollToPushConfig") config:IPollToPushConfig) {
-        this.source = streamFactory
+    }
+
+    from(lastEvent:string):Rx.Observable<Event<any>> {
+        return this.streamFactory
             .from(null)
             .concat(
                 Rx.Observable
-                    .interval(config.interval || 30000)
-                    .flatMap(_ => streamFactory.from(null)))
-            .observeOn(Rx.Scheduler.default)
-            .share();
-    }
-
-    from(lastEvent:string):Rx.Observable<Event> {
-        return this.source;
+                    .interval(this.config.interval || 30000)
+                    .flatMap(_ => this.streamFactory.from(null)))
+            .observeOn(Rx.Scheduler.default);
     }
 }
 
