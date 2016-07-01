@@ -44,7 +44,7 @@ class CassandraStreamFactory implements IStreamFactory {
                             let row;
                             while (row = this.read()) {
                                 observer.onNext({
-                                    timestamp: row.timestamp,
+                                    timestamp: row.timestamp.getDate(),
                                     event: JSON.parse(row['system.blobastext(event)'])
                                 });
                             }
@@ -59,7 +59,7 @@ class CassandraStreamFactory implements IStreamFactory {
 
     private getBuckets():string[] | Promise<string[]> {
         if (this.streamState.lastEvent)
-            return this.timePartitioner.bucketsFrom(this.streamState.lastEvent.getDate());
+            return this.timePartitioner.bucketsFrom(this.streamState.lastEvent);
         else
             return Promise
                 .fromNode(callback => {
@@ -74,7 +74,7 @@ class CassandraStreamFactory implements IStreamFactory {
         let bucketsString = buckets.join("', '"),
             query = `SELECT blobAsText(event), timestamp FROM event_by_timestamp WHERE timebucket IN ('${bucketsString}')`;
         if (this.streamState.lastEvent) {
-            let timestamp = this.streamState.lastEvent.getDate().toISOString();
+            let timestamp = this.streamState.lastEvent.toISOString();
             query += ` AND timestamp > maxTimeUuid('${timestamp}')`;
         }
         return query;
