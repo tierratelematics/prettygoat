@@ -51,7 +51,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
-        kernel.bind<StreamState>("StreamState").to(StreamState).inSingletonScope();
+        kernel.bind<StreamState>("StreamState").to(StreamState);
         kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();

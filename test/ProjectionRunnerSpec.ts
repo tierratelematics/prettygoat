@@ -11,18 +11,14 @@ import {Observable, Subject, IDisposable} from "rx";
 import {Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
-import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
-import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
 import Event from "../scripts/streams/Event";
 
 describe("Given a ProjectionRunner", () => {
     let stream:Mock<IStreamFactory>;
     let subject:ProjectionRunner<number>;
     let matcher:Mock<IMatcher>;
-    let repository:Mock<ISnapshotRepository>;
     let notifications:number[];
     let stopped:boolean;
     let failed:boolean;
@@ -34,10 +30,9 @@ describe("Given a ProjectionRunner", () => {
         stopped = false;
         failed = false;
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
-        repository = Mock.ofType<ISnapshotRepository>(MockSnapshotRepository);
         matcher = Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, readModelFactory.object);
+        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object);
         subscription = subject.subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
     });

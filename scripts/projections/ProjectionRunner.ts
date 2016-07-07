@@ -4,9 +4,7 @@ import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
-import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
-import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import Event from "../streams/Event";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
@@ -15,13 +13,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription:IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private streamId:string;
     private splitKey:string;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
-                private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
+    constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<Event>();
-        this.streamId = projection.name;
     }
 
     run():void {
@@ -64,18 +59,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    setSplitKey(key:string) {
-        this.splitKey = key;
-    }
-
     private publishReadModel() {
-        this.subject.onNext({splitKey: this.splitKey, payload: this.state, type: this.projection.name});
-        if (!this.splitKey) {
-            this.readModelFactory.publish({
-                type: this.projection.name,
-                payload: this.state
-            });
-        }
+        let readModel = {payload: this.state, type: this.streamId};
+        this.subject.onNext(readModel);
+        if (!this.splitKey) this.readModelFactory.publish(readModel);
     };
 
     subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable

@@ -21,6 +21,8 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent:string):Rx.Observable<Event> {
+        if (lastEvent)
+            this.streamState.lastEvent = new Date(lastEvent);
         return this.streamSource()
             .do(event => this.streamState.lastEvent = event.timestamp)
             .map(event => {
