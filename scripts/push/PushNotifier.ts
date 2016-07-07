@@ -28,10 +28,10 @@ class PushNotifier implements IPushNotifier {
 
     register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext, parametersKey?:(p:any) => string):void {
         this.parameterKeys[ContextOperations.getChannel(context)] = parametersKey; //Memoize parameters key to notify clients on subscribe
-        if (projectionRunner instanceof SplitProjectionRunner) {
+        if (parametersKey) {
             projectionRunner.subscribe(state => this.notifyWithParameters(context, state.splitKey));
-            this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
-                let runner = <SplitProjectionRunner<any>>projectionRunner.runnerFor(request.params['key']);
+            this.router.get(ContextOperations.getEndpoint(context, parametersKey), (request:Request, response:Response) => {
+                let runner = (<SplitProjectionRunner<any>>projectionRunner).runnerFor(request.params['key']);
                 if (runner)
                     response.json(runner.state);
                 else

@@ -7,7 +7,7 @@ class CountSnapshotStrategy implements ISnapshotStrategy {
     private threshold = 100;
     private counters:Dictionary<number> = {};
 
-    needsSnapshot(event:Event<any>):boolean {
+    needsSnapshot(event:Event):boolean {
         let counter = this.counters[event.type] || 0;
         counter++;
         this.counters[event.type] = counter;

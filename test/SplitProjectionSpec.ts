@@ -107,8 +107,4 @@ describe("Split projection, given a projection with a split definition", () => {
             });
         });
     });
-
-    context("when it's running and needs to be stopped", () => {
-        it("should stop all the registered projections");
-    });
 });

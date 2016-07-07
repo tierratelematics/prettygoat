@@ -71,7 +71,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             let newModel = new MockModel();
             newModel.id = "test";
             newModel.name = "testName";
-            dataSubject.onNext({ splitKey: null, state: newModel});
+            dataSubject.onNext({splitKey: null, state: newModel});
             expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                 url: 'http://test:80/admin/foo/'
             })).to.be(true);
@@ -84,7 +84,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
             it("should not append the port in the notification url", () => {
                 subject = new PushNotifier(router, eventEmitter, clientRegistry, {host: 'test', protocol: 'http'});
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext({ splitKey: null, state: new MockModel()});
+                dataSubject.onNext({splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/admin/foo/'
                 })).to.be(true);
@@ -99,7 +99,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
                     path: '/projections'
                 });
                 subject.register(projectionRunner, new PushContext("Admin", "Foo"));
-                dataSubject.onNext({ splitKey: null, state: new MockModel()});
+                dataSubject.onNext({splitKey: null, state: new MockModel()});
                 expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
                     url: 'http://test/projections/admin/foo/'
                 })).to.be(true);
@@ -133,7 +133,7 @@ describe("PushNotifier, given a projection runner and a context", () => {
 
     context("when the projection contains a split definition", () => {
         it("should register the viewmodel under the endpoint /area/viewmodelId/splitKey", () => {
-            subject.register(splitProjectionRunner, new PushContext("Admin", "Foo"));
+            subject.register(splitProjectionRunner, new PushContext("Admin", "Foo"), (p) => p.id);
             expect(routerSpy.calledWith("/admin/foo/:key")).to.be(true);
         });
     });

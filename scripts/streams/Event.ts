@@ -1,7 +1,8 @@
 interface Event {
     type:string;
     payload:any;
-    timestamp:string;
+    timestamp?:string;
+    splitKey?:string;
 }
 
 export default Event

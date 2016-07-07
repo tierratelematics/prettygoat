@@ -8,7 +8,7 @@ class TimeSnapshotStrategy implements ISnapshotStrategy {
     private threshold = 1000 * 60 * 5; //5 minutes
     private snapshots:Dictionary<number> = {};
 
-    needsSnapshot(event:Event<any>):boolean {
+    needsSnapshot(event:Event):boolean {
         let snapshot = this.snapshots[event.type];
         if (!snapshot)
             snapshot = this.snapshots[event.type] = this.toUnixTimestamp(event.timestamp);
