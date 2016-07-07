@@ -14,10 +14,9 @@ import * as Rx from "rx";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
-import Event from "../scripts/streams/Event";
-import NotificationState from "../scripts/push/NotificationState";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
+import Event from "../scripts/streams/Event";
 
 describe("Given a ProjectionRunner", () => {
     let stream:Mock<IStreamFactory>;
@@ -39,7 +38,7 @@ describe("Given a ProjectionRunner", () => {
         matcher = Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new ProjectionRunner<number>(new MockProjectionDefinition().define(), stream.object, repository.object, matcher.object, readModelFactory.object);
-        subscription = subject.subscribe((state:NotificationState<number>) => notifications.push(state.state), e => failed = true, () => stopped = true);
+        subscription = subject.subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
     });
 

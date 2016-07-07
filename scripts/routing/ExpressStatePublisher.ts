@@ -2,34 +2,33 @@ import IStatePublisher from "./IStatePublisher";
 import {Request} from "express";
 import IProjectionRouter from "./IProjectionRouter";
 import {inject, injectable} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {Response} from "express";
+import IProjectionRunner from "../projections/IProjectionRunner";
+import PushContext from "../push/PushContext";
+import {SplitProjectionRunner} from "../projections/SplitProjectionRunner";
+import ContextOperations from "../push/ContextOperations";
 
 @injectable()
 class ExpressStatePublisher implements IStatePublisher {
 
-    constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
-                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
+    constructor(@inject("IProjectionRouter") private router:IProjectionRouter) {
 
     }
 
-    publish():void {
-       /* this.router.get("/:area/:projection?/:splitKey?", (request:Request, response:Response) => {
-            let area = request.params["area"],
-                projection = request.params["projection"];
-            if (!area || !projection) return this.send404(response);
-            let entry = this.projectionRegistry.getEntry(projection, area);
-            if (!entry.data) return this.send404(response);
-            let handler = this.projectionSelector.projectionFor(entry.area, entry.data.name, request.params["splitKey"]);
-            if (handler)
-                response.json(handler.state);
-            else
-                this.send404(response);
-        });*/
-    }
-
-    private send404(response:Response) {
-        response.status(404).json({error: "Projection not found"});
+    publish<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void {
+        if (projectionRunner instanceof SplitProjectionRunner) {
+            this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
+                let runner = projectionRunner.state[request.params['key']];
+                if (runner)
+                    response.json(runner.state);
+                else
+                    response.status(404).json({error: "Projection not found"});
+            });
+        } else {
+            this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
+                response.json(projectionRunner.state);
+            });
+        }
     }
 
 }

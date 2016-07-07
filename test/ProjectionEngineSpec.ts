@@ -19,6 +19,7 @@ import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import MockModel from "./fixtures/MockModel";
 import SinonSpy = Sinon.SinonSpy;
 import MockObjectContainer from "./fixtures/MockObjectContainer";
+import MockStatePublisher from "./fixtures/MockStatePublisher";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -33,10 +34,10 @@ describe("Given a ProjectionEngine", () => {
 
     beforeEach(() => {
         runner = new MockProjectionRunner(null);
-        pushNotifier = new PushNotifier(null, null, null, {host: 'test', protocol: 'http', port: 80});
+        pushNotifier = new PushNotifier(null, null, {host: 'test', protocol: 'http', port: 80}, null);
         runnerFactory = new ProjectionRunnerFactory(null, null, null);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
-        subject = new ProjectionEngine(runnerFactory, pushNotifier, registry);
+        subject = new ProjectionEngine(runnerFactory, pushNotifier, registry, new MockStatePublisher());
         notifyStub = sinon.stub(pushNotifier, "register", () => {
         });
         runnerFactoryStub = sinon.stub(runnerFactory, "create", () => runner);

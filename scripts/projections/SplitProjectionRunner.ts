@@ -8,23 +8,23 @@ import {ProjectionRunner} from "./ProjectionRunner";
 import SplitStreamFactory from "../streams/SplitStreamFactory";
 import Dictionary from "../Dictionary";
 import IReadModelFactory from "../streams/IReadModelFactory";
-import NotificationState from "../push/NotificationState";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
+import Event from "../streams/Event";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private subject:Rx.Subject<NotificationState<T>>;
+    private subject:Rx.Subject<Event>;
     private streamId:string;
     private splitMatcher:IMatcher;
     private runners:Dictionary<IProjectionRunner<T>> = {};
     private subjects:Dictionary<Rx.Subject<any>> = {};
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private repository:ISnapshotRepository,
-                private matcher:IMatcher, private aggregateFactory:IReadModelFactory) {
-        this.subject = new Rx.Subject<NotificationState<T>>();
+                private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
+        this.subject = new Rx.Subject<Event>();
         this.streamId = projection.name;
         this.splitMatcher = new Matcher(projection.split);
     }
@@ -44,13 +44,13 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                     if (!this.runners[splitKey]) {
                         this.subjects[splitKey] = new Rx.Subject<any>();
                         let streamFactory = new SplitStreamFactory(this.subjects[splitKey]);
-                        let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.aggregateFactory);
+                        let runner = new ProjectionRunner(this.projection, streamFactory, this.repository, this.matcher, this.readModelFactory);
                         runner.setSplitKey(splitKey);
                         this.runners[splitKey] = runner;
                         runner.run();
                     }
                     this.subjects[splitKey].onNext(event);
-                    this.subject.onNext({splitKey: splitKey, state: null});
+                    this.subject.onNext({splitKey: splitKey, payload: null, type: this.projection.name});
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -79,9 +79,9 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         return this.runners[key];
     }
 
-    subscribe(observer:Rx.IObserver<NotificationState<T>>):Rx.IDisposable
-    subscribe(onNext?:(value:NotificationState<T>) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
+    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
+    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
+    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
         if (isObserver(observerOrOnNext))
             return this.subject.subscribe(observerOrOnNext);
         else
@@ -89,7 +89,7 @@ export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     }
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<NotificationState<T>>) | ((value:NotificationState<T>) => void)):observerOrOnNext is Rx.IObserver<NotificationState<T>> {
-    return (<Rx.IObserver<NotificationState<T>>>observerOrOnNext).onNext !== undefined;
+function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
+    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 

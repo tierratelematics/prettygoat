@@ -103,6 +103,8 @@ declare module prettygoat {
         add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
         getAreas():AreaRegistry[];
+        getArea(areaId:string):AreaRegistry;
+        getEntry<T>(id:string, area?:string):{ area:string, data:RegistryEntry<T>};
     }
 
 
@@ -168,18 +170,20 @@ declare module prettygoat {
     }
 
     export interface ISnapshotStrategy {
-        needsSnapshot(event:Event): boolean;
+        needsSnapshot(event:Event):boolean;
     }
 
     export class TimeSnapshotStrategy implements ISnapshotStrategy {
 
         needsSnapshot(event:Event):boolean;
+
         saveThreshold(ms:number);
     }
 
     export class CountSnapshotStrategy implements ISnapshotStrategy {
 
         needsSnapshot(event:Event):boolean;
+
         saveThreshold(threshold:number):void;
     }
 }

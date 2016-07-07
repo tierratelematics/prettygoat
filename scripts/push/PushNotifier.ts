@@ -13,59 +13,39 @@ import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import {SplitProjectionRunner} from "../projections/SplitProjectionRunner";
 import Dictionary from "../Dictionary";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
 
-    private parameterKeys:Dictionary<(p:any) => string> = {};
-
-    constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
-                @inject("IEventEmitter") private eventEmitter:IEventEmitter,
-                @inject("IClientRegistry") private registry:IClientRegistry,
-                @inject("IEndpointConfig") private config:IEndpointConfig) {
+    constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
+                @inject("IClientRegistry") private clientRegistry:IClientRegistry,
+                @inject("IEndpointConfig") private config:IEndpointConfig,
+                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
 
     }
 
-    register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext, parametersKey?:(p:any) => string):void {
-        this.parameterKeys[ContextOperations.getChannel(context)] = parametersKey; //Memoize parameters key to notify clients on subscribe
-        if (parametersKey) {
-            projectionRunner.subscribe(state => this.notifyWithParameters(context, state.splitKey));
-            this.router.get(ContextOperations.getEndpoint(context, parametersKey), (request:Request, response:Response) => {
-                let runner = (<SplitProjectionRunner<any>>projectionRunner).runnerFor(request.params['key']);
-                if (runner)
-                    response.json(runner.state);
-                else
-                    response.status(404).json({error: "Projection not found"});
-            });
-        } else {
-            projectionRunner.subscribe(state => this.notify(context));
-            this.router.get(ContextOperations.getEndpoint(context), (request:Request, response:Response) => {
-                response.json(projectionRunner.state);
-            });
-        }
+    register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void {
+        projectionRunner.subscribe(state => this.notify(context, null, state.splitKey));
     }
 
-    notify(context:PushContext, clientId?:string):void {
-        let clients = this.registry.clientsFor(context);
+    notify(context:PushContext, clientId?:string, splitKey?:string):void {
+        let clients = this.clientRegistry.clientsFor(context),
+            entry = this.projectionRegistry.getEntry(context.viewmodelId, context.area),
+            parametersKey = entry.data.parametersKey,
+            isSplit = entry.data.projection.split;
         if (clientId) {
             if (!_.isEmpty(context.parameters)) {
-                let parametersKey = this.parameterKeys[ContextOperations.getChannel(context)];
                 this.emitToClient(clientId, context, parametersKey(context.parameters));
             } else {
                 this.emitToClient(clientId, context);
             }
+        } else {
+            _.forEach<ClientEntry>(clients, client => {
+                if (!isSplit || (isSplit && parametersKey(client.parameters) === splitKey))
+                    this.emitToClient(client.id, context, splitKey || "");
+            });
         }
-        else
-            _.forEach<ClientEntry>(clients, client => this.emitToClient(client.id, context));
-    }
-
-    private notifyWithParameters(context:PushContext, splitKey?:string):void {
-        let clients = this.registry.clientsFor(context),
-            parametersKey = this.parameterKeys[ContextOperations.getChannel(context)];
-        _.forEach<ClientEntry>(clients, client => {
-            if (parametersKey(client.parameters) === splitKey)
-                this.emitToClient(client.id, context, splitKey);
-        });
     }
 
     private emitToClient(clientId:string, context:PushContext, splitKey:string = ""):void {

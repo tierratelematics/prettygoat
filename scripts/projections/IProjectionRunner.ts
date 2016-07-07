@@ -1,7 +1,7 @@
 import {IObservable, IDisposable} from "rx";
-import NotificationState from "../push/NotificationState";
+import Event from "../streams/Event";
 
-interface IProjectionRunner<T> extends IObservable<NotificationState<T>>, IDisposable {
+interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {
     state:T;
     run():void;
     stop():void;
