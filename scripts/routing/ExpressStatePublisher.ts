@@ -2,7 +2,6 @@ import IStatePublisher from "./IStatePublisher";
 import {Request} from "express";
 import IProjectionRouter from "./IProjectionRouter";
 import {inject, injectable} from "inversify";
-import IProjectionSelector from "../projections/IProjectionSelector";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {Response} from "express";
 
@@ -10,13 +9,12 @@ import {Response} from "express";
 class ExpressStatePublisher implements IStatePublisher {
 
     constructor(@inject("IProjectionRouter") private router:IProjectionRouter,
-                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector,
                 @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
 
     }
 
     publish():void {
-        this.router.get("/:area/:projection?/:splitKey?", (request:Request, response:Response) => {
+       /* this.router.get("/:area/:projection?/:splitKey?", (request:Request, response:Response) => {
             let area = request.params["area"],
                 projection = request.params["projection"];
             if (!area || !projection) return this.send404(response);
@@ -27,7 +25,7 @@ class ExpressStatePublisher implements IStatePublisher {
                 response.json(handler.state);
             else
                 this.send404(response);
-        });
+        });*/
     }
 
     private send404(response:Response) {

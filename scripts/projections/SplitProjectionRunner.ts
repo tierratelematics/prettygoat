@@ -1,4 +1,3 @@
-import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
@@ -10,6 +9,7 @@ import SplitStreamFactory from "../streams/SplitStreamFactory";
 import Dictionary from "../Dictionary";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import NotificationState from "../push/NotificationState";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 
 export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;

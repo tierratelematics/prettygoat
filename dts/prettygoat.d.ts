@@ -27,11 +27,6 @@ declare module prettygoat {
         [name:string]:(s:T, e:Object) => T;
     }
 
-    export interface ISnapshotStrategy {
-        processedEvent(lastDate:Date):void;
-        needsSnapshot():boolean;
-    }
-
     export interface IProjectionRunner<T> extends IObservable<T>, IDisposable {
         state:T;
         run():void;
@@ -168,6 +163,29 @@ declare module prettygoat {
 
     export interface ISocketConfig {
         path:string;
+    }
+
+    export interface Event {
+        type:string;
+        payload:any;
+        timestamp?:string;
+        splitKey?:string;
+    }
+
+    export interface ISnapshotStrategy {
+        needsSnapshot(event:Event): boolean;
+    }
+
+    export class TimeSnapshotStrategy implements ISnapshotStrategy {
+
+        needsSnapshot(event:Event):boolean;
+        saveThreshold(ms:number);
+    }
+
+    export class CountSnapshotStrategy implements ISnapshotStrategy {
+
+        needsSnapshot(event:Event):boolean;
+        saveThreshold(threshold:number):void;
     }
 }
 

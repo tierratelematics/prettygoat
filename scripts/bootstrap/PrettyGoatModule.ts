@@ -19,9 +19,7 @@ import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "./IObjectContainer";
 import ObjectContainer from "./ObjectContainer";
 import CassandraStreamFactory from "../streams/CassandraStreamFactory";
-import SnapshotRepository from "../streams/SnapshotRepository";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {ISnapshotRepository} from "../streams/ISnapshotRepository";
 import StreamState from "../streams/StreamState";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 import ICassandraClientFactory from "../streams/ICassandraClientFactory";
@@ -31,6 +29,12 @@ import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
+import ExpressStatePublisher from "../routing/ExpressStatePublisher";
+import IStatePublisher from "../routing/IStatePublisher";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
+import CassandraSnapshotRepository from "../snapshots/CassandraSnapshotRepository";
+import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
+import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import TimePartitioner from "../streams/TimePartitioner";
 
 class PrettyGoatModule implements IModule {
@@ -47,7 +51,6 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
-        kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(SnapshotRepository).inSingletonScope();
         kernel.bind<StreamState>("StreamState").to(StreamState).inSingletonScope();
         kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
@@ -55,6 +58,10 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
+        kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
+        kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
+        kernel.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
+        kernel.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

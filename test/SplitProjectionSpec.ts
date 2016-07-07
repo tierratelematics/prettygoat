@@ -6,7 +6,7 @@ import {Matcher} from "../scripts/matcher/Matcher";
 import {IProjection} from "../scripts/projections/IProjection";
 import * as Rx from "rx";
 import {MockStreamFactory} from "./fixtures/MockStreamFactory";
-import {MockSnapshotRepository} from "./fixtures/MockSnapshotRepository";
+import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 

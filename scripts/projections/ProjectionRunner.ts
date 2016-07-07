@@ -1,5 +1,4 @@
 import {Subject, IDisposable} from "rx";
-import {ISnapshotRepository, Snapshot} from "../streams/ISnapshotRepository";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -8,6 +7,7 @@ import * as Rx from "rx";
 import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import NotificationState from "../push/NotificationState";
+import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -31,14 +31,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        let snapshot = this.repository.getSnapshot<T>(this.streamId);
-        if (snapshot !== Snapshot.Empty)
-            this.state = snapshot.memento;
-        else
-            this.state = this.matcher.match(SpecialNames.Init)();
+        this.state = this.matcher.match(SpecialNames.Init)();
         this.publishReadModel();
 
-        this.subscription = this.stream.from(snapshot.lastEvent).merge(this.readModelFactory.from(null)).subscribe(event => {
+        this.subscription = this.stream.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
