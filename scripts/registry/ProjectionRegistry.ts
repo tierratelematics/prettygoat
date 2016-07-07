@@ -64,6 +64,22 @@ class ProjectionRegistry implements IProjectionRegistry {
     getAreas():AreaRegistry[] {
         return this.registry;
     }
+
+    getArea(areaId:string):AreaRegistry {
+        return _.find(this.registry, (entry:AreaRegistry) => entry.area.toLowerCase() === areaId.toLowerCase());
+    }
+
+    getEntry<T>(area:string, id:string):{ area:string, data:RegistryEntry<T>} {
+        let areaRegistry = this.getArea(area),
+            //Find projection with projection name or stream name
+            projection = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.projection.name.toLowerCase() === id.toLowerCase());
+        if (!projection)
+            projection = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
+        return {
+            area: areaRegistry.area,
+            data: projection
+        };
+    }
 }
 
 export default ProjectionRegistry
