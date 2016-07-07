@@ -61,11 +61,6 @@ declare module prettygoat {
         from(lastEvent:string):Observable<Event>;
     }
 
-    export interface Event {
-        type:string;
-        payload:any;
-    }
-
     export interface ISnapshotRepository {
         getSnapshot<T>(streamId:string):Snapshot<T>;
         saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
