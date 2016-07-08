@@ -11,6 +11,8 @@ import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {Matcher} from "../scripts/matcher/Matcher";
 import Event from "../scripts/streams/Event";
+import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
+import Dictionary from "../scripts/Dictionary";
 
 describe("Split projection, given a projection with a split definition", () => {
 
@@ -37,6 +39,32 @@ describe("Split projection, given a projection with a split definition", () => {
             new Matcher(projection.split), readModelFactory.object);
         subscription = subject.subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
+    });
+
+    context("when initializing the projection", () => {
+        context("and a snapshot is present", () => {
+            beforeEach(() => {
+                stream.setup(s => s.from(It.isAny())).returns(_ => streamData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelData.onNext({
+                    type: "LinkedState",
+                    payload: {
+                        count2: 2000
+                    }
+                });
+                subject.run(new Snapshot(<Dictionary<number>>{
+                    "10a": 2000,
+                    "25b": 5600
+                }, "27727"));
+            });
+            it("should construct the snapshotted projections", () => {
+                expect(subject.state["10a"]).to.be(4000);
+                expect(subject.state["25b"]).to.be(7600);
+            });
+            it("should subscribe to the event stream starting from the snapshot timestamp", () => {
+                stream.verify(s => s.from("27727"), Times.once());
+            });
+        });
     });
 
     context("when a new event is received", () => {
