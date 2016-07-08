@@ -35,53 +35,47 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 if (matchFn === Rx.helpers.identity) return;
                 if (splitFn !== Rx.helpers.identity) {
                     let childState = this.state[splitKey];
-                    if (_.isUndefined(childState)) {
-                        childState = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload);
-                        this.state[splitKey] = childState;
-                        this.subject.onNext({
-                            type: this.streamId,
-                            payload: childState,
-                            timestamp: event.timestamp,
-                            splitKey: splitKey
-                        });
-                        this.readModelFactory.from(null).subscribe(readModel => {
-                            let matchFn = this.matcher.match(readModel.type);
-                            if (matchFn !== Rx.helpers.identity) {
-                                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload);
-                                this.subject.onNext({
-                                    type: this.streamId,
-                                    payload: this.state[splitKey],
-                                    timestamp: event.timestamp,
-                                    splitKey: splitKey
-                                });
-                            }
-                        });
-                    } else {
-                        childState = matchFn(childState, event.payload);
-                        this.state[splitKey] = childState;
-                        this.subject.onNext({
-                            type: this.streamId,
-                            payload: childState,
-                            timestamp: event.timestamp,
-                            splitKey: splitKey
-                        });
-                    }
+                    if (_.isUndefined(childState))
+                        this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
+                    else
+                        this.state[splitKey] = matchFn(childState, event.payload);
+                    this.notifyStateChange(splitKey, event.timestamp);
                 } else {
-                    _.mapValues(this.state, (state, key) => {
-                        this.state[key] = matchFn(state, event.payload);
-                        this.subject.onNext({
-                            type: this.streamId,
-                            payload: this.state[key],
-                            timestamp: event.timestamp,
-                            splitKey: key
-                        });
-                    });
+                    this.dispatchEventToAll(matchFn, event);
                 }
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
                 this.stop();
             }
+        });
+    }
+
+    private getInitialState(matchFn:Function, event, splitKey:string):T {
+        let state:T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload);
+        this.readModelFactory.from(null).subscribe(readModel => {
+            let matchFn = this.matcher.match(readModel.type);
+            if (matchFn !== Rx.helpers.identity) {
+                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload);
+                this.notifyStateChange(splitKey, event.timestamp);
+            }
+        });
+        return state;
+    }
+
+    private dispatchEventToAll(matchFn:Function, event) {
+        _.mapValues(this.state, (state, key) => {
+            this.state[key] = matchFn(state, event.payload);
+            this.notifyStateChange(key, event.timestamp);
+        });
+    }
+
+    private notifyStateChange(splitKey:string, timestamp:string) {
+        this.subject.onNext({
+            type: this.streamId,
+            payload: this.state[splitKey],
+            timestamp: timestamp,
+            splitKey: splitKey
         });
     }
 
