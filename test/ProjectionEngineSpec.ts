@@ -1,14 +1,12 @@
+/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import SinonStub = Sinon.SinonStub;
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import PushNotifier from "../scripts/push/PushNotifier";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
@@ -17,20 +15,18 @@ import {Subject} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import MockModel from "./fixtures/MockModel";
-import SinonSpy = Sinon.SinonSpy;
 import MockObjectContainer from "./fixtures/MockObjectContainer";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
 import Event from "../scripts/streams/Event";
+import {Mock, Times, It} from "typemoq";
 
 describe("Given a ProjectionEngine", () => {
 
     let subject:IProjectionEngine,
         registry:IProjectionRegistry,
-        runnerFactory:IProjectionRunnerFactory,
-        runnerFactoryStub:SinonStub,
         pushNotifier:IPushNotifier,
         runner:IProjectionRunner<MockModel>,
-        runnerSpy:SinonSpy;
+        runnerFactory:IProjectionRunnerFactory;
 
     beforeEach(() => {
         runner = new MockProjectionRunner(new Subject<Event>());
@@ -38,21 +34,23 @@ describe("Given a ProjectionEngine", () => {
         runnerFactory = new ProjectionRunnerFactory(null, null);
         registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
         subject = new ProjectionEngine(runnerFactory, pushNotifier, registry, new MockStatePublisher());
-        runnerFactoryStub = sinon.stub(runnerFactory, "create", () => runner);
-        runnerSpy = sinon.stub(runner, "run");
     });
 
-    afterEach(() => {
-        runnerFactoryStub.restore();
-        runnerSpy.restore();
+    context("when a snapshot is present", () => {
+        it("should init a projection runner with that snapshot");
     });
 
-    describe("when running", () => {
+    context("when a snapshot is not present", () => {
+        it("should init a projection runner without a snapshot");
+    });
 
-        it("should run all the registered projections", () => {
-            registry.add(MockProjectionDefinition).forArea("Admin");
-            subject.run();
-            expect(runnerSpy.called).to.be(true);
+    context("when a projections triggers a new state", () => {
+        context("and a snapshot is needed", () => {
+            it("should save the snapshot");
+        });
+
+        context("and a snapshot is not needed", () => {
+            it("should not save the snapshot");
         });
     });
 });
