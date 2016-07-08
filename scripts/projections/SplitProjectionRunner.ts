@@ -28,7 +28,9 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        this.subscription = this.stream.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
+        this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
+
+        this.subscription = this.stream.from(snapshot ? snapshot.lastEvent : null).merge(this.readModelFactory.from(null)).subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload),
