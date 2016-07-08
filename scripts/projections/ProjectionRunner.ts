@@ -6,6 +6,8 @@ import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import Event from "../streams/Event";
+import {Snapshot} from "../snapshots/ISnapshotRepository";
+import Dictionary from "../Dictionary";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -19,29 +21,32 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject = new Subject<Event>();
     }
 
-    run():void {
+    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
 
-        this.state = this.matcher.match(SpecialNames.Init)();
+        this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.publishReadModel();
 
-        this.subscription = this.stream.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
-            try {
-                let matchFunction = this.matcher.match(event.type);
-                if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload);
-                    this.publishReadModel(event.timestamp);
+        this.subscription = this.stream
+            .from(snapshot ? snapshot.lastEvent : null)
+            .merge(this.readModelFactory.from(null))
+            .subscribe(event => {
+                try {
+                    let matchFunction = this.matcher.match(event.type);
+                    if (matchFunction !== Rx.helpers.identity) {
+                        this.state = matchFunction(this.state, event.payload);
+                        this.publishReadModel(event.timestamp);
+                    }
+                } catch (error) {
+                    this.isFailed = true;
+                    this.subject.onError(error);
+                    this.stop();
                 }
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
+            });
     }
 
     stop():void {

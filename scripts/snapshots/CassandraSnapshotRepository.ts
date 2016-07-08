@@ -38,8 +38,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                     })
                     .mapValues((snapshot:CassandraSnapshot) => new Snapshot<any>(
                         JSON.parse(snapshot["system.blobastext(memento)"] || "{}"),
-                        snapshot.lastevent,
-                        snapshot.split)
+                        snapshot.lastevent)
                     )
                     .valueOf();
             });

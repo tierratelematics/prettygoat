@@ -7,6 +7,7 @@ import Event from "../streams/Event";
 import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
+import {Snapshot} from "../snapshots/ISnapshotRepository";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:Dictionary<T> = {};
@@ -20,7 +21,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject = new Rx.Subject<Event>();
     }
 
-    run():void {
+    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 

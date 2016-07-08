@@ -4,7 +4,7 @@ import Dictionary from "../Dictionary";
 export class Snapshot<T> {
     public static Empty:Snapshot<any> = new Snapshot<any>(undefined, undefined);
 
-    constructor(public memento:T, public lastEvent:string, public splitKey?:string) {
+    constructor(public memento:T, public lastEvent:string) {
     }
 }
 

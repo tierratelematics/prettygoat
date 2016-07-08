@@ -14,6 +14,7 @@ import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import Event from "../scripts/streams/Event";
+import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 
 describe("Given a ProjectionRunner", () => {
     let stream:Mock<IStreamFactory>;
@@ -34,30 +35,48 @@ describe("Given a ProjectionRunner", () => {
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object);
         subscription = subject.subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
+        readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });
 
     afterEach(() => subscription.dispose());
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(null)).returns(_ => Observable.just({ type: null,  payload:null }));
+            stream.setup(s => s.from(It.isAny())).returns(_ => Observable.just({type: null, payload: null}));
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            subject.run();
         });
 
-        it("should create an initial state based on the projection definition", () => {
-            matcher.verify(m => m.match(SpecialNames.Init), Times.once());
-        });
-        it("should subscribe to the event stream starting from the stream's beginning", () => {
-            stream.verify(s => s.from(null), Times.once());
+        context("if a snapshot is present", () => {
+            beforeEach(() => {
+                subject.run(new Snapshot(56, "2789279"));
+            });
+
+            it("should create an initial state based on snapshot memento", () => {
+                expect(subject.state).to.be(56);
+            });
+            it("should subscribe to the event stream starting from the snapshot timestamp", () => {
+                stream.verify(s => s.from("2789279"), Times.once());
+            });
         });
 
-        it("should subscribe to the aggregates stream to build linked projections", () => {
-            readModelFactory.verify(a => a.from(null), Times.once());
-        });
+        context("if a snapshot is not present", () => {
+            beforeEach(() => {
+                subject.run();
+            });
 
-        context("should behave regularly", behavesRegularly);
+            it("should create an initial state based on the projection definition", () => {
+                matcher.verify(m => m.match(SpecialNames.Init), Times.once());
+            });
+            it("should subscribe to the event stream starting from the stream's beginning", () => {
+                stream.verify(s => s.from(null), Times.once());
+            });
+
+            it("should subscribe to the aggregates stream to build linked projections", () => {
+                readModelFactory.verify(a => a.from(null), Times.once());
+            });
+            
+            context("should behave regularly", behavesRegularly);
+        });
 
         function behavesRegularly() {
             it("should consider the initial state as the projection state", () => {
@@ -101,7 +120,11 @@ describe("Given a ProjectionRunner", () => {
             });
 
             it("should publish on the event stream the new aggregate state", () => {
-                readModelFactory.verify(a => a.publish(It.isValue({type: "test", payload: 42, timestamp: ""})), Times.atLeastOnce());
+                readModelFactory.verify(a => a.publish(It.isValue({
+                    type: "test",
+                    payload: 42,
+                    timestamp: ""
+                })), Times.atLeastOnce());
             });
 
         });
