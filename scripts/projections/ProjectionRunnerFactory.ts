@@ -4,9 +4,9 @@ import {ProjectionRunner} from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {SplitProjectionRunner} from "./SplitProjectionRunner";
 import {Matcher} from "../matcher/Matcher";
 import IReadModelFactory from "../streams/IReadModelFactory";
+import SplitProjectionRunner from "./SplitProjectionRunner";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {

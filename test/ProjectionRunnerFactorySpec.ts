@@ -1,3 +1,4 @@
+/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
@@ -7,7 +8,7 @@ import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFact
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
-import {SplitProjectionRunner} from "../scripts/projections/SplitProjectionRunner";
+import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 

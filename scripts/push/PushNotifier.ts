@@ -1,18 +1,13 @@
 import IPushNotifier from "./IPushNotifier";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import PushContext from "./PushContext";
-import IProjectionRouter from "./IProjectionRouter";
 import ContextOperations from "./ContextOperations";
-import {Request} from "express";
-import {Response} from "express";
 import IEventEmitter from "./IEventEmitter";
 import IClientRegistry from "./IClientRegistry";
 import * as _ from "lodash";
 import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import {SplitProjectionRunner} from "../projections/SplitProjectionRunner";
-import Dictionary from "../Dictionary";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 @injectable()

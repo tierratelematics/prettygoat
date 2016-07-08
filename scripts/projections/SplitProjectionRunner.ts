@@ -8,7 +8,7 @@ import Dictionary from "../Dictionary";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import Event from "../streams/Event";
 
-export class SplitProjectionRunner<T> implements IProjectionRunner<T> {
+class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
@@ -67,3 +67,4 @@ function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) =
     return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 
+export default SplitProjectionRunner
