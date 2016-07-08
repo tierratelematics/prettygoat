@@ -5,8 +5,8 @@ import {inject, injectable} from "inversify";
 import {Response} from "express";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import PushContext from "../push/PushContext";
-import {SplitProjectionRunner} from "../projections/SplitProjectionRunner";
 import ContextOperations from "../push/ContextOperations";
+import SplitProjectionRunner from "../projections/SplitProjectionRunner";
 
 @injectable()
 class ExpressStatePublisher implements IStatePublisher {
@@ -18,9 +18,9 @@ class ExpressStatePublisher implements IStatePublisher {
     publish<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void {
         if (projectionRunner instanceof SplitProjectionRunner) {
             this.router.get(ContextOperations.getEndpoint(context, true), (request:Request, response:Response) => {
-                let runner = projectionRunner.state[request.params['key']];
-                if (runner)
-                    response.json(runner.state);
+                let state = projectionRunner.state[request.params['key']];
+                if (state)
+                    response.json(state);
                 else
                     response.status(404).json({error: "Projection not found"});
             });
