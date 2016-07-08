@@ -101,7 +101,7 @@ describe("Given a ProjectionRunner", () => {
             });
 
             it("should publish on the event stream the new aggregate state", () => {
-                readModelFactory.verify(a => a.publish(It.isValue({type: "test", payload: 42})), Times.atLeastOnce());
+                readModelFactory.verify(a => a.publish(It.isValue({type: "test", payload: 42, timestamp: ""})), Times.atLeastOnce());
             });
 
         });

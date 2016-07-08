@@ -34,7 +34,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
                     this.state = matchFunction(this.state, event.payload);
-                    this.publishReadModel();
+                    this.publishReadModel(event.timestamp);
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -59,8 +59,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    private publishReadModel() {
-        let readModel = {payload: this.state, type: this.streamId};
+    private publishReadModel(timestamp:string = "") {
+        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp};
         this.subject.onNext(readModel);
         if (!this.splitKey) this.readModelFactory.publish(readModel);
     };

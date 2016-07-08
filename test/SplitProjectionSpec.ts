@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import sinon = require("sinon");
 import {Mock, Times, It} from "typemoq";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
-import {Observable, Scheduler, IDisposable, Subject} from "rx";
+import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import {MockStreamFactory} from "./fixtures/MockStreamFactory";
@@ -29,14 +29,14 @@ describe("Split projection, given a projection with a split definition", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        streamData = new Subject<Event>();
-        readModelData = new Subject<Event>();
+        streamData = new ReplaySubject<Event>();
+        readModelData = new ReplaySubject<Event>();
         stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection.name, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object);
         subscription = subject.subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Rx.Observable.empty<Event>());
+        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
     });
 
     context("when a new event is received", () => {
@@ -51,7 +51,7 @@ describe("Split projection, given a projection with a split definition", () => {
             });
         });
 
-        context("and a new state is present for the generated split key", () => {
+        context("and a state is present for the generated split key", () => {
             beforeEach(() => {
                 subject.run();
                 streamData.onNext({
@@ -74,13 +74,13 @@ describe("Split projection, given a projection with a split definition", () => {
             });
         });
 
-        context("and a new state is not present for the generated split key", () => {
+        context("and a state is not present for the generated split key", () => {
             beforeEach(() => {
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
-                        count2: 20000
+                        count2: 2000
                     }
                 });
             });
@@ -91,14 +91,18 @@ describe("Split projection, given a projection with a split definition", () => {
         });
 
         context("and the event is a read model", () => {
-            it("should dispatch the read model to all the projections", () => {
-                subject.run();
+            beforeEach(() => {
+                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
                         count2: 5000
                     }
                 });
+            });
+
+            it("should dispatch the read model to all the projections", () => {
+                subject.run();
                 expect(subject.state["10"]).to.be(5030);
             });
         });

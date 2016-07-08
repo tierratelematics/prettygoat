@@ -2,14 +2,14 @@ import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
 import IProjectionRunner from "./IProjectionRunner";
-import {ProjectionRunner} from "./ProjectionRunner";
-import SplitStreamFactory from "../streams/SplitStreamFactory";
-import Dictionary from "../Dictionary";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import Event from "../streams/Event";
+import * as _ from "lodash";
+import {SpecialNames} from "../matcher/SpecialNames";
+import Dictionary from "../Dictionary";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
-    public state:T;
+    public state:Dictionary<T> = {};
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
@@ -27,9 +27,50 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        this.subscription = this.stream.from(null).subscribe(event => {
+        this.subscription = this.stream.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
             try {
-
+                let splitFn = this.splitMatcher.match(event.type),
+                    splitKey = splitFn(event.payload),
+                    matchFn = this.matcher.match(event.type);
+                if (matchFn === Rx.helpers.identity) return;
+                if (splitFn !== Rx.helpers.identity) {
+                    let childState = this.state[splitKey];
+                    if (_.isUndefined(childState)) {
+                        childState = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload);
+                        this.state[splitKey] = childState;
+                        this.subject.onNext({
+                            type: this.streamId,
+                            payload: childState,
+                            timestamp: event.timestamp,
+                            splitKey: splitKey
+                        });
+                        this.readModelFactory.from(null).subscribe(readModel => {
+                            let matchFn = this.matcher.match(readModel.type);
+                            if (matchFn !== Rx.helpers.identity) {
+                                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload);
+                                this.subject.onNext({
+                                    type: this.streamId,
+                                    payload: this.state[splitKey],
+                                    timestamp: event.timestamp,
+                                    splitKey: splitKey
+                                });
+                            }
+                        });
+                    } else {
+                        childState = matchFn(childState, event.payload);
+                        this.state[splitKey] = childState;
+                        this.subject.onNext({
+                            type: this.streamId,
+                            payload: childState,
+                            timestamp: event.timestamp,
+                            splitKey: splitKey
+                        });
+                    }
+                } else {
+                    _.mapValues(this.state, (state, key) => {
+                        this.state[key] = matchFn(state, event.payload);
+                    });
+                }
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
