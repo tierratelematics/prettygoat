@@ -69,6 +69,12 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 } else {
                     _.mapValues(this.state, (state, key) => {
                         this.state[key] = matchFn(state, event.payload);
+                        this.subject.onNext({
+                            type: this.streamId,
+                            payload: this.state[key],
+                            timestamp: event.timestamp,
+                            splitKey: key
+                        });
                     });
                 }
             } catch (error) {

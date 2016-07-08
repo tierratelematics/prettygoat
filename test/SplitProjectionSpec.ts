@@ -105,6 +105,13 @@ describe("Split projection, given a projection with a split definition", () => {
                 subject.run();
                 expect(subject.state["10"]).to.be(5030);
             });
+
+            it("should notify the changesof the states", () => {
+                subject.run();
+                expect(notifications).to.have.length(2);
+                expect(notifications[1].payload).to.be(5030);
+                expect(notifications[1].splitKey).to.be("10");
+            });
         });
     });
 });
