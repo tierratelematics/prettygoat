@@ -25,7 +25,7 @@ class ProjectionEngine implements IProjectionEngine {
             _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
                 let runner = this.runnerFactory.create(entry.projection),
                     context = new PushContext(areaRegistry.area, entry.name);
-                this.pushNotifier.register(runner, context);
+                runner.subscribe(state => this.pushNotifier.notify(context, null, state.splitKey));
                 this.statePublisher.publish(runner, context);
                 runner.run();
             });

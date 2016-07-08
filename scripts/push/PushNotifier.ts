@@ -1,5 +1,4 @@
 import IPushNotifier from "./IPushNotifier";
-import IProjectionRunner from "../projections/IProjectionRunner";
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import IEventEmitter from "./IEventEmitter";
@@ -18,10 +17,6 @@ class PushNotifier implements IPushNotifier {
                 @inject("IEndpointConfig") private config:IEndpointConfig,
                 @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
 
-    }
-
-    register<T>(projectionRunner:IProjectionRunner<T>, context:PushContext):void {
-        projectionRunner.subscribe(state => this.notify(context, null, state.splitKey));
     }
 
     notify(context:PushContext, clientId?:string, splitKey?:string):void {
