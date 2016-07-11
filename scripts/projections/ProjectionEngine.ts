@@ -22,23 +22,26 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     run():void {
-        this.snapshotRepository.getSnapshots().map(snapshots => {
-            let areas = this.registry.getAreas();
-            _.forEach<AreaRegistry>(areas, areaRegistry => {
-                _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-                    let runner = this.runnerFactory.create(entry.projection),
-                        context = new PushContext(areaRegistry.area, entry.name);
-                    runner.subscribe(state => {
-                        let snapshotStrategy = entry.projection.snapshotStrategy;
-                        this.pushNotifier.notify(context, null, state.splitKey);
-                        if (snapshotStrategy && snapshotStrategy.needsSnapshot(state))
-                            this.snapshotRepository.saveSnapshot(state.type, new Snapshot(state.payload, state.timestamp));
+        this.snapshotRepository
+            .initialize()
+            .flatMap(a => this.snapshotRepository.getSnapshots())
+            .map(snapshots => {
+                let areas = this.registry.getAreas();
+                _.forEach<AreaRegistry>(areas, areaRegistry => {
+                    _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
+                        let runner = this.runnerFactory.create(entry.projection),
+                            context = new PushContext(areaRegistry.area, entry.name);
+                        runner.subscribe(state => {
+                            let snapshotStrategy = entry.projection.snapshotStrategy;
+                            this.pushNotifier.notify(context, null, state.splitKey);
+                            if (snapshotStrategy && snapshotStrategy.needsSnapshot(state))
+                                this.snapshotRepository.saveSnapshot(state.type, new Snapshot(state.payload, state.timestamp));
+                        });
+                        this.statePublisher.publish(runner, context);
+                        runner.run(snapshots[entry.projection.name]);
                     });
-                    this.statePublisher.publish(runner, context);
-                    runner.run(snapshots[entry.projection.name]);
                 });
-            });
-        }).subscribe(() => null);
+            }).subscribe(() => null);
     }
 
 }

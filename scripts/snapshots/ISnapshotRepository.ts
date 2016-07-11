@@ -11,6 +11,5 @@ export class Snapshot<T> {
 export interface ISnapshotRepository {
     initialize():Observable<void>;
     getSnapshots():Observable<Dictionary<Snapshot<any>>>;
-    getSnapshot<T>(streamId:string):Observable<Snapshot<T>>;
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
 }

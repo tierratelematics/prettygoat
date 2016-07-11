@@ -61,6 +61,7 @@ describe("Given a ProjectionEngine", () => {
         });
         snapshotRepository = Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982")))).returns(a => null);
+        snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
     });
 

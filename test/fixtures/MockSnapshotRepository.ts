@@ -12,10 +12,6 @@ class MockSnapshotRepository implements ISnapshotRepository {
         return undefined;
     }
 
-    getSnapshot<T>(streamId:string):Observable<Snapshot<T>> {
-        return Observable.just(Snapshot.Empty);
-    }
-
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
     }
 
