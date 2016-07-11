@@ -1,6 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 
 import {IKernelModule, INewable} from "inversify";
+import {IObservable, IDisposable, Observable} from "rx";
 
 declare module prettygoat {
 
@@ -22,9 +23,9 @@ declare module prettygoat {
         [name:string]:(s:T, e:Object) => T;
     }
 
-    export interface IProjectionRunner<T> extends IObservable<T>, IDisposable {
-        state:T;
-        run():void;
+    export interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {
+        state:T|Dictionary<T>;
+        run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
     }
 
@@ -36,29 +37,22 @@ declare module prettygoat {
         define():IProjection<T>;
     }
 
-    export class ProjectionRunner<T> implements IProjectionRunner<T> {
-        public state:T;
+    export interface IMatcher {
+        match(name:string):Function;
+    }
 
-        constructor(streamId:string, stream:IStreamFactory, repository:ISnapshotRepository, matcher:IMatcher);
+    export interface Dictionary<T> {
+        [index:string]:T
+    }
 
-        run():void;
-
-        stop():void;
-
-        dispose():void;
-
-        subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
-        subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-        subscribe(observerOrOnNext?:(Rx.IObserver<T>) | ((value:T) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable;
+    export interface ISnapshotRepository {
+        initialize():Observable<void>;
+        getSnapshots():Observable<Dictionary<Snapshot<any>>>;
+        saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
     }
 
     export interface IStreamFactory {
         from(lastEvent:string):Observable<Event>;
-    }
-
-    export interface ISnapshotRepository {
-        getSnapshot<T>(streamId:string):Snapshot<T>;
-        saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
     }
 
     export class Snapshot<T> {
