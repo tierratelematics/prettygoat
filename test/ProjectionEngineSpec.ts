@@ -2,121 +2,131 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
+import PushNotifier from "../scripts/push/PushNotifier";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
-import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
-import SinonSpy = Sinon.SinonSpy;
-import MockObjectContainer from "./fixtures/MockObjectContainer";
-import {Mock, Times, It} from "typemoq";
-import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import {IStreamFactory} from "../scripts/streams/IStreamFactory";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
-import ReadModelFactory from "../scripts/streams/ReadModelFactory";
-import Event from "../scripts/streams/Event";
-import {Observable, Scheduler} from "rx";
-import IProjectionSelector from "../scripts/projections/IProjectionSelector";
-import ProjectionSelector from "../scripts/projections/ProjectionSelector";
-import IProjectionHandler from "../scripts/projections/IProjectionHandler";
-import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
-import SinonStub = Sinon.SinonStub;
-import MockPushNotifier from "./fixtures/MockPushNotifier";
+import {Subject, Observable, Scheduler} from "rx";
+import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
+import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
-import PushContext from "../scripts/push/PushContext";
+import Event from "../scripts/streams/Event";
+import {Mock, Times, It} from "typemoq";
+import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
+import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
+import CountSnapshotStrategy from "../scripts/snapshots/CountSnapshotStrategy";
+import AreaRegistry from "../scripts/registry/AreaRegistry";
+import RegistryEntry from "../scripts/registry/RegistryEntry";
+import Dictionary from "../scripts/Dictionary";
+import {MockStreamFactory} from "./fixtures/MockStreamFactory";
+import {IProjection} from "../scripts/projections/IProjection";
+import MockReadModelFactory from "./fixtures/MockReadModelFactory";
+import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import {Matcher} from "../scripts/matcher/Matcher";
 
 describe("Given a ProjectionEngine", () => {
 
     let subject:IProjectionEngine,
-        registry:IProjectionRegistry,
+        registry:Mock<IProjectionRegistry>,
         pushNotifier:Mock<IPushNotifier>,
-        stream:Mock<IStreamFactory>,
-        readModelFactory:Mock<IReadModelFactory>,
-        projectionSelector:Mock<IProjectionSelector>,
-        projectionHandler:Mock<IProjectionHandler<any>>,
-        testEvent = {
-            type: "increment",
-            payload: 1
-        };
+        snapshotStrategy:Mock<ISnapshotStrategy>,
+        runner:IProjectionRunner<MockModel>,
+        runnerFactory:Mock<IProjectionRunnerFactory>,
+        snapshotRepository:Mock<ISnapshotRepository>,
+        dataSubject:Subject<Event>,
+        projection:IProjection<number>;
 
     beforeEach(() => {
-        projectionHandler = Mock.ofType<IProjectionHandler<any>>(ProjectionHandler);
-        projectionHandler.setup(p => p.handle(It.isValue(testEvent))).returns(_ => null);
-        pushNotifier = Mock.ofType<IPushNotifier>(MockPushNotifier);
-        registry = new ProjectionRegistry(new ProjectionAnalyzer(), new MockObjectContainer());
-        stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
-        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event<any>>());
-        projectionSelector = Mock.ofType<IProjectionSelector>(ProjectionSelector);
-        projectionSelector.setup(p => p.projectionsFor(It.isValue(testEvent))).returns(_ => [projectionHandler.object]);
-        stream.setup(s => s.from(null)).returns(_ => Observable.just(testEvent).observeOn(Scheduler.immediate));
-        subject = new ProjectionEngine(pushNotifier.object, registry, stream.object, readModelFactory.object, projectionSelector.object, new MockStatePublisher());
-        registry.add(MockProjectionDefinition).forArea("Admin");
+        snapshotStrategy = Mock.ofType(CountSnapshotStrategy);
+        projection = new MockProjectionDefinition(snapshotStrategy.object).define();
+        dataSubject = new Subject<Event>();
+        runner = new ProjectionRunner<MockModel>("test", new MockStreamFactory(dataSubject), new Matcher(projection.definition), new MockReadModelFactory());
+        pushNotifier = Mock.ofType(PushNotifier);
+        pushNotifier.setup(p => p.notify(It.isAny(), It.isAny())).returns(a => null);
+        runnerFactory = Mock.ofType(ProjectionRunnerFactory);
+        runnerFactory.setup(r => r.create(It.isAny())).returns(a => runner);
+        registry = Mock.ofType(ProjectionRegistry);
+        registry.setup(r => r.getAreas()).returns(a => {
+            return [
+                new AreaRegistry("Admin", [
+                    new RegistryEntry(projection, "Mock")
+                ])
+            ]
+        });
+        snapshotRepository = Mock.ofType(MockSnapshotRepository);
+        snapshotRepository.setup(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982")))).returns(a => null);
+        snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
     });
 
-    describe("at startup", () => {
-        beforeEach(() => subject.run());
-
-        it("should subscribe to the event stream starting from the stream's beginning", () => {
-            stream.verify(s => s.from(null), Times.once());
+    context("when a snapshot is present", () => {
+        beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({
+                "test": new Snapshot(42, "2933892")
+            }).observeOn(Scheduler.immediate));
+            subject.run();
         });
 
-        it("should subscribe to the aggregates stream to build linked projections", () => {
-            readModelFactory.verify(a => a.from(null), Times.once());
+        it("should init a projection runner with that snapshot", () => {
+            expect(runner.state).to.be(42);
         });
     });
 
-    describe("when an event from the stream is received", () => {
-
-        context("and it's not a read model", () => {
-            it("should apply the event to all the matching projection handlers", () => {
-                subject.run();
-                projectionHandler.verify(p => p.handle(It.isValue(testEvent)), Times.once());
-            });
+    context("when a snapshot is not present", () => {
+        beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            subject.run();
         });
+        it("should init a projection runner without a snapshot", () => {
+            expect(runner.state).to.be(10);
+        });
+    });
 
-        context("and it's a read model", () => {
+    context("when a projections triggers a new state", () => {
+        beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+        });
+        context("and a snapshot is needed", () => {
             beforeEach(() => {
-                stream.setup(s => s.from(null)).returns(_ => Observable.empty<Event<any>>().observeOn(Scheduler.immediate));
-                pushNotifier.setup(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined)).returns(_ => null);
-            });
-
-            context("when it contains a split key", () => {
-                beforeEach(() => {
-                    readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
-                        type: "test",
-                        payload: {
-                            id: 20
-                        },
-                        splitKey: "key"
-                    }));
-                    subject.run();
-                });
-
-                it("should not apply the event to the projections", () => {
-                    projectionHandler.verify(p => p.handle(It.isValue({
-                        type: "test",
-                        payload: {
-                            id: 20
-                        },
-                        splitKey: "key"
-                    })), Times.never());
-                });
-            });
-
-
-            it("should notify the read model", () => {
-                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.just({
+                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "test",
-                    payload: {
-                        id: 20
-                    }
-                }));
+                    payload: 66,
+                    timestamp: "728w7982"
+                }))).returns(a => true);
                 subject.run();
-                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null, undefined), Times.atLeastOnce());
+                dataSubject.onNext({
+                    type: "TestEvent",
+                    payload: 56,
+                    timestamp: "728w7982"
+                });
+            });
+            it("should save the snapshot", () => {
+                snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982"))), Times.once());
+            });
+        });
+
+        context("and a snapshot is not needed", () => {
+            beforeEach(() => {
+                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
+                    type: "test",
+                    payload: 66,
+                    timestamp: "728w7982"
+                }))).returns(a => false);
+                subject.run();
+                dataSubject.onNext({
+                    type: "TestEvent",
+                    payload: 56,
+                    timestamp: "728w7982"
+                });
+            });
+            it("should not save the snapshot", () => {
+                snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982"))), Times.never());
             });
         });
     });

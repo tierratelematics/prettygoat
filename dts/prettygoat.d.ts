@@ -22,13 +22,74 @@ declare module prettygoat {
         [name:string]:(s:T, e:Object) => T;
     }
 
-    export interface ISnapshotStrategy {
-        processedEvent(lastDate:Date):void;
-        needsSnapshot():boolean;
+    export interface IProjectionRunner<T> extends IObservable<T>, IDisposable {
+        state:T;
+        run():void;
+        stop():void;
+    }
+
+    export interface IProjectionRunnerFactory {
+        create<T>(projection:IProjection<T>):IProjectionRunner<T>
     }
 
     export interface IProjectionDefinition<T> {
         define():IProjection<T>;
+    }
+
+    export class ProjectionRunner<T> implements IProjectionRunner<T> {
+        public state:T;
+
+        constructor(streamId:string, stream:IStreamFactory, repository:ISnapshotRepository, matcher:IMatcher);
+
+        run():void;
+
+        stop():void;
+
+        dispose():void;
+
+        subscribe(observer:Rx.IObserver<T>):Rx.IDisposable
+        subscribe(onNext?:(value:T) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
+        subscribe(observerOrOnNext?:(Rx.IObserver<T>) | ((value:T) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable;
+    }
+
+    export interface IStreamFactory {
+        from(lastEvent:string):Observable<Event>;
+    }
+
+    export interface ISnapshotRepository {
+        getSnapshot<T>(streamId:string):Snapshot<T>;
+        saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
+    }
+
+    export class Snapshot<T> {
+        public static Empty:Snapshot<any>;
+
+        constructor(memento:T, lastEvent:string);
+    }
+
+    export interface IEventEmitter {
+        emitTo(clientId:string, event:string, parameters:any):void;
+    }
+
+    export class PushContext {
+        area:string;
+        viewmodelId:string;
+        parameters:any;
+
+        constructor(area:string, viewmodelId?:string, parameters?:any);
+    }
+
+    export interface IClientRegistry {
+        add(clientId:string, context:PushContext):void;
+        clientsFor(context:PushContext):ClientEntry[];
+        remove(clientId:string, context:PushContext):void;
+    }
+
+    export class ClientEntry {
+        id:string;
+        parameters:any;
+
+        constructor(id:string, parameters?:any);
     }
 
     export interface IProjectionRegistry {
@@ -37,7 +98,7 @@ declare module prettygoat {
         add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
         getAreas():AreaRegistry[];
-        getArea(areaId: string): AreaRegistry;
+        getArea(areaId:string):AreaRegistry;
         getEntry<T>(id:string, area?:string):{ area:string, data:RegistryEntry<T>};
     }
 
@@ -89,6 +150,31 @@ declare module prettygoat {
 
     export interface ISocketConfig {
         path:string;
+    }
+
+    export interface Event {
+        type:string;
+        payload:any;
+        timestamp?:string;
+        splitKey?:string;
+    }
+
+    export interface ISnapshotStrategy {
+        needsSnapshot(event:Event):boolean;
+    }
+
+    export class TimeSnapshotStrategy implements ISnapshotStrategy {
+
+        needsSnapshot(event:Event):boolean;
+
+        saveThreshold(ms:number);
+    }
+
+    export class CountSnapshotStrategy implements ISnapshotStrategy {
+
+        needsSnapshot(event:Event):boolean;
+
+        saveThreshold(threshold:number):void;
     }
 }
 

@@ -8,21 +8,21 @@ import {values} from "lodash";
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
 
-    private subject:Subject<Event<any>>;
-    private readModels:Dictionary<Event<any>> = {};  // Caching the read models instead of using a replaySubject because after a while
+    private subject:Subject<Event>;
+    private readModels:Dictionary<Event> = {};  // Caching the read models instead of using a replaySubject because after a while
                                                 // a new subscriber (split projections) could possibly receive thousands of states to process
 
     constructor() {
-        this.subject = new Subject<Event<any>>();
+        this.subject = new Subject<Event>();
     }
 
-    publish(event:Event<any>):void {
+    publish(event:Event):void {
         this.readModels[event.type] = event;
         this.subject.onNext(event);
     }
 
-    from(lastEvent:string):Rx.Observable<Event<any>> {
-        let readModels = values<Event<any>>(this.readModels);
+    from(lastEvent:string):Rx.Observable<Event> {
+        let readModels = values<Event>(this.readModels);
         if (readModels.length)
             return Observable.from(readModels).merge(this.subject).observeOn(Scheduler.default);
         else
