@@ -7,15 +7,19 @@ import {Mock, Times, It} from "typemoq";
 import ICassandraClientFactory from "../../scripts/streams/ICassandraClientFactory";
 import CassandraClientFactory from "../../scripts/streams/CassandraClientFactory";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
+import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
+import ProjectionRegistry from "../../scripts/registry/ProjectionRegistry";
 
 describe("Snapshot repository, given all the streams", () => {
 
     let subject:CassandraSnapshotRepository,
-        clientFactory:Mock<ICassandraClientFactory>;
+        clientFactory:Mock<ICassandraClientFactory>,
+        registry:Mock<IProjectionRegistry>;
 
     beforeEach(() => {
         clientFactory = Mock.ofType(CassandraClientFactory);
-        subject = new CassandraSnapshotRepository(clientFactory.object, null);
+        registry = Mock.ofType(ProjectionRegistry);
+        subject = new CassandraSnapshotRepository(clientFactory.object, null, registry.object);
     });
 
     context("when the snapshots associated needs to be retrieved", () => {
@@ -63,14 +67,4 @@ describe("Snapshot repository, given all the streams", () => {
             }
         }
     }
-
-    context("when a snapshot needs to be performed", () => {
-        context("and the stream is a split projection", () => {
-            it("should save each projection in a different record");
-        });
-
-        context("and the stream isn't a split projection", () => {
-            it("should save the state of the projection in a record");
-        });
-    });
 });

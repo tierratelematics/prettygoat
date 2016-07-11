@@ -5,19 +5,23 @@ import ICassandraConfig from "../configs/ICassandraConfig";
 import ICassandraClientFactory from "../streams/ICassandraClientFactory";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 @injectable()
 class CassandraSnapshotRepository implements ISnapshotRepository {
     private execute:any;
+    private batch:any;
 
     constructor(@inject("ICassandraClientFactory") private clientFactory:ICassandraClientFactory,
-                @inject("ICassandraConfig") private config:ICassandraConfig) {
+                @inject("ICassandraConfig") private config:ICassandraConfig,
+                @inject("IProjectionRegistry") private registry:IProjectionRegistry) {
     }
 
     private setupClient() {
         if (!this.execute) {
             let client = this.clientFactory.clientFor(this.config);
             this.execute = Observable.fromNodeCallback(client.execute, client);
+            this.batch = Observable.fromNodeCallback(client.batch, client);
         }
     }
 
@@ -28,13 +32,13 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
             lastEvent text,\
             memento blob,\
             split text,\
-            primary key ((streamId, split), lastEvent)\
+            primary key ((streamId, split))\
         )');
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
         this.setupClient();
-        return this.execute('select blobAsText(memento), streamid, lastEvent,split from projections_snapshots')
+        return this.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
             .map(snapshots => {
                 return _<CassandraSnapshot>(snapshots.rows)
                     .groupBy(snapshot => snapshot.streamid)
@@ -55,14 +59,23 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
-        /*this.setupClient();
-         let split = snapshot.splitKey || "";
-         this.execute(`delete from projections_snapshots where streamid='${streamId}' and split='${split}'`)
-         .flatMap(() => this.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
-         '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`))
-         .subscribe(() => {
-
-         });*/
+        this.setupClient();
+        let queries = [];
+        let entry = this.registry.getEntry(streamId);
+        if (entry.data.projection.split)
+            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => {
+                return {
+                    query: `insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
+                                '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(memento)}'))`
+                }
+            });
+        else {
+            queries = [{
+                query: `insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
+                                '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`
+            }];
+        }
+        this.batch(queries).subscribe(() => null);
     }
 }
 

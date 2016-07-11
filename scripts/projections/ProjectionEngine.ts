@@ -34,8 +34,9 @@ class ProjectionEngine implements IProjectionEngine {
                         runner.subscribe(state => {
                             let snapshotStrategy = entry.projection.snapshotStrategy;
                             this.pushNotifier.notify(context, null, state.splitKey);
-                            if (snapshotStrategy && snapshotStrategy.needsSnapshot(state))
-                                this.snapshotRepository.saveSnapshot(state.type, new Snapshot(state.payload, state.timestamp));
+                            if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
+                                this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
+                            }
                         });
                         this.statePublisher.publish(runner, context);
                         runner.run(snapshots[entry.projection.name]);

@@ -29,7 +29,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 return {
                     type: event.event.type,
                     payload: event.event.payload,
-                    timestamp: event.timestamp
+                    timestamp: event.timestamp.toISOString()
                 }
             })
             .observeOn(Rx.Scheduler.default);
