@@ -10,13 +10,19 @@ import * as _ from "lodash";
 class CassandraSnapshotRepository implements ISnapshotRepository {
     private execute:any;
 
-    constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
-                @inject("ICassandraConfig") config:ICassandraConfig) {
-        let client = clientFactory.clientFor(config);
-        this.execute = Observable.fromNodeCallback(client.execute, client);
+    constructor(@inject("ICassandraClientFactory") private clientFactory:ICassandraClientFactory,
+                @inject("ICassandraConfig") private config:ICassandraConfig) {
+    }
+
+    private setupClient() {
+        if (!this.execute) {
+            let client = this.clientFactory.clientFor(this.config);
+            this.execute = Observable.fromNodeCallback(client.execute, client);
+        }
     }
 
     initialize():Rx.Observable<void> {
+        this.setupClient();
         return this.execute('create table if not exists projections_snapshots (\
             streamId text,\
             lastEvent text,\
@@ -27,35 +33,36 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
+        this.setupClient();
         return this.execute('select blobAsText(memento), streamid, lastEvent,split from projections_snapshots')
             .map(snapshots => {
                 return _<CassandraSnapshot>(snapshots.rows)
-                    .keyBy(snapshot=> {
-                        let key = snapshot.streamid;
-                        if (snapshot.split) key += `:${snapshot.split}`;
-                        return key
-
+                    .groupBy(snapshot => snapshot.streamid)
+                    .mapValues(snapshots => {
+                        if (snapshots[0].split) {
+                            let memento = _(snapshots)
+                                .keyBy(snapshot => snapshot.split)
+                                .mapValues(snapshot => JSON.parse(snapshot["system.blobastext(memento)"] || "{}"))
+                                .valueOf();
+                            return new Snapshot(memento, snapshots[0].lastevent);
+                        } else {
+                            let snapshot = snapshots[0];
+                            return new Snapshot(JSON.parse(snapshot["system.blobastext(memento)"] || "{}"), snapshot.lastevent);
+                        }
                     })
-                    .mapValues((snapshot:CassandraSnapshot) => new Snapshot<any>(
-                        JSON.parse(snapshot["system.blobastext(memento)"] || "{}"),
-                        snapshot.lastevent)
-                    )
                     .valueOf();
             });
     }
 
-    getSnapshot<T>(streamId:string):Observable<Snapshot<T>> {
-        return this.getSnapshots().map(snapshots => snapshots[streamId]);
-    }
-
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
-        let split = snapshot.splitKey || "";
-        this.execute(`delete from projections_snapshots where streamid='${streamId}' and split='${split}'`)
-            .flatMap(() => this.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
-                '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`))
-            .subscribe(() => {
+        /*this.setupClient();
+         let split = snapshot.splitKey || "";
+         this.execute(`delete from projections_snapshots where streamid='${streamId}' and split='${split}'`)
+         .flatMap(() => this.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
+         '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`))
+         .subscribe(() => {
 
-            });
+         });*/
     }
 }
 
