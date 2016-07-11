@@ -7,11 +7,12 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
     private subject:Subject<Event>;
 
-    constructor(subject?:Subject<Event>) {
-        this.subject = subject;
+    constructor(data?:Subject<Event>) {
+        this.subject = data;
     }
 
     run():void {
+
     }
 
     stop():void {
