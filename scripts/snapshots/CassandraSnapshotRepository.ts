@@ -39,23 +39,21 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
         this.setupClient();
         return this.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
-            .map(snapshots => {
-                return _<CassandraSnapshot>(snapshots.rows)
-                    .groupBy(snapshot => snapshot.streamid)
-                    .mapValues(snapshots => {
-                        if (snapshots[0].split) {
-                            let memento = _(snapshots)
-                                .keyBy(snapshot => snapshot.split)
-                                .mapValues(snapshot => JSON.parse(snapshot["system.blobastext(memento)"] || "{}"))
-                                .valueOf();
-                            return new Snapshot(memento, snapshots[0].lastevent);
-                        } else {
-                            let snapshot = snapshots[0];
-                            return new Snapshot(JSON.parse(snapshot["system.blobastext(memento)"] || "{}"), snapshot.lastevent);
-                        }
-                    })
-                    .valueOf();
-            });
+            .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
+                .groupBy(snapshot => snapshot.streamid)
+                .mapValues(snapshots => {
+                    if (snapshots[0].split) {
+                        let memento = _(snapshots)
+                            .keyBy(snapshot => snapshot.split)
+                            .mapValues(snapshot => JSON.parse(snapshot["system.blobastext(memento)"] || "{}"))
+                            .valueOf();
+                        return new Snapshot(memento, snapshots[0].lastevent);
+                    } else {
+                        let snapshot = snapshots[0];
+                        return new Snapshot(JSON.parse(snapshot["system.blobastext(memento)"] || "{}"), snapshot.lastevent);
+                    }
+                })
+                .valueOf());
     }
 
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
@@ -63,19 +61,16 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         let queries = [];
         let entry = this.registry.getEntry(streamId);
         if (entry.data.projection.split)
-            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => {
-                return {
-                    query: `insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
-                                '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(memento)}'))`
-                }
-            });
+            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => `insert into projections_snapshots\
+                        (streamid, split, lastevent, memento) values ('${streamId}',
+                        '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(memento)}'))`);
         else {
-            queries = [{
-                query: `insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
-                                '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`
-            }];
+            queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
+                                '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`]
         }
-        this.batch(queries).subscribe(() => null);
+        this.batch(_.map(queries, query => {
+            return {query: query};
+        })).subscribe(() => null);
     }
 }
 
