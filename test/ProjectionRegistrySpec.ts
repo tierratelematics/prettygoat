@@ -9,19 +9,19 @@ import IPushNotifier from "../scripts/push/IPushNotifier";
 import PushNotifier from "../scripts/push/PushNotifier";
 import SinonStub = Sinon.SinonStub;
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
-import {ProjectionHandler} from "../scripts/projections/ProjectionHandler";
-import IProjectionHandler from "../scripts/projections/IProjectionHandler";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import MockObjectContainer from "./fixtures/MockObjectContainer";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject:IProjectionRegistry,
-        handler:IProjectionHandler<number>;
+        runner:IProjectionRunner<number>;
 
     beforeEach(() => {
-        handler = new ProjectionHandler<number>("test", null, null);
+        runner = new ProjectionRunner<number>("test", null, null, null);
         let analyzer = new ProjectionAnalyzer();
         subject = new ProjectionRegistry(analyzer, new MockObjectContainer());
     });

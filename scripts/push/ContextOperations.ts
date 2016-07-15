@@ -6,8 +6,10 @@ class ContextOperations {
         return `${context.area}:${context.viewmodelId}`;
     }
 
-    static getEndpoint(context:PushContext):string {
-        return `/${context.area}/${context.viewmodelId}`.toLowerCase();
+    static getEndpoint(context:PushContext, isSplit:boolean = false):string {
+        let endpoint = `/${context.area}/${context.viewmodelId}`.toLowerCase();
+        if (isSplit) endpoint += '/:key';
+        return endpoint
     }
 }
 

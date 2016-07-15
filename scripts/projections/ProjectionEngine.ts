@@ -4,44 +4,45 @@ import {injectable, inject} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
-import {IStreamFactory} from "../streams/IStreamFactory";
-import IReadModelFactory from "../streams/IReadModelFactory";
-import IProjectionSelector from "./IProjectionSelector";
-import IStatePublisher from "../routing/IStatePublisher";
 import PushContext from "../push/PushContext";
-import Event from "../streams/Event";
+import IStatePublisher from "../routing/IStatePublisher";
+import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
+import RegistryEntry from "../registry/RegistryEntry";
+import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
 
-    constructor(@inject("IPushNotifier") private pushNotifier:IPushNotifier,
+    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
+                @inject("IPushNotifier") private pushNotifier:IPushNotifier,
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry,
-                @inject("IStreamFactory") private streamFactory:IStreamFactory,
-                @inject("IReadModelFactory") private readModelFactory:IReadModelFactory,
-                @inject("IProjectionSelector") private projectionSelector:IProjectionSelector,
-                @inject("IStatePublisher") private statePublisher:IStatePublisher) {
+                @inject("IStatePublisher") private statePublisher:IStatePublisher,
+                @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository) {
 
     }
 
     run():void {
-        let areas = this.registry.getAreas();
-        _.forEach<AreaRegistry>(areas, areaRegistry => this.projectionSelector.addProjections(areaRegistry));
-        this.streamFactory.from(null).merge(this.readModelFactory.from(null)).subscribe(event => {
-            //When a new event is received it can be an event from the stream or a read model
-            //If an entry is retrieved it means it's a read models and needs to be notified to the frontend but not processed
-            //since I cannot depend on a split projection
-            this.notifyReadModel(event);
-            if (event.splitKey) return;
-            let projections = this.projectionSelector.projectionsFor(event);
-            _.invokeMap(projections, 'handle', event);
-        });
-        this.statePublisher.publish();
-    }
-
-    private notifyReadModel(event:Event<any>) {
-        let registryEntry = this.registry.getEntry(event.type);
-        if (registryEntry && registryEntry.data)
-            this.pushNotifier.notify(new PushContext(registryEntry.area, registryEntry.data.name), null, event.splitKey);
+        this.snapshotRepository
+            .initialize()
+            .flatMap(a => this.snapshotRepository.getSnapshots())
+            .map(snapshots => {
+                let areas = this.registry.getAreas();
+                _.forEach<AreaRegistry>(areas, areaRegistry => {
+                    _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
+                        let runner = this.runnerFactory.create(entry.projection),
+                            context = new PushContext(areaRegistry.area, entry.name);
+                        runner.subscribe(state => {
+                            let snapshotStrategy = entry.projection.snapshotStrategy;
+                            this.pushNotifier.notify(context, null, state.splitKey);
+                            if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
+                                this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
+                            }
+                        });
+                        this.statePublisher.publish(runner, context);
+                        runner.run(snapshots[entry.projection.name]);
+                    });
+                });
+            }).subscribe(() => null);
     }
 }
 

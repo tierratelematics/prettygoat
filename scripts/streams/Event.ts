@@ -1,6 +1,6 @@
-interface Event<T> {
+interface Event {
     type:string;
-    payload:T;
+    payload:any;
     timestamp?:string;
     splitKey?:string;
 }

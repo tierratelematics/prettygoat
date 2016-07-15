@@ -1,4 +1,5 @@
+import Event from "../streams/Event";
+
 export interface ISnapshotStrategy {
-    processedEvent(lastDate: Date): void;
-    needsSnapshot(): boolean;
+    needsSnapshot(event:Event): boolean;
 }
