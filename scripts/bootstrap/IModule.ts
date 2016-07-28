@@ -1,9 +1,9 @@
-import {IKernelModule} from "inversify";
+import {interfaces} from "inversify";
 import IServiceLocator from "./IServiceLocator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 interface IModule {
-    modules?:IKernelModule;
+    modules?:(kernel:interfaces.Kernel) => void;
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void;
 }
 

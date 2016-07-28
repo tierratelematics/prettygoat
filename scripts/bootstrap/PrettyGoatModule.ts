@@ -1,5 +1,5 @@
 import IModule from "./IModule";
-import {IKernelModule, IKernel} from "inversify";
+import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "./IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
@@ -38,8 +38,8 @@ import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 
 class PrettyGoatModule implements IModule {
 
-    modules:IKernelModule = (kernel:IKernel) => {
-        kernel.bind<IKernel>("IKernel").toConstantValue(kernel);
+    modules = (kernel:interfaces.Kernel) => {
+        kernel.bind<interfaces.Kernel>("Kernel").toConstantValue(kernel);
         kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
