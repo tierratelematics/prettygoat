@@ -5,7 +5,7 @@ import IProjectionDefinition from "./IProjectionDefinition";
 import Constants from "./Constants";
 import {injectable, inject} from "inversify";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
-import {INewable} from "inversify";
+import {interfaces} from "inversify";
 import IObjectContainer from "../bootstrap/IObjectContainer";
 import * as _ from "lodash";
 
@@ -14,7 +14,7 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     private registry:AreaRegistry[] = [];
     private unregisteredEntries:{
-        ctor:INewable<IProjectionDefinition<any>>,
+        ctor:interfaces.Newable<IProjectionDefinition<any>>,
         name:string,
         parametersKey?:(parameters:any) => string
     }[] = [];
@@ -24,15 +24,15 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     }
 
-    master<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry {
+    master<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry {
         return this.add(constructor).forArea(Constants.MASTER_AREA);
     }
 
-    index<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry {
+    index<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry {
         return this.add(constructor).forArea(Constants.INDEX_AREA);
     }
 
-    add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry {
+    add<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry {
         let name = Reflect.getMetadata("prettygoat:projection", constructor);
         if (!name)
             throw new Error("Missing Projection decorator");
@@ -40,7 +40,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this;
     }
 
-    private getDefinitionFromConstructor<T>(constructor:INewable<IProjectionDefinition<T>>, area:string, name:string):IProjectionDefinition<T> {
+    private getDefinitionFromConstructor<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, area:string, name:string):IProjectionDefinition<T> {
         const key = `prettygoat:definitions:${area}:${name}`;
         if (!this.container.contains(key))
             this.container.set(key, constructor);

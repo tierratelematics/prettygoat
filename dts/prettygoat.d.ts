@@ -1,6 +1,6 @@
 /// <reference path="../typings/index.d.ts" />
 
-import {IKernelModule, INewable} from "inversify";
+import {interfaces} from "inversify";
 import {IObservable, IDisposable, Observable} from "rx";
 
 declare module prettygoat {
@@ -87,9 +87,9 @@ declare module prettygoat {
     }
 
     export interface IProjectionRegistry {
-        master<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
-        index<T>(constructor:INewable<IProjectionDefinition<T>>):AreaRegistry;
-        add<T>(constructor:INewable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry;
+        master<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry;
+        index<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry;
+        add<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry;
         forArea(area:string):AreaRegistry;
         getAreas():AreaRegistry[];
         getArea(areaId:string):AreaRegistry;
@@ -118,7 +118,7 @@ declare module prettygoat {
     }
 
     export interface IModule {
-        modules?:IKernelModule;
+        modules?:(kernel:interfaces.Kernel) => void;
         register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void;
     }
 
