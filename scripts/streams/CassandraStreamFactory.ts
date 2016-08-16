@@ -59,7 +59,7 @@ class CassandraStreamFactory implements IStreamFactory {
         else
             return Promise
                 .fromNode(callback => {
-                    this.client.execute("select distinct timebucket from event_by_timestamp", callback)
+                    this.client.execute("SELECT DISTINCT timebucket FROM event_by_timestamp", callback)
                 })
                 .then(buckets => buckets.rows)
                 .map<any, string>(row => row.timebucket)
