@@ -3,6 +3,7 @@ import {injectable, inject} from "inversify";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import * as Rx from "rx";
 import ICassandraClientFactory from "./ICassandraClientFactory";
+import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import Event from "./Event";
@@ -14,19 +15,13 @@ class CassandraStreamFactory implements IStreamFactory {
 
     constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
                 @inject("ICassandraConfig") config:ICassandraConfig,
-                @inject("TimePartitioner") private timePartitioner:TimePartitioner) {
+                @inject("TimePartitioner") private timePartitioner:TimePartitioner,
+                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer) {
         this.client = clientFactory.clientFor(config);
     }
 
     from(lastEvent:string):Rx.Observable<Event> {
         return this.streamSource(lastEvent ? new Date(lastEvent) : null)
-            .map(event => {
-                return {
-                    type: event.event.type,
-                    payload: event.event.payload,
-                    timestamp: event.timestamp.toISOString()
-                }
-            })
             .observeOn(Rx.Scheduler.default);
     }
 
@@ -36,14 +31,12 @@ class CassandraStreamFactory implements IStreamFactory {
                 .then(() => this.getBuckets(lastEvent))
                 .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
                 .then(query => {
+                    let deserializer = this.deserializer;
                     this.client.stream(query)
                         .on('readable', function () {
                             let row;
                             while (row = this.read()) {
-                                observer.onNext({
-                                    timestamp: row.timestamp.getDate(),
-                                    event: JSON.parse(row['system.blobastext(event)'])
-                                });
+                              observer.onNext(deserializer.toEvent(row));
                             }
                         })
                         .on('end', () => observer.onCompleted())
@@ -59,7 +52,7 @@ class CassandraStreamFactory implements IStreamFactory {
         else
             return Promise
                 .fromNode(callback => {
-                    this.client.execute("select distinct timebucket from event_by_timestamp", callback)
+                    this.client.execute("SELECT DISTINCT timebucket FROM event_by_timestamp", callback)
                 })
                 .then(buckets => buckets.rows)
                 .map<any, string>(row => row.timebucket)
