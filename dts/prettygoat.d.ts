@@ -55,6 +55,10 @@ declare module prettygoat {
         from(lastEvent:string):Observable<Event>;
     }
 
+    interface ICassandraDeserializer {
+        toEvent(row:any):Event;
+    }
+
     export class Snapshot<T> {
         public static Empty:Snapshot<any>;
 
