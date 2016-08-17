@@ -17,6 +17,8 @@ import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "./IObjectContainer";
 import ObjectContainer from "./ObjectContainer";
 import CassandraStreamFactory from "../streams/CassandraStreamFactory";
+import DefaultJsonCassandraDeserializer from "../streams/DefaultJsonCassandraDeserializer";
+import ICassandraDeserializer from "../streams/ICassandraDeserializer";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 import ICassandraClientFactory from "../streams/ICassandraClientFactory";
@@ -50,6 +52,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
+        kernel.bind<ICassandraDeserializer>("ICassandraDeserializer").to(DefaultJsonCassandraDeserializer).inSingletonScope();
         kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
