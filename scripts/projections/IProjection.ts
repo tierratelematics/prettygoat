@@ -1,4 +1,5 @@
 import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
+import IFilterStrategy from "../filters/IFilterStrategy";
 
 export interface IWhen<T extends Object> {
     $init?:() => T;
@@ -11,9 +12,12 @@ export interface ISplit {
     [name:string]:(e:Object) => string;
 }
 
+
+
 export interface IProjection<T> {
     name:string;
     split?:ISplit;
     definition:IWhen<T>;
     snapshotStrategy?:ISnapshotStrategy;
+    filterStrategy?: IFilterStrategy<T>;
 }
