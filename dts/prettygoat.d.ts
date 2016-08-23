@@ -10,6 +10,7 @@ declare module prettygoat {
         split?:ISplit;
         definition:IWhen<T>;
         snapshotStrategy?:ISnapshotStrategy;
+        filterStrategy?: IFilterStrategy<T>;
     }
 
     export interface ISplit {
@@ -173,6 +174,21 @@ declare module prettygoat {
         needsSnapshot(event:Event):boolean;
 
         saveThreshold(threshold:number):void;
+    }
+
+    export interface IFilterStrategy<T> {
+        filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
+    }
+
+    export interface IFilterContext {
+        headers: { [key: string]: string };
+        params: { [key: string]: string };
+    }
+
+    export enum FilterOutputType {
+        CONTENT,
+        UNAUTHORIZED,
+        FORBIDDEN
     }
 }
 
