@@ -1,14 +1,14 @@
-import { IMatcher } from "./IMatcher";
-import _ = require("lodash");
+import {IMatcher} from "./IMatcher";
+import Dictionary from "../Dictionary";
 
 export class MemoizingMatcher implements IMatcher {
-    private memoizedMatch: Function;
+    private cache:Dictionary<Function> = {};
 
-    constructor(private baseMatcher: IMatcher) {
-        this.memoizedMatch = _.memoize(this.baseMatcher.match);
+    constructor(private baseMatcher:IMatcher) {
     }
 
-    match(name: string): Function {
-        return this.memoizedMatch(name);
+    match(name:string):Function {
+        let cachedMatch = this.cache[name];
+        return cachedMatch ? cachedMatch : this.baseMatcher.match(name);
     }
 }
