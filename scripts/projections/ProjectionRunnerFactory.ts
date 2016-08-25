@@ -7,6 +7,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import {Matcher} from "../matcher/Matcher";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import SplitProjectionRunner from "./SplitProjectionRunner";
+import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -17,12 +18,12 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
     }
 
     create<T>(projection:IProjection<T>):IProjectionRunner<T> {
+        let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
         if (!projection.split)
-            return new ProjectionRunner<T>(projection.name, this.streamFactory,
-                new Matcher(projection.definition), this.aggregateFactory);
+            return new ProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher, this.aggregateFactory);
         else
-            return new SplitProjectionRunner<T>(projection.name, this.streamFactory,
-                new Matcher(projection.definition), new Matcher(projection.split), this.aggregateFactory);
+            return new SplitProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher,
+                new MemoizingMatcher(new Matcher(projection.split)), this.aggregateFactory);
     }
 
 }
