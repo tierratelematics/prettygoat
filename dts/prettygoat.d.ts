@@ -141,6 +141,7 @@ declare module prettygoat {
     export interface ICassandraConfig {
         hosts:string[];
         keyspace:string;
+        readTimeout?: number;
     }
 
     export interface IPollToPushConfig {

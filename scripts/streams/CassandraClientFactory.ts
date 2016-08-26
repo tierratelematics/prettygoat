@@ -10,7 +10,13 @@ class CassandraClientFactory implements ICassandraClientFactory {
 
     clientFor(config:ICassandraConfig) {
         if (!this.client)
-            this.client = new cassandra.Client({contactPoints: config.hosts, keyspace: config.keyspace});
+            this.client = new cassandra.Client({
+                contactPoints: config.hosts,
+                keyspace: config.keyspace,
+                socketOptions: {
+                    readTimeout: config.readTimeout ? config.readTimeout : 12000
+                }
+            });
         return this.client;
     }
 
