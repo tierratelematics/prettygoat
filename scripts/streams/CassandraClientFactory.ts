@@ -15,6 +15,9 @@ class CassandraClientFactory implements ICassandraClientFactory {
                 keyspace: config.keyspace,
                 socketOptions: {
                     readTimeout: config.readTimeout ? config.readTimeout : 12000
+                },
+                queryOptions: {
+                    fetchSize: config.fetchSize ? config.fetchSize : 5000
                 }
             });
         return this.client;
