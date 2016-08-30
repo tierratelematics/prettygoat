@@ -142,6 +142,7 @@ declare module prettygoat {
         hosts:string[];
         keyspace:string;
         readTimeout?: number;
+        fetchSize?:number;
     }
 
     export interface IPollToPushConfig {
