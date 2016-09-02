@@ -5,7 +5,6 @@ import Event from "./Event";
 @injectable()
 class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
     toEvent(row: any): Event {
-        console.log(row);
         let parsedEvent = JSON.parse(row["system.blobastext(event)"]);
 
         if (this.isNewEventType(parsedEvent)) {
