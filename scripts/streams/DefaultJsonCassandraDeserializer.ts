@@ -9,7 +9,7 @@ class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
 
         if (this.isNewEventType(parsedEvent)) {
             return {
-                type: parsedEvent.payload.manifest,
+                type: parsedEvent.payload.$manifest,
                 payload: parsedEvent.payload,
                 timestamp: row.timestamp.getDate().toISOString()
             };
@@ -23,7 +23,7 @@ class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
     }
 
     private isNewEventType(event: any): boolean {
-        return (event.headers && event.payload && event.payload.manifest);
+        return (event.payload && event.payload.$manifest);
     }
 }
 
