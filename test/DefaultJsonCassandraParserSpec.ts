@@ -1,9 +1,9 @@
 import expect = require("expect.js");
 import DefaultJsonCassandraDeserializer from "../scripts/streams/DefaultJsonCassandraDeserializer";
-import { MockTimeStamp } from './fixtures/MockTimeStamp';
+import {MockTimeStamp} from './fixtures/MockTimeStamp';
 
 describe("DefaultJsonCassandraDeserializer, given an event", () => {
-    let subject: DefaultJsonCassandraDeserializer;
+    let subject:DefaultJsonCassandraDeserializer;
 
     beforeEach(() => subject = new DefaultJsonCassandraDeserializer());
 
@@ -28,35 +28,6 @@ describe("DefaultJsonCassandraDeserializer, given an event", () => {
             expect(subject.toEvent(eventRow)).to.be.eql({
                 "type": "iot.eventType",
                 "payload": {
-                    "customProperty_1": "payload.customProperty_1",
-                    "customProperty_2": "payload.customProperty_2"
-                },
-                "timestamp": "2016-07-11T14:17:01.359Z"
-            });
-        });
-    });
-
-    context("when the event is a valid one of NEW type", () => {
-        it("should handle it and return the converted object", () => {
-            let eventRow = {
-                "system.blobastext(event)": JSON.stringify({
-                    "headers": {
-                        "eventId": "headers.eventId",
-                        "timestamp": "2016-09-01T10:02:58.504Z"
-                    },
-                    "payload": {
-                        "type": "iot.eventType",
-                        "customProperty_1": "payload.customProperty_1",
-                        "customProperty_2": "payload.customProperty_2"
-                    }
-                }),
-                "timestamp": new MockTimeStamp("2016-07-11T14:17:01.359Z")
-            };
-
-            expect(subject.toEvent(eventRow)).to.be.eql({
-                "type": "iot.eventType",
-                "payload": {
-                    "type": "iot.eventType",
                     "customProperty_1": "payload.customProperty_1",
                     "customProperty_2": "payload.customProperty_2"
                 },
