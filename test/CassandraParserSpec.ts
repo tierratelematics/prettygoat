@@ -1,11 +1,11 @@
 import expect = require("expect.js");
-import DefaultJsonCassandraDeserializer from "../scripts/streams/DefaultJsonCassandraDeserializer";
+import CassandraDeserializer from "../scripts/streams/CassandraDeserializer";
 import {MockTimeStamp} from './fixtures/MockTimeStamp';
 
-describe("DefaultJsonCassandraDeserializer, given an event", () => {
-    let subject:DefaultJsonCassandraDeserializer;
+describe("CassandraDeserializer, given an event", () => {
+    let subject:CassandraDeserializer;
 
-    beforeEach(() => subject = new DefaultJsonCassandraDeserializer());
+    beforeEach(() => subject = new CassandraDeserializer());
 
     context("when the event is a valid one of OLD type", () => {
         it("should handle it and return the converted object", () => {
