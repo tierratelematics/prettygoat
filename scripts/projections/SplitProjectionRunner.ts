@@ -30,7 +30,12 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
 
-        this.subscription = this.stream.from(snapshot ? snapshot.lastEvent : null).merge(this.readModelFactory.from(null)).subscribe(event => {
+        let eventsStream = this.stream
+            .from(snapshot ? snapshot.lastEvent : null)
+            .merge(this.readModelFactory.from(null))
+            .controlled();
+
+        this.subscription = eventsStream.subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload),
@@ -51,7 +56,10 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
+            eventsStream.request(1);
         });
+
+        eventsStream.request(1);
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {
