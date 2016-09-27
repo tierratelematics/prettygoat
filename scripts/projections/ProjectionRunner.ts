@@ -31,22 +31,27 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.publishReadModel();
 
-        this.subscription = this.stream
+        let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .subscribe(event => {
-                try {
-                    let matchFunction = this.matcher.match(event.type);
-                    if (matchFunction !== Rx.helpers.identity) {
-                        this.state = matchFunction(this.state, event.payload);
-                        this.publishReadModel(event.timestamp);
-                    }
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
+            .controlled();
+
+        this.subscription = eventsStream.subscribe(event => {
+            try {
+                let matchFunction = this.matcher.match(event.type);
+                if (matchFunction !== Rx.helpers.identity) {
+                    this.state = matchFunction(this.state, event.payload);
+                    this.publishReadModel(event.timestamp);
                 }
-            });
+            } catch (error) {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
+            }
+            eventsStream.request(1);
+        });
+
+        eventsStream.request(1);
     }
 
     stop():void {
