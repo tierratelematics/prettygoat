@@ -1,4 +1,3 @@
-/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");

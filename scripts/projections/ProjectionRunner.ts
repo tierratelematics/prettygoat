@@ -5,7 +5,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
-import Event from "../streams/Event";
+import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 
@@ -31,22 +31,28 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.publishReadModel();
 
-        this.subscription = this.stream
+        let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .subscribe(event => {
-                try {
-                    let matchFunction = this.matcher.match(event.type);
-                    if (matchFunction !== Rx.helpers.identity) {
-                        this.state = matchFunction(this.state, event.payload);
-                        this.publishReadModel(event.timestamp);
-                    }
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
+            .filter(event => event.type !== this.streamId)
+            .controlled();
+
+        this.subscription = eventsStream.subscribe(event => {
+            try {
+                let matchFunction = this.matcher.match(event.type);
+                if (matchFunction !== Rx.helpers.identity) {
+                    this.state = matchFunction(this.state, event.payload, event);
+                    this.publishReadModel(event.timestamp);
                 }
-            });
+            } catch (error) {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
+            }
+            eventsStream.request(1);
+        });
+
+        eventsStream.request(1);
     }
 
     stop():void {
@@ -65,7 +71,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private publishReadModel(timestamp:string = "") {
-        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp};
+        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
         if (!this.splitKey) this.readModelFactory.publish(readModel);
     };

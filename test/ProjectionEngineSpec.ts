@@ -1,4 +1,3 @@
-/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
@@ -14,8 +13,8 @@ import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
-import Event from "../scripts/streams/Event";
-import {Mock, Times, It} from "typemoq";
+import {Event} from "../scripts/streams/Event";
+import * as TypeMoq from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
@@ -33,25 +32,25 @@ import {Matcher} from "../scripts/matcher/Matcher";
 describe("Given a ProjectionEngine", () => {
 
     let subject:IProjectionEngine,
-        registry:Mock<IProjectionRegistry>,
-        pushNotifier:Mock<IPushNotifier>,
-        snapshotStrategy:Mock<ISnapshotStrategy>,
+        registry:TypeMoq.Mock<IProjectionRegistry>,
+        pushNotifier:TypeMoq.Mock<IPushNotifier>,
+        snapshotStrategy:TypeMoq.Mock<ISnapshotStrategy>,
         runner:IProjectionRunner<MockModel>,
-        runnerFactory:Mock<IProjectionRunnerFactory>,
-        snapshotRepository:Mock<ISnapshotRepository>,
+        runnerFactory:TypeMoq.Mock<IProjectionRunnerFactory>,
+        snapshotRepository:TypeMoq.Mock<ISnapshotRepository>,
         dataSubject:Subject<Event>,
         projection:IProjection<number>;
 
     beforeEach(() => {
-        snapshotStrategy = Mock.ofType(CountSnapshotStrategy);
+        snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<MockModel>("test", new MockStreamFactory(dataSubject), new Matcher(projection.definition), new MockReadModelFactory());
-        pushNotifier = Mock.ofType(PushNotifier);
-        pushNotifier.setup(p => p.notify(It.isAny(), It.isAny())).returns(a => null);
-        runnerFactory = Mock.ofType(ProjectionRunnerFactory);
-        runnerFactory.setup(r => r.create(It.isAny())).returns(a => runner);
-        registry = Mock.ofType(ProjectionRegistry);
+        pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
+        pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
+        runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
+        runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner);
+        registry = TypeMoq.Mock.ofType(ProjectionRegistry);
         registry.setup(r => r.getAreas()).returns(a => {
             return [
                 new AreaRegistry("Admin", [
@@ -59,8 +58,8 @@ describe("Given a ProjectionEngine", () => {
                 ])
             ]
         });
-        snapshotRepository = Mock.ofType(MockSnapshotRepository);
-        snapshotRepository.setup(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982")))).returns(a => null);
+        snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
+        snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982")))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
     });
@@ -94,39 +93,43 @@ describe("Given a ProjectionEngine", () => {
         });
         context("and a snapshot is needed", () => {
             beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
+                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 }))).returns(a => true);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 });
             });
             it("should save the snapshot", () => {
-                snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982"))), Times.once());
+                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.once());
             });
         });
 
         context("and a snapshot is not needed", () => {
             beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
+                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 }))).returns(a => false);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 });
             });
             it("should not save the snapshot", () => {
-                snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, "728w7982"))), Times.never());
+                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.never());
             });
         });
     });

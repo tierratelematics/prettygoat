@@ -1,7 +1,7 @@
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
-import Event from "../../scripts/streams/Event";
+import {Event} from "../../scripts/streams/Event";
 
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;

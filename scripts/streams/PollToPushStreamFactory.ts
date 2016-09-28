@@ -2,7 +2,7 @@ import {IStreamFactory} from "./IStreamFactory";
 import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
 import * as Rx from "rx";
-import Event from "./Event";
+import {Event} from "./Event";
 
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {

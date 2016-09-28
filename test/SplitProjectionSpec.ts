@@ -1,7 +1,6 @@
-/// <reference path="../node_modules/typemoq/typemoq.node.d.ts" />
 import expect = require("expect.js");
 import sinon = require("sinon");
-import {Mock, Times, It} from "typemoq";
+import * as TypeMoq from "typemoq";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
@@ -10,19 +9,19 @@ import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {Matcher} from "../scripts/matcher/Matcher";
-import Event from "../scripts/streams/Event";
+import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../scripts/Dictionary";
 
 describe("Split projection, given a projection with a split definition", () => {
 
     let subject:SplitProjectionRunner<number>;
-    let stream:Mock<IStreamFactory>;
+    let stream:TypeMoq.Mock<IStreamFactory>;
     let notifications:Event[];
     let stopped:boolean;
     let failed:boolean;
     let subscription:IDisposable;
-    let readModelFactory:Mock<IReadModelFactory>;
+    let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
     let streamData:Subject<Event>;
     let readModelData:Subject<Event>;
     let projection = new SplitProjectionDefinition().define();
@@ -33,24 +32,24 @@ describe("Split projection, given a projection with a split definition", () => {
         failed = false;
         streamData = new ReplaySubject<Event>();
         readModelData = new ReplaySubject<Event>();
-        stream = Mock.ofType<IStreamFactory>(MockStreamFactory);
-        readModelFactory = Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
+        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection.name, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object);
         subscription = subject.subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
-        readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
     });
 
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
-                stream.setup(s => s.from(It.isAny())).returns(_ => streamData.observeOn(Scheduler.immediate));
+                stream.setup(s => s.from(TypeMoq.It.isAny())).returns(_ => streamData.observeOn(Scheduler.immediate));
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
                         count2: 2000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10a": 2000,
@@ -62,20 +61,22 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["25b"]).to.be(7600);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from("27727"), Times.once());
+                stream.verify(s => s.from("27727"), TypeMoq.Times.once());
             });
         });
     });
 
     context("when a new event is received", () => {
         beforeEach(() => {
+            readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
             stream.setup(s => s.from(null)).returns(_ => streamData.observeOn(Scheduler.immediate));
             streamData.onNext({
                 type: "TestEvent",
                 payload: {
                     count: 20,
                     id: "10"
-                }
+                },
+                timestamp: null, splitKey: null
             });
         });
 
@@ -87,7 +88,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     payload: {
                         count: 50,
                         id: "10"
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
 
@@ -109,7 +111,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     type: "LinkedState",
                     payload: {
                         count2: 2000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
             it("should initialize the new projection by pushing all the generated read models", () => {
@@ -125,7 +128,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     type: "LinkedState",
                     payload: {
                         count2: 5000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
 
@@ -134,11 +138,23 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["10"]).to.be(5030);
             });
 
-            it("should notify the changesof the states", () => {
+            it("should notify the changes of the states", () => {
                 subject.run();
                 expect(notifications).to.have.length(2);
                 expect(notifications[1].payload).to.be(5030);
                 expect(notifications[1].splitKey).to.be("10");
+            });
+
+            context("of the same projection", () => {
+                beforeEach(() => {
+                    stream.setup(s => s.from(null)).returns(_ => streamData);
+                    subject.run();
+                });
+
+                it("should filter it", () => {
+                    streamData.onNext({type: "split", payload: 10, timestamp: null, splitKey: null});
+                    expect(subject.state["10"]).to.be(5030);
+                });
             });
         });
     });

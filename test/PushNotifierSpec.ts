@@ -14,7 +14,7 @@ import ClientRegistry from "../scripts/push/ClientRegistry";
 import ClientEntry from "../scripts/push/ClientEntry";
 import IEventEmitter from "../scripts/push/IEventEmitter";
 import MockEventEmitter from "./fixtures/MockEventEmitter";
-import Event from "../scripts/streams/Event";
+import {Event} from "../scripts/streams/Event";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";

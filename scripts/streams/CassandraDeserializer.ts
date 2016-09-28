@@ -1,9 +1,11 @@
+import "bluebird";
+import "reflect-metadata";
 import {injectable} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
-import Event from "./Event";
+import {Event} from "./Event";
 
 @injectable()
-class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
+class CassandraDeserializer implements ICassandraDeserializer {
     toEvent(row: any): Event {
         let parsedEvent = JSON.parse(row["system.blobastext(event)"]);
 
@@ -11,14 +13,16 @@ class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
             return {
                 type: parsedEvent.payload.$manifest,
                 payload: parsedEvent.payload,
-                timestamp: row.timestamp.getDate().toISOString()
+                timestamp: row.timestamp.getDate().toISOString(),
+                splitKey: null
             };
         }
 
         return {
             type: parsedEvent.type,
             payload: parsedEvent.payload,
-            timestamp: row.timestamp.getDate().toISOString()
+            timestamp: row.timestamp.getDate().toISOString(),
+            splitKey: null
         };
     }
 
@@ -27,4 +31,4 @@ class DefaultJsonCassandraDeserializer implements ICassandraDeserializer {
     }
 }
 
-export default DefaultJsonCassandraDeserializer;
+export default CassandraDeserializer;

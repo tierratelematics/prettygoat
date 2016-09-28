@@ -15,19 +15,22 @@ describe("Given a count based snapshots strategy", () => {
             it("should trigger a snapshot save", () => {
                 subject.needsSnapshot({
                     type: "test",
-                    payload: null
+                    payload: null,
+                    timestamp: null, splitKey: null
                 });
                 subject.needsSnapshot({
                     type: "test",
-                    payload: null
+                    payload: null,
+                    timestamp: null, splitKey: null
                 });
                 expect(subject.needsSnapshot({
                     type: "test2",
-                    payload: null
+                    payload: null,
+                    timestamp: null, splitKey: null
                 })).to.be(false);
                 expect(subject.needsSnapshot({
                     type: "test",
-                    payload: null
+                    payload: null, timestamp: null, splitKey: null
                 })).to.be(true);
             });
         });
@@ -36,11 +39,13 @@ describe("Given a count based snapshots strategy", () => {
             it("should not trigger a snapshot save", () => {
                 subject.needsSnapshot({
                     type: "test",
-                    payload: null
+                    payload: null,
+                    timestamp: null, splitKey: null
                 });
                 expect(subject.needsSnapshot({
                     type: "test",
-                    payload: null
+                    payload: null,
+                    timestamp: null, splitKey: null
                 })).to.be(false);
             });
         });
