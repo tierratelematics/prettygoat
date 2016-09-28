@@ -5,7 +5,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
-import Event from "../streams/Event";
+import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 
@@ -70,7 +70,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private publishReadModel(timestamp:string = "") {
-        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp};
+        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
         if (!this.splitKey) this.readModelFactory.publish(readModel);
     };

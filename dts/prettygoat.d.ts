@@ -153,11 +153,17 @@ declare module prettygoat {
         path:string;
     }
 
-    export interface Event {
+    class Event {
+        type:string;
+        payload:any;
+        timestamp:string;
+        splitKey:string;
+    }
+
+    export interface IEvent {
         type:string;
         payload:any;
         timestamp?:string;
-        splitKey?:string;
     }
 
     export interface ISnapshotStrategy {

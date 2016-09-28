@@ -1,4 +1,4 @@
-import Event from "./Event";
+import {Event} from "./Event";
 
 interface ICassandraDeserializer {
     toEvent(row:any):Event;

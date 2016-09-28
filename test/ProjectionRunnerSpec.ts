@@ -13,7 +13,7 @@ import expect = require("expect.js");
 import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
-import Event from "../scripts/streams/Event";
+import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 
 describe("Given a ProjectionRunner", () => {
@@ -42,7 +42,12 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(It.isAny())).returns(_ => Observable.just({type: null, payload: null}));
+            stream.setup(s => s.from(It.isAny())).returns(_ => Observable.just({
+                type: null,
+                payload: null,
+                timestamp: null,
+                splitKey: null
+            }));
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
         });
 
@@ -74,7 +79,7 @@ describe("Given a ProjectionRunner", () => {
             it("should subscribe to the aggregates stream to build linked projections", () => {
                 readModelFactory.verify(a => a.from(null), Times.once());
             });
-            
+
             context("should behave regularly", behavesRegularly);
         });
 
@@ -92,7 +97,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                return {type: "increment", payload: n};
+                return {type: "increment", payload: n, timestamp: null, splitKey: null};
             }).observeOn(Rx.Scheduler.immediate));
         });
 
@@ -123,7 +128,8 @@ describe("Given a ProjectionRunner", () => {
                 readModelFactory.verify(a => a.publish(It.isValue({
                     type: "test",
                     payload: 42,
-                    timestamp: ""
+                    timestamp: "",
+                    splitKey: null
                 })), Times.atLeastOnce());
             });
 
@@ -132,7 +138,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no match is found for this event", () => {
             beforeEach(() => {
                 stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment" + n, payload: n};
+                    return {type: "increment" + n, payload: n, timestamp: null, splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s:number, e:any) => s + e);

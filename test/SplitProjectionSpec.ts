@@ -10,7 +10,7 @@ import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {Matcher} from "../scripts/matcher/Matcher";
-import Event from "../scripts/streams/Event";
+import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../scripts/Dictionary";
 
@@ -50,7 +50,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     type: "LinkedState",
                     payload: {
                         count2: 2000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10a": 2000,
@@ -75,7 +76,8 @@ describe("Split projection, given a projection with a split definition", () => {
                 payload: {
                     count: 20,
                     id: "10"
-                }
+                },
+                timestamp: null, splitKey: null
             });
         });
 
@@ -87,7 +89,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     payload: {
                         count: 50,
                         id: "10"
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
 
@@ -109,7 +112,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     type: "LinkedState",
                     payload: {
                         count2: 2000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
             it("should initialize the new projection by pushing all the generated read models", () => {
@@ -125,7 +129,8 @@ describe("Split projection, given a projection with a split definition", () => {
                     type: "LinkedState",
                     payload: {
                         count2: 5000
-                    }
+                    },
+                    timestamp: null, splitKey: null
                 });
             });
 
@@ -134,7 +139,7 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["10"]).to.be(5030);
             });
 
-            it("should notify the changesof the states", () => {
+            it("should notify the changes of the states", () => {
                 subject.run();
                 expect(notifications).to.have.length(2);
                 expect(notifications[1].payload).to.be(5030);

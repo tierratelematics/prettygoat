@@ -3,7 +3,7 @@ import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
 import IProjectionRunner from "./IProjectionRunner";
 import IReadModelFactory from "../streams/IReadModelFactory";
-import Event from "../streams/Event";
+import {Event} from "../streams/Event";
 import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";

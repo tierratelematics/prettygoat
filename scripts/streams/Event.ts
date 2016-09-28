@@ -1,8 +1,12 @@
-interface Event {
+export interface IEvent {
     type:string;
     payload:any;
     timestamp?:string;
-    splitKey?:string;
 }
 
-export default Event
+export class Event implements IEvent {
+    type:string;
+    payload:any;
+    timestamp:string;
+    splitKey:string;
+}

@@ -14,7 +14,7 @@ import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
-import Event from "../scripts/streams/Event";
+import {Event} from "../scripts/streams/Event";
 import {Mock, Times, It} from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
@@ -97,13 +97,15 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 }))).returns(a => true);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 });
             });
             it("should save the snapshot", () => {
@@ -116,13 +118,15 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 }))).returns(a => false);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982"
+                    timestamp: "728w7982",
+                    splitKey: null
                 });
             });
             it("should not save the snapshot", () => {

@@ -2,7 +2,7 @@ import "bluebird";
 import "reflect-metadata";
 import {injectable} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
-import Event from "./Event";
+import {Event} from "./Event";
 
 @injectable()
 class CassandraDeserializer implements ICassandraDeserializer {
@@ -13,14 +13,16 @@ class CassandraDeserializer implements ICassandraDeserializer {
             return {
                 type: parsedEvent.payload.$manifest,
                 payload: parsedEvent.payload,
-                timestamp: row.timestamp.getDate().toISOString()
+                timestamp: row.timestamp.getDate().toISOString(),
+                splitKey: null
             };
         }
 
         return {
             type: parsedEvent.type,
             payload: parsedEvent.payload,
-            timestamp: row.timestamp.getDate().toISOString()
+            timestamp: row.timestamp.getDate().toISOString(),
+            splitKey: null
         };
     }
 
