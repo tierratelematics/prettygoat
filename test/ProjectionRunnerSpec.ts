@@ -170,6 +170,20 @@ describe("Given a ProjectionRunner", () => {
                 expect(failed).to.be.ok();
             });
         });
+
+        context("and it's the read model of the same projection", () => {
+            let streamSubject = new Subject<any>();
+            beforeEach(() => {
+                matcher.setup(m => m.match("test")).returns(streamId => (s:number, e:any) => s + e);
+                stream.setup(s => s.from(null)).returns(_ => streamSubject);
+                subject.run();
+            });
+
+            it("should filter it", () => {
+                streamSubject.onNext({type: "test", payload: 1});
+                expect(subject.state).to.be(42);
+            });
+        });
     });
 
     context("when stopping a projection", () => {

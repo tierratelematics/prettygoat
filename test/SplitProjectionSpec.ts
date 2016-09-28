@@ -43,10 +43,7 @@ describe("Split projection, given a projection with a split definition", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
                 stream.setup(s => s.from(TypeMoq.It.isAny())).returns(_ => streamData.observeOn(Scheduler.immediate));
-                readModelFactory.setup(r => r.from(null)).returns(a => {
-                    console.log('returning readmodel data');
-                    return readModelData.observeOn(Scheduler.immediate);
-                });
+                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -146,6 +143,18 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(notifications).to.have.length(2);
                 expect(notifications[1].payload).to.be(5030);
                 expect(notifications[1].splitKey).to.be("10");
+            });
+
+            context("of the same projection", () => {
+                beforeEach(() => {
+                    stream.setup(s => s.from(null)).returns(_ => streamData);
+                    subject.run();
+                });
+
+                it("should filter it", () => {
+                    streamData.onNext({type: "split", payload: 10, timestamp: null, splitKey: null});
+                    expect(subject.state["10"]).to.be(5030);
+                });
             });
         });
     });

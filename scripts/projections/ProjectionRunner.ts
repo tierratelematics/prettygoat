@@ -34,6 +34,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
+            .filter(event => event.type !== this.streamId)
             .controlled();
 
         this.subscription = eventsStream.subscribe(event => {
