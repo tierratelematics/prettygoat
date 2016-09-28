@@ -5,8 +5,6 @@ import sinon = require("sinon");
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import IPushNotifier from "../scripts/push/IPushNotifier";
-import PushNotifier from "../scripts/push/PushNotifier";
 import SinonStub = Sinon.SinonStub;
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";

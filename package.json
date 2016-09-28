@@ -4,7 +4,7 @@
   "devDependencies": {
     "expect.js": "^0.3.1",
     "sinon": "^1.17.4",
-    "typemoq": "0.0.6"
+    "typemoq": "0.3.3"
   },
   "dependencies": {
     "bluebird": "^3.4.0",
