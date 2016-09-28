@@ -46,7 +46,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                     if (_.isUndefined(childState))
                         this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
                     else
-                        this.state[splitKey] = matchFn(childState, event.payload);
+                        this.state[splitKey] = matchFn(childState, event.payload, event);
                     this.notifyStateChange(splitKey, event.timestamp);
                 } else {
                     this.dispatchEventToAll(matchFn, event);
@@ -63,11 +63,11 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {
-        let state:T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload);
+        let state:T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
         this.readModelFactory.from(null).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
-                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload);
+                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, event);
                 this.notifyStateChange(splitKey, event.timestamp);
             }
         });
@@ -76,7 +76,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
 
     private dispatchEventToAll(matchFn:Function, event) {
         _.mapValues(this.state, (state, key) => {
-            this.state[key] = matchFn(state, event.payload);
+            this.state[key] = matchFn(state, event.payload, event);
             this.notifyStateChange(key, event.timestamp);
         });
     }

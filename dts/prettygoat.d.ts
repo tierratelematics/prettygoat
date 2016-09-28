@@ -20,8 +20,8 @@ declare module prettygoat {
 
     export interface IWhen<T extends Object> {
         $init?:() => T;
-        $any?:(s:T, e:Object) => T;
-        [name:string]:(s:T, e:Object) => T;
+        $any?:(s:T, payload:Object, event?:IEvent) => T;
+        [name:string]:(s:T, payload:Object, event?:IEvent) => T;
     }
 
     export interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {

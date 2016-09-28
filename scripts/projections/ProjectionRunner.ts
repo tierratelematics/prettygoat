@@ -40,7 +40,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload);
+                    this.state = matchFunction(this.state, event.payload, event);
                     this.publishReadModel(event.timestamp);
                 }
             } catch (error) {
