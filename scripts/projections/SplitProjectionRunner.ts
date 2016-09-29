@@ -41,22 +41,24 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload),
                     matchFn = this.matcher.match(event.type);
-                if (matchFn === Rx.helpers.identity) return;
-                if (splitFn !== Rx.helpers.identity) {
-                    let childState = this.state[splitKey];
-                    if (_.isUndefined(childState))
-                        this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
-                    else
-                        this.state[splitKey] = matchFn(childState, event.payload, event);
-                    this.notifyStateChange(splitKey, event.timestamp);
-                } else {
-                    this.dispatchEventToAll(matchFn, event);
+                if (matchFn !== Rx.helpers.identity) {
+                    if (splitFn !== Rx.helpers.identity) {
+                        let childState = this.state[splitKey];
+                        if (_.isUndefined(childState))
+                            this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
+                        else
+                            this.state[splitKey] = matchFn(childState, event.payload, event);
+                        this.notifyStateChange(splitKey, event.timestamp);
+                    } else {
+                        this.dispatchEventToAll(matchFn, event);
+                    }
                 }
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
                 this.stop();
             }
+
             eventsStream.request(1);
         });
 
