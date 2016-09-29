@@ -80,6 +80,22 @@ describe("Split projection, given a projection with a split definition", () => {
             });
         });
 
+        context("and the event is not defined", () => {
+            it("should continue replaying the stream", () => {
+                subject.run();
+                streamData.onNext({type: "invalid", payload: 10, timestamp: null, splitKey: null});
+                streamData.onNext({
+                    type: "TestEvent",
+                    payload: {
+                        count: 50,
+                        id: "10"
+                    },
+                    timestamp: null, splitKey: null
+                });
+                expect(subject.state["10"]).to.be(80);
+            });
+        });
+
         context("and a state is present for the generated split key", () => {
             beforeEach(() => {
                 subject.run();
