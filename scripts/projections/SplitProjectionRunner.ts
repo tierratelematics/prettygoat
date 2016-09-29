@@ -70,7 +70,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         this.readModelFactory.from(null).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
-                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, event);
+                this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
                 this.notifyStateChange(splitKey, event.timestamp);
             }
         });
