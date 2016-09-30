@@ -100,6 +100,25 @@ describe("Given a push notifier", () => {
                 })).to.be(true);
             });
         });
+
+        context("and the client has a custom config for notifications", () => {
+            it("should use these settings to construct the notification url", () => {
+                subject = new PushNotifier(eventEmitter, clientRegistry, {
+                    host: 'test',
+                    port: 80,
+                    protocol: 'http',
+                    notifications: {
+                        host: "test",
+                        port: null,
+                        protocol: 'https'
+                    }
+                }, registry);
+                subject.notify(new PushContext("Admin", "Foo"));
+                expect(emitterSpy.calledWith('2828s', 'Admin:Foo', {
+                    url: 'https://test/admin/foo/'
+                })).to.be(true);
+            })
+        });
     });
 
     context("when a single client needs to be notified", () => {

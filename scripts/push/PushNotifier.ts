@@ -12,11 +12,13 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 @injectable()
 class PushNotifier implements IPushNotifier {
 
+    private config:IEndpointConfig;
+
     constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
                 @inject("IClientRegistry") private clientRegistry:IClientRegistry,
-                @inject("IEndpointConfig") private config:IEndpointConfig,
+                @inject("IEndpointConfig") config:IEndpointConfig,
                 @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
-
+        this.config = <IEndpointConfig>_.assign({}, config, config ? config.notifications : {});
     }
 
     notify(context:PushContext, clientId?:string, splitKey?:string):void {
