@@ -68,9 +68,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
             queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
                                 '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`]
         }
-        this.batch(_.map(queries, query => {
-            return {query: query};
-        })).subscribe(() => null);
+        _.map(queries, query => this.execute(query)).subscribe(() => null);
     }
 }
 
