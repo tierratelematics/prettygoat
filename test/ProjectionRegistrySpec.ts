@@ -29,8 +29,8 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner = new ProjectionRunner<number>("test", null, null, null);
         let analyzer = new ProjectionAnalyzer();
         objectContainer = TypeMoq.Mock.ofType(MockObjectContainer);
-        subject = new ProjectionRegistry(analyzer, objectContainer.object);
         tickScheduler = new TickScheduler();
+        subject = new ProjectionRegistry(analyzer, objectContainer.object, tickScheduler);
     });
 
     context("when they are registered under a specific area", () => {

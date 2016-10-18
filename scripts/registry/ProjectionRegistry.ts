@@ -8,6 +8,7 @@ import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import {interfaces} from "inversify";
 import IObjectContainer from "../bootstrap/IObjectContainer";
 import * as _ from "lodash";
+import ITickScheduler from "../ticks/ITickScheduler";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -20,7 +21,8 @@ class ProjectionRegistry implements IProjectionRegistry {
     }[] = [];
 
     constructor(@inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer,
-                @inject("IObjectContainer") private container:IObjectContainer) {
+                @inject("IObjectContainer") private container:IObjectContainer,
+                @inject("ITickScheduler") private tickScheduler:ITickScheduler) {
 
     }
 
@@ -49,7 +51,7 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
-            let projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define();
+            let projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(this.tickScheduler);
             let validationErrors = this.analyzer.analyze(projection);
             if (validationErrors.length > 0)
                 throw new Error(validationErrors[0]);
