@@ -9,6 +9,7 @@ import IStatePublisher from "../routing/IStatePublisher";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
+import {Observable} from "rx";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -31,7 +32,7 @@ class ProjectionEngine implements IProjectionEngine {
                     _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
                         let runner = this.runnerFactory.create(entry.projection),
                             context = new PushContext(areaRegistry.area, entry.name);
-                        runner.subscribe(state => {
+                        runner.notifications().subscribe(state => {
                             let snapshotStrategy = entry.projection.snapshotStrategy;
                             this.pushNotifier.notify(context, null, state.splitKey);
                             if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {

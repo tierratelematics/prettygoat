@@ -22,6 +22,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject = new Subject<Event>();
     }
 
+    notifications() {
+        return this.subject;
+    }
+
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
@@ -72,18 +76,5 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject.onNext(readModel);
         if (!this.splitKey) this.readModelFactory.publish(readModel);
     };
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
-    }
-}
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 
