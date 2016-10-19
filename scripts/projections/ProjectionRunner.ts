@@ -16,7 +16,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription:IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private splitKey:string;
 
     constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<Event>();
@@ -74,7 +73,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private publishReadModel(timestamp:string = "") {
         let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
-        if (!this.splitKey) this.readModelFactory.publish(readModel);
-    };
+        this.readModelFactory.publish(readModel);
+    }
 }
 
