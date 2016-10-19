@@ -22,17 +22,20 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         return {
             name: "__diagnostic:Size",
             definition: {
-                $init: () => this.getProjectionsSize(),
+                $init: () => this.getProjectionsSize()[1],
                 $any: (state) => {
                     this.eventsCounter++;
                     if (this.eventsCounter % 200 === 0) {
+                        let sizes = this.getProjectionsSize();
                         return {
                             totalEvents: this.eventsCounter,
-                            projections: this.getProjectionsSize()
+                            totalSize: humanize.filesize(sizes[0]),
+                            projections: sizes[1]
                         }
                     }
                     return {
                         totalEvents: this.eventsCounter,
+                        totalSize: state.totalSize,
                         projections: state.projections
                     }
                 }
@@ -41,9 +44,12 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     }
 
     private getProjectionsSize() {
-        return _.mapValues(this.holder, (runner:IProjectionRunner<any>) => {
+        let total = 0;
+        let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>) => {
+            let size = sizeof(runner.state);
+            total += size;
             let data = {
-                size: humanize.filesize(sizeof(runner.state))
+                size: humanize.filesize(size)
             };
             if (runner instanceof SplitProjectionRunner) {
                 _.assign(data, {
@@ -52,6 +58,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             }
             return data;
         });
+        return [total, projections];
     }
 }
 
