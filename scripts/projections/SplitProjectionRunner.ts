@@ -33,7 +33,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId);
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
         this.subscription = eventsStream.subscribe(event => {
             try {

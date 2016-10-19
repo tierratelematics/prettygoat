@@ -8,6 +8,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
+import * as _ from "lodash";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -34,8 +35,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId);
-        
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
+
         this.subscription = eventsStream.subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);

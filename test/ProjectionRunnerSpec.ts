@@ -97,6 +97,18 @@ describe("Given a ProjectionRunner", () => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
         });
 
+        it("it should filter out diagnostic events", () => {
+            matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s:number, e:any) => s + e);
+            stream.setup(s => s.from(null)).returns(_ => Observable.just({
+                type: "__diagnostic:Size",
+                payload: 1,
+                timestamp: null,
+                splitKey: null
+            }).observeOn(Rx.Scheduler.immediate));
+            subject.run();
+            expect(notifications).to.be.eql([42]);
+        });
+
         context("and no error occurs", () => {
             beforeEach(() => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
