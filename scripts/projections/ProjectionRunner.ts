@@ -8,6 +8,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
+import * as _ from "lodash";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -19,6 +20,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<Event>();
+    }
+
+    notifications() {
+        return this.subject;
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -34,8 +39,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId);
-        
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
+
         this.subscription = eventsStream.subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
@@ -71,18 +76,5 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject.onNext(readModel);
         if (!this.splitKey) this.readModelFactory.publish(readModel);
     };
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
-    }
-}
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 

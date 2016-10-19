@@ -31,7 +31,7 @@ class ProjectionEngine implements IProjectionEngine {
                     _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
                         let runner = this.runnerFactory.create(entry.projection),
                             context = new PushContext(areaRegistry.area, entry.name);
-                        runner.subscribe(state => {
+                        runner.notifications().sample(500).subscribe(state => {
                             let snapshotStrategy = entry.projection.snapshotStrategy;
                             this.pushNotifier.notify(context, null, state.splitKey);
                             if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {

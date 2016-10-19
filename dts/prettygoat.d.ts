@@ -24,10 +24,11 @@ declare module prettygoat {
         [name:string]:(s:T, payload:Object, event?:IEvent) => T;
     }
 
-    export interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {
+    export interface IProjectionRunner<T> extends IDisposable {
         state:T|Dictionary<T>;
         run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
+        notifications:Observable<Event>;
     }
 
     export interface IProjectionRunnerFactory {

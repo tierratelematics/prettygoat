@@ -11,6 +11,10 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
         this.subject = data;
     }
 
+    notifications() {
+        return this.subject;
+    }
+
     run():void {
 
     }
@@ -20,15 +24,6 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
 
     dispose():void {
 
-    }
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
     }
 }
 
