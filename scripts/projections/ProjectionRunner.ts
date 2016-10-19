@@ -34,9 +34,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId)
-            .controlled();
-
+            .filter(event => event.type !== this.streamId);
+        
         this.subscription = eventsStream.subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
@@ -49,10 +48,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-            eventsStream.request(1);
         });
-
-        eventsStream.request(1);
     }
 
     stop():void {
