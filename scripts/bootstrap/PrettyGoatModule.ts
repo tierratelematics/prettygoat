@@ -37,6 +37,8 @@ import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import TimePartitioner from "../util/TimePartitioner";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
+import IProjectionRunner from "../projections/IProjectionRunner";
+import Dictionary from "../Dictionary";
 
 class PrettyGoatModule implements IModule {
 
@@ -63,6 +65,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
         kernel.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
         kernel.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
+        kernel.bind<Dictionary<IProjectionRunner<any>>>("ProjectionRunnerHolder").toConstantValue({});
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
