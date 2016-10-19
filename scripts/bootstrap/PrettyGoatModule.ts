@@ -39,6 +39,7 @@ import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import Dictionary from "../Dictionary";
+import SizeProjectionDefinition from "../diagnostic/SizeProjectionDefinition";
 
 class PrettyGoatModule implements IModule {
 
@@ -69,7 +70,7 @@ class PrettyGoatModule implements IModule {
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
-
+        registry.add(SizeProjectionDefinition).forArea("__diagnostic");
     }
 }
 
