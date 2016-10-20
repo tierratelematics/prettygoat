@@ -20,4 +20,4 @@ class NullLogger implements ILogger {
     }
 }
 
-export default NullLogger
+export default new NullLogger()

@@ -1,6 +1,8 @@
 import ILogger from "./ILogger";
 import LogLevel from "./LogLevel";
+import {injectable} from "inversify";
 
+@injectable()
 class ConsoleLogger implements ILogger {
 
     private logLevel = LogLevel.Debug;
