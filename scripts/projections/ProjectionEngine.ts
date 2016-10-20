@@ -42,7 +42,7 @@ class ProjectionEngine implements IProjectionEngine {
                                 this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp}`);
                                 this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
                             }
-                        });
+                        }, error => this.logger.error(error));
                         this.statePublisher.publish(runner, context);
                         runner.run(snapshots[entry.projection.name]);
                     });
