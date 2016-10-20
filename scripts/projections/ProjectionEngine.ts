@@ -9,6 +9,8 @@ import IStatePublisher from "../routing/IStatePublisher";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
+import ILogger from "../log/ILogger";
+import NullLogger from "../log/NullLogger";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -17,7 +19,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IPushNotifier") private pushNotifier:IPushNotifier,
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry,
                 @inject("IStatePublisher") private statePublisher:IStatePublisher,
-                @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository) {
+                @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
+                @inject("ILogger") private logger:ILogger = NullLogger) {
 
     }
 
@@ -34,7 +37,9 @@ class ProjectionEngine implements IProjectionEngine {
                         runner.notifications().sample(500).subscribe(state => {
                             let snapshotStrategy = entry.projection.snapshotStrategy;
                             this.pushNotifier.notify(context, null, state.splitKey);
+                            this.logger.info(`Notifying for change on ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
                             if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
+                                this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp}`);
                                 this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
                             }
                         });

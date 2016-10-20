@@ -237,19 +237,6 @@ declare module prettygoat {
 
         setLogLevel(level:LogLevel);
     }
-
-    export class NullLogger implements ILogger {
-
-        debug(message:string);
-
-        info(message:string);
-
-        warning(message:string);
-
-        error(error:string|Error);
-
-        setLogLevel(level:LogLevel);
-    }
 }
 
 export = prettygoat;
