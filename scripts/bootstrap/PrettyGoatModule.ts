@@ -40,6 +40,8 @@ import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import Dictionary from "../Dictionary";
 import SizeProjectionDefinition from "../diagnostic/SizeProjectionDefinition";
+import ILogger from "../log/ILogger";
+import ConsoleLogger from "../log/ConsoleLogger";
 
 class PrettyGoatModule implements IModule {
 
@@ -67,6 +69,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
         kernel.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
         kernel.bind<Dictionary<IProjectionRunner<any>>>("ProjectionRunnerHolder").toConstantValue({});
+        kernel.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
