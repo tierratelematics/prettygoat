@@ -33,7 +33,7 @@ describe("Given a ProjectionRunner", () => {
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object);
-        subscription = subject.subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
+        subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });
 
@@ -95,6 +95,18 @@ describe("Given a ProjectionRunner", () => {
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+        });
+
+        it("it should filter out diagnostic events", () => {
+            matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s:number, e:any) => s + e);
+            stream.setup(s => s.from(null)).returns(_ => Observable.just({
+                type: "__diagnostic:Size",
+                payload: 1,
+                timestamp: null,
+                splitKey: null
+            }).observeOn(Rx.Scheduler.immediate));
+            subject.run();
+            expect(notifications).to.be.eql([42]);
         });
 
         context("and no error occurs", () => {

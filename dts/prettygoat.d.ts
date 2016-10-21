@@ -10,7 +10,7 @@ declare module prettygoat {
         split?:ISplit;
         definition:IWhen<T>;
         snapshotStrategy?:ISnapshotStrategy;
-        filterStrategy?: IFilterStrategy<T>;
+        filterStrategy?:IFilterStrategy<T>;
     }
 
     export interface ISplit {
@@ -24,10 +24,11 @@ declare module prettygoat {
         [name:string]:(s:T, payload:Object, event?:IEvent) => T;
     }
 
-    export interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {
+    export interface IProjectionRunner<T> extends IDisposable {
         state:T|Dictionary<T>;
         run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
+        notifications:Observable<Event>;
     }
 
     export interface IProjectionRunnerFactory {
@@ -147,7 +148,7 @@ declare module prettygoat {
     export interface ICassandraConfig {
         hosts:string[];
         keyspace:string;
-        readTimeout?: number;
+        readTimeout?:number;
         fetchSize?:number;
     }
 
@@ -191,18 +192,50 @@ declare module prettygoat {
     }
 
     export interface IFilterStrategy<T> {
-        filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
+        filter(state:T, context:IFilterContext):{filteredState:T, type:FilterOutputType};
     }
 
     export interface IFilterContext {
-        headers: { [key: string]: string };
-        params: { [key: string]: string };
+        headers:{ [key:string]:string };
+        params:{ [key:string]:string };
     }
 
     export enum FilterOutputType {
         CONTENT,
         UNAUTHORIZED,
         FORBIDDEN
+    }
+
+    export enum LogLevel {
+        Debug,
+        Info,
+        Warning,
+        Error
+    }
+
+    export interface ILogger {
+        debug(message:string);
+
+        info(message:string);
+
+        warning(message:string);
+
+        error(error:string|Error);
+
+        setLogLevel(level:LogLevel);
+    }
+
+    export class ConsoleLogger implements ILogger {
+
+        debug(message:string);
+
+        info(message:string);
+
+        warning(message:string);
+
+        error(error:string|Error);
+
+        setLogLevel(level:LogLevel);
     }
 }
 

@@ -11,6 +11,7 @@ import IPushNotifier from "../push/IPushNotifier";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import {server} from "./Server";
 import SocketFactory from "../push/SocketFactory";
+import ILogger from "../log/ILogger";
 
 class Engine {
 
@@ -32,15 +33,21 @@ class Engine {
             clientRegistry = this.kernel.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.kernel.get<IPushNotifier>("IPushNotifier"),
             config = this.kernel.get<IEndpointConfig>("IEndpointConfig"),
-            socketFactory = this.kernel.get<SocketFactory>("SocketFactory");
+            socketFactory = this.kernel.get<SocketFactory>("SocketFactory"),
+            logger = this.kernel.get<ILogger>("ILogger");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
         server.listen(config.port || 80);
+        logger.info(`Server listening on ${config.port || 80}`);
         socketFactory.socketForPath().on('connection', client => {
             client.on('subscribe', context => {
                 clientRegistry.add(client.id, context);
                 pushNotifier.notify(context, client.id);
+                logger.info(`New client subscribed on ${context} with id ${client.id}`);
             });
-            client.on('unsubscribe', message => clientRegistry.remove(client.id, message));
+            client.on('unsubscribe', message => {
+                clientRegistry.remove(client.id, message);
+                logger.info(`New client unsubscribed from ${message} with id ${client.id}`);
+            });
         });
         projectionEngine.run();
     }

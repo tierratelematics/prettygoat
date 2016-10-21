@@ -21,6 +21,10 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         this.subject = new Rx.Subject<Event>();
     }
 
+    notifications() {
+        return this.subject;
+    }
+
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
@@ -33,8 +37,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId)
-            .controlled();
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
         this.subscription = eventsStream.subscribe(event => {
             try {
@@ -58,11 +61,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-
-            eventsStream.request(1);
         });
-
-        eventsStream.request(1);
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {
@@ -107,19 +106,5 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
-    }
 }
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
-}
-
 export default SplitProjectionRunner

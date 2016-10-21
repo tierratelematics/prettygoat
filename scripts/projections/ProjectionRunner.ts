@@ -8,6 +8,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
+import * as _ from "lodash";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
@@ -15,10 +16,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription:IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
-    private splitKey:string;
 
     constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
         this.subject = new Subject<Event>();
+    }
+
+    notifications() {
+        return this.subject;
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -34,8 +38,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId)
-            .controlled();
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
         this.subscription = eventsStream.subscribe(event => {
             try {
@@ -49,10 +52,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-            eventsStream.request(1);
         });
-
-        eventsStream.request(1);
     }
 
     stop():void {
@@ -73,20 +73,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private publishReadModel(timestamp:string = "") {
         let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
-        if (!this.splitKey) this.readModelFactory.publish(readModel);
-    };
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
+        this.readModelFactory.publish(readModel);
     }
-}
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 

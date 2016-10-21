@@ -107,8 +107,11 @@ describe("Given a ProjectionEngine", () => {
                     splitKey: null
                 });
             });
-            it("should save the snapshot", () => {
-                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.once());
+            it("should save the snapshot", (done) => {
+                setTimeout(() => {
+                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.once());
+                    done();
+                }, 500);
             });
         });
 
