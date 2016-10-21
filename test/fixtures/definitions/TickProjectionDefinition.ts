@@ -3,6 +3,7 @@ import {IProjection} from "../../../scripts/projections/IProjection";
 import Projection from "../../../scripts/registry/ProjectionDecorator";
 import ITickScheduler from "../../../scripts/ticks/ITickScheduler";
 import Tick from "../../../scripts/ticks/Tick";
+import * as moment from "moment";
 
 @Projection("Tick")
 class TickProjectionDefinition implements IProjectionDefinition<Tick> {

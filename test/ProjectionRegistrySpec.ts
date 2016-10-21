@@ -29,7 +29,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         holder:Dictionary<ITickScheduler>;
 
     beforeEach(() => {
-        runner = new ProjectionRunner<number>("test", null, null, null);
+        runner = new ProjectionRunner<number>("test", null, null, null, null);
         let analyzer = new ProjectionAnalyzer();
         objectContainer = TypeMoq.Mock.ofType(MockObjectContainer);
         tickScheduler = new TickScheduler(null);

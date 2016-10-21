@@ -32,7 +32,7 @@ describe("Given a ProjectionRunner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object);
+        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object, new MockStreamFactory());
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });

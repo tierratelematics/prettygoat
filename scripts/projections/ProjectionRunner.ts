@@ -17,7 +17,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isDisposed:boolean;
     private isFailed:boolean;
 
-    constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory) {
+    constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
+                private tickScheduler:IStreamFactory) {
         this.subject = new Subject<Event>();
     }
 
