@@ -15,7 +15,7 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     constructor(@inject("IStreamFactory") private streamFactory:IStreamFactory,
                 @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
-                @inject("ProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
+                @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
 
     }
 

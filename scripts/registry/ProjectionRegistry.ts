@@ -9,6 +9,7 @@ import {interfaces} from "inversify";
 import IObjectContainer from "../bootstrap/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
+import Dictionary from "../Dictionary";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -22,7 +23,8 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     constructor(@inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer,
                 @inject("IObjectContainer") private container:IObjectContainer,
-                @inject("Factory<ITickScheduler>") private tickScheduler:interfaces.Factory<ITickScheduler>) {
+                @inject("Factory<ITickScheduler>") private tickSchedulerFactory:interfaces.Factory<ITickScheduler>,
+                @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>) {
 
     }
 
@@ -51,8 +53,10 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
-            let projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(this.tickScheduler());
-            let validationErrors = this.analyzer.analyze(projection);
+            let tickScheduler = this.tickSchedulerFactory(),
+                projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(tickScheduler),
+                validationErrors = this.analyzer.analyze(projection);
+            this.tickSchedulerHolder[projection.name] = tickScheduler;
             if (validationErrors.length > 0)
                 throw new Error(validationErrors[0]);
             return new RegistryEntry(projection, entry.name, entry.parametersKey);

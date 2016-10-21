@@ -24,7 +24,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         tickScheduler = new TickScheduler();
         projection = new TickProjectionDefinition().define(tickScheduler);
         streamData = new Subject<Event>();
-        let projectionRunner = new ProjectionRunner(null, new MockStreamFactory(streamData), new Matcher(projection.definition), new MockReadModelFactory());
+        let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition), new MockReadModelFactory());
         projectionRunner.notifications().subscribe(event => notifications.push(event));
     });
 

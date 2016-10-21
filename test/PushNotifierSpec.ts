@@ -39,7 +39,7 @@ describe("Given a push notifier", () => {
         projectionRunner = new MockProjectionRunner(dataSubject);
         clientRegistry = new ClientRegistry();
         eventEmitter = new MockEventEmitter();
-        registry = new ProjectionRegistry(null, null, null);
+        registry = new ProjectionRegistry(null, null, null, {});
         clientsStub = sinon.stub(clientRegistry, "clientsFor", () => [
             new ClientEntry("2828s"), new ClientEntry("shh3", {id: "2-4u4-d"})
         ]);
