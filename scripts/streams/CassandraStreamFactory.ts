@@ -7,6 +7,7 @@ import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import {Event} from "./Event";
+import ReservedEvents from "./ReservedEvents";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -36,10 +37,18 @@ class CassandraStreamFactory implements IStreamFactory {
                         .on('readable', function () {
                             let row;
                             while (row = this.read()) {
-                              observer.onNext(deserializer.toEvent(row));
+                                observer.onNext(deserializer.toEvent(row));
                             }
                         })
-                        .on('end', () => observer.onCompleted())
+                        .on('end', () => {
+                            observer.onNext({
+                                type: ReservedEvents.REALTIME,
+                                payload: null,
+                                timestamp: null,
+                                splitKey: null
+                            });
+                            observer.onCompleted();
+                        })
                         .on('error', (error) => observer.onError(error));
                 });
             return Rx.Disposable.empty;
