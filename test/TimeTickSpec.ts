@@ -25,16 +25,25 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         projection = new TickProjectionDefinition().define(tickScheduler);
         streamData = new Subject<Event>();
         let projectionRunner = new ProjectionRunner(null, new MockStreamFactory(streamData), new Matcher(projection.definition), new MockReadModelFactory());
-        projectionRunner.subscribe(event => notifications.push(event));
+        projectionRunner.notifications().subscribe(event => notifications.push(event));
     });
 
     context("when a new tick is scheduled", () => {
-        it("should send a new tick event to the projection");
-        context("and it's scheduled to be before another tick", () => {
-            it("should send the ticks in the correct order");
+        context("and the projection is still fetching historical events", () => {
+            it("should schedule the tick between the other events", () => {
+
+            });
+            context("and a new tick is scheduled between the current and the next event", () => {
+                it("should process this tick correctly", () => {
+
+                });
+            });
         });
-        context("and the projection schedules new ticks when receiving one", () => {
-            it("should schedule also those ticks");
+
+        context("and the projection is fetching  real time events", () => {
+            it("should schedule the tick in the future", () => {
+
+            });
         });
     });
 });
