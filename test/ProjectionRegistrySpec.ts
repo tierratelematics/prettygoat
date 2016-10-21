@@ -18,6 +18,7 @@ import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/Dictionary";
+import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -31,7 +32,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         runner = new ProjectionRunner<number>("test", null, null, null);
         let analyzer = new ProjectionAnalyzer();
         objectContainer = TypeMoq.Mock.ofType(MockObjectContainer);
-        tickScheduler = new TickScheduler();
+        tickScheduler = new TickScheduler(null);
         holder = {};
         subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);
     });

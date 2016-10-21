@@ -53,7 +53,7 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
-            let tickScheduler = this.tickSchedulerFactory(),
+            let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
                 projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(tickScheduler),
                 validationErrors = this.analyzer.analyze(projection);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
