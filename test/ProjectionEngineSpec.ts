@@ -59,7 +59,7 @@ describe("Given a ProjectionEngine", () => {
             ]
         });
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
-        snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982")))).returns(a => null);
+        snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
     });
@@ -67,7 +67,7 @@ describe("Given a ProjectionEngine", () => {
     context("when a snapshot is present", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({
-                "test": new Snapshot(42, "2933892")
+                "test": new Snapshot(42, new Date(5000))
             }).observeOn(Scheduler.immediate));
             subject.run();
         });
@@ -96,20 +96,20 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982",
+                    timestamp: new Date(5000),
                     splitKey: null
                 }))).returns(a => true);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982",
+                    timestamp: new Date(5000),
                     splitKey: null
                 });
             });
             it("should save the snapshot", (done) => {
                 setTimeout(() => {
-                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.once());
+                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.once());
                     done();
                 }, 500);
             });
@@ -120,19 +120,19 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: "728w7982",
+                    timestamp: new Date(5000),
                     splitKey: null
                 }))).returns(a => false);
                 subject.run();
                 dataSubject.onNext({
                     type: "TestEvent",
                     payload: 56,
-                    timestamp: "728w7982",
+                    timestamp: new Date(5000),
                     splitKey: null
                 });
             });
             it("should not save the snapshot", () => {
-                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, "728w7982"))), TypeMoq.Times.never());
+                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.never());
             });
         });
     });

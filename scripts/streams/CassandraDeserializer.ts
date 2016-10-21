@@ -13,7 +13,7 @@ class CassandraDeserializer implements ICassandraDeserializer {
             return {
                 type: parsedEvent.payload.$manifest,
                 payload: parsedEvent.payload,
-                timestamp: row.timestamp.getDate().toISOString(),
+                timestamp: row.timestamp.getDate(),
                 splitKey: null
             };
         }
@@ -21,7 +21,7 @@ class CassandraDeserializer implements ICassandraDeserializer {
         return {
             type: parsedEvent.type,
             payload: parsedEvent.payload,
-            timestamp: row.timestamp.getDate().toISOString(),
+            timestamp: row.timestamp.getDate(),
             splitKey: null
         };
     }

@@ -1,12 +1,12 @@
 export interface IEvent {
     type:string;
     payload:any;
-    timestamp?:string;
+    timestamp?:Date;
 }
 
 export class Event implements IEvent {
     type:string;
     payload:any;
-    timestamp:string;
+    timestamp:Date;
     splitKey:string;
 }

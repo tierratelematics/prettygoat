@@ -70,7 +70,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    private publishReadModel(timestamp:string = "") {
+    private publishReadModel(timestamp:Date = null) {
         let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
         this.readModelFactory.publish(readModel);

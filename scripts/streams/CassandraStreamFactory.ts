@@ -21,9 +21,8 @@ class CassandraStreamFactory implements IStreamFactory {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:string):Rx.Observable<Event> {
-        return this.streamSource(lastEvent ? new Date(lastEvent) : null)
-            .observeOn(Rx.Scheduler.default);
+    from(lastEvent:Date):Rx.Observable<Event> {
+        return this.streamSource(lastEvent).observeOn(Rx.Scheduler.default);
     }
 
     streamSource(lastEvent:Date):Rx.Observable<any> {

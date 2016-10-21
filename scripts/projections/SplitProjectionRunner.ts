@@ -83,7 +83,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         });
     }
 
-    private notifyStateChange(splitKey:string, timestamp:string) {
+    private notifyStateChange(splitKey:string, timestamp:Date) {
         this.subject.onNext({
             type: this.streamId,
             payload: this.state[splitKey],

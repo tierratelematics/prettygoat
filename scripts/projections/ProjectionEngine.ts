@@ -39,7 +39,7 @@ class ProjectionEngine implements IProjectionEngine {
                             this.pushNotifier.notify(context, null, state.splitKey);
                             this.logger.info(`Notifying state change for ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
                             if (snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                                this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp}`);
+                                this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp.toISOString()}`);
                                 this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
                             }
                         }, error => this.logger.error(error));

@@ -54,14 +54,14 @@ describe("Split projection, given a projection with a split definition", () => {
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10a": 2000,
                     "25b": 5600
-                }, "27727"));
+                }, new Date(5000)));
             });
             it("should construct the snapshotted projections", () => {
                 expect(subject.state["10a"]).to.be(4000);
                 expect(subject.state["25b"]).to.be(7600);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from("27727"), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000))), TypeMoq.Times.once());
             });
         });
     });

@@ -52,14 +52,14 @@ describe("Given a ProjectionRunner", () => {
 
         context("if a snapshot is present", () => {
             beforeEach(() => {
-                subject.run(new Snapshot(56, "2789279"));
+                subject.run(new Snapshot(56, new Date(5000)));
             });
 
             it("should create an initial state based on snapshot memento", () => {
                 expect(subject.state).to.be(56);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from("2789279"), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000))), TypeMoq.Times.once());
             });
         });
 
@@ -139,7 +139,7 @@ describe("Given a ProjectionRunner", () => {
                 readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
                     type: "test",
                     payload: 42,
-                    timestamp: "",
+                    timestamp: null,
                     splitKey: null
                 })), TypeMoq.Times.atLeastOnce());
             });
