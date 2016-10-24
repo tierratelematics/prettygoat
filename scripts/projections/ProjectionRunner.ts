@@ -79,11 +79,15 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             if (this.realtime) {
                 combinedStream.onNext(event);
             } else {
-                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                try {
+                    scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                        combinedStream.onNext(event);
+                        return Rx.Disposable.empty;
+                    });
+                    scheduler.advanceTo(+event.timestamp);
+                } catch (error) {
                     combinedStream.onNext(event);
-                    return Rx.Disposable.empty;
-                });
-                scheduler.advanceTo(+event.timestamp);
+                }
             }
         }));
     }

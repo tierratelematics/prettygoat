@@ -68,6 +68,30 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             });
         });
 
+        context("when an event is scheduled before the current clock", () => {
+            it("should be scheduled right now", () => {
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(50), splitKey: null
+                });
+                streamData.onNext({
+                    type: "TickTrigger", payload: null, timestamp: new Date(60), splitKey: null
+                });
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(10), splitKey: null
+                });
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(300), splitKey: null
+                });
+                expect(notifications[0].clock).to.eql(new Date(0));
+                expect(notifications[1].clock).to.eql(new Date(50));
+                expect(notifications[2].clock).to.eql(new Date(50));
+                expect(notifications[3].clock).to.eql(new Date(10));
+                expect(notifications[4].clock).to.eql(new Date(10));
+                expect(notifications[5].clock).to.eql(new Date(150));
+                expect(notifications[6].clock).to.eql(new Date(300));
+            });
+        });
+
         context("and the projection is fetching  real time events", () => {
             it("should schedule the tick in the future", (done) => {
                 streamData.onNext({
