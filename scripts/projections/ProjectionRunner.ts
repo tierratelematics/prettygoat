@@ -64,9 +64,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription.add(this.tickScheduler.from(null).subscribe(event => {
             if (this.realtime) {
-                Rx.Observable.empty().delay(event.timestamp).subscribe(() => {
-                    combinedStream.onNext(event);
-                });
+                Rx.Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combinedStream.onNext(event));
             } else {
                 scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
                     combinedStream.onNext(event);

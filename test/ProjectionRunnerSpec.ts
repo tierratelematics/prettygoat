@@ -149,8 +149,9 @@ describe("Given a ProjectionRunner", () => {
 
         context("and no match is found for this event", () => {
             beforeEach(() => {
+                let date = new Date();
                 stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment" + n, payload: n, timestamp: new Date(), splitKey: null};
+                    return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s:number, e:any) => s + e);

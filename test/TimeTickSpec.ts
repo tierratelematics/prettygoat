@@ -35,14 +35,21 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
 
     context("when a new tick is scheduled", () => {
         context("and the projection is still fetching historical events", () => {
-            it("should schedule the tick between the other events", () => {
+            it("should schedule the tick after the other events", () => {
                 streamData.onNext({
                     type: "OtherEvent", payload: null, timestamp: new Date(50), splitKey: null
                 });
-
+                streamData.onNext({
+                    type: "TickTrigger", payload: null, timestamp: new Date(60), splitKey: null
+                });
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(200), splitKey: null
+                });
                 expect(notifications[0].clock).to.eql(new Date(0));
                 expect(notifications[1].clock).to.eql(new Date(50));
-                expect(notifications[2].clock).to.eql(new Date(100));
+                expect(notifications[2].clock).to.eql(new Date(50));
+                expect(notifications[3].clock).to.eql(new Date(150));
+                expect(notifications[4].clock).to.eql(new Date(200));
             });
             context("and a new tick is scheduled between the current and the next event", () => {
                 it("should process this tick correctly", () => {
@@ -74,11 +81,10 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
                 });
                 expect(notifications[0].clock).to.eql(new Date(0));
                 expect(notifications[1].clock).to.eql(new Date(50));
-                expect(notifications[2].clock).to.eql(new Date(100));
-                expect(notifications[3].clock).to.eql(new Date(100));
-                expect(notifications[4]).to.be(undefined);
+                expect(notifications[2].clock).to.eql(new Date(50));
+                expect(notifications[3]).to.be(undefined);
                 setTimeout(() => {
-                    expect(notifications[4].clock).to.eql(new Date(200));
+                    expect(notifications[3].clock).to.eql(new Date(150));
                     done();
                 }, 200);
             });
