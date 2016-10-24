@@ -9,13 +9,16 @@ import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
+import Tick from "../ticks/Tick";
+import ReservedEvents from "../streams/ReservedEvents";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T;
     private subject:Subject<Event>;
-    private subscription:IDisposable;
+    private subscription:Rx.CompositeDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
+    private realtime = false;
 
     constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
                 private tickScheduler:IStreamFactory) {
@@ -33,15 +36,19 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
+        this.subscription = new Rx.CompositeDisposable();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.publishReadModel();
+        this.publishReadModel(new Date(0));
+
+        let scheduler = new Rx.HistoricalScheduler(0, Rx.helpers.defaultSubComparer);
+        let combinedStream = new Rx.Subject<Event>();
 
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
             .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
-        this.subscription = eventsStream.subscribe(event => {
+        this.subscription.add(combinedStream.subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
@@ -53,7 +60,34 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-        });
+        }));
+
+        this.subscription.add(this.tickScheduler.from(null).subscribe(event => {
+            if (this.realtime) {
+                Rx.Observable.empty().delay(event.timestamp).subscribe(() => {
+                    combinedStream.onNext(event);
+                });
+            } else {
+                scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
+                    combinedStream.onNext(event);
+                    return Rx.Disposable.empty;
+                });
+            }
+        }));
+
+        this.subscription.add(eventsStream.subscribe(event => {
+            if (event.type === ReservedEvents.REALTIME)
+                this.realtime = true;
+            if (this.realtime) {
+                combinedStream.onNext(event);
+            } else {
+                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                    combinedStream.onNext(event);
+                    return Rx.Disposable.empty;
+                });
+                scheduler.advanceTo(+event.timestamp);
+            }
+        }));
     }
 
     stop():void {
@@ -71,7 +105,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    private publishReadModel(timestamp:Date = null) {
+    private publishReadModel(timestamp:Date) {
         let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
         this.subject.onNext(readModel);
         this.readModelFactory.publish(readModel);
