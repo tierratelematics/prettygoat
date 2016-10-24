@@ -45,7 +45,8 @@ describe("Given a ProjectionEngine", () => {
         snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
-        runner = new ProjectionRunner<MockModel>("test", new MockStreamFactory(dataSubject), new Matcher(projection.definition), new MockReadModelFactory(), new MockStreamFactory());
+        runner = new ProjectionRunner<MockModel>("test", new MockStreamFactory(dataSubject), new Matcher(projection.definition),
+            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()));
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
