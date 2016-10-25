@@ -6,7 +6,7 @@ import {Event} from "./Event";
 
 @injectable()
 class CassandraDeserializer implements ICassandraDeserializer {
-    toEvent(row: any): Event {
+    toEvent(row):Event {
         let parsedEvent = JSON.parse(row["system.blobastext(event)"]);
 
         if (this.isNewEventType(parsedEvent)) {
@@ -26,7 +26,7 @@ class CassandraDeserializer implements ICassandraDeserializer {
         };
     }
 
-    private isNewEventType(event: any): boolean {
+    private isNewEventType(event):boolean {
         return (event.payload && event.payload.$manifest);
     }
 }

@@ -36,7 +36,7 @@ declare module prettygoat {
     }
 
     export interface IProjectionDefinition<T> {
-        define():IProjection<T>;
+        define(tickScheduler?:ITickScheduler):IProjection<T>;
     }
 
     export interface IMatcher {
@@ -54,11 +54,11 @@ declare module prettygoat {
     }
 
     export interface IStreamFactory {
-        from(lastEvent:string):Observable<Event>;
+        from(lastEvent:Date):Observable<Event>;
     }
 
     interface ICassandraDeserializer {
-        toEvent(row:any):Event;
+        toEvent(row):Event;
     }
 
     export class Snapshot<T> {
@@ -160,7 +160,7 @@ declare module prettygoat {
         path:string;
     }
 
-    class Event {
+    export class Event {
         type:string;
         payload:any;
         timestamp:string;
@@ -230,6 +230,17 @@ declare module prettygoat {
         error(error:string|Error);
 
         setLogLevel(level:LogLevel);
+    }
+
+    export interface ITickScheduler extends IStreamFactory {
+        schedule(dueTime:number | Date, state?:string, splitKey?:string);
+    }
+
+    export class Tick {
+        state:string;
+        clock:Date | number;
+
+        constructor(clock:Date, state?:string);
     }
 }
 
