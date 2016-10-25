@@ -160,7 +160,7 @@ declare module prettygoat {
         path:string;
     }
 
-    export class Event {
+    export interface Event {
         type:string;
         payload:any;
         timestamp:string;
