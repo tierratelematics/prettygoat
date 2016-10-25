@@ -9,8 +9,8 @@ export interface IWhen<T extends Object> {
 }
 
 export interface ISplit {
-    $default?:(e:Object) => string;
-    [name:string]:(e:Object) => string;
+    $default?:(e:Object, event?:Event) => string;
+    [name:string]:(e:Object, event?:Event) => string;
 }
 
 export interface IProjection<T> {

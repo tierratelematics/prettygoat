@@ -8,13 +8,16 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
+import ReservedEvents from "../streams/ReservedEvents";
+import Tick from "../ticks/Tick";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private subscription:Rx.IDisposable;
+    private subscription:Rx.CompositeDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
+    private realtime = false;
 
     constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
@@ -32,20 +35,25 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
+        this.subscription = new Rx.CompositeDisposable();
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
+
+        let scheduler = new Rx.HistoricalScheduler(0, Rx.helpers.defaultSubComparer);
+        let combinedStream = new Rx.Subject<Event>();
 
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
             .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
-        this.subscription = eventsStream.subscribe(event => {
+        this.subscription.add(combinedStream.subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
-                    splitKey = splitFn(event.payload),
+                    splitKey = splitFn(event.payload, event),
                     matchFn = this.matcher.match(event.type);
                 if (matchFn !== Rx.helpers.identity) {
                     if (splitFn !== Rx.helpers.identity) {
+                        event.splitKey = splitKey;
                         let childState = this.state[splitKey];
                         if (_.isUndefined(childState))
                             this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
@@ -61,7 +69,36 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-        });
+        }));
+
+        this.subscription.add(this.tickScheduler.from(null).subscribe(event => {
+            if (this.realtime) {
+                Rx.Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combinedStream.onNext(event));
+            } else {
+                scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
+                    combinedStream.onNext(event);
+                    return Rx.Disposable.empty;
+                });
+            }
+        }));
+
+        this.subscription.add(eventsStream.subscribe(event => {
+            if (event.type === ReservedEvents.REALTIME)
+                this.realtime = true;
+            if (this.realtime) {
+                combinedStream.onNext(event);
+            } else {
+                try {
+                    scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                        combinedStream.onNext(event);
+                        return Rx.Disposable.empty;
+                    });
+                    scheduler.advanceTo(+event.timestamp);
+                } catch (error) {
+                    combinedStream.onNext(event);
+                }
+            }
+        }));
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {

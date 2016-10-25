@@ -49,7 +49,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     payload: {
                         count2: 2000
                     },
-                    timestamp: null, splitKey: null
+                    timestamp: new Date(1), splitKey: null
                 });
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10a": 2000,
@@ -76,21 +76,21 @@ describe("Split projection, given a projection with a split definition", () => {
                     count: 20,
                     id: "10"
                 },
-                timestamp: null, splitKey: null
+                timestamp: new Date(10), splitKey: null
             });
         });
 
         context("and the event is not defined", () => {
             it("should continue replaying the stream", () => {
                 subject.run();
-                streamData.onNext({type: "invalid", payload: 10, timestamp: null, splitKey: null});
+                streamData.onNext({type: "invalid", payload: 10, timestamp: new Date(20), splitKey: null});
                 streamData.onNext({
                     type: "TestEvent",
                     payload: {
                         count: 50,
                         id: "10"
                     },
-                    timestamp: null, splitKey: null
+                    timestamp: new Date(30), splitKey: null
                 });
                 expect(subject.state["10"]).to.be(80);
             });
@@ -105,7 +105,7 @@ describe("Split projection, given a projection with a split definition", () => {
                         count: 50,
                         id: "10"
                     },
-                    timestamp: null, splitKey: null
+                    timestamp: new Date(30), splitKey: null
                 });
             });
 
@@ -128,7 +128,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     payload: {
                         count2: 2000
                     },
-                    timestamp: null, splitKey: null
+                    timestamp: new Date(30), splitKey: null
                 });
             });
             it("should initialize the new projection by pushing all the generated read models", () => {
@@ -145,7 +145,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     payload: {
                         count2: 5000
                     },
-                    timestamp: null, splitKey: null
+                    timestamp: new Date(30), splitKey: null
                 });
             });
 
@@ -168,7 +168,7 @@ describe("Split projection, given a projection with a split definition", () => {
                 });
 
                 it("should filter it", () => {
-                    streamData.onNext({type: "split", payload: 10, timestamp: null, splitKey: null});
+                    streamData.onNext({type: "split", payload: 10, timestamp: new Date(50), splitKey: null});
                     expect(subject.state["10"]).to.be(5030);
                 });
             });

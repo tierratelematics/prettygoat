@@ -16,13 +16,13 @@ class TickScheduler implements ITickScheduler {
 
     }
 
-    schedule(dueTime:number|Date, state?:string) {
+    schedule(dueTime:number|Date, state?:string, splitKey?:string) {
         let dueDate = dueTime instanceof Date ? dueTime : this.calculateDueDate(<number>dueTime);
         this.subject.onNext({
             type: ReservedEvents.TICK,
             payload: new Tick(dueDate, state),
             timestamp: dueDate,
-            splitKey: null
+            splitKey: splitKey
         });
     }
 

@@ -37,7 +37,8 @@ class TickProjectionDefinition implements IProjectionDefinition<Tick> {
                 }
             },
             split: {
-                SplitTrigger: (event:{id:string}) => event.id
+                SplitTrigger: (event:{id:string}) => event.id,
+                Tick: (payload, event) => event.splitKey
             }
         };
     }
