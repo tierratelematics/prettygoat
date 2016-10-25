@@ -20,8 +20,8 @@ declare module prettygoat {
 
     export interface IWhen<T extends Object> {
         $init?:() => T;
-        $any?:(s:T, payload:Object, event?:IEvent) => T;
-        [name:string]:(s:T, payload:Object, event?:IEvent) => T;
+        $any?:(s:T, payload:Object, event?:Event) => T;
+        [name:string]:(s:T, payload:Object, event?:Event) => T;
     }
 
     export interface IProjectionRunner<T> extends IDisposable {
@@ -165,12 +165,6 @@ declare module prettygoat {
         payload:any;
         timestamp:string;
         splitKey:string;
-    }
-
-    export interface IEvent {
-        type:string;
-        payload:any;
-        timestamp?:string;
     }
 
     export interface ISnapshotStrategy {

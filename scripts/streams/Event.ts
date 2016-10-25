@@ -1,10 +1,4 @@
-export interface IEvent {
-    type:string;
-    payload:any;
-    timestamp?:Date;
-}
-
-export class Event implements IEvent {
+export class Event {
     type:string;
     payload:any;
     timestamp:Date;

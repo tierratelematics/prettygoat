@@ -1,11 +1,11 @@
 import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
 import IFilterStrategy from "../filters/IFilterStrategy";
-import {IEvent} from "../streams/Event";
+import {Event} from "../streams/Event";
 
 export interface IWhen<T extends Object> {
     $init?:() => T;
-    $any?:(s:T, payload:Object, event?:IEvent) => T;
-    [name:string]:(s:T, payload:Object, event?:IEvent) => T;
+    $any?:(s:T, payload:Object, event?:Event) => T;
+    [name:string]:(s:T, payload:Object, event?:Event) => T;
 }
 
 export interface ISplit {
