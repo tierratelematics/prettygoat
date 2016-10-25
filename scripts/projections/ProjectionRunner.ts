@@ -38,7 +38,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = new Rx.CompositeDisposable();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.publishReadModel(new Date(0));
+        this.publishReadModel(new Date(1));
 
         let scheduler = new Rx.HistoricalScheduler(0, Rx.helpers.defaultSubComparer);
         let combinedStream = new Rx.Subject<Event>();

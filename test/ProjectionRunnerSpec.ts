@@ -140,7 +140,7 @@ describe("Given a ProjectionRunner", () => {
                 readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
                     type: "test",
                     payload: 42,
-                    timestamp: new Date(0),
+                    timestamp: new Date(1),
                     splitKey: null
                 })), TypeMoq.Times.atLeastOnce());
             });
