@@ -35,7 +35,7 @@ describe("Split projection, given a projection with a split definition", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection.name, stream.object, new Matcher(projection.definition),
-            new Matcher(projection.split), readModelFactory.object);
+            new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()));
         subscription = subject.notifications().subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 

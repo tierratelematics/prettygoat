@@ -17,7 +17,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private subject:Rx.Subject<Event>;
 
     constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
-                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory) {
+                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
         this.subject = new Rx.Subject<Event>();
     }
 

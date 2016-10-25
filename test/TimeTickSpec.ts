@@ -14,6 +14,8 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import Tick from "../scripts/ticks/Tick";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
+import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -27,13 +29,16 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         tickScheduler = new TickScheduler(new MockDateRetriever(new Date(0)));
         projection = new TickProjectionDefinition().define(tickScheduler);
         streamData = new Subject<Event>();
-        let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition),
-            new MockReadModelFactory(), tickScheduler);
-        projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
-        projectionRunner.run();
     });
 
     context("when a new tick is scheduled", () => {
+        beforeEach(() => {
+            let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition),
+                new MockReadModelFactory(), tickScheduler);
+            projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
+            projectionRunner.run();
+        });
+
         context("and the projection is still fetching historical events", () => {
             it("should schedule the tick after the other events", () => {
                 streamData.onNext({
@@ -112,6 +117,33 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
                     done();
                 }, 200);
             });
+        });
+    });
+
+    context("when a tick is scheduled for a split projection", () => {
+        let projectionRunner:IProjectionRunner<Tick>;
+        beforeEach(() => {
+            projectionRunner = new SplitProjectionRunner<Tick>("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition),
+                new Matcher(projection.split), new MockReadModelFactory(), tickScheduler);
+            projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
+            projectionRunner.run();
+        });
+
+        it("should dispatch the ticks to right projections", () => {
+            streamData.onNext({
+                type: "SplitTrigger", payload: {id: "20"}, timestamp: new Date(50), splitKey: null
+            });
+            streamData.onNext({
+                type: "SplitTrigger", payload: {id: "40"}, timestamp: new Date(60), splitKey: null
+            });
+            streamData.onNext({
+                type: "SplitTrigger", payload: {id: "20"}, timestamp: new Date(180), splitKey: null
+            });
+            streamData.onNext({
+                type: "SplitTrigger", payload: {id: "foo"}, timestamp: new Date(300), splitKey: null
+            });
+            expect(projectionRunner.state["20"].clock).to.eql(new Date(200));
+            expect(projectionRunner.state["40"].clock).to.eql(new Date(100));
         });
     });
 });
