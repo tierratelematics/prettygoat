@@ -30,7 +30,7 @@ class TickProjectionDefinition implements IProjectionDefinition<Tick> {
                         tickScheduler.schedule(moment(event.clock).add(100, 'milliseconds').toDate());
                     return event;
                 },
-                OtherEvent: (state, event, completeEvent) => new Tick(completeEvent.timestamp),
+                OtherEvent: (state, event, completeEvent) => new Tick(completeEvent.timestamp || new Date(0)),
                 SplitTrigger: (state:Tick, payload, event) => {
                     tickScheduler.schedule(moment(state.clock).add(100, 'milliseconds').toDate(), null, event.splitKey);
                     return new Tick(event.timestamp);

@@ -76,18 +76,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription.add(eventsStream.subscribe(event => {
             if (event.type === ReservedEvents.REALTIME)
                 this.realtime = true;
-            if (this.realtime) {
+            if (this.realtime || !event.timestamp) {
                 combinedStream.onNext(event);
             } else {
-                try {
-                    scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
-                        combinedStream.onNext(event);
-                        return Rx.Disposable.empty;
-                    });
-                    scheduler.advanceTo(+event.timestamp);
-                } catch (error) {
+                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
                     combinedStream.onNext(event);
-                }
+                    return Rx.Disposable.empty;
+                });
+                scheduler.advanceTo(+event.timestamp);
             }
         }));
     }
@@ -108,9 +104,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private publishReadModel(timestamp:Date) {
-        let readModel = {payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null};
-        this.subject.onNext(readModel);
-        this.readModelFactory.publish(readModel);
+        this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
+        this.readModelFactory.publish({payload: this.state, type: this.streamId, timestamp: null, splitKey: null});
     }
 }
 
