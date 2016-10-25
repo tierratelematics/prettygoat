@@ -96,6 +96,24 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             });
         });
 
+        context("when the projection is going real time", () => {
+            it("should flush the buffer of ticks", () => {
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(50), splitKey: null
+                });
+                streamData.onNext({
+                    type: "TickTrigger", payload: null, timestamp: new Date(60), splitKey: null
+                });
+                streamData.onNext({
+                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110), splitKey: null
+                });
+                expect(notifications[0].clock).to.eql(new Date(0));
+                expect(notifications[1].clock).to.eql(new Date(50));
+                expect(notifications[2].clock).to.eql(new Date(50));
+                expect(notifications[3].clock).to.eql(new Date(150));
+            });
+        });
+
         context("and the projection is fetching  real time events", () => {
             it("should schedule the tick in the future", (done) => {
                 streamData.onNext({
