@@ -16,7 +16,7 @@ class MockReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
-    from(lastEvent:string):Rx.Observable<Event> {
+    from(lastEvent:Date):Rx.Observable<Event> {
         return this.subject;
     }
 }

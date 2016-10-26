@@ -27,7 +27,7 @@ class PushNotifier implements IPushNotifier {
             parametersKey = entry.data.parametersKey,
             isSplit = entry.data.projection.split;
         if (clientId) {
-            if (!_.isEmpty(context.parameters)) {
+            if (isSplit) {
                 this.emitToClient(clientId, context, parametersKey(context.parameters));
             } else {
                 this.emitToClient(clientId, context);

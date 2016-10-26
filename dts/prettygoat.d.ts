@@ -10,24 +10,25 @@ declare module prettygoat {
         split?:ISplit;
         definition:IWhen<T>;
         snapshotStrategy?:ISnapshotStrategy;
-        filterStrategy?: IFilterStrategy<T>;
+        filterStrategy?:IFilterStrategy<T>;
     }
 
     export interface ISplit {
-        $default?:(e:Object) => string;
-        [name:string]:(e:Object) => string;
+        $default?:(e:Object, event?:Event) => string;
+        [name:string]:(e:Object, event?:Event) => string;
     }
 
     export interface IWhen<T extends Object> {
         $init?:() => T;
-        $any?:(s:T, payload:Object, event?:IEvent) => T;
-        [name:string]:(s:T, payload:Object, event?:IEvent) => T;
+        $any?:(s:T, payload:Object, event?:Event) => T;
+        [name:string]:(s:T, payload:Object, event?:Event) => T;
     }
 
-    export interface IProjectionRunner<T> extends IObservable<Event>, IDisposable {
+    export interface IProjectionRunner<T> extends IDisposable {
         state:T|Dictionary<T>;
         run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
+        notifications:Observable<Event>;
     }
 
     export interface IProjectionRunnerFactory {
@@ -35,7 +36,7 @@ declare module prettygoat {
     }
 
     export interface IProjectionDefinition<T> {
-        define():IProjection<T>;
+        define(tickScheduler?:ITickScheduler):IProjection<T>;
     }
 
     export interface IMatcher {
@@ -53,11 +54,11 @@ declare module prettygoat {
     }
 
     export interface IStreamFactory {
-        from(lastEvent:string):Observable<Event>;
+        from(lastEvent:Date):Observable<Event>;
     }
 
     interface ICassandraDeserializer {
-        toEvent(row:any):Event;
+        toEvent(row):Event;
     }
 
     export class Snapshot<T> {
@@ -147,7 +148,7 @@ declare module prettygoat {
     export interface ICassandraConfig {
         hosts:string[];
         keyspace:string;
-        readTimeout?: number;
+        readTimeout?:number;
         fetchSize?:number;
     }
 
@@ -159,17 +160,11 @@ declare module prettygoat {
         path:string;
     }
 
-    class Event {
+    export interface Event {
         type:string;
         payload:any;
         timestamp:string;
         splitKey:string;
-    }
-
-    export interface IEvent {
-        type:string;
-        payload:any;
-        timestamp?:string;
     }
 
     export interface ISnapshotStrategy {
@@ -191,18 +186,61 @@ declare module prettygoat {
     }
 
     export interface IFilterStrategy<T> {
-        filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
+        filter(state:T, context:IFilterContext):{filteredState:T, type:FilterOutputType};
     }
 
     export interface IFilterContext {
-        headers: { [key: string]: string };
-        params: { [key: string]: string };
+        headers:{ [key:string]:string };
+        params:{ [key:string]:string };
     }
 
     export enum FilterOutputType {
         CONTENT,
         UNAUTHORIZED,
         FORBIDDEN
+    }
+
+    export enum LogLevel {
+        Debug,
+        Info,
+        Warning,
+        Error
+    }
+
+    export interface ILogger {
+        debug(message:string);
+
+        info(message:string);
+
+        warning(message:string);
+
+        error(error:string|Error);
+
+        setLogLevel(level:LogLevel);
+    }
+
+    export class ConsoleLogger implements ILogger {
+
+        debug(message:string);
+
+        info(message:string);
+
+        warning(message:string);
+
+        error(error:string|Error);
+
+        setLogLevel(level:LogLevel);
+    }
+
+    export interface ITickScheduler extends IStreamFactory {
+        schedule(dueTime:number | Date, state?:string, splitKey?:string);
+    }
+
+    export class Tick {
+        state:string;
+        clock:Date | number;
+
+        constructor(clock:Date, state?:string);
     }
 }
 

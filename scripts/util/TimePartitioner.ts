@@ -10,10 +10,9 @@ class TimePartitioner {
     }
 
     bucketsFrom(date:Date):string[] {
-        let now = moment(this.dateRetriever.getDate()),
-            buckets:string[] = [];
+        let buckets:string[] = [];
 
-        while (now.toDate() >= date) {
+        while (this.dateRetriever.getDate() >= date) {
             buckets.push(moment(date).format("YYYYMMDD"));
             date = moment(date).add(1, 'days').hour(0).second(0).minute(0).toDate();
         }

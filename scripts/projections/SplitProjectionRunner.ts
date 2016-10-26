@@ -8,17 +8,24 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
+import ReservedEvents from "../streams/ReservedEvents";
+import Tick from "../ticks/Tick";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private subscription:Rx.IDisposable;
+    private subscription:Rx.CompositeDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
+    private realtime = false;
 
     constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
-                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory) {
+                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
         this.subject = new Rx.Subject<Event>();
+    }
+
+    notifications() {
+        return this.subject;
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -28,20 +35,25 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
+        this.subscription = new Rx.CompositeDisposable();
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
+
+        let scheduler = new Rx.HistoricalScheduler(0, Rx.helpers.defaultSubComparer);
+        let combinedStream = new Rx.Subject<Event>();
 
         let eventsStream = this.stream
             .from(snapshot ? snapshot.lastEvent : null)
             .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId);
+            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
 
-        this.subscription = eventsStream.subscribe(event => {
+        this.subscription.add(combinedStream.subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
-                    splitKey = splitFn(event.payload),
+                    splitKey = splitFn(event.payload, event),
                     matchFn = this.matcher.match(event.type);
                 if (matchFn !== Rx.helpers.identity) {
                     if (splitFn !== Rx.helpers.identity) {
+                        event.splitKey = splitKey;
                         let childState = this.state[splitKey];
                         if (_.isUndefined(childState))
                             this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
@@ -57,7 +69,36 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-        });
+        }));
+
+        this.subscription.add(this.tickScheduler.from(null).subscribe(event => {
+            if (this.realtime) {
+                Rx.Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combinedStream.onNext(event));
+            } else {
+                scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
+                    combinedStream.onNext(event);
+                    return Rx.Disposable.empty;
+                });
+            }
+        }));
+
+        this.subscription.add(eventsStream.subscribe(event => {
+            if (event.type === ReservedEvents.REALTIME) {
+                if (!this.realtime)
+                    scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
+                this.realtime = true;
+                return;
+            }
+            if (this.realtime || !event.timestamp) {
+                combinedStream.onNext(event);
+            } else {
+                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                    combinedStream.onNext(event);
+                    return Rx.Disposable.empty;
+                });
+                scheduler.advanceTo(+event.timestamp);
+            }
+        }));
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {
@@ -79,7 +120,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         });
     }
 
-    private notifyStateChange(splitKey:string, timestamp:string) {
+    private notifyStateChange(splitKey:string, timestamp:Date) {
         this.subject.onNext({
             type: this.streamId,
             payload: this.state[splitKey],
@@ -102,19 +143,5 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
-
-    subscribe(observer:Rx.IObserver<Event>):Rx.IDisposable
-    subscribe(onNext?:(value:Event) => void, onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable
-    subscribe(observerOrOnNext?:(Rx.IObserver<Event>) | ((value:Event) => void), onError?:(exception:any) => void, onCompleted?:() => void):Rx.IDisposable {
-        if (isObserver(observerOrOnNext))
-            return this.subject.subscribe(observerOrOnNext);
-        else
-            return this.subject.subscribe(observerOrOnNext, onError, onCompleted);
-    }
 }
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
-}
-
 export default SplitProjectionRunner

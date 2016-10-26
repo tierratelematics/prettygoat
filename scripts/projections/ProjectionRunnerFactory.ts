@@ -8,22 +8,30 @@ import {Matcher} from "../matcher/Matcher";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import SplitProjectionRunner from "./SplitProjectionRunner";
 import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
+import Dictionary from "../Dictionary";
+import ITickScheduler from "../ticks/ITickScheduler";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     constructor(@inject("IStreamFactory") private streamFactory:IStreamFactory,
-                @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory) {
+                @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
+                @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
+                @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>) {
 
     }
 
     create<T>(projection:IProjection<T>):IProjectionRunner<T> {
         let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
+        let projectionRunner:IProjectionRunner<T>;
         if (!projection.split)
-            return new ProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher, this.aggregateFactory);
+            projectionRunner = new ProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher, this.aggregateFactory,
+                this.tickSchedulerHolder[projection.name]);
         else
-            return new SplitProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection.split)), this.aggregateFactory);
+            projectionRunner = new SplitProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher,
+                new MemoizingMatcher(new Matcher(projection.split)), this.aggregateFactory, this.tickSchedulerHolder[projection.name]);
+        this.holder[projection.name] = projectionRunner;
+        return projectionRunner;
     }
 
 }

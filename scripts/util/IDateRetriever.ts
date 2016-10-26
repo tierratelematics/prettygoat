@@ -1,5 +1,5 @@
 interface IDateRetriever {
-    getDate():string;
+    getDate():Date;
 }
 
 export default IDateRetriever
