@@ -16,14 +16,14 @@ describe("EventsFilter, given a projection definition", () => {
                 $init: () => null,
                 TestEvent: (s, e) => e,
                 SecondEvent: (s, e) => e
-            })).to.be(["TestEvent", "SecondEvent"]);
+            })).to.eql(["TestEvent", "SecondEvent"]);
         });
         context("but the projection has an $any matcher", () => {
             it("should return all the events", () => {
                 expect(eventsFilter.filter({
                     $init: () => null,
                     $any: (s, e) => e
-                })).to.be([]);
+                })).to.eql([]);
             });
         });
     });
