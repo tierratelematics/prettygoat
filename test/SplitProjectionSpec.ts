@@ -12,6 +12,7 @@ import {Matcher} from "../scripts/matcher/Matcher";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../scripts/Dictionary";
+import EventsFilter from "../scripts/streams/EventsFilter";
 
 describe("Split projection, given a projection with a split definition", () => {
 
@@ -35,7 +36,7 @@ describe("Split projection, given a projection with a split definition", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
-            new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()));
+            new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()), new EventsFilter());
         subscription = subject.notifications().subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 

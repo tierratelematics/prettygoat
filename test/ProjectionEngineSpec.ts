@@ -11,7 +11,6 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
@@ -28,6 +27,7 @@ import {IProjection} from "../scripts/projections/IProjection";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/matcher/Matcher";
+import EventsFilter from "../scripts/streams/EventsFilter";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -46,7 +46,7 @@ describe("Given a ProjectionEngine", () => {
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
-            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()));
+            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new EventsFilter());
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
