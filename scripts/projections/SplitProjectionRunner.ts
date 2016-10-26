@@ -9,17 +9,20 @@ import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
+import {IProjection} from "./IProjection";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
+    private streamId:string;
     public state:Dictionary<T> = {};
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
 
-    constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
         this.subject = new Rx.Subject<Event>();
+        this.streamId = projection.name;
     }
 
     notifications() {
