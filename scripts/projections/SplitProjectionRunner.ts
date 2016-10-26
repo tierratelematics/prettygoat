@@ -83,9 +83,11 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         }));
 
         this.subscription.add(eventsStream.subscribe(event => {
-            if (event.type === ReservedEvents.REALTIME && !this.realtime) {
+            if (event.type === ReservedEvents.REALTIME) {
+                if (!this.realtime)
+                    scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
                 this.realtime = true;
-                scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
+                return;
             }
             if (this.realtime || !event.timestamp) {
                 combinedStream.onNext(event);
