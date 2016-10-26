@@ -32,7 +32,7 @@ describe("Given a ProjectionRunner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object);
+        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()));
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });
@@ -44,7 +44,7 @@ describe("Given a ProjectionRunner", () => {
             stream.setup(s => s.from(TypeMoq.It.isAny())).returns(_ => Observable.just({
                 type: null,
                 payload: null,
-                timestamp: null,
+                timestamp: new Date(),
                 splitKey: null
             }));
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
@@ -52,14 +52,14 @@ describe("Given a ProjectionRunner", () => {
 
         context("if a snapshot is present", () => {
             beforeEach(() => {
-                subject.run(new Snapshot(56, "2789279"));
+                subject.run(new Snapshot(56, new Date(5000)));
             });
 
             it("should create an initial state based on snapshot memento", () => {
                 expect(subject.state).to.be(56);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from("2789279"), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000))), TypeMoq.Times.once());
             });
         });
 
@@ -102,7 +102,7 @@ describe("Given a ProjectionRunner", () => {
             stream.setup(s => s.from(null)).returns(_ => Observable.just({
                 type: "__diagnostic:Size",
                 payload: 1,
-                timestamp: null,
+                timestamp: new Date(),
                 splitKey: null
             }).observeOn(Rx.Scheduler.immediate));
             subject.run();
@@ -111,9 +111,10 @@ describe("Given a ProjectionRunner", () => {
 
         context("and no error occurs", () => {
             beforeEach(() => {
+                let date = new Date();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
                 stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment", payload: n, timestamp: null, splitKey: null};
+                    return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
                 subject.run();
             });
@@ -139,7 +140,7 @@ describe("Given a ProjectionRunner", () => {
                 readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
                     type: "test",
                     payload: 42,
-                    timestamp: "",
+                    timestamp: null,
                     splitKey: null
                 })), TypeMoq.Times.atLeastOnce());
             });
@@ -148,8 +149,9 @@ describe("Given a ProjectionRunner", () => {
 
         context("and no match is found for this event", () => {
             beforeEach(() => {
+                let date = new Date();
                 stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment" + n, payload: n, timestamp: null, splitKey: null};
+                    return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s:number, e:any) => s + e);
@@ -174,7 +176,7 @@ describe("Given a ProjectionRunner", () => {
                     throw new Error("Kaboom!");
                 });
                 stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment", payload: n, timestamp: null, splitKey: null};
+                    return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
             });
             it("should notify an error", () => {
@@ -201,17 +203,18 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
+            let date = new Date();
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
             stream.setup(s => s.from(null)).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({type: "increment", payload: 1});
-            streamSubject.onNext({type: "increment", payload: 2});
-            streamSubject.onNext({type: "increment", payload: 3});
-            streamSubject.onNext({type: "increment", payload: 4});
+            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(+date + 1)});
+            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(+date + 2)});
+            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
+            streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(+date + 4)});
             subject.stop();
-            streamSubject.onNext({type: "increment", payload: 5});
+            streamSubject.onNext({type: "increment", payload: 5, timestamp: new Date(+date + 5)});
         });
         it("should not process any more events", () => {
             expect(notifications).to.eql([

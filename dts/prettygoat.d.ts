@@ -14,14 +14,14 @@ declare module prettygoat {
     }
 
     export interface ISplit {
-        $default?:(e:Object) => string;
-        [name:string]:(e:Object) => string;
+        $default?:(e:Object, event?:Event) => string;
+        [name:string]:(e:Object, event?:Event) => string;
     }
 
     export interface IWhen<T extends Object> {
         $init?:() => T;
-        $any?:(s:T, payload:Object, event?:IEvent) => T;
-        [name:string]:(s:T, payload:Object, event?:IEvent) => T;
+        $any?:(s:T, payload:Object, event?:Event) => T;
+        [name:string]:(s:T, payload:Object, event?:Event) => T;
     }
 
     export interface IProjectionRunner<T> extends IDisposable {
@@ -36,7 +36,7 @@ declare module prettygoat {
     }
 
     export interface IProjectionDefinition<T> {
-        define():IProjection<T>;
+        define(tickScheduler?:ITickScheduler):IProjection<T>;
     }
 
     export interface IMatcher {
@@ -54,11 +54,11 @@ declare module prettygoat {
     }
 
     export interface IStreamFactory {
-        from(lastEvent:string):Observable<Event>;
+        from(lastEvent:Date):Observable<Event>;
     }
 
     interface ICassandraDeserializer {
-        toEvent(row:any):Event;
+        toEvent(row):Event;
     }
 
     export class Snapshot<T> {
@@ -160,17 +160,11 @@ declare module prettygoat {
         path:string;
     }
 
-    class Event {
+    export interface Event {
         type:string;
         payload:any;
         timestamp:string;
         splitKey:string;
-    }
-
-    export interface IEvent {
-        type:string;
-        payload:any;
-        timestamp?:string;
     }
 
     export interface ISnapshotStrategy {
@@ -236,6 +230,17 @@ declare module prettygoat {
         error(error:string|Error);
 
         setLogLevel(level:LogLevel);
+    }
+
+    export interface ITickScheduler extends IStreamFactory {
+        schedule(dueTime:number | Date, state?:string, splitKey?:string);
+    }
+
+    export class Tick {
+        state:string;
+        clock:Date | number;
+
+        constructor(clock:Date, state?:string);
     }
 }
 

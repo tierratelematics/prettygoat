@@ -14,7 +14,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
 
-    constructor(@inject("ProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
 
     }
 

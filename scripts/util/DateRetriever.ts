@@ -4,8 +4,8 @@ import {injectable} from "inversify";
 @injectable()
 class DateRetriever implements IDateRetriever {
 
-    getDate():string {
-        return new Date().toISOString();
+    getDate():Date {
+        return new Date();
     }
 
 }

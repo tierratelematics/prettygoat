@@ -42,6 +42,8 @@ import Dictionary from "../Dictionary";
 import SizeProjectionDefinition from "../diagnostic/SizeProjectionDefinition";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
+import ITickScheduler from "../ticks/ITickScheduler";
+import TickScheduler from "../ticks/TickScheduler";
 
 class PrettyGoatModule implements IModule {
 
@@ -68,8 +70,11 @@ class PrettyGoatModule implements IModule {
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
         kernel.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
         kernel.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
-        kernel.bind<Dictionary<IProjectionRunner<any>>>("ProjectionRunnerHolder").toConstantValue({});
+        kernel.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
+        kernel.bind<Dictionary<ITickScheduler>>("ITickSchedulerHolder").toConstantValue({});
         kernel.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
+        kernel.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
+        kernel.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

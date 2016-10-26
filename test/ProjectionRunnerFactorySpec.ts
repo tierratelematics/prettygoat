@@ -18,15 +18,10 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
 
     beforeEach(() => {
         holder = {};
-        subject = new ProjectionRunnerFactory(null, null, holder);
+        subject = new ProjectionRunnerFactory(null, null, holder, {});
     });
 
     context("when all the required properties are defined", () => {
-        it("should return a constructed projection", () => {
-            let projectionRunner = subject.create(new MockProjectionDefinition().define());
-            expect((<any>projectionRunner).streamId).to.eql("test");
-        });
-
         it("should save the projection runner into the projections runner holder", () => {
             let projectionRunner = subject.create(new MockProjectionDefinition().define());
             expect(holder["test"]).to.be(projectionRunner);

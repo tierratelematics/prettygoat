@@ -1,7 +1,7 @@
 import {Event} from "./Event";
 
 interface ICassandraDeserializer {
-    toEvent(row:any):Event;
+    toEvent(row):Event;
 }
 
 export default ICassandraDeserializer;

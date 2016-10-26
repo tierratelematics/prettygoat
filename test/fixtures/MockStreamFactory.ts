@@ -8,7 +8,7 @@ export class MockStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:string):Observable<Event> {
+    from(lastEvent:Date):Observable<Event> {
         return this.observable;
     }
 }

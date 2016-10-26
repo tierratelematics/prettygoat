@@ -6,8 +6,8 @@ class MockDateRetriever implements IDateRetriever {
 
     }
 
-    getDate():string {
-        return this.date.toISOString();
+    getDate():Date {
+        return this.date;
     }
 
 }

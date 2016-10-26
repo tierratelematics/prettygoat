@@ -31,7 +31,7 @@ describe("CassandraDeserializer, given an event", () => {
                     "customProperty_1": "payload.customProperty_1",
                     "customProperty_2": "payload.customProperty_2"
                 },
-                "timestamp": "2016-07-11T14:17:01.359Z",
+                "timestamp": new Date("2016-07-11T14:17:01.359Z"),
                 "splitKey": null
             });
         });

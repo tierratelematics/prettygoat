@@ -17,8 +17,8 @@ class TimeSnapshotStrategy implements ISnapshotStrategy {
         return needsSnapshot;
     }
 
-    private toUnixTimestamp(data:string):number {
-        return Math.round(parseInt(data) / 1000);
+    private toUnixTimestamp(date:Date):number {
+        return Math.round(+date / 1000);
     }
 
     saveThreshold(ms:number) {
