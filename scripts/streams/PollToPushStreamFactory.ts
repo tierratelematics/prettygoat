@@ -12,13 +12,13 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:Date):Rx.Observable<Event> {
+    from(lastEvent:Date, events?:string[]):Rx.Observable<Event> {
         return this.streamFactory
-            .from(lastEvent)
+            .from(lastEvent, events)
             .concat(
                 Rx.Observable
                     .interval(this.config.interval || 30000)
-                    .flatMap(_ => this.streamFactory.from(lastEvent)))
+                    .flatMap(_ => this.streamFactory.from(lastEvent, events)))
             .do(event => {
                 if (event.timestamp)
                     lastEvent = event.timestamp

@@ -28,6 +28,7 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/matcher/Matcher";
 import EventsFilter from "../scripts/streams/EventsFilter";
+import MockEventsFilter from "./fixtures/MockEventsFilter";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -46,7 +47,7 @@ describe("Given a ProjectionEngine", () => {
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
-            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new EventsFilter());
+            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockEventsFilter());
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);

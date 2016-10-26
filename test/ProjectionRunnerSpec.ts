@@ -14,7 +14,7 @@ import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import EventsFilter from "../scripts/streams/EventsFilter";
+import MockEventsFilter from "./fixtures/MockEventsFilter";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -36,7 +36,7 @@ describe("Given a ProjectionRunner", () => {
         subject = new ProjectionRunner<number>({
             name: "test",
             definition: {}
-        }, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()), new EventsFilter());
+        }, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()), new MockEventsFilter());
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });
@@ -45,7 +45,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(TypeMoq.It.isAny())).returns(_ => Observable.just({
+            stream.setup(s => s.from(TypeMoq.It.isAny(), null)).returns(_ => Observable.just({
                 type: null,
                 payload: null,
                 timestamp: new Date(),
@@ -63,7 +63,7 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.state).to.be(56);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000))), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), null), TypeMoq.Times.once());
             });
         });
 
@@ -76,7 +76,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.verify(m => m.match(SpecialNames.Init), TypeMoq.Times.once());
             });
             it("should subscribe to the event stream starting from the stream's beginning", () => {
-                stream.verify(s => s.from(null), TypeMoq.Times.once());
+                stream.verify(s => s.from(null, null), TypeMoq.Times.once());
             });
 
             it("should subscribe to the aggregates stream to build linked projections", () => {
@@ -103,7 +103,7 @@ describe("Given a ProjectionRunner", () => {
 
         it("it should filter out diagnostic events", () => {
             matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s:number, e:any) => s + e);
-            stream.setup(s => s.from(null)).returns(_ => Observable.just({
+            stream.setup(s => s.from(null, null)).returns(_ => Observable.just({
                 type: "__diagnostic:Size",
                 payload: 1,
                 timestamp: new Date(),
@@ -117,7 +117,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 let date = new Date();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
-                stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, null)).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
                 subject.run();
@@ -154,7 +154,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no match is found for this event", () => {
             beforeEach(() => {
                 let date = new Date();
-                stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, null)).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
@@ -179,7 +179,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => {
                     throw new Error("Kaboom!");
                 });
-                stream.setup(s => s.from(null)).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, null)).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
             });
@@ -194,7 +194,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 matcher.setup(m => m.match("test")).returns(streamId => (s:number, e:any) => s + e);
                 readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
-                stream.setup(s => s.from(null)).returns(_ => Observable.empty<Event>());
+                stream.setup(s => s.from(null, null)).returns(_ => Observable.empty<Event>());
                 subject.run();
             });
 
@@ -211,7 +211,7 @@ describe("Given a ProjectionRunner", () => {
             let date = new Date();
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
-            stream.setup(s => s.from(null)).returns(_ => streamSubject);
+            stream.setup(s => s.from(null, null)).returns(_ => streamSubject);
 
             subject.run();
             streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(+date + 1)});

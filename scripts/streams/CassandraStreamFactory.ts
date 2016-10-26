@@ -21,11 +21,12 @@ class CassandraStreamFactory implements IStreamFactory {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:Date):Rx.Observable<Event> {
+    from(lastEvent:Date, events?:string[]):Rx.Observable<Event> {
         return Rx.Observable.create<Event>(observer => {
             Promise.resolve()
                 .then(() => this.getBuckets(lastEvent))
                 .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
+                .then(query => this.filterQuery(query, events))
                 .then(query => {
                     let deserializer = this.deserializer;
                     this.client.stream(query)
@@ -71,6 +72,12 @@ class CassandraStreamFactory implements IStreamFactory {
             query += ` AND timestamp > maxTimeUuid('${timestamp}')`;
         }
         return query;
+    }
+
+    private filterQuery(query:string, events:string[]):string {
+        if (!events.length) return query;
+        let eventsString = events.join("', '");
+        return query + ` WHERE eventtype IN ('${eventsString}') ALLOW FILTERING`;
     }
 }
 

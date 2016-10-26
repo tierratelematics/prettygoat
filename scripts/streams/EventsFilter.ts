@@ -1,9 +1,10 @@
 import {injectable} from "inversify";
 import {IWhen} from "../projections/IProjection";
 import * as _ from "lodash";
+import IEventsFilter from "./IEventsFilter";
 
 @injectable()
-class EventsFilter {
+class EventsFilter implements IEventsFilter {
 
     filter(definition:IWhen<any>):string[] {
         if (definition.$any) return [];

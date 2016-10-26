@@ -17,6 +17,7 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import EventsFilter from "../scripts/streams/EventsFilter";
+import MockEventsFilter from "./fixtures/MockEventsFilter";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -35,7 +36,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     context("when a new tick is scheduled", () => {
         beforeEach(() => {
             let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
-                new MockReadModelFactory(), tickScheduler, new EventsFilter());
+                new MockReadModelFactory(), tickScheduler, new MockEventsFilter());
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
         });

@@ -11,6 +11,7 @@ import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../Dictionary";
 import ITickScheduler from "../ticks/ITickScheduler";
 import EventsFilter from "../streams/EventsFilter";
+import IEventsFilter from "../streams/IEventsFilter";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -19,7 +20,7 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
                 @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>,
-                @inject("EventsFilter") private eventsFilter:EventsFilter) {
+                @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
 
     }
 
