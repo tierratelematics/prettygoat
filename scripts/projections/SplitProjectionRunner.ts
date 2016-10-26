@@ -8,16 +8,14 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import ReservedEvents from "../streams/ReservedEvents";
-import Tick from "../ticks/Tick";
+import {mergeStreams} from "./ProjectionStream";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private subscription:Rx.CompositeDisposable;
+    private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
-    private realtime = false;
 
     constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
@@ -35,18 +33,10 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        this.subscription = new Rx.CompositeDisposable();
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
-
-        let scheduler = new Rx.HistoricalScheduler(0, Rx.helpers.defaultSubComparer);
         let combinedStream = new Rx.Subject<Event>();
 
-        let eventsStream = this.stream
-            .from(snapshot ? snapshot.lastEvent : null)
-            .merge(this.readModelFactory.from(null))
-            .filter(event => event.type !== this.streamId && !_.startsWith(event.type, "__diagnostic"));
-
-        this.subscription.add(combinedStream.subscribe(event => {
+        this.subscription = combinedStream.subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload, event),
@@ -69,36 +59,13 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }
-        }));
+        });
 
-        this.subscription.add(this.tickScheduler.from(null).subscribe(event => {
-            if (this.realtime) {
-                Rx.Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combinedStream.onNext(event));
-            } else {
-                scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
-                    combinedStream.onNext(event);
-                    return Rx.Disposable.empty;
-                });
-            }
-        }));
-
-        this.subscription.add(eventsStream.subscribe(event => {
-            if (event.type === ReservedEvents.REALTIME) {
-                if (!this.realtime)
-                    scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
-                this.realtime = true;
-                return;
-            }
-            if (this.realtime || !event.timestamp) {
-                combinedStream.onNext(event);
-            } else {
-                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
-                    combinedStream.onNext(event);
-                    return Rx.Disposable.empty;
-                });
-                scheduler.advanceTo(+event.timestamp);
-            }
-        }));
+        mergeStreams(
+            combinedStream,
+            this.stream.from(snapshot ? snapshot.lastEvent : null).filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.tickScheduler.from(null));
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {

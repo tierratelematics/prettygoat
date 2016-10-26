@@ -186,15 +186,16 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("and it's the read model of the same projection", () => {
-            let streamSubject = new Subject<any>();
+            let readModelSubject = new Subject<any>();
             beforeEach(() => {
                 matcher.setup(m => m.match("test")).returns(streamId => (s:number, e:any) => s + e);
-                stream.setup(s => s.from(null)).returns(_ => streamSubject);
+                readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
+                stream.setup(s => s.from(null)).returns(_ => Observable.empty<Event>());
                 subject.run();
             });
 
             it("should filter it", () => {
-                streamSubject.onNext({type: "test", payload: 1});
+                readModelSubject.onNext({type: "test", payload: 1});
                 expect(subject.state).to.be(42);
             });
         });
