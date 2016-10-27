@@ -27,10 +27,7 @@ export class Matcher implements IMatcher {
             || this.explicitMatch(SpecialNames.Any)
             || this.explicitMatch(SpecialNames.Default);
 
-        if (found !== undefined)
-            return found;
-
-        return Rx.helpers.identity;
+        return found ? found: Rx.helpers.identity;
     }
 
     private guardAmbiguousDefinition() {

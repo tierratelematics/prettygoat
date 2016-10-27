@@ -8,6 +8,7 @@ describe("EventsFilter, given a projection definition", () => {
 
     beforeEach(() => {
         eventsFilter = new EventsFilter();
+        eventsFilter.setEventsList(["TestEvent", "SecondEvent"]);
     });
 
     context("when the events needs to be retrieved", () => {
@@ -15,15 +16,23 @@ describe("EventsFilter, given a projection definition", () => {
             expect(eventsFilter.filter({
                 $init: () => null,
                 TestEvent: (s, e) => e,
-                SecondEvent: (s, e) => e
-            })).to.eql(["TestEvent", "SecondEvent"]);
+            })).to.eql(["TestEvent"]);
         });
-        context("but the projection has an $any matcher", () => {
+        context("and the projection has an $any matcher", () => {
             it("should return all the events", () => {
                 expect(eventsFilter.filter({
                     $init: () => null,
                     $any: (s, e) => e
-                })).to.eql([]);
+                })).to.eql(["TestEvent", "SecondEvent"]);
+            });
+        });
+
+        context("and the projection has a wildcard matcher", () => {
+            it("should return the events matched by the wildcard", () => {
+                expect(eventsFilter.filter({
+                    $init: () => null,
+                    "Test*": (s, e) => e
+                })).to.eql(["TestEvent"]);
             });
         });
     });
