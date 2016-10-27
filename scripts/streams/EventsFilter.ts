@@ -13,9 +13,10 @@ class EventsFilter implements IEventsFilter {
     filter(definition:IWhen<any>):string[] {
         if (definition.$any) return this.events;
         let matcher = new Matcher(definition);
-        return _(this.events).map(event => {
+        let list = _(this.events).map(event => {
             return matcher.match(event) !== helpers.identity ? event : null;
         }).compact().valueOf();
+        return !list.length ? this.events : list;
     }
 
     setEventsList(events:string[]) {

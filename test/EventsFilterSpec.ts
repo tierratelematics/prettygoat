@@ -35,5 +35,13 @@ describe("EventsFilter, given a projection definition", () => {
                 })).to.eql(["TestEvent"]);
             });
         });
+
+        context("and no events are matched", () => {
+            it("should return all the events", () => {
+                expect(eventsFilter.filter({
+                    $init: () => null
+                })).to.eql(["TestEvent", "SecondEvent"]);
+            });
+        });
     });
 });

@@ -10,6 +10,7 @@ import {Event} from "./Event";
 import ReservedEvents from "./ReservedEvents";
 import {IWhen} from "../projections/IProjection";
 import EventsFilter from "./EventsFilter";
+import * as _ from "lodash";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -20,13 +21,15 @@ class CassandraStreamFactory implements IStreamFactory {
                 @inject("ICassandraConfig") config:ICassandraConfig,
                 @inject("TimePartitioner") private timePartitioner:TimePartitioner,
                 @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer,
-                @inject("EventsFilter") private eventsFilter:EventsFilter) {
+                @inject("IEventsFilter") private eventsFilter:EventsFilter) {
         this.client = clientFactory.clientFor(config);
     }
 
     from(lastEvent:Date, definition?:IWhen<any>):Rx.Observable<Event> {
         return Rx.Observable.create<Event>(observer => {
             Promise.resolve()
+                .then(() => this.getEvents())
+                .then(events => this.eventsFilter.setEventsList(events))
                 .then(() => this.getBuckets(lastEvent))
                 .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
                 .then(query => this.filterQuery(query, this.eventsFilter.filter(definition)))
@@ -54,22 +57,33 @@ class CassandraStreamFactory implements IStreamFactory {
         });
     }
 
+    private getEvents():Promise<string[]> {
+        return Promise
+            .fromNode(callback => {
+                this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest", callback)
+            })
+            .then(buckets => buckets.rows)
+            .map<any, string>(row => row.ser_manifest)
+            .then(eventTypes => _.uniq(eventTypes));
+    }
+
     private getBuckets(lastEvent:Date):string[] | Promise<string[]> {
         if (lastEvent)
             return this.timePartitioner.bucketsFrom(lastEvent);
         else
             return Promise
                 .fromNode(callback => {
-                    this.client.execute("SELECT DISTINCT timebucket FROM event_by_timestamp", callback)
+                    this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest", callback)
                 })
                 .then(buckets => buckets.rows)
                 .map<any, string>(row => row.timebucket)
+                .then(timebuckets => _.uniq(timebuckets))
                 .then(buckets => !buckets || (buckets && !buckets.length) ? this.timePartitioner.bucketsFrom(new Date()) : buckets);
     }
 
     private buildQueryFromBuckets(lastEvent:Date, buckets:string[]):string {
         let bucketsString = buckets.join("', '"),
-            query = `SELECT blobAsText(event), timestamp FROM event_by_timestamp WHERE timebucket IN ('${bucketsString}')`;
+            query = `SELECT blobAsText(event), timestamp FROM event_by_manifest WHERE timebucket IN ('${bucketsString}')`;
         if (lastEvent) {
             let timestamp = lastEvent.toISOString();
             query += ` AND timestamp > maxTimeUuid('${timestamp}')`;
@@ -78,9 +92,8 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     private filterQuery(query:string, events:string[]):string {
-        if (!events.length) return query;
         let eventsString = events.join("', '");
-        return query + ` WHERE eventtype IN ('${eventsString}') ALLOW FILTERING`;
+        return query + ` AND ser_manifest IN ('${eventsString}')`;
     }
 }
 
