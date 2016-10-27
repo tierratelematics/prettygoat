@@ -14,6 +14,7 @@ import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
+import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -32,7 +33,8 @@ describe("Given a ProjectionRunner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()));
+        subject = new ProjectionRunner<number>("test", stream.object, matcher.object, readModelFactory.object,
+            new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)));
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
     });

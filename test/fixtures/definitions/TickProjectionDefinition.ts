@@ -34,6 +34,10 @@ class TickProjectionDefinition implements IProjectionDefinition<Tick> {
                 SplitTrigger: (state:Tick, payload, event) => {
                     tickScheduler.schedule(moment(state.clock).add(100, 'milliseconds').toDate(), null, event.splitKey);
                     return new Tick(event.timestamp);
+                },
+                FutureTick: (state, payload, event) => {
+                    tickScheduler.schedule(new Date(500));
+                    return state;
                 }
             },
             split: {

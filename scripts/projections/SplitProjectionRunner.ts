@@ -9,6 +9,7 @@ import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
+import IDateRetriever from "../util/IDateRetriever";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     public state:Dictionary<T> = {};
@@ -18,7 +19,8 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private subject:Rx.Subject<Event>;
 
     constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
-                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory) {
+                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
+                private dateRetriever:IDateRetriever) {
         this.subject = new Rx.Subject<Event>();
     }
 
@@ -65,7 +67,8 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null).filter(event => event.type !== this.streamId),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
-            this.tickScheduler.from(null));
+            this.tickScheduler.from(null),
+            this.dateRetriever);
     }
 
     private getInitialState(matchFn:Function, event, splitKey:string):T {

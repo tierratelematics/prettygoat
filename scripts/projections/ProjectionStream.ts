@@ -3,8 +3,9 @@ import {Observable, Subject, Disposable, helpers, HistoricalScheduler} from "rx"
 import ReservedEvents from "../streams/ReservedEvents";
 import * as _ from "lodash";
 import Tick from "../ticks/Tick";
+import IDateRetriever from "../util/IDateRetriever";
 
-export function mergeStreams(combined:Subject<Event>, events:Observable<Event>, readModels:Observable<Event>, ticks:Observable<Event>) {
+export function mergeStreams(combined:Subject<Event>, events:Observable<Event>, readModels:Observable<Event>, ticks:Observable<Event>, dateRetriever:IDateRetriever) {
     let realtime = false;
     let scheduler = new HistoricalScheduler(0, helpers.defaultSubComparer);
 
@@ -30,10 +31,11 @@ export function mergeStreams(combined:Subject<Event>, events:Observable<Event>, 
         });
 
     ticks.subscribe(event => {
-        if (realtime) {
+        let payload:Tick = event.payload;
+        if (realtime || payload.clock > dateRetriever.getDate()) {
             Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combined.onNext(event));
         } else {
-            scheduler.scheduleFuture(null, (<Tick>event.payload).clock, (scheduler, state) => {
+            scheduler.scheduleFuture(null, payload.clock, (scheduler, state) => {
                 combined.onNext(event);
                 return Disposable.empty;
             });
