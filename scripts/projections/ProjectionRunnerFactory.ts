@@ -10,8 +10,6 @@ import SplitProjectionRunner from "./SplitProjectionRunner";
 import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../Dictionary";
 import ITickScheduler from "../ticks/ITickScheduler";
-import EventsFilter from "../streams/EventsFilter";
-import IEventsFilter from "../streams/IEventsFilter";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -19,8 +17,7 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
     constructor(@inject("IStreamFactory") private streamFactory:IStreamFactory,
                 @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
-                @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>,
-                @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
+                @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>) {
 
     }
 
@@ -29,11 +26,10 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let projectionRunner:IProjectionRunner<T>;
         if (!projection.split)
             projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, definitionMatcher, this.aggregateFactory,
-                this.tickSchedulerHolder[projection.name], this.eventsFilter);
+                this.tickSchedulerHolder[projection.name]);
         else
             projectionRunner = new SplitProjectionRunner<T>(projection, this.streamFactory, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
-                this.eventsFilter);
+                new MemoizingMatcher(new Matcher(projection)), this.aggregateFactory, this.tickSchedulerHolder[projection.name]);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }

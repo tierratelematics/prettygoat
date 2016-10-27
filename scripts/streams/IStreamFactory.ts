@@ -1,6 +1,7 @@
 import {Observable} from "rx";
 import {Event} from "./Event";
+import {IWhen} from "../projections/IProjection";
 
 export interface IStreamFactory {
-    from(lastEvent:Date, events?:string[]):Observable<Event>;
+    from(lastEvent:Date, definition?:IWhen<any>):Observable<Event>;
 }

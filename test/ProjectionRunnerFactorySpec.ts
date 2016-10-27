@@ -18,7 +18,7 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
 
     beforeEach(() => {
         holder = {};
-        subject = new ProjectionRunnerFactory(null, null, holder, {}, null);
+        subject = new ProjectionRunnerFactory(null, null, holder, {});
     });
 
     context("when all the required properties are defined", () => {

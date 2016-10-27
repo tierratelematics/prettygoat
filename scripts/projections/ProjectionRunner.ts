@@ -10,7 +10,6 @@ import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
-import IEventsFilter from "../streams/IEventsFilter";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
@@ -21,7 +20,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isFailed:boolean;
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private eventsFilter:IEventsFilter) {
+                private tickScheduler:IStreamFactory) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
@@ -57,7 +56,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, this.eventsFilter.filter(this.projection.definition)),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null));
     }

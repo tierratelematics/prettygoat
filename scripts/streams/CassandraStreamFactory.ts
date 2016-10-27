@@ -8,6 +8,8 @@ import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import {Event} from "./Event";
 import ReservedEvents from "./ReservedEvents";
+import {IWhen} from "../projections/IProjection";
+import EventsFilter from "./EventsFilter";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -17,16 +19,17 @@ class CassandraStreamFactory implements IStreamFactory {
     constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
                 @inject("ICassandraConfig") config:ICassandraConfig,
                 @inject("TimePartitioner") private timePartitioner:TimePartitioner,
-                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer) {
+                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer,
+                @inject("EventsFilter") private eventsFilter:EventsFilter) {
         this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:Date, events?:string[]):Rx.Observable<Event> {
+    from(lastEvent:Date, definition?:IWhen<any>):Rx.Observable<Event> {
         return Rx.Observable.create<Event>(observer => {
             Promise.resolve()
                 .then(() => this.getBuckets(lastEvent))
                 .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
-                .then(query => this.filterQuery(query, events))
+                .then(query => this.filterQuery(query, this.eventsFilter.filter(definition)))
                 .then(query => {
                     let deserializer = this.deserializer;
                     this.client.stream(query)

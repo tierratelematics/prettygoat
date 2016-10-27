@@ -3,6 +3,7 @@ import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
 import * as Rx from "rx";
 import {Event} from "./Event";
+import {IWhen} from "../projections/IProjection";
 
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
@@ -12,13 +13,13 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:Date, events?:string[]):Rx.Observable<Event> {
+    from(lastEvent:Date, definition?:IWhen<any>):Rx.Observable<Event> {
         return this.streamFactory
-            .from(lastEvent, events)
+            .from(lastEvent, definition)
             .concat(
                 Rx.Observable
                     .interval(this.config.interval || 30000)
-                    .flatMap(_ => this.streamFactory.from(lastEvent, events)))
+                    .flatMap(_ => this.streamFactory.from(lastEvent, definition)))
             .do(event => {
                 if (event.timestamp)
                     lastEvent = event.timestamp
