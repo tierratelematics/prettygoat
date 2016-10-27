@@ -13,6 +13,7 @@ const humanize = require("humanize");
 class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
+    readModels:string[] = [];
 
     constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
 
@@ -22,8 +23,13 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         return {
             name: "__diagnostic:Size",
             definition: {
-                $init: () => this.getProjectionsSize()[1],
-                $any: (state) => {
+                $init: () => {
+                    this.readModels = _.keys(this.holder);
+                    return this.getProjectionsSize()[1];
+                },
+                $any: (state, payload, event) => {
+                    if (_.includes(this.readModels, event.type))
+                        return state;
                     this.eventsCounter++;
                     if (this.eventsCounter % 200 === 0) {
                         let sizes = this.getProjectionsSize();
