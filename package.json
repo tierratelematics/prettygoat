@@ -7,6 +7,7 @@
     "typemoq": "0.3.3"
   },
   "dependencies": {
+    "bivio": "^0.1.0",
     "bluebird": "^3.4.0",
     "cassandra-driver": "~3.1.1",
     "cors": "^2.7.1",
