@@ -12,19 +12,28 @@ import IEndpointConfig from "../configs/IEndpointConfig";
 import {server} from "./Server";
 import SocketFactory from "../push/SocketFactory";
 import ILogger from "../log/ILogger";
+import {FeatureChecker} from "bivio";
+import {IFeatureChecker} from "bivio";
 
 class Engine {
 
     private kernel = new Kernel();
     private modules:IModule[] = [];
+    private featureChecker = new FeatureChecker();
 
     constructor() {
         this.register(new PrettyGoatModule());
+        this.kernel.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
     }
 
-    register(module:IModule) {
-        module.modules(this.kernel);
-        this.modules.push(module);
+    register(module:IModule):boolean {
+        if (!this.featureChecker.canCheck(module.constructor) || this.featureChecker.check(module.constructor)) {
+            if (module.modules)
+                module.modules(this.kernel);
+            this.modules.push(module);
+            return true;
+        }
+        return false;
     }
 
     run(overrides?:any) {

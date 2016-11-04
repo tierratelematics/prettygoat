@@ -1,12 +1,13 @@
 {
   "name": "prettygoat",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "devDependencies": {
     "expect.js": "^0.3.1",
     "sinon": "^1.17.4",
     "typemoq": "0.3.3"
   },
   "dependencies": {
+    "bivio": "^0.1.0",
     "bluebird": "^3.4.0",
     "cassandra-driver": "~3.1.1",
     "cors": "^2.7.1",

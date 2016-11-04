@@ -22,11 +22,7 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent:Date):Rx.Observable<Event> {
-        return this.streamSource(lastEvent).observeOn(Rx.Scheduler.default);
-    }
-
-    streamSource(lastEvent:Date):Rx.Observable<any> {
-        return Rx.Observable.create(observer => {
+        return Rx.Observable.create<Event>(observer => {
             Promise.resolve()
                 .then(() => this.getBuckets(lastEvent))
                 .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))

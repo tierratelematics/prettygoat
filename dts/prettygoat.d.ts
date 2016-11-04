@@ -118,7 +118,7 @@ declare module prettygoat {
 
     export class Engine {
 
-        register(module:IModule);
+        register(module:IModule):boolean;
 
         run(overrides?:any);
     }
