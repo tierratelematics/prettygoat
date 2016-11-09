@@ -33,7 +33,7 @@ class CassandraStreamFactory implements IStreamFactory {
     private getEvents():Observable<string[]> {
         return this.client.execute("select distinct timebucket, ser_manifest from event_by_manifest")
             .map(buckets => buckets.rows)
-            .map(row => row.ser_manifest)
+            .map(rows => _.map(rows, (row:any) => row.ser_manifest))
             .map(eventTypes => <string[]>_.uniq(eventTypes));
     }
 
