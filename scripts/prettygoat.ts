@@ -7,3 +7,7 @@ export {default as FilterOutputType} from "./filters/FilterOutputType";
 export {default as LogLevel} from "./log/LogLevel";
 export {default as ConsoleLogger} from "./log/ConsoleLogger";
 export {default as NullLogger} from "./log/NullLogger";
+export {FeatureToggle} from "bivio";
+export {IFeatureChecker} from "bivio";
+export {FeatureChecker} from "bivio";
+export {Predicates as FeaturePredicates} from "bivio";
