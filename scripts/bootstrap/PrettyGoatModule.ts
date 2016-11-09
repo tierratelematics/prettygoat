@@ -21,8 +21,6 @@ import CassandraDeserializer from "../cassandra/CassandraDeserializer";
 import ICassandraDeserializer from "../cassandra/ICassandraDeserializer";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
-import ICassandraClientFactory from "../cassandra/ICassandraClientFactory";
-import CassandraClientFactory from "../cassandra/CassandraClientFactory";
 import SocketFactory from "../push/SocketFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
@@ -46,6 +44,8 @@ import ITickScheduler from "../ticks/ITickScheduler";
 import TickScheduler from "../ticks/TickScheduler";
 import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
+import ICassandraClient from "../cassandra/ICassandraClient";
+import CassandraClient from "../cassandra/CassandraClient";
 
 class PrettyGoatModule implements IModule {
 
@@ -62,8 +62,8 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
         kernel.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
+        kernel.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
         kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
-        kernel.bind<ICassandraClientFactory>("ICassandraClientFactory").to(CassandraClientFactory).inSingletonScope();
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();

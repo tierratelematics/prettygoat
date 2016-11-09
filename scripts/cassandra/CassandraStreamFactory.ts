@@ -1,77 +1,49 @@
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {injectable, inject} from "inversify";
-import ICassandraConfig from "../configs/ICassandraConfig";
-import * as Rx from "rx";
-import ICassandraClientFactory from "./ICassandraClientFactory";
 import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "../util/TimePartitioner";
-import * as Promise from "bluebird";
 import {Event} from "../streams/Event";
 import {IWhen} from "../projections/IProjection";
 import EventsFilter from "../streams/EventsFilter";
 import * as _ from "lodash";
+import ICassandraClient from "./ICassandraClient";
+import {Observable} from "rx";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
-    private client:any;
-
-    constructor(@inject("ICassandraClientFactory") clientFactory:ICassandraClientFactory,
-                @inject("ICassandraConfig") config:ICassandraConfig,
+    constructor(@inject("ICassandraClient") private client:ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner:TimePartitioner,
                 @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer,
                 @inject("IEventsFilter") private eventsFilter:EventsFilter) {
-        this.client = clientFactory.clientFor(config);
     }
 
-    from(lastEvent:Date, definition?:IWhen<any>):Rx.Observable<Event> {
-        return Rx.Observable.create<Event>(observer => {
-            Promise.resolve()
-                .then(() => this.getEvents())
-                .then(events => this.eventsFilter.setEventsList(events))
-                .then(() => this.getBuckets(lastEvent))
-                .then(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
-                .then(query => this.filterQuery(query, this.eventsFilter.filter(definition)))
-                .then(query => {
-                    let deserializer = this.deserializer;
-                    this.client.stream(query)
-                        .on('readable', function () {
-                            let row;
-                            while (row = this.read()) {
-                                observer.onNext(deserializer.toEvent(row));
-                            }
-                        })
-                        .on('end', () => {
-                            observer.onCompleted();
-                        })
-                        .on('error', (error) => observer.onError(error));
-                });
-            return Rx.Disposable.empty;
-        });
+    from(lastEvent:Date, definition?:IWhen<any>):Observable<Event> {
+        return this.getEvents()
+            .map(events => this.eventsFilter.setEventsList(events))
+            .flatMap(() => this.getBuckets(lastEvent))
+            .map(buckets => this.buildQueryFromBuckets(lastEvent, buckets))
+            .map(query => this.filterQuery(query, this.eventsFilter.filter(definition)))
+            .flatMap(query => this.client.stream(query))
+            .map(row => this.deserializer.toEvent(row));
     }
 
-    private getEvents():Promise<string[]> {
-        return Promise
-            .fromNode(callback => {
-                this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest", callback)
-            })
-            .then(buckets => buckets.rows)
-            .map<any, string>(row => row.ser_manifest)
-            .then(eventTypes => _.uniq(eventTypes));
+    private getEvents():Observable<string[]> {
+        return this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest")
+            .map(buckets => buckets.rows)
+            .map(row => row.ser_manifest)
+            .map(eventTypes => <string[]>_.uniq(eventTypes));
     }
 
-    private getBuckets(lastEvent:Date):string[] | Promise<string[]> {
+    private getBuckets(lastEvent:Date):Observable<string[]> {
         if (lastEvent)
-            return this.timePartitioner.bucketsFrom(lastEvent);
+            return Observable.just<string[]>(this.timePartitioner.bucketsFrom(lastEvent));
         else
-            return Promise
-                .fromNode(callback => {
-                    this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest", callback)
-                })
-                .then(buckets => buckets.rows)
-                .map<any, string>(row => row.timebucket)
-                .then(timebuckets => _.uniq(timebuckets))
-                .then(buckets => !buckets || (buckets && !buckets.length) ? this.timePartitioner.bucketsFrom(new Date()) : buckets);
+            return this.client.execute("SELECT DISTINCT timebucket, ser_manifest FROM event_by_manifest")
+                .map(buckets => buckets.rows)
+                .map(row => row.timebucket)
+                .map(timebuckets => _.uniq(timebuckets))
+                .map((buckets:string[]) => !buckets || (buckets && !buckets.length) ? this.timePartitioner.bucketsFrom(new Date()) : buckets);
     }
 
     private buildQueryFromBuckets(lastEvent:Date, buckets:string[]):string {

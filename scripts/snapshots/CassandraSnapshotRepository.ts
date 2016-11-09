@@ -1,27 +1,21 @@
 import {Snapshot, ISnapshotRepository} from "./ISnapshotRepository";
 import {injectable, inject} from "inversify";
 import {Observable} from "rx";
-import ICassandraConfig from "../configs/ICassandraConfig";
-import ICassandraClientFactory from "../cassandra/ICassandraClientFactory";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
+import ICassandraClient from "../cassandra/ICassandraClient";
 
 @injectable()
 class CassandraSnapshotRepository implements ISnapshotRepository {
-    private execute:any;
-    private batch:any;
 
-    constructor(@inject("ICassandraClientFactory") private clientFactory:ICassandraClientFactory,
-                @inject("ICassandraConfig") private config:ICassandraConfig,
+    constructor(@inject("ICassandraClient") private client:ICassandraClient,
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry) {
-        let client = this.clientFactory.clientFor(this.config);
-        this.execute = Observable.fromNodeCallback(client.execute, client);
-        this.batch = Observable.fromNodeCallback(client.batch, client);
+
     }
 
     initialize():Rx.Observable<void> {
-        return this.execute('create table if not exists projections_snapshots (\
+        return this.client.execute('create table if not exists projections_snapshots (\
             streamId text,\
             lastEvent text,\
             memento blob,\
@@ -31,7 +25,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
-        return this.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
+        return this.client.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
             .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
                 .groupBy(snapshot => snapshot.streamid)
                 .mapValues(snapshots => {
@@ -60,7 +54,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
             queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
                                 '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`]
         }
-        _.map(queries, query => this.execute(query).subscribe(() => null));
+        _.map(queries, query => this.client.execute(query).subscribe(() => null));
     }
 }
 
