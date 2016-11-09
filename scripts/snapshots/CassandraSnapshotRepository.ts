@@ -2,7 +2,7 @@ import {Snapshot, ISnapshotRepository} from "./ISnapshotRepository";
 import {injectable, inject} from "inversify";
 import {Observable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
-import ICassandraClientFactory from "../streams/ICassandraClientFactory";
+import ICassandraClientFactory from "../cassandra/ICassandraClientFactory";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
 import IProjectionRegistry from "../registry/IProjectionRegistry";

@@ -1,4 +1,4 @@
-import {IStreamFactory} from "./IStreamFactory";
+import {IStreamFactory} from "../streams/IStreamFactory";
 import {injectable, inject} from "inversify";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import * as Rx from "rx";
@@ -6,10 +6,10 @@ import ICassandraClientFactory from "./ICassandraClientFactory";
 import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
-import {Event} from "./Event";
-import ReservedEvents from "./ReservedEvents";
+import {Event} from "../streams/Event";
+import ReservedEvents from "../streams/ReservedEvents";
 import {IWhen} from "../projections/IProjection";
-import EventsFilter from "./EventsFilter";
+import EventsFilter from "../streams/EventsFilter";
 import * as _ from "lodash";
 
 @injectable()

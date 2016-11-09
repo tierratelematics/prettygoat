@@ -1,4 +1,4 @@
-import ICassandraClientFactory from "../../scripts/streams/ICassandraClientFactory";
+import ICassandraClientFactory from "../../scripts/cassandra/ICassandraClientFactory";
 import ICassandraConfig from "../../scripts/configs/ICassandraConfig";
 
 class MockClientFactory implements ICassandraClientFactory {
