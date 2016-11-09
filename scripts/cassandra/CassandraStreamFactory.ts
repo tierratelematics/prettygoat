@@ -22,9 +22,11 @@ class CassandraStreamFactory implements IStreamFactory {
         lastEvent = lastEvent || new Date(1420070400000);
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
-            .map(() => this.buildQueryFromBuckets(lastEvent, this.timePartitioner.bucketsFrom(lastEvent)))
-            .map(query => this.filterQuery(query, this.eventsFilter.filter(definition)))
-            .flatMap(query => this.client.stream(query))
+            .map(() => this.timePartitioner.bucketsFrom(lastEvent))
+            .map(buckets => Observable.from(buckets).flatMap(bucket => {
+                return this.client.stream(this.buildQuery(lastEvent, bucket, this.eventsFilter.filter(definition)))
+            }))
+            .concatAll()
             .map(row => this.deserializer.toEvent(row));
     }
 
@@ -35,15 +37,11 @@ class CassandraStreamFactory implements IStreamFactory {
             .map(eventTypes => <string[]>_.uniq(eventTypes));
     }
 
-    private buildQueryFromBuckets(lastEvent:Date, buckets:string[]):string {
-        let bucketsString = buckets.join("', '"),
-            timestamp = lastEvent.toISOString();
-        return `select blobAsText(event), timestamp from event_by_manifest where timebucket in ('${bucketsString}') and timestamp > maxTimeUuid('${timestamp}')`;
-    }
-
-    private filterQuery(query:string, events:string[]):string {
-        let eventsString = events.join("', '");
-        return query + ` and ser_manifest in ('${eventsString}')`;
+    private buildQuery(lastEvent:Date, bucket:string, events:string[]):string {
+        let timestamp = lastEvent.toISOString(),
+            eventsString = events.join("', '");
+        return `select blobAsText(event), timestamp from event_by_manifest where timebucket = '${bucket}'` +
+            ` and timestamp > maxTimeUuid('${timestamp}') and ser_manifest in ('${eventsString}')`;
     }
 }
 
