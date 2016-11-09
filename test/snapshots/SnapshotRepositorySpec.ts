@@ -18,34 +18,32 @@ describe("Snapshot repository, given all the streams", () => {
     beforeEach(() => {
         clientFactory = TypeMoq.Mock.ofType(CassandraClientFactory);
         registry = TypeMoq.Mock.ofType(ProjectionRegistry);
+        clientFactory.setup(c => c.clientFor(null)).returns(a => mockData({
+            rows: [
+                {
+                    "system.blobastext(memento)": 56,
+                    "lastevent": 7393898,
+                    "split": "",
+                    "streamid": "list"
+                },
+                {
+                    "system.blobastext(memento)": 7800,
+                    "lastevent": 77472487,
+                    "split": "first-key",
+                    "streamid": "detail"
+                },
+                {
+                    "system.blobastext(memento)": 6000,
+                    "lastevent": 77472487,
+                    "split": "second-key",
+                    "streamid": "detail"
+                }
+            ]
+        }));
         subject = new CassandraSnapshotRepository(clientFactory.object, null, registry.object);
     });
 
     context("when the snapshots associated needs to be retrieved", () => {
-        beforeEach(() => {
-            clientFactory.setup(c => c.clientFor(null)).returns(a => mockData({
-                rows: [
-                    {
-                        "system.blobastext(memento)": 56,
-                        "lastevent": 7393898,
-                        "split": "",
-                        "streamid": "list"
-                    },
-                    {
-                        "system.blobastext(memento)": 7800,
-                        "lastevent": 77472487,
-                        "split": "first-key",
-                        "streamid": "detail"
-                    },
-                    {
-                        "system.blobastext(memento)": 6000,
-                        "lastevent": 77472487,
-                        "split": "second-key",
-                        "streamid": "detail"
-                    }
-                ]
-            }));
-        });
         it("should return the list of available snapshots", () => {
             let snapshots = null;
             subject.getSnapshots().subscribe(value => snapshots = value);

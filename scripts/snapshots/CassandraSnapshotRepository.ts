@@ -15,18 +15,12 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     constructor(@inject("ICassandraClientFactory") private clientFactory:ICassandraClientFactory,
                 @inject("ICassandraConfig") private config:ICassandraConfig,
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry) {
-    }
-
-    private setupClient() {
-        if (!this.execute) {
-            let client = this.clientFactory.clientFor(this.config);
-            this.execute = Observable.fromNodeCallback(client.execute, client);
-            this.batch = Observable.fromNodeCallback(client.batch, client);
-        }
+        let client = this.clientFactory.clientFor(this.config);
+        this.execute = Observable.fromNodeCallback(client.execute, client);
+        this.batch = Observable.fromNodeCallback(client.batch, client);
     }
 
     initialize():Rx.Observable<void> {
-        this.setupClient();
         return this.execute('create table if not exists projections_snapshots (\
             streamId text,\
             lastEvent text,\
@@ -37,7 +31,6 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
-        this.setupClient();
         return this.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
             .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
                 .groupBy(snapshot => snapshot.streamid)
@@ -57,7 +50,6 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
-        this.setupClient();
         let queries = [];
         let entry = this.registry.getEntry(streamId);
         if (entry.data.projection.split)
