@@ -1,5 +1,5 @@
 import ICassandraClient from "./ICassandraClient";
-import {Observable} from "rx";
+import {Observable, Disposable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
 const cassandra = require("cassandra-driver");
@@ -20,7 +20,7 @@ class CassandraClient implements ICassandraClient {
                 fetchSize: config.fetchSize ? config.fetchSize : 5000
             }
         });
-        this.wrappedExecute = Observable.fromNodeCallback(this.client.wrappedExecute, this.client);
+        this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
     }
 
     execute(query:string):Observable<any> {
@@ -28,7 +28,7 @@ class CassandraClient implements ICassandraClient {
     }
 
     stream(query:string):Observable<any> {
-        return Rx.Observable.create<Event>(observer => {
+        return Observable.create<Event>(observer => {
             this.client.stream(query)
                 .on('readable', function () {
                     let row;
@@ -38,7 +38,7 @@ class CassandraClient implements ICassandraClient {
                 })
                 .on('end', () => observer.onCompleted())
                 .on('error', (error) => observer.onError(error));
-            return Rx.Disposable.empty;
+            return Disposable.empty;
         });
     }
 
