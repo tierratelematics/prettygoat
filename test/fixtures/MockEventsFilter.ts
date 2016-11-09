@@ -5,4 +5,8 @@ export default class MockEventsFilter implements IEventsFilter {
     filter(definition:IWhen<any>):string[] {
         return null;
     }
+
+    setEventsList(events:string[]) {
+
+    }
 }
