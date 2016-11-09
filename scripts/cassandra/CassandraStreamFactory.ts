@@ -7,7 +7,6 @@ import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "../util/TimePartitioner";
 import * as Promise from "bluebird";
 import {Event} from "../streams/Event";
-import ReservedEvents from "../streams/ReservedEvents";
 import {IWhen} from "../projections/IProjection";
 import EventsFilter from "../streams/EventsFilter";
 import * as _ from "lodash";
@@ -43,12 +42,6 @@ class CassandraStreamFactory implements IStreamFactory {
                             }
                         })
                         .on('end', () => {
-                            observer.onNext({
-                                type: ReservedEvents.REALTIME,
-                                payload: null,
-                                timestamp: null,
-                                splitKey: null
-                            });
                             observer.onCompleted();
                         })
                         .on('error', (error) => observer.onError(error));
