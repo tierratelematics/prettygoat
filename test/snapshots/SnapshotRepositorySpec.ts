@@ -1,7 +1,7 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import CassandraSnapshotRepository from "../../scripts/snapshots/CassandraSnapshotRepository";
+import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapshotRepository";
 import * as TypeMoq from "typemoq";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";

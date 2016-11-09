@@ -1,10 +1,10 @@
-import {Snapshot, ISnapshotRepository} from "./ISnapshotRepository";
+import {Snapshot, ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import {injectable, inject} from "inversify";
 import {Observable} from "rx";
 import Dictionary from "../Dictionary";
 import * as _ from "lodash";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import ICassandraClient from "../cassandra/ICassandraClient";
+import ICassandraClient from "./ICassandraClient";
 
 @injectable()
 class CassandraSnapshotRepository implements ISnapshotRepository {

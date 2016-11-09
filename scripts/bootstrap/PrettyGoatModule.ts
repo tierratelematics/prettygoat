@@ -29,7 +29,7 @@ import DateRetriever from "../util/DateRetriever";
 import ExpressStatePublisher from "../routing/ExpressStatePublisher";
 import IStatePublisher from "../routing/IStatePublisher";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
-import CassandraSnapshotRepository from "../snapshots/CassandraSnapshotRepository";
+import CassandraSnapshotRepository from "../cassandra/CassandraSnapshotRepository";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
 import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import TimePartitioner from "../util/TimePartitioner";
