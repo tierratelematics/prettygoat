@@ -19,29 +19,40 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent:Date, definition?:IWhen<any>):Observable<Event> {
-        lastEvent = lastEvent || new Date(1420070400000);
+        let eventsList:string[] = [];
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
-            .map(() => this.timePartitioner.bucketsFrom(lastEvent))
-            .map(buckets => Observable.from(buckets).flatMap(bucket => {
-                return this.client.stream(this.buildQuery(lastEvent, bucket, this.eventsFilter.filter(definition)))
-            }))
+            .do(() => eventsList = this.eventsFilter.filter(definition))
+            .flatMap(() => this.getBuckets(lastEvent))
+            .map(buckets => {
+                return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
+                    return this.client.stream(this.buildQuery(lastEvent, bucket));
+                })
+            })
             .concatAll()
-            .map(row => this.deserializer.toEvent(row));
+            .map(row => this.deserializer.toEvent(row))
+            .filter(event => _.includes(eventsList, event.type));
     }
 
     private getEvents():Observable<string[]> {
-        return this.client.execute("select distinct timebucket, ser_manifest from event_by_manifest")
+        return this.client.execute("select distinct ser_manifest from event_types")
             .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row:any) => row.ser_manifest))
-            .map(eventTypes => <string[]>_.uniq(eventTypes));
+            .map(rows => _.map(rows, (row:any) => row.ser_manifest));
     }
 
-    private buildQuery(lastEvent:Date, bucket:string, events:string[]):string {
-        let timestamp = lastEvent.toISOString(),
-            eventsString = events.join("', '");
-        return `select blobAsText(event), timestamp from event_by_manifest where timebucket = '${bucket}'` +
-            ` and timestamp > maxTimeUuid('${timestamp}') and ser_manifest in ('${eventsString}')`;
+    private getBuckets(date:Date):Observable<string[]> {
+        if (date)
+            return Observable.just(this.timePartitioner.bucketsFrom(date));
+        return this.client.execute("select distinct timebucket from event_by_timestamp")
+            .map(buckets => buckets.rows)
+            .map(rows => _.map(rows, (row:any) => row.timebucket).sort());
+    }
+
+    private buildQuery(lastEvent:Date, bucket:string):string {
+        let query = `select blobAsText(event), timestamp from event_by_timestamp where timebucket = '${bucket}'`;
+        if (lastEvent)
+            query += ` and timestamp > maxTimeUuid('${lastEvent.toISOString()}')`;
+        return query;
     }
 }
 
