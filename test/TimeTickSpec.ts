@@ -16,6 +16,7 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
+import InitTickProjectionDefinition from "./fixtures/definitions/InitTickProjectionDefinition";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -31,6 +32,26 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         tickScheduler = new TickScheduler(new MockDateRetriever(new Date(0)));
         projection = new TickProjectionDefinition().define(tickScheduler);
         streamData = new Subject<Event>();
+    });
+
+    context("when the projection starts", () => {
+        context("and a tick is emitted in $init", () => {
+            beforeEach(() => {
+                let initTickProjection = new InitTickProjectionDefinition().define(tickScheduler);
+                let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
+                    new MockReadModelFactory(), tickScheduler, dateRetriever);
+                projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
+                projectionRunner.run();
+            });
+            it("should be handled properly", () => {
+                streamData.onNext({
+                    type: "OtherEvent", payload: null, timestamp: new Date(200), splitKey: null
+                });
+                expect(notifications[0].clock).to.eql(new Date(0));
+                expect(notifications[1].clock).to.eql(new Date(100));
+                expect(notifications[2].clock).to.eql(new Date(200));
+            });
+        });
     });
 
     context("when a new tick is scheduled", () => {
