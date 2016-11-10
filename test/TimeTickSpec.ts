@@ -38,7 +38,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         context("and a tick is emitted in $init", () => {
             beforeEach(() => {
                 let initTickProjection = new InitTickProjectionDefinition().define(tickScheduler);
-                let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
+                let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
                     new MockReadModelFactory(), tickScheduler, dateRetriever);
                 projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
                 projectionRunner.run();
@@ -56,7 +56,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
 
     context("when a new tick is scheduled", () => {
         beforeEach(() => {
-            let projectionRunner = new ProjectionRunner("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition),
+            let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
                 new MockReadModelFactory(), tickScheduler, dateRetriever);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
@@ -183,7 +183,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     context("when a tick is scheduled for a split projection", () => {
         let projectionRunner:IProjectionRunner<Tick>;
         beforeEach(() => {
-            projectionRunner = new SplitProjectionRunner<Tick>("Tick", new MockStreamFactory(streamData), new Matcher(projection.definition),
+            projectionRunner = new SplitProjectionRunner<Tick>(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
                 new Matcher(projection.split), new MockReadModelFactory(), tickScheduler, dateRetriever);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();

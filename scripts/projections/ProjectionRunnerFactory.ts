@@ -27,11 +27,11 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
         let projectionRunner:IProjectionRunner<T>;
         if (!projection.split)
-            projectionRunner = new ProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher, this.aggregateFactory,
+            projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, definitionMatcher, this.aggregateFactory,
                 this.tickSchedulerHolder[projection.name], this.dateRetriever);
         else
-            projectionRunner = new SplitProjectionRunner<T>(projection.name, this.streamFactory, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection.split)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
+            projectionRunner = new SplitProjectionRunner<T>(projection, this.streamFactory, definitionMatcher,
+                new MemoizingMatcher(new Matcher(projection)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
                 this.dateRetriever);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;

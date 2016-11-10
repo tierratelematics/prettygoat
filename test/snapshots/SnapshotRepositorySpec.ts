@@ -1,54 +1,55 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import CassandraSnapshotRepository from "../../scripts/snapshots/CassandraSnapshotRepository";
+import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapshotRepository";
 import * as TypeMoq from "typemoq";
-import ICassandraClientFactory from "../../scripts/streams/ICassandraClientFactory";
-import CassandraClientFactory from "../../scripts/streams/CassandraClientFactory";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../../scripts/registry/ProjectionRegistry";
+import MockCassandraClient from "../fixtures/MockCassandraClient";
+import ICassandraClient from "../../scripts/cassandra/ICassandraClient";
+import * as Rx from "rx";
 
 describe("Snapshot repository, given all the streams", () => {
 
     let subject:CassandraSnapshotRepository,
-        clientFactory:TypeMoq.Mock<ICassandraClientFactory>,
-        registry:TypeMoq.Mock<IProjectionRegistry>;
+        registry:TypeMoq.Mock<IProjectionRegistry>,
+        cassandraClient:TypeMoq.Mock<ICassandraClient>;
 
     beforeEach(() => {
-        clientFactory = TypeMoq.Mock.ofType(CassandraClientFactory);
+        cassandraClient = TypeMoq.Mock.ofType(MockCassandraClient);
         registry = TypeMoq.Mock.ofType(ProjectionRegistry);
-        subject = new CassandraSnapshotRepository(clientFactory.object, null, registry.object);
+        cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.just({
+            rows: [
+                {
+                    "system.blobastext(memento)": 56,
+                    "lastevent": 7393898,
+                    "split": "",
+                    "streamid": "list"
+                },
+                {
+                    "system.blobastext(memento)": 7800,
+                    "lastevent": 77472487,
+                    "split": "first-key",
+                    "streamid": "detail"
+                },
+                {
+                    "system.blobastext(memento)": 6000,
+                    "lastevent": 77472487,
+                    "split": "second-key",
+                    "streamid": "detail"
+                }
+            ]
+        }));
+        subject = new CassandraSnapshotRepository(cassandraClient.object, registry.object);
     });
 
     context("when the snapshots associated needs to be retrieved", () => {
-        beforeEach(() => {
-            clientFactory.setup(c => c.clientFor(null)).returns(a => mockData({
-                rows: [
-                    {
-                        "system.blobastext(memento)": 56,
-                        "lastevent": 7393898,
-                        "split": "",
-                        "streamid": "list"
-                    },
-                    {
-                        "system.blobastext(memento)": 7800,
-                        "lastevent": 77472487,
-                        "split": "first-key",
-                        "streamid": "detail"
-                    },
-                    {
-                        "system.blobastext(memento)": 6000,
-                        "lastevent": 77472487,
-                        "split": "second-key",
-                        "streamid": "detail"
-                    }
-                ]
-            }));
-        });
         it("should return the list of available snapshots", () => {
             let snapshots = null;
-            subject.getSnapshots().subscribe(value => snapshots = value);
+            subject.getSnapshots().subscribe(value => {
+                snapshots = value;
+            });
             expect(snapshots).to.eql({
                 "list": new Snapshot(56, new Date(7393898)),
                 "detail": new Snapshot({
@@ -58,12 +59,4 @@ describe("Snapshot repository, given all the streams", () => {
             });
         });
     });
-
-    function mockData(data:any) {
-        return {
-            execute: function (string, callback) {
-                callback(null, data);
-            }
-        }
-    }
 });

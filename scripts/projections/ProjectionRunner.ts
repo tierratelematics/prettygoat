@@ -3,6 +3,7 @@ import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
+import {IProjection} from "./IProjection";
 import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
@@ -12,15 +13,17 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
+    private streamId:string;
     public state:T;
     private subject:Subject<Event>;
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
 
-    constructor(private streamId, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
                 private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
+        this.streamId = projection.name;
     }
 
     notifications() {
@@ -54,7 +57,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
