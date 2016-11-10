@@ -10,18 +10,21 @@ import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
+import {IProjection} from "./IProjection";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
+    private streamId:string;
     public state:Dictionary<T> = {};
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
 
-    constructor(private streamId:string, private stream:IStreamFactory, private matcher:IMatcher,
+    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
                 private dateRetriever:IDateRetriever) {
         this.subject = new Rx.Subject<Event>();
+        this.streamId = projection.name;
     }
 
     notifications() {
@@ -65,7 +68,8 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null).filter(event => event.type !== this.streamId),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
+                .filter(event => event.type !== this.streamId),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);

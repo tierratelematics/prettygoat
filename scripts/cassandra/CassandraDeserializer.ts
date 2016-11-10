@@ -2,7 +2,7 @@ import "bluebird";
 import "reflect-metadata";
 import {injectable} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
-import {Event} from "./Event";
+import {Event} from "../streams/Event";
 
 @injectable()
 class CassandraDeserializer implements ICassandraDeserializer {

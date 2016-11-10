@@ -35,7 +35,7 @@ describe("Split projection, given a projection with a split definition", () => {
         readModelData = new ReplaySubject<Event>();
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new SplitProjectionRunner<number>(projection.name, stream.object, new Matcher(projection.definition),
+        subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)));
         subscription = subject.notifications().subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
@@ -44,7 +44,7 @@ describe("Split projection, given a projection with a split definition", () => {
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
-                stream.setup(s => s.from(TypeMoq.It.isAny())).returns(_ => streamData.observeOn(Scheduler.immediate));
+                stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
@@ -63,7 +63,7 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["25b"]).to.be(7600);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000))), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), TypeMoq.It.isValue(projection.definition)), TypeMoq.Times.once());
             });
         });
     });
@@ -71,7 +71,7 @@ describe("Split projection, given a projection with a split definition", () => {
     context("when a new event is received", () => {
         beforeEach(() => {
             readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
-            stream.setup(s => s.from(null)).returns(_ => streamData.observeOn(Scheduler.immediate));
+            stream.setup(s => s.from(null, TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
             streamData.onNext({
                 type: "TestEvent",
                 payload: {
@@ -165,7 +165,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
             context("of the same projection", () => {
                 beforeEach(() => {
-                    stream.setup(s => s.from(null)).returns(_ => streamData);
+                    stream.setup(s => s.from(null, TypeMoq.It.isValue(projection.definition))).returns(_ => streamData);
                     subject.run();
                 });
 
