@@ -24,8 +24,18 @@ describe("Cassandra stream factory, given a stream factory", () => {
         timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
         let cassandraDeserializer = new MockCassandraDeserializer();
         client = TypeMoq.Mock.ofType(MockCassandraClient);
-        client.setup(c => c.execute("select distinct timebucket, ser_manifest from event_by_manifest")).returns(a => Rx.Observable.just({
-            rows: []
+        client.setup(c => c.execute("select distinct ser_manifest from event_types")).returns(a => Rx.Observable.just({
+            rows: [
+                {"ser_manifest": "Event1"},
+                {"ser_manifest": "Event2"}
+            ]
+        }));
+        client.setup(c => c.execute("select distinct timebucket from event_by_timestamp")).returns(a => Rx.Observable.just({
+            rows: [
+                {"timebucket": "20150003"},
+                {"timebucket": "20150001"},
+                {"timebucket": "20150002"}
+            ]
         }));
         eventsFilter.setup(e => e.filter(TypeMoq.It.isAny())).returns(a => ["Event1"]);
         subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer, eventsFilter.object);
@@ -33,10 +43,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
     context("when all the events needs to be fetched", () => {
         beforeEach(() => {
-            timePartitioner.setup(t => t.bucketsFrom(TypeMoq.It.isValue(new Date(1420070400000)))).returns(a => [
-                "20150001", "20150002", "20150003"
-            ]);
-            setupClient(client, new Date(1420070400000));
+            setupClient(client, null);
         });
 
         it("should retrieve the events from the beginning", () => {
@@ -64,8 +71,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
     });
 
     function setupClient(client:TypeMoq.Mock<ICassandraClient>, date:Date) {
-        client.setup(c => c.stream("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150001'" +
-            ` and timestamp > maxTimeUuid('${date.toISOString()}') and ser_manifest in ('Event1')`))
+        client.setup(c => c.stream(filterByTimestamp("select blobAsText(event), timestamp from event_by_timestamp where timebucket = '20150001'", date)))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -79,17 +85,21 @@ describe("Cassandra stream factory, given a stream factory", () => {
                     splitKey: null,
                     timestamp: null
                 });
+                observer.onNext({
+                    type: "Event2",
+                    payload: 0,
+                    splitKey: null,
+                    timestamp: null
+                });
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.stream("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150002'" +
-            ` and timestamp > maxTimeUuid('${date.toISOString()}') and ser_manifest in ('Event1')`))
+        client.setup(c => c.stream(filterByTimestamp("select blobAsText(event), timestamp from event_by_timestamp where timebucket = '20150002'", date)))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.stream("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150003'" +
-            ` and timestamp > maxTimeUuid('${date.toISOString()}') and ser_manifest in ('Event1')`))
+        client.setup(c => c.stream(filterByTimestamp("select blobAsText(event), timestamp from event_by_timestamp where timebucket = '20150003'", date)))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -100,5 +110,11 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
+    }
+
+    function filterByTimestamp(query:string, timestamp:Date):string {
+        if (timestamp)
+            query += ` and timestamp > maxTimeUuid('${timestamp.toISOString()}')`;
+        return query;
     }
 });
