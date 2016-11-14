@@ -11,6 +11,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
+import {SpecialState, StopSignallingState} from "./SpecialState";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
@@ -45,8 +46,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload, event);
-                    this.publishReadModel(event.timestamp);
+                    let newState = matchFunction(this.state, event.payload, event);
+                    if (newState instanceof SpecialState)
+                        this.state = (<SpecialState<T>>newState).state;
+                    else
+                        this.state = newState;
+                    if (!(newState instanceof StopSignallingState))
+                        this.publishReadModel(event.timestamp);
                 }
             } catch (error) {
                 this.isFailed = true;
