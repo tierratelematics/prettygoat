@@ -6,6 +6,7 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
+import IDependencyDefinition from "../dependency/IDependencyDefinition";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -15,8 +16,10 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     eventsCounter = 0;
     readModels:string[] = [];
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
 
+    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
+                @inject("IDependencyDefinition") private dependency:IDependencyDefinition
+    ) {
     }
 
     define():IProjection<any> {
@@ -30,6 +33,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                 $any: (state, payload, event) => {
                     if (_.includes(this.readModels, event.type))
                         return state;
+
                     this.eventsCounter++;
                     if (this.eventsCounter % 200 === 0) {
                         let sizes = this.getProjectionsSize();
@@ -64,6 +68,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             }
             return data;
         });
+
         return [total, projections];
     }
 }
