@@ -21,7 +21,21 @@ declare module prettygoat {
     export interface IWhen<T extends Object> {
         $init?:() => T;
         $any?:(s:T, payload:Object, event?:Event) => T;
-        [name:string]:(s:T, payload:Object, event?:Event) => T;
+        [name:string]:(s:T, payload:Object, event?:Event) => T|SpecialState<T>;
+    }
+
+    abstract class SpecialState<T> {
+        state:T;
+    }
+
+    export class SpecialStates {
+        static stopSignalling<T>(state:T):SpecialState<T>;
+    }
+
+    class StopSignallingState<T> extends SpecialState<T> {
+        state:T;
+
+        constructor(state:T);
     }
 
     export interface IProjectionRunner<T> extends IDisposable {
