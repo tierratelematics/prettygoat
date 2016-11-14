@@ -16,6 +16,7 @@ import {SpecialStates} from "../scripts/projections/SpecialState";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 
 describe("Given a a projection runner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -70,9 +71,9 @@ describe("Given a a projection runner", () => {
         beforeEach(() => {
             splitMatcher = TypeMoq.Mock.ofType(MockMatcher);
             subject = new SplitProjectionRunner<number>({
-                name: "test",
-                definition: {}
-            }, stream.object, matcher.object, splitMatcher.object, new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()),
+                    name: "test",
+                    definition: {}
+                }, stream.object, matcher.object, splitMatcher.object, new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()),
                 new MockDateRetriever(new Date(100000)));
             subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
@@ -87,6 +88,24 @@ describe("Given a a projection runner", () => {
                 expect(notifications).to.eql([]);
                 expect(subject.state["1"]).to.eql(42 + 1);
                 expect(subject.state["2"]).to.eql(42 + 2);
+            });
+        });
+
+        context("and a state change triggers the removal of a split", () => {
+            beforeEach(() => {
+                matcher.setup(m => m.match("increment")).returns(a => (s:number, e:any) => SpecialStates.deleteSplit());
+                splitMatcher.setup(m => m.match("increment")).returns(a => (e:number) => e);
+                subject.run(new Snapshot(
+                    subject.state = {
+                        "1": 89,
+                        "2": 293,
+                        "3": 392
+                    }, null));
+            });
+            it("should be removed from the dictionary", () => {
+                expect(subject.state["1"]).to.be(undefined);
+                expect(subject.state["2"]).to.be(undefined);
+                expect(subject.state["3"]).to.be(392);
             });
         });
     });

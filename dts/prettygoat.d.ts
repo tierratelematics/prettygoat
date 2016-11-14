@@ -30,12 +30,19 @@ declare module prettygoat {
 
     export class SpecialStates {
         static stopSignalling<T>(state:T):SpecialState<T>;
+        static deleteSplit():SpecialState<void>;
     }
 
     class StopSignallingState<T> extends SpecialState<T> {
         state:T;
 
         constructor(state:T);
+    }
+
+    class DeleteSplitState extends SpecialState<void> {
+        state:void;
+
+        constructor();
     }
 
     export interface IProjectionRunner<T> extends IDisposable {
