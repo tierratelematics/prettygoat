@@ -1,18 +1,19 @@
-export interface ISpecialState<T> {
+export abstract class SpecialState<T> {
     state:T;
 }
 
 export class SpecialStates {
 
-    static stopSignalling<T>(state:T):ISpecialState<T> {
+    static stopSignalling<T>(state:T):SpecialState<T> {
         return new StopSignallingState(state);
     }
 }
 
-export class StopSignallingState<T> implements ISpecialState<T> {
+export class StopSignallingState<T> extends SpecialState<T> {
     state:T;
 
     constructor(state:T) {
+        super();
         this.state = state;
     }
 }

@@ -15,7 +15,6 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 import {SpecialStates} from "../scripts/projections/SpecialState";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
-import typemoq = require("typemoq/typemoq.node");
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 
 describe("Given a a projection runner", () => {
