@@ -6,7 +6,6 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
-import IDependencyDefinition from "../dependency/IDependencyDefinition";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -17,8 +16,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     readModels:string[] = [];
 
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
-                @inject("IDependencyDefinition") private dependency:IDependencyDefinition
+    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>
     ) {
     }
 

@@ -5,22 +5,17 @@ import CountSnapshotStrategy from "../../../scripts/snapshots/CountSnapshotStrat
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 
 @Projection("Mock")
-class MockProjectionDefinition implements IProjectionDefinition<number> {
-
-    constructor(private strategy?:ISnapshotStrategy) {
-    }
+export class MockProjectionCircularADefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
         return {
-            name: "test",
+            name: "CircularA",
             definition: {
                 $init: () => 10,
+                "CircularB": (s, e:number) => s + e,
                 TestEvent: (s, e:number) => s + e
-            },
-            snapshotStrategy: this.strategy
+            }
         };
     }
 
 }
-
-export default MockProjectionDefinition
