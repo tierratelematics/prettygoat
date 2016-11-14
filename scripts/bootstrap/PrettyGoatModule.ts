@@ -46,6 +46,8 @@ import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
 import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
+import IDependencyDefinition from "../dependency/IDependencyDefinition";
+import DependencyDefinition from "../dependency/DependencyDefinition";
 
 class PrettyGoatModule implements IModule {
 
@@ -55,6 +57,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
         kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
+        kernel.bind<IDependencyDefinition>("IDependencyDefinition").to(DependencyDefinition).inSingletonScope();
         kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
         kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();

@@ -1,8 +1,8 @@
 ##0.15.0
 
-**Breaking**: filter event types before scheduling (needs event_types view)
-Query single buckets instead of entire history
-Fix scheduling of ticks in the $init function
+* **breaking**: filter event types before scheduling (needs event_types view)
+* query single buckets instead of entire history
+* fix scheduling of ticks in the $init function
 
 ##0.14.2
 
