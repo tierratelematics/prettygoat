@@ -48,7 +48,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 if (matchFunction !== Rx.helpers.identity) {
                     let newState = matchFunction(this.state, event.payload, event);
                     if (newState instanceof SpecialState)
-                        this.state = (<SpecialState<any>>newState).state;
+                        this.state = (<SpecialState<T>>newState).state;
                     else
                         this.state = newState;
                     if (!(newState instanceof StopSignallingState))
