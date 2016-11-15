@@ -1,7 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
-import IProjectionRunner from "./IProjectionRunner";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -12,24 +11,15 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
+import {ProjectionRunner} from "./ProjectionRunner";
 
-class SplitProjectionRunner<T> implements IProjectionRunner<T> {
-    private streamId:string;
+class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private subscription:Rx.IDisposable;
-    private isDisposed:boolean;
-    private isFailed:boolean;
-    private subject:Rx.Subject<Event>;
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
-                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
-                private dateRetriever:IDateRetriever) {
-        this.subject = new Rx.Subject<Event>();
-        this.streamId = projection.name;
-    }
-
-    notifications() {
-        return this.subject;
+    constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
+                private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
+                dateRetriever:IDateRetriever) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -42,7 +32,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.subscribe(event => {
+        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload, event),
@@ -59,6 +49,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                     } else {
                         this.dispatchEventToAll(matchFn, event);
                     }
+                    this.updateStats(event);
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -66,6 +57,8 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stop();
             }
         });
+
+        this.resume();
 
         mergeStreams(
             combinedStream,
@@ -106,21 +99,6 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 timestamp: timestamp,
                 splitKey: splitKey
             });
-    }
-
-    stop():void {
-        this.isDisposed = true;
-
-        if (this.subscription)
-            this.subscription.dispose();
-        if (!this.isFailed)
-            this.subject.onCompleted();
-    }
-
-    dispose():void {
-        this.stop();
-        if (!this.subject.isDisposed)
-            this.subject.dispose();
     }
 }
 export default SplitProjectionRunner
