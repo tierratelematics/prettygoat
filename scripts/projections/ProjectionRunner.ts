@@ -20,6 +20,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
+    private pauser = new Subject<boolean>();
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
                 private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever) {
@@ -42,7 +43,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.publishReadModel(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.subscribe(event => {
+        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
@@ -60,6 +61,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stop();
             }
         });
+
+        this.resume();
 
         mergeStreams(
             combinedStream,
@@ -79,11 +82,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     pause():void {
-
+        this.pauser.onNext(false);
     }
 
     resume():void {
-
+        this.pauser.onNext(true);
     }
 
     dispose():void {

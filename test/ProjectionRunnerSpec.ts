@@ -15,6 +15,7 @@ import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
+import ReservedEvents from "../scripts/streams/ReservedEvents";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -209,18 +210,18 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
-            let date = new Date(500);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(+date + 1)});
-            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(+date + 2)});
-            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
-            streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(+date + 4)});
+            streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});
+            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(501)});
+            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(502)});
+            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(503)});
+            streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(504)});
             subject.stop();
-            streamSubject.onNext({type: "increment", payload: 5, timestamp: new Date(+date + 5)});
+            streamSubject.onNext({type: "increment", payload: 5, timestamp: new Date(505)});
         });
         it("should not process any more events", () => {
             expect(notifications).to.eql([
@@ -244,17 +245,17 @@ describe("Given a ProjectionRunner", () => {
 
     context("when pausing a projection", () => {
         let streamSubject = new Subject<any>();
-        let date = new Date(500);
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(+date + 1)});
-            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(+date + 2)});
+            streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});
+            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(501)});
+            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(502)});
             subject.pause();
-            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
+            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(503)});
         });
         it("should not process events anymore", () => {
             expect(notifications).to.eql([
@@ -265,20 +266,16 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("and the projection is resumed", () => {
-            beforeEach(() => {
-                subject.resume();
-                streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
-                streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(+date + 4)});
-            });
             it("should start from the last state", () => {
+                subject.resume();
+                streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(504)});
                 expect(notifications).to.eql([
                     42,
                     42 + 1,
                     42 + 1 + 2,
-                    42 + 1 + 2 + 3,
-                    42 + 1 + 2 + 3 + 4
+                    42 + 1 + 2 + 4
                 ]);
-                expect(subject.state).to.be(42 + 1 + 2 + 3 + 4);
+                expect(subject.state).to.be(42 + 1 + 2 + 4);
             });
         });
     });
