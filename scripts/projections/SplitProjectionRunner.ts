@@ -49,6 +49,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                     } else {
                         this.dispatchEventToAll(matchFn, event);
                     }
+                    this.updateStats(event);
                 }
             } catch (error) {
                 this.isFailed = true;

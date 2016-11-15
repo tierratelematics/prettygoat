@@ -12,9 +12,11 @@ import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
+import ProjectionStats from "./ProjectionStats";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
+    public stats = new ProjectionStats();
     protected streamId:string;
     protected subject:Subject<Event>;
     protected subscription:Rx.IDisposable;
@@ -54,6 +56,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                         this.state = newState;
                     if (!(newState instanceof StopSignallingState))
                         this.publishReadModel(event.timestamp);
+                    this.updateStats(event);
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -70,6 +73,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
+    }
+
+    protected updateStats(event:Event) {
+        if (event.timestamp)
+            this.stats.events++;
+        else
+            this.stats.readModels++;
     }
 
     stop():void {
