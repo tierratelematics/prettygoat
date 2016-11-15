@@ -1,4 +1,4 @@
-import {Subject, IDisposable} from "rx";
+import {Subject} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -14,16 +14,16 @@ import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    private streamId:string;
-    public state:T;
-    private subject:Subject<Event>;
-    private subscription:Rx.IDisposable;
-    private isDisposed:boolean;
-    private isFailed:boolean;
-    private pauser = new Subject<boolean>();
+    public state:T|Dictionary<T>;
+    protected streamId:string;
+    protected subject:Subject<Event>;
+    protected subscription:Rx.IDisposable;
+    protected isDisposed:boolean;
+    protected isFailed:boolean;
+    protected pauser = new Subject<boolean>();
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever) {
+    constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
+                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
