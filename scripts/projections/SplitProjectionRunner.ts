@@ -57,6 +57,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             }
         });
 
+        this.resume();
+
         mergeStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
