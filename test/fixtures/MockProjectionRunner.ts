@@ -22,6 +22,12 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     stop():void {
     }
 
+    pause():void {
+    }
+
+    resume():void {
+    }
+
     dispose():void {
 
     }

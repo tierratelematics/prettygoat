@@ -78,6 +78,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.onCompleted();
     }
 
+    pause():void {
+
+    }
+
+    resume():void {
+
+    }
+
     dispose():void {
         this.stop();
         if (!this.subject.isDisposed)

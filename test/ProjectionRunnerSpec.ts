@@ -209,7 +209,7 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
-            let date = new Date();
+            let date = new Date(500);
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
@@ -238,6 +238,47 @@ describe("Given a ProjectionRunner", () => {
         context("and the projection is started again", () => {
             it("should throw an error", () => {
                 expect(() => subject.run()).to.throwError();
+            });
+        });
+    });
+
+    context("when pausing a projection", () => {
+        let streamSubject = new Subject<any>();
+        let date = new Date(500);
+        beforeEach(() => {
+            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
+            stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
+
+            subject.run();
+            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(+date + 1)});
+            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(+date + 2)});
+            subject.pause();
+            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
+        });
+        it("should not process events anymore", () => {
+            expect(notifications).to.eql([
+                42,
+                42 + 1,
+                42 + 1 + 2
+            ]);
+        });
+
+        context("and the projection is resumed", () => {
+            beforeEach(() => {
+                subject.resume();
+                streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(+date + 3)});
+                streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(+date + 4)});
+            });
+            it("should start from the last state", () => {
+                expect(notifications).to.eql([
+                    42,
+                    42 + 1,
+                    42 + 1 + 2,
+                    42 + 1 + 2 + 3,
+                    42 + 1 + 2 + 3 + 4
+                ]);
+                expect(subject.state).to.be(42 + 1 + 2 + 3 + 4);
             });
         });
     });

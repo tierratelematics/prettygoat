@@ -7,6 +7,8 @@ interface IProjectionRunner<T> extends IDisposable {
     state:T|Dictionary<T>;
     run(snapshot?:Snapshot<T|Dictionary<T>>):void;
     stop():void;
+    pause():void;
+    resume():void;
     notifications():Observable<Event>;
 }
 
