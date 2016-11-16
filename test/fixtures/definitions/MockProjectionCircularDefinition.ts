@@ -4,7 +4,7 @@ import Projection from "../../../scripts/registry/ProjectionDecorator";
 import CountSnapshotStrategy from "../../../scripts/snapshots/CountSnapshotStrategy";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 
-@Projection("Mock")
+@Projection("CirculaA")
 export class MockProjectionCircularADefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
@@ -13,6 +13,22 @@ export class MockProjectionCircularADefinition implements IProjectionDefinition<
             definition: {
                 $init: () => 10,
                 "CircularB": (s, e:number) => s + e,
+                TestEvent: (s, e:number) => s + e
+            }
+        };
+    }
+
+}
+
+@Projection("CirculaB")
+export class MockProjectionCircularBDefinition implements IProjectionDefinition<number> {
+
+    define():IProjection<number> {
+        return {
+            name: "CircularB",
+            definition: {
+                $init: () => 10,
+                "CircularA": (s, e:number) => s + e,
                 TestEvent: (s, e:number) => s + e
             }
         };

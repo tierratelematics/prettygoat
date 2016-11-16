@@ -22,36 +22,57 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ProjectionSorter from "../scripts/projections/ProjectionSorter";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import {IProjection} from "../scripts/projections/IProjection";
-import {MockProjectionCircularADefinition} from "./fixtures/definitions/MockProjectionCircularDefinition";
+import {
+    MockProjectionCircularADefinition,
+    MockProjectionCircularBDefinition
+} from "./fixtures/definitions/MockProjectionCircularDefinition";
+import {MockProjectionRegistry} from "./fixtures/MockProjectionRegistry";
 
 describe("ProjectionSorterSpec, check if two projection are circular", () => {
 
-    let subject:IProjectionRegistry,
-        objectContainer:TypeMoq.Mock<IObjectContainer>,
-        tickScheduler:ITickScheduler,
-        sorterProjection: TypeMoq.Mock<IProjectionSorter>,
-        holder:Dictionary<ITickScheduler>,
-        firstProjection:IProjection<any>;
+    let registry:IProjectionRegistry,
+        subject: IProjectionSorter;
 
     beforeEach(() => {
-        let analyzer = new ProjectionAnalyzer();
-        objectContainer = TypeMoq.Mock.ofType(MockObjectContainer);
-        sorterProjection = TypeMoq.Mock.ofType(ProjectionSorter);
-        tickScheduler = new TickScheduler(null);
-        holder = {};
-        subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);
-        firstProjection = new MockProjectionCircularADefinition().define();
+        registry = new MockProjectionRegistry();
+        subject = new ProjectionSorter(registry,require('toposort'));
     });
 
-    context("not circular projection", () => {
+    context("not circular projections", () => {
         beforeEach(() => {
-            subject.add(MockProjectionCircularADefinition).forArea("Admin");
+            registry.add(MockProjectionCircularADefinition).forArea("Admin");
+            registry.add(MockProjectionDefinition).forArea("Test");
         });
 
-        it("should first projection not have a link with the second projection", () => {
-            sorterProjection.setup(p => p.getDependecy(TypeMoq.It.isValue(firstProjection))).returns(o => []);
+        it('subject is a ProjectionSorter', () => {
+            expect(subject).to.be.a(ProjectionSorter);
         });
 
+        it('should expose a topologicSort function', () => {
+            console.log(subject.topologicGraph);
+            expect(subject.topologicSort).to.be.a('function');
+        });
+
+        it("should not trigger an error", () => {
+            expect(subject.topologicSort()).to.be.an('array');
+        });
     });
+
+    context("circular projections", () => {
+        beforeEach(() => {
+            registry.add(MockProjectionCircularADefinition).forArea("Admin");
+            registry.add(MockProjectionDefinition).forArea("Test");
+            registry.add(MockProjectionCircularBDefinition).forArea("Admin");
+        });
+
+        it('should expose a topologicSort function', () => {
+            expect(subject.topologicSort).to.be.a('function');
+        });
+
+        it("should trigger a circular error", () => {
+            expect(subject.topologicSort()).to.throwError();
+        });
+    });
+
 
 });
