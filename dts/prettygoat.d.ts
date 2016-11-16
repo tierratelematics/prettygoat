@@ -47,9 +47,17 @@ declare module prettygoat {
 
     export interface IProjectionRunner<T> extends IDisposable {
         state:T|Dictionary<T>;
+        stats:ProjectionStats;
         run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
+        pause():void;
+        resume():void;
         notifications:Observable<Event>;
+    }
+
+    export default class ProjectionStats {
+        events:number;
+        readModels:number;
     }
 
     export interface IProjectionRunnerFactory {
