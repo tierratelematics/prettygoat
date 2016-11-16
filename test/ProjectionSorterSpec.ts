@@ -1,62 +1,63 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
+import * as TypeMoq from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import SinonStub = Sinon.SinonStub;
 import ProjectionSorter from "../scripts/projections/ProjectionSorter";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
-import {MockProjectionRegistry} from "./fixtures/MockProjectionRegistry";
+import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
+import AreaRegistry from "../scripts/registry/AreaRegistry";
+import RegistryEntry from "../scripts/registry/RegistryEntry";
 
-describe("ProjectionSorterSpec, check if two projection are circular", () => {
+describe("ProjectionSorterSpec, given a projection sorter", () => {
 
-    let registry:IProjectionRegistry,
-        subject: IProjectionSorter;
+    let registry:TypeMoq.Mock<IProjectionRegistry>,
+        subject:IProjectionSorter;
 
     beforeEach(() => {
-        registry = new MockProjectionRegistry();
-        subject = new ProjectionSorter(registry,require('toposort'));
+        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        subject = new ProjectionSorter(registry.object, require('toposort'));
     });
 
-    context("not circular projections", () => {
+    context("when some registered projections do not contain any circular references", () => {
         beforeEach(() => {
-            registry.add(MockProjectionCircularADefinition).forArea("Admin");
-            registry.add(MockProjectionDefinition).forArea("Test");
+            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+            let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
+            registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [circularAEntry, mockEntry])]);
+            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                return {area: "Admin", data: circularAEntry};
+            });
+            registry.setup(r => r.getEntry("test", null)).returns(a => {
+                return {area: "Admin", data: mockEntry};
+            });
         });
 
-        it('subject is a ProjectionSorter', () => {
-            expect(subject).to.be.a(ProjectionSorter);
-        });
-
-        it('should expose a topologicSort function', () => {
-            expect(subject.topologicSort).to.be.a('function');
-        });
-
-        it("should not trigger a circular error", () => {
-            expect(subject.topologicSort()).to.be.an('array');
+        it("should sort the projections correctly", () => {
+            expect(subject.topologicSort()).to.eql([
+                "CircularA", "test"
+            ]);
         });
     });
 
-    context("circular projections", () => {
+    context("when some registered projections do contain some circular references", () => {
         beforeEach(() => {
-            registry.add(MockProjectionCircularADefinition).forArea("Admin");
-            registry.add(MockProjectionCircularBDefinition).forArea("Admin");
+            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+            let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
+            registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [circularAEntry, circularBEntry])]);
+            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                return {area: "Admin", data: circularAEntry};
+            });
+            registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
+                return {area: "Admin", data: circularBEntry};
+            });
         });
 
-        it('subject is a ProjectionSorter', () => {
-            expect(subject).to.be.a(ProjectionSorter);
-        });
-
-        it('should expose a topologicSort function', () => {
-            expect(subject.topologicSort).to.be.a('function');
-        });
-
-        it("should trigger a circular error", () => {
+        it("should trigger an exception regarding the circular dependency", () => {
             expect(() => subject.topologicSort()).to.throwError();
         });
     });
