@@ -1,5 +1,4 @@
 import expect = require("expect.js");
-import sinon = require("sinon");
 import * as TypeMoq from "typemoq";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";

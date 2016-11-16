@@ -3,7 +3,6 @@
   "version": "0.15.0",
   "devDependencies": {
     "expect.js": "^0.3.1",
-    "sinon": "^1.17.4",
     "typemoq": "0.3.3"
   },
   "dependencies": {

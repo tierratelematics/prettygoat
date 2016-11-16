@@ -1,7 +1,6 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
 import PushContext from "../scripts/push/PushContext";
 import ClientRegistry from "../scripts/push/ClientRegistry";
 import IClientRegistry from "../scripts/push/IClientRegistry";
