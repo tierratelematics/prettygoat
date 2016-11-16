@@ -21,11 +21,11 @@ class ProjectionSorter implements IProjectionSorter {
     private initialize():void {
         _.forEach(this.registry.getAreas(), (area:AreaRegistry) => {
             _.forEach(area.entries, (entry:RegistryEntry<any>) => {
-                let listAjacency = _(entry.projection.definition)
+                let listAdjacency = _(entry.projection.definition)
                     .keys()
                     .filter(projection => this.registry.getEntry(projection, null).data != null)
                     .valueOf();
-                this.addEdgesFromProjection(listAjacency, entry.projection.name);
+                this.addEdgesFromProjection(listAdjacency, entry.projection.name);
             });
         });
     }
