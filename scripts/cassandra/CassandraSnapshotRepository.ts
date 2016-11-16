@@ -56,6 +56,10 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         }
         _.map(queries, query => this.client.execute(query).subscribe(() => null));
     }
+
+    deleteSnapshot(streamId:string):void {
+        this.client.execute(`delete from projections_snapshots where streamid = '${streamId}'`);
+    }
 }
 
 interface CassandraSnapshot {

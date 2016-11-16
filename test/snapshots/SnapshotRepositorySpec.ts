@@ -106,4 +106,14 @@ describe("Snapshot repository, given all the streams", () => {
             });
         });
     });
+
+    context("when a snapshot needs to be deleted", () => {
+        beforeEach(() => {
+            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.empty());
+        });
+        it("should remove it correctly", () => {
+            subject.deleteSnapshot("test");
+            cassandraClient.verify(c => c.execute("delete from projections_snapshots where streamid = 'test'"), TypeMoq.Times.once())
+        });
+    });
 });

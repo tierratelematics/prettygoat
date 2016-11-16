@@ -80,6 +80,7 @@ declare module prettygoat {
         initialize():Observable<void>;
         getSnapshots():Observable<Dictionary<Snapshot<any>>>;
         saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void;
+        deleteSnapshot(streamId:string):void;
     }
 
     export interface IStreamFactory {
