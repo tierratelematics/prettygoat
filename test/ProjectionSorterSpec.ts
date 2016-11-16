@@ -37,7 +37,7 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
             expect(subject.topologicSort).to.be.a('function');
         });
 
-        it("should not trigger an error", () => {
+        it("should not trigger a circular error", () => {
             expect(subject.topologicSort()).to.be.an('array');
         });
     });
