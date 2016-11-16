@@ -47,12 +47,12 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         let queries = [];
         let entry = this.registry.getEntry(streamId);
         if (entry.data.projection.split)
-            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => `insert into projections_snapshots\
-                        (streamid, split, lastevent, memento) values ('${streamId}',
-                        '${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(memento)}'))`);
+            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => "insert into projections_snapshots " +
+            `(streamid, split, lastevent, memento) values ('${streamId}',` +
+            `'${split}', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(memento)}'))`);
         else {
-            queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',
-                                '', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`]
+            queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',` +
+            `'', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(snapshot.memento)}'))`]
         }
         _.map(queries, query => this.client.execute(query).subscribe(() => null));
     }
