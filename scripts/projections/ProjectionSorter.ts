@@ -19,12 +19,11 @@ export default class ProjectionSorter implements IProjectionSorter{
     constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry,
                 @inject("ToposortService") private topologicService:any
     ){
-        this.getDependency();
     }
 
     topologicSort():string[]{
-        let result:string[] = this.topologicService(this.topologicGraph);
-        return result;
+        this.getDependency();
+        return this.topologicService(this.topologicGraph);
     }
 
     private isProjection(idProjection:string,idArea:string):boolean{
@@ -32,13 +31,13 @@ export default class ProjectionSorter implements IProjectionSorter{
     }
 
     private getDependency():void{
-        let keys = null;
+        let listAjacency = null;
         _.forEach(this.registry.getAreas(), (area:AreaRegistry) => {
             _.forEach(area.entries, (projection:RegistryEntry<any>) => {
-                keys = _.filter(_.keys(projection.projection.definition), (key:string) => {
-                    return this.isProjection(key,null);
+                listAjacency = _.filter(_.keys(projection.projection.definition), (projectionDepencency:string) => {
+                    return this.isProjection(projectionDepencency,null);
                 });
-                this.graphConstruction(keys,projection.name);
+                this.graphConstruction(listAjacency,projection.name);
             });
         });
     }

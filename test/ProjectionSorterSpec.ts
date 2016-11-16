@@ -35,13 +35,13 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
 
     beforeEach(() => {
         registry = new MockProjectionRegistry();
+        subject = new ProjectionSorter(registry,require('toposort'));
     });
 
     context("not circular projections", () => {
         beforeEach(() => {
             registry.add(MockProjectionCircularADefinition).forArea("Admin");
             registry.add(MockProjectionDefinition).forArea("Test");
-            subject = new ProjectionSorter(registry,require('toposort'));
         });
 
         it('subject is a ProjectionSorter', () => {
@@ -61,7 +61,6 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
         beforeEach(() => {
             registry.add(MockProjectionCircularADefinition).forArea("Admin");
             registry.add(MockProjectionCircularBDefinition).forArea("Admin");
-            subject = new ProjectionSorter(registry,require('toposort'));
         });
 
         it('subject is a ProjectionSorter', () => {
