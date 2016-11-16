@@ -1,9 +1,5 @@
-import Dictionary from "../Dictionary";
-import {IProjection} from "./IProjection";
-
-interface IProjectionSorter{
-    topologicGraph: string[][];
-    topologicSort():string[]
+interface IProjectionSorter {
+    sort():string[]
 }
 
 export default IProjectionSorter

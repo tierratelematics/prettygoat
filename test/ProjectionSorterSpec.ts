@@ -21,7 +21,13 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
 
     beforeEach(() => {
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
-        subject = new ProjectionSorter(registry.object, require('toposort'));
+        subject = new ProjectionSorter(registry.object);
+        registry.setup(r => r.getEntry("$init", null)).returns(a => {
+            return {area: "Admin", data: null};
+        });
+        registry.setup(r => r.getEntry("TestEvent", null)).returns(a => {
+            return {area: "Admin", data: null};
+        });
     });
 
     context("when some registered projections do not contain any circular references", () => {
@@ -29,8 +35,8 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
             let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
             let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
             registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [circularAEntry, mockEntry])]);
-            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
-                return {area: "Admin", data: circularAEntry};
+            registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
+                return {area: "Admin", data: null};
             });
             registry.setup(r => r.getEntry("test", null)).returns(a => {
                 return {area: "Admin", data: mockEntry};
@@ -38,7 +44,7 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         });
 
         it("should sort the projections correctly", () => {
-            expect(subject.topologicSort()).to.eql([
+            expect(subject.sort()).to.eql([
                 "CircularA", "test"
             ]);
         });
@@ -58,7 +64,7 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         });
 
         it("should trigger an exception regarding the circular dependency", () => {
-            expect(() => subject.topologicSort()).to.throwError();
+            expect(() => subject.sort()).to.throwError();
         });
     });
 

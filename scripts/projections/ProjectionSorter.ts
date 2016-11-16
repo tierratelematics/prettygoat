@@ -1,50 +1,44 @@
-
-import Dictionary from "../Dictionary";
 import {injectable, inject} from "inversify";
-import IProjectionRunner from "../projections/IProjectionRunner";
-import IObjectContainer from "../bootstrap/IObjectContainer";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
-import IProjectionDefinition from "../registry/IProjectionDefinition";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionSorter from "./IProjectionSorter";
-import {IProjection} from "./IProjection";
-
+const toposort = require("toposort");
 
 @injectable()
-export default class ProjectionSorter implements IProjectionSorter{
-    topologicGraph: string[][] = [];
+class ProjectionSorter implements IProjectionSorter {
+    private graph:string[][] = [];
 
-    constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry,
-                @inject("ToposortService") private topologicService:any
-    ){
+    constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
     }
 
-    topologicSort():string[]{
-        this.getDependency();
-        return this.topologicService(this.topologicGraph);
+    sort():string[] {
+        if (!this.graph.length) this.initialize();
+        return toposort(this.graph);
     }
 
-    private isProjection(idProjection:string,idArea:string):boolean{
-        return this.registry.getEntry(idProjection,idArea).data!=null;
-    }
-
-    private getDependency():void{
-        let listAjacency = null;
+    private initialize():void {
         _.forEach(this.registry.getAreas(), (area:AreaRegistry) => {
-            _.forEach(area.entries, (projection:RegistryEntry<any>) => {
-                listAjacency = _.filter(_.keys(projection.projection.definition), (projectionDepencency:string) => {
-                    return this.isProjection(projectionDepencency,null);
-                });
-                this.graphConstruction(listAjacency,projection.name);
+            _.forEach(area.entries, (entry:RegistryEntry<any>) => {
+                let listAjacency = _(entry.projection.definition)
+                    .keys()
+                    .filter(projection => this.isProjection(projection))
+                    .valueOf();
+                this.addEdgesFromProjection(listAjacency, entry.projection.name);
             });
         });
     }
 
-    private graphConstruction(listAdjacency:string[], nodeFrom: string):void{
+    private isProjection(projectionName:string):boolean {
+        return this.registry.getEntry(projectionName, null).data != null;
+    }
+
+    private addEdgesFromProjection(listAdjacency:string[], nodeFrom:string):void {
         _.forEach(listAdjacency, (nodeTo:string) => {
-            this.topologicGraph.push([nodeFrom,nodeTo]);
+            this.graph.push([nodeFrom, nodeTo]);
         });
     }
 }
+
+export default ProjectionSorter
