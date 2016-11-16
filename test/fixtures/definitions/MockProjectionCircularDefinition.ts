@@ -4,7 +4,7 @@ import Projection from "../../../scripts/registry/ProjectionDecorator";
 import CountSnapshotStrategy from "../../../scripts/snapshots/CountSnapshotStrategy";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 
-@Projection("CirculaA")
+@Projection("CircularA")
 export class MockProjectionCircularADefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {
@@ -20,7 +20,7 @@ export class MockProjectionCircularADefinition implements IProjectionDefinition<
 
 }
 
-@Projection("CirculaB")
+@Projection("CircularB")
 export class MockProjectionCircularBDefinition implements IProjectionDefinition<number> {
 
     define():IProjection<number> {

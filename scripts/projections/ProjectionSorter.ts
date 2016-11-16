@@ -10,7 +10,6 @@ import IProjectionDefinition from "../registry/IProjectionDefinition";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
-import Edge from "../graph/Edge";
 
 
 @injectable()
@@ -24,7 +23,8 @@ export default class ProjectionSorter implements IProjectionSorter{
     }
 
     topologicSort():string[]{
-        return this.topologicService(this.topologicGraph);
+        let result:string[] = this.topologicService(this.topologicGraph);
+        return result;
     }
 
     private isProjection(idProjection:string,idArea:string):boolean{

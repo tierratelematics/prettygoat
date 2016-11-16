@@ -35,13 +35,13 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
 
     beforeEach(() => {
         registry = new MockProjectionRegistry();
-        subject = new ProjectionSorter(registry,require('toposort'));
     });
 
     context("not circular projections", () => {
         beforeEach(() => {
             registry.add(MockProjectionCircularADefinition).forArea("Admin");
             registry.add(MockProjectionDefinition).forArea("Test");
+            subject = new ProjectionSorter(registry,require('toposort'));
         });
 
         it('subject is a ProjectionSorter', () => {
@@ -49,7 +49,6 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
         });
 
         it('should expose a topologicSort function', () => {
-            console.log(subject.topologicGraph);
             expect(subject.topologicSort).to.be.a('function');
         });
 
@@ -61,8 +60,12 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
     context("circular projections", () => {
         beforeEach(() => {
             registry.add(MockProjectionCircularADefinition).forArea("Admin");
-            registry.add(MockProjectionDefinition).forArea("Test");
             registry.add(MockProjectionCircularBDefinition).forArea("Admin");
+            subject = new ProjectionSorter(registry,require('toposort'));
+        });
+
+        it('subject is a ProjectionSorter', () => {
+            expect(subject).to.be.a(ProjectionSorter);
         });
 
         it('should expose a topologicSort function', () => {
@@ -70,7 +73,7 @@ describe("ProjectionSorterSpec, check if two projection are circular", () => {
         });
 
         it("should trigger a circular error", () => {
-            expect(subject.topologicSort()).to.throwError();
+            expect(() => subject.topologicSort()).to.throwError();
         });
     });
 
