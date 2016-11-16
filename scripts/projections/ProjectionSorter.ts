@@ -23,15 +23,11 @@ class ProjectionSorter implements IProjectionSorter {
             _.forEach(area.entries, (entry:RegistryEntry<any>) => {
                 let listAjacency = _(entry.projection.definition)
                     .keys()
-                    .filter(projection => this.isProjection(projection))
+                    .filter(projection => this.registry.getEntry(projection, null).data != null)
                     .valueOf();
                 this.addEdgesFromProjection(listAjacency, entry.projection.name);
             });
         });
-    }
-
-    private isProjection(projectionName:string):boolean {
-        return this.registry.getEntry(projectionName, null).data != null;
     }
 
     private addEdgesFromProjection(listAdjacency:string[], nodeFrom:string):void {
