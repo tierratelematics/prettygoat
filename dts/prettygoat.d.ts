@@ -55,7 +55,7 @@ declare module prettygoat {
         notifications:Observable<Event>;
     }
 
-    export default class ProjectionStats {
+    export class ProjectionStats {
         events:number;
         readModels:number;
     }
