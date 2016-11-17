@@ -2,9 +2,11 @@ import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockModel from "./MockModel";
 import {Subject} from "rx";
 import {Event} from "../../scripts/streams/Event";
+import ProjectionStats from "../../scripts/projections/ProjectionStats";
 
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
+    stats:ProjectionStats;
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {
@@ -20,6 +22,12 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     }
 
     stop():void {
+    }
+
+    pause():void {
+    }
+
+    resume():void {
     }
 
     dispose():void {

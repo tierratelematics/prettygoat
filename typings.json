@@ -1,8 +1,7 @@
 {
     "globalDevDependencies": {
         "expect.js": "registry:dt/expect.js#0.3.1+20160317120654",
-        "mocha": "registry:dt/mocha#2.2.5+20160317120654",
-        "sinon": "registry:dt/sinon#1.16.0+20160517064723"
+        "mocha": "registry:dt/mocha#2.2.5+20160317120654"
     },
     "globalDependencies": {
         "bluebird": "registry:dt/bluebird#2.0.0+20160319051630",

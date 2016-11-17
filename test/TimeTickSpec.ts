@@ -1,5 +1,4 @@
 import expect = require("expect.js");
-import sinon = require("sinon");
 import * as TypeMoq from "typemoq";
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
 import {IProjection} from "../scripts/projections/IProjection";
