@@ -31,7 +31,7 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
                 this.tickSchedulerHolder[projection.name], this.dateRetriever);
         else
             projectionRunner = new SplitProjectionRunner<T>(projection, this.streamFactory, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
+                new MemoizingMatcher(new Matcher(projection.split)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
                 this.dateRetriever);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
