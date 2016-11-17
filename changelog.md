@@ -1,3 +1,11 @@
+##0.16.2
+
+fixes an error with split projection events not matched
+
+##0.16.1
+
+fixes an error with the dts
+
 ##0.16.0
 
 * add projection runner stats
