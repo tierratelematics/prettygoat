@@ -29,6 +29,10 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/matcher/Matcher";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
+import IProjectionSorter from "../scripts/projections/IProjectionSorter";
+import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
+import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
+import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -38,16 +42,20 @@ describe("Given a ProjectionEngine", () => {
         snapshotStrategy:TypeMoq.Mock<ISnapshotStrategy>,
         runner:IProjectionRunner<number>,
         runnerFactory:TypeMoq.Mock<IProjectionRunnerFactory>,
+        projectionSorter:TypeMoq.Mock<IProjectionSorter>,
         snapshotRepository:TypeMoq.Mock<ISnapshotRepository>,
+        dependenciesCollector:TypeMoq.Mock<IDependenciesCollector>,
         dataSubject:Subject<Event>,
         projection:IProjection<number>;
 
     beforeEach(() => {
         snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
+        dependenciesCollector = TypeMoq.Mock.ofType(MockDependenciesCollector);
+        dependenciesCollector.setup(p => p.getDependenciesFor(projection)).returns(a => []);
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
-            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)));
+            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
@@ -60,10 +68,11 @@ describe("Given a ProjectionEngine", () => {
                 ])
             ]
         });
+        projectionSorter = TypeMoq.Mock.ofType(MockProjectionSorter);
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
-        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, null, projectionSorter.object);
     });
 
     context("when a snapshot is present", () => {
@@ -72,6 +81,7 @@ describe("Given a ProjectionEngine", () => {
                 "test": new Snapshot(42, new Date(5000))
             }).observeOn(Scheduler.immediate));
             subject.run();
+            dependenciesCollector.verify(d => d.getDependenciesFor(projection), TypeMoq.Times.once());
         });
 
         it("should init a projection runner with that snapshot", () => {
@@ -83,6 +93,7 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
             subject.run();
+            dependenciesCollector.verify(d => d.getDependenciesFor(projection), TypeMoq.Times.once());
         });
         it("should init a projection runner without a snapshot", () => {
             expect(runner.state).to.be(10);
@@ -155,6 +166,7 @@ describe("Given a ProjectionEngine", () => {
             });
             it("should not save the snapshot", () => {
                 snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.never());
+                dependenciesCollector.verify(d => d.getDependenciesFor(projection), TypeMoq.Times.once());
             });
         });
     });

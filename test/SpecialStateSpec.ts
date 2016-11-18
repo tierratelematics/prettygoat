@@ -17,6 +17,7 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
+import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 
 describe("Given a a projection runner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -48,7 +49,7 @@ describe("Given a a projection runner", () => {
                     name: "test",
                     definition: {}
                 }, stream.object, matcher.object, new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()),
-                new MockDateRetriever(new Date(100000)));
+                new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
             subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
@@ -74,7 +75,7 @@ describe("Given a a projection runner", () => {
                     name: "test",
                     definition: {}
                 }, stream.object, matcher.object, splitMatcher.object, new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()),
-                new MockDateRetriever(new Date(100000)));
+                new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
             subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 

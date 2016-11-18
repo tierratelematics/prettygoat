@@ -16,6 +16,9 @@ import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
+import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
+import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
+import {IProjection} from "../scripts/projections/IProjection";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -26,6 +29,11 @@ describe("Given a ProjectionRunner", () => {
     let failed:boolean;
     let subscription:IDisposable;
     let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
+    let dependenciesCollector:TypeMoq.Mock<IDependenciesCollector>;
+    let projection:IProjection<number> = {
+        name: "test",
+        definition: {}
+    };
 
     beforeEach(() => {
         notifications = [];
@@ -34,12 +42,11 @@ describe("Given a ProjectionRunner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        subject = new ProjectionRunner<number>({
-                name: "test",
-                definition: {}
-            }, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
-            new MockDateRetriever(new Date(100000)));
+        dependenciesCollector.setup(d => d.getDependenciesFor(projection)).returns(o => []);
+        subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
+            new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
+        dependenciesCollector.verify(d => d.getDependenciesFor(TypeMoq.It.isValue(projection)), TypeMoq.Times.once());
     });
 
     afterEach(() => subscription.dispose());
