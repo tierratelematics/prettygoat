@@ -26,10 +26,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed:boolean;
     protected isFailed:boolean;
     protected pauser = new Subject<boolean>();
-    private dependencyList:string[];
+    protected dependencyList:string[];
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, private dependenciesCollector:IDependenciesCollector) {
+    constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
+                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever, protected dependenciesCollector:IDependenciesCollector) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
         this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
