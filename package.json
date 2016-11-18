@@ -14,6 +14,7 @@
     "humanize": "0.0.9",
     "inversify": "~2.0.0-rc.1",
     "inversify-dts": "~1.4.0",
+    "inversify-express-utils": "^2.0.2",
     "lodash": "^4.13.1",
     "moment": "^2.13.0",
     "object-sizeof": "^1.1.1",

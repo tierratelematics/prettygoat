@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "bivio": "npm:bivio/dts/bivio.d.ts",
+        "inversify-express-utils": "npm:inversify-express-utils/dts/index.d.ts",
         "lodash": "registry:npm/lodash#4.0.0+20160416211519"
     }
 }
