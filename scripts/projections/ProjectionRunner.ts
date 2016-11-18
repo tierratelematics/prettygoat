@@ -75,7 +75,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         mergeStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && _.includes(this.dependencyList, event.type)),
+            this.readModelFactory.from(null).filter(event => {
+                return event.type !== this.streamId && _.includes(this.dependencyList, event.type)
+            }),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }

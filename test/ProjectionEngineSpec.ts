@@ -11,7 +11,6 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
@@ -31,8 +30,8 @@ import {Matcher} from "../scripts/matcher/Matcher";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
-import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
+import NullLogger from "../scripts/log/NullLogger";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -70,7 +69,7 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
-        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, null, projectionSorter.object);
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
     });
 
     context("when a snapshot is present", () => {

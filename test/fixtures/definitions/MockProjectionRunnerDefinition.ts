@@ -1,11 +1,10 @@
 import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
 import {IProjection} from "../../../scripts/projections/IProjection";
 import Projection from "../../../scripts/registry/ProjectionDecorator";
-import CountSnapshotStrategy from "../../../scripts/snapshots/CountSnapshotStrategy";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 
-@Projection("Mock")
-class MockProjectionDefinition implements IProjectionDefinition<number> {
+@Projection("MockProjectionRunner")
+class MockProjectionRunnerDefinition implements IProjectionDefinition<number> {
 
     constructor(private strategy?:ISnapshotStrategy) {
     }
@@ -14,9 +13,7 @@ class MockProjectionDefinition implements IProjectionDefinition<number> {
         return {
             name: "test",
             definition: {
-                $init: () => 10,
-                TestEvent: (s, e:number) => s + e,
-
+                test2: (s, e:number) => s + e
             },
             snapshotStrategy: this.strategy
         };
@@ -24,4 +21,4 @@ class MockProjectionDefinition implements IProjectionDefinition<number> {
 
 }
 
-export default MockProjectionDefinition
+export default MockProjectionRunnerDefinition

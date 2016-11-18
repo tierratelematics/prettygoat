@@ -14,6 +14,7 @@ import Dictionary from "../scripts/Dictionary";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
+import * as _ from "lodash";
 
 describe("Split projection, given a projection with a split definition", () => {
 
@@ -37,13 +38,13 @@ describe("Split projection, given a projection with a split definition", () => {
         readModelData = new ReplaySubject<Event>();
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         dependenciesCollector = TypeMoq.Mock.ofType<IDependenciesCollector>(MockDependenciesCollector);
-        dependenciesCollector.setup(d => d.getDependenciesFor(projection)).returns(o => []);
+        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => _.keys(projection.definition));
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         subscription = subject.notifications().subscribe((event:Event) => notifications.push(event), e => failed = true, () => stopped = true);
-        dependenciesCollector.verify(d => d.getDependenciesFor(projection), TypeMoq.Times.once());
+        dependenciesCollector.verify(d => d.getDependenciesFor(TypeMoq.It.isValue(projection)), TypeMoq.Times.once());
     });
 
     context("when initializing the projection", () => {

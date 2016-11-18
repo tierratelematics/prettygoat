@@ -19,6 +19,8 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
+import MockProjectionRunnerDefinition from "./fixtures/definitions/MockProjectionRunnerDefinition";
+import * as _ from "lodash";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -30,12 +32,10 @@ describe("Given a ProjectionRunner", () => {
     let subscription:IDisposable;
     let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
     let dependenciesCollector:TypeMoq.Mock<IDependenciesCollector>;
-    let projection:IProjection<number> = {
-        name: "test",
-        definition: {}
-    };
+    let projection:IProjection<number>;
 
     beforeEach(() => {
+        projection = new MockProjectionRunnerDefinition().define();
         notifications = [];
         stopped = false;
         failed = false;
@@ -43,7 +43,7 @@ describe("Given a ProjectionRunner", () => {
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         dependenciesCollector = TypeMoq.Mock.ofType<IDependenciesCollector>(MockDependenciesCollector);
-        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => []);
+        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => _.keys(projection.definition));
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
