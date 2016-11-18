@@ -4,12 +4,10 @@ import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionSorter from "./IProjectionSorter";
-import {IProjection} from "./IProjection";
-import IProjectionDependency from "./IProjectionDependency";
 const toposort = require("toposort");
 
 @injectable()
-class ProjectionSorter implements IProjectionSorter,IProjectionDependency {
+class ProjectionSorter implements IProjectionSorter {
     private graph:string[][] = [];
 
     constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
@@ -18,13 +16,6 @@ class ProjectionSorter implements IProjectionSorter,IProjectionDependency {
     sort():string[] {
         if (!this.graph.length) this.initialize();
         return toposort(this.graph);
-    }
-
-    dependencyList(projection:IProjection<any>):string[]{
-        return _(projection.definition)
-            .keys()
-            .filter(projection => this.registry.getEntry(projection, null).data != null)
-            .valueOf();
     }
 
     private initialize():void {

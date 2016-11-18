@@ -11,8 +11,8 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
-import IProjectionDependency from "./IProjectionDependency";
 import * as _ from "lodash";
+import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
@@ -25,10 +25,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private dependencyList:string[];
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, private dependency:IProjectionDependency) {
+                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, private dependenciesCollector:IDependenciesCollector) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
-        this.dependencyList = this.dependency.dependencyList(projection);
+        this.dependencyList = this.dependenciesCollector.getDependencyCollection(projection);
     }
 
     notifications() {

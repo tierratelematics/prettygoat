@@ -11,7 +11,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
-import IProjectionDependency from "./IProjectionDependency";
+import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
@@ -25,11 +25,11 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
                 private dateRetriever:IDateRetriever,
-                private dependency:IProjectionDependency
+                private dependenciesCollector:IDependenciesCollector
     ) {
         this.subject = new Rx.Subject<Event>();
         this.streamId = projection.name;
-        this.dependencyList = this.dependency.dependencyList(projection);
+        this.dependencyList = this.dependenciesCollector.getDependencyCollection(projection);
     }
 
     notifications() {
