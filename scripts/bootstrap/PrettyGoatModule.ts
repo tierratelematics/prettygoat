@@ -46,6 +46,8 @@ import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
 import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
+import IProjectionSorter from "../projections/IProjectionSorter";
+import ProjectionSorter from "../projections/ProjectionSorter";
 
 class PrettyGoatModule implements IModule {
 
@@ -67,6 +69,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
+        kernel.bind<IProjectionSorter>("TopologicSort").to(ProjectionSorter).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
