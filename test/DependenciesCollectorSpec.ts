@@ -13,10 +13,10 @@ import RegistryEntry from "../scripts/registry/RegistryEntry";
 import DependenciesCollector from "../scripts/collector/DependenciesCollector";
 import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 
-describe("DipendenciesCollectorSpec, given a collector of Dependencies", () => {
+describe("Given a dependencies collector", () => {
 
-    let registry:TypeMoq.Mock<IProjectionRegistry>,
-        subject:IDependenciesCollector;
+    let registry: TypeMoq.Mock<IProjectionRegistry>,
+        subject: IDependenciesCollector;
 
     beforeEach(() => {
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
@@ -29,17 +29,17 @@ describe("DipendenciesCollectorSpec, given a collector of Dependencies", () => {
         });
     });
 
-    context("when a registred projection not contain any references", () => {
+    context("when a projection has no dependencies", () => {
         beforeEach(() => {
             let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
         });
 
-        it("should have a empty collection of references", () => {
-            expect(subject.getDependencyCollection(new MockProjectionDefinition().define())).to.eql([]);
+        it("should return an empty list of dependencies", () => {
+            expect(subject.getDependenciesFor(new MockProjectionDefinition().define())).to.eql([]);
         });
     });
 
-    context("when a registred projection contain at least one reference", () => {
+    context("when a projection has at least a dependency", () => {
         beforeEach(() => {
             let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
             registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
@@ -47,8 +47,8 @@ describe("DipendenciesCollectorSpec, given a collector of Dependencies", () => {
             });
         });
 
-        it("should not have a empty collection of references", () => {
-            expect(subject.getDependencyCollection(new MockProjectionCircularADefinition().define())).to.eql(["Circular B"]);
+        it("should should return the list of dependencies", () => {
+            expect(subject.getDependenciesFor(new MockProjectionCircularADefinition().define())).to.eql(["Circular B"]);
         });
     });
 

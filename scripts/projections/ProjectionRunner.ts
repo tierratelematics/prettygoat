@@ -28,7 +28,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, private dependenciesCollector:IDependenciesCollector) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
-        this.dependencyList = this.dependenciesCollector.getDependencyCollection(projection);
+        this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
     }
 
     notifications() {

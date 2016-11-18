@@ -29,7 +29,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     ) {
         this.subject = new Rx.Subject<Event>();
         this.streamId = projection.name;
-        this.dependencyList = this.dependenciesCollector.getDependencyCollection(projection);
+        this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
     }
 
     notifications() {
