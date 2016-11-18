@@ -14,6 +14,7 @@ import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import IDependenciesCollector from "../collector/IDependenciesCollector";
+import * as _ from "lodash";
 
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {

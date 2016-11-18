@@ -16,14 +16,11 @@ import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private dependencyList:string[];
 
     constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
                 private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
-                dateRetriever:IDateRetriever) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
-                private dependenciesCollector:IDependenciesCollector
-        this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
+                dateRetriever:IDateRetriever, dependenciesCollector:IDependenciesCollector) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever,dependenciesCollector);
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
