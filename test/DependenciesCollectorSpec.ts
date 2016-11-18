@@ -30,9 +30,6 @@ describe("Given a dependencies collector", () => {
     });
 
     context("when a projection has no dependencies", () => {
-        beforeEach(() => {
-            let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
-        });
 
         it("should return an empty list of dependencies", () => {
             expect(subject.getDependenciesFor(new MockProjectionDefinition().define())).to.eql([]);
@@ -41,14 +38,14 @@ describe("Given a dependencies collector", () => {
 
     context("when a projection has at least a dependency", () => {
         beforeEach(() => {
-            let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
-            registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
-                return {area: "Admin", data: circularBEntry};
+            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                return {area: "Admin", data: circularAEntry};
             });
         });
 
-        it("should should return the list of dependencies", () => {
-            expect(subject.getDependenciesFor(new MockProjectionCircularADefinition().define())).to.eql(["Circular B"]);
+        it("should return the list of dependencies", () => {
+            expect(subject.getDependenciesFor(new MockProjectionCircularBDefinition().define())).to.eql(["CircularA"]);
         });
     });
 

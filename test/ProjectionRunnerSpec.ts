@@ -16,9 +16,9 @@ import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
-import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 import {IProjection} from "../scripts/projections/IProjection";
+import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 
 describe("Given a ProjectionRunner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -42,9 +42,10 @@ describe("Given a ProjectionRunner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        dependenciesCollector.setup(d => d.getDependenciesFor(projection)).returns(o => []);
+        dependenciesCollector = TypeMoq.Mock.ofType<IDependenciesCollector>(MockDependenciesCollector);
+        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => []);
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
-            new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
+            new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         dependenciesCollector.verify(d => d.getDependenciesFor(TypeMoq.It.isValue(projection)), TypeMoq.Times.once());
     });
