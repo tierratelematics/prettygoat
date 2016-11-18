@@ -41,9 +41,9 @@ describe("Given a ProjectionRunner", () => {
         failed = false;
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
-        dependenciesCollector = TypeMoq.Mock.ofType<IDependenciesCollector>(MockDependenciesCollector);
-        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => _.keys(projection.definition));
+        readModelFactory = TypeMoq.Mock.ofType(ReadModelFactory);
+        dependenciesCollector = TypeMoq.Mock.ofType(MockDependenciesCollector);
+        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection)));
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
@@ -226,6 +226,10 @@ describe("Given a ProjectionRunner", () => {
             it("should update the readmodels processed counter", () => {
                 readModelSubject.onNext({type: "test2", payload: 1});
                 expect(subject.stats.readModels).to.be(1);
+            });
+
+            context("and the read model does not belong to the current projection", () => {
+               it("should be filtered out");
             });
         });
     });
