@@ -1,9 +1,9 @@
 import IProjectionSorter from "../../../scripts/projections/IProjectionSorter";
 
-class MockDependenciesCollector implements IProjectionSorter {
+class MockProjectionSorter implements IProjectionSorter {
     sort(): string[] {
         return null;
     }
 }
 
-export default MockDependenciesCollector
+export default MockProjectionSorter

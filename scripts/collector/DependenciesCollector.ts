@@ -11,7 +11,7 @@ class DependenciesCollector implements IDependenciesCollector {
     constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
     }
 
-    getDependencyCollection(projection:IProjection<any>):string[]{
+    getDependenciesFor(projection:IProjection<any>):string[]{
         return _(projection.definition)
             .keys()
             .filter(projection => this.registry.getEntry(projection, null).data != null)
