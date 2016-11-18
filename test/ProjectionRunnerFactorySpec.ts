@@ -1,7 +1,6 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";

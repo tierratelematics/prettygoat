@@ -117,6 +117,26 @@ describe("Given a ProjectionEngine", () => {
             });
         });
 
+        context("and it does not carry the timestamp information because it's calculated from a read model", () => {
+            beforeEach(() => {
+                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isAny())).returns(a => true);
+                snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isAny()));
+                subject.run();
+                dataSubject.onNext({
+                    type: "TestEvent",
+                    payload: 56,
+                    timestamp: null,
+                    splitKey: null
+                });
+            });
+            it("should not trigger a snapshot save", (done) => {
+                setTimeout(() => {
+                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isAny()), TypeMoq.Times.never());
+                    done();
+                }, 500);
+            });
+        });
+
         context("and a snapshot is not needed", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({

@@ -1,3 +1,17 @@
+##0.16.2
+
+fixes an error with split projection events not matched
+
+##0.16.1
+
+fixes an error with the dts
+
+##0.16.0
+
+* add projection runner stats
+* add split projection delete and the ability to control notifications of a projection - [spec](https://github.com/tierratelematics/prettygoat/blob/develop/test/SpecialStateSpec.ts)
+* add snapshot delete and projection runner pause/resume
+
 ##0.15.0
 
 * **breaking**: filter event types before scheduling (needs event_types view)

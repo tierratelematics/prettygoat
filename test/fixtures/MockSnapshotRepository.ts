@@ -15,6 +15,9 @@ class MockSnapshotRepository implements ISnapshotRepository {
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
     }
 
+    deleteSnapshot(streamId:string):void {
+    }
+
 }
 
 export default MockSnapshotRepository

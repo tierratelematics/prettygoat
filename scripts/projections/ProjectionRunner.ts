@@ -1,4 +1,4 @@
-import {Subject, IDisposable} from "rx";
+import {Subject} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -11,17 +11,20 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
-import * as _ from "lodash";
+import {SpecialState, StopSignallingState} from "./SpecialState";
+import ProjectionStats from "./ProjectionStats";
 import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    private streamId:string;
-    public state:T;
-    private subject:Subject<Event>;
-    private subscription:Rx.IDisposable;
-    private isDisposed:boolean;
-    private isFailed:boolean;
+    public state:T|Dictionary<T>;
+    public stats = new ProjectionStats();
+    protected streamId:string;
+    protected subject:Subject<Event>;
+    protected subscription:Rx.IDisposable;
+    protected isDisposed:boolean;
+    protected isFailed:boolean;
+    protected pauser = new Subject<boolean>();
     private dependencyList:string[];
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
@@ -46,12 +49,18 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.publishReadModel(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.subscribe(event => {
+        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
-                    this.state = matchFunction(this.state, event.payload, event);
-                    this.publishReadModel(event.timestamp);
+                    let newState = matchFunction(this.state, event.payload, event);
+                    if (newState instanceof SpecialState)
+                        this.state = (<SpecialState<T>>newState).state;
+                    else
+                        this.state = newState;
+                    if (!(newState instanceof StopSignallingState))
+                        this.publishReadModel(event.timestamp);
+                    this.updateStats(event);
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -59,6 +68,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stop();
             }
         });
+
+        this.resume();
 
         mergeStreams(
             combinedStream,
@@ -68,6 +79,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.dateRetriever);
     }
 
+    protected updateStats(event:Event) {
+        if (event.timestamp)
+            this.stats.events++;
+        else
+            this.stats.readModels++;
+    }
+
     stop():void {
         this.isDisposed = true;
 
@@ -75,6 +93,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subscription.dispose();
         if (!this.isFailed)
             this.subject.onCompleted();
+    }
+
+    pause():void {
+        this.pauser.onNext(false);
+    }
+
+    resume():void {
+        this.pauser.onNext(true);
     }
 
     dispose():void {

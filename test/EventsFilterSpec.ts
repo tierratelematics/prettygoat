@@ -1,5 +1,4 @@
 import expect = require("expect.js");
-import sinon = require("sinon");
 import EventsFilter from "../scripts/streams/EventsFilter";
 
 describe("EventsFilter, given a projection definition", () => {

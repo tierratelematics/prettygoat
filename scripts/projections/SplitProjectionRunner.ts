@@ -1,7 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import * as Rx from "rx";
-import IProjectionRunner from "./IProjectionRunner";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -11,29 +10,20 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
+import {SpecialState, StopSignallingState} from "./SpecialState";
+import {ProjectionRunner} from "./ProjectionRunner";
 import IDependenciesCollector from "../collector/IDependenciesCollector";
 
-class SplitProjectionRunner<T> implements IProjectionRunner<T> {
-    private streamId:string;
+class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
-    private subscription:Rx.IDisposable;
-    private isDisposed:boolean;
-    private isFailed:boolean;
-    private subject:Rx.Subject<Event>;
     private dependencyList:string[];
 
-    constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
-                private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
-                private dateRetriever:IDateRetriever,
+    constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
+                private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
+                dateRetriever:IDateRetriever) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
                 private dependenciesCollector:IDependenciesCollector
-    ) {
-        this.subject = new Rx.Subject<Event>();
-        this.streamId = projection.name;
         this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
-    }
-
-    notifications() {
-        return this.subject;
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -46,7 +36,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.subscribe(event => {
+        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload, event),
@@ -63,6 +53,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                     } else {
                         this.dispatchEventToAll(matchFn, event);
                     }
+                    this.updateStats(event);
                 }
             } catch (error) {
                 this.isFailed = true;
@@ -70,6 +61,8 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stop();
             }
         });
+
+        this.resume();
 
         mergeStreams(
             combinedStream,
@@ -100,27 +93,16 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private notifyStateChange(splitKey:string, timestamp:Date) {
-        this.subject.onNext({
-            type: this.streamId,
-            payload: this.state[splitKey],
-            timestamp: timestamp,
-            splitKey: splitKey
-        });
-    }
-
-    stop():void {
-        this.isDisposed = true;
-
-        if (this.subscription)
-            this.subscription.dispose();
-        if (!this.isFailed)
-            this.subject.onCompleted();
-    }
-
-    dispose():void {
-        this.stop();
-        if (!this.subject.isDisposed)
-            this.subject.dispose();
+        let newState = this.state[splitKey];
+        if (newState instanceof SpecialState)
+            this.state[splitKey] = (<any>newState).state;
+        if (!(newState instanceof StopSignallingState))
+            this.subject.onNext({
+                type: this.streamId,
+                payload: this.state[splitKey],
+                timestamp: timestamp,
+                splitKey: splitKey
+            });
     }
 }
 export default SplitProjectionRunner

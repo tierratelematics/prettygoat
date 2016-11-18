@@ -1,11 +1,10 @@
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
-import {interfaces} from "inversify";
-import AreaRegistry from "../../scripts/registry/AreaRegistry";
 import IProjectionDefinition from "../../scripts/registry/IProjectionDefinition";
+import AreaRegistry from "../../scripts/registry/AreaRegistry";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
+import {interfaces} from "inversify";
 
 export default class MockProjectionRegistry implements IProjectionRegistry {
-
     master<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry {
         return undefined;
     }

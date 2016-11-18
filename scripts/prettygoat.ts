@@ -11,3 +11,4 @@ export {FeatureToggle} from "bivio";
 export {IFeatureChecker} from "bivio";
 export {FeatureChecker} from "bivio";
 export {Predicates as FeaturePredicates} from "bivio";
+export {SpecialStates} from "./projections/SpecialState";

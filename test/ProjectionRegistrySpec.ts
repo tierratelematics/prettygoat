@@ -1,30 +1,24 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import sinon = require("sinon");
 import * as TypeMoq from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import SinonStub = Sinon.SinonStub;
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import MockObjectContainer from "./fixtures/MockObjectContainer";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/Dictionary";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject:IProjectionRegistry,
-        runner:IProjectionRunner<number>,
         objectContainer:TypeMoq.Mock<IObjectContainer>,
         tickScheduler:ITickScheduler,
         holder:Dictionary<ITickScheduler>;
