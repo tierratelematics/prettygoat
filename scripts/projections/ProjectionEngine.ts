@@ -22,7 +22,7 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IStatePublisher") private statePublisher:IStatePublisher,
                 @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
                 @inject("ILogger") private logger:ILogger = NullLogger,
-                @inject("TopologicSort") private sort:IProjectionSorter,
+                @inject("TopologicSort") private sort:IProjectionSorter
     ) {
     }
 
@@ -53,8 +53,8 @@ class ProjectionEngine implements IProjectionEngine {
                     });
                 }).subscribe(() => null);
         }
-        catch(e:Error){
-            this.logger.error(e);
+        catch(e){
+            this.logger.error(e.toString());
         }
     }
 }

@@ -69,7 +69,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
-        kernel.bind<IProjectionSorter>("TopologicSort").to(ProjectionSorter).inSingletonScope();
+        kernel.bind<ProjectionSorter>("TopologicSort").to(ProjectionSorter).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();

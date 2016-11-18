@@ -11,9 +11,12 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
+import ProjectionSorter from "./ProjectionSorter";
+import {inject} from "inversify";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
+    private adjacencyList:string[];
     public state:T;
     private subject:Subject<Event>;
     private subscription:Rx.IDisposable;
@@ -21,9 +24,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private isFailed:boolean;
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever) {
+                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, @inject("TopologicSort") private sort:ProjectionSorter) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
+        this.adjacencyList = this.sort.getAdjacencyList(projection);
     }
 
     notifications() {
@@ -58,7 +62,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         mergeStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && this.adjacencyList.indexOf(this.streamId)!==-1),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
