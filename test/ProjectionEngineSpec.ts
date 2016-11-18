@@ -44,15 +44,12 @@ describe("Given a ProjectionEngine", () => {
         runnerFactory:TypeMoq.Mock<IProjectionRunnerFactory>,
         projectionSorter:TypeMoq.Mock<IProjectionSorter>,
         snapshotRepository:TypeMoq.Mock<ISnapshotRepository>,
-        dependenciesCollector:TypeMoq.Mock<IDependenciesCollector>,
         dataSubject:Subject<Event>,
         projection:IProjection<number>;
 
     beforeEach(() => {
         snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
-        dependenciesCollector = TypeMoq.Mock.ofType(MockDependenciesCollector);
-        dependenciesCollector.setup(p => p.getDependenciesFor(projection)).returns(a => []);
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
             new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
