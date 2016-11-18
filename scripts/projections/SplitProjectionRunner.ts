@@ -11,6 +11,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
+import IProjectionDependency from "./IProjectionDependency";
 
 class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
@@ -19,12 +20,16 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
     private isDisposed:boolean;
     private isFailed:boolean;
     private subject:Rx.Subject<Event>;
+    private dependencyList:string[];
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher,
                 private splitMatcher:IMatcher, private readModelFactory:IReadModelFactory, private tickScheduler:IStreamFactory,
-                private dateRetriever:IDateRetriever) {
+                private dateRetriever:IDateRetriever,
+                private dependency:IProjectionDependency
+    ) {
         this.subject = new Rx.Subject<Event>();
         this.streamId = projection.name;
+        this.dependencyList = this.dependency.dependencyList(projection);
     }
 
     notifications() {
@@ -70,7 +75,7 @@ class SplitProjectionRunner<T> implements IProjectionRunner<T> {
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && _.includes(this.dependencyList, event.type)),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }

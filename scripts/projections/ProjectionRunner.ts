@@ -11,23 +11,24 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
-import ProjectionSorter from "./ProjectionSorter";
-import {inject} from "inversify";
+import IProjectionDependency from "./IProjectionDependency";
+import * as _ from "lodash";
+
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private streamId:string;
-    private adjacencyList:string[];
     public state:T;
     private subject:Subject<Event>;
     private subscription:Rx.IDisposable;
     private isDisposed:boolean;
     private isFailed:boolean;
+    private dependencyList:string[];
 
     constructor(private projection:IProjection<T>, private stream:IStreamFactory, private matcher:IMatcher, private readModelFactory:IReadModelFactory,
-                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, @inject("TopologicSort") private sort:ProjectionSorter) {
+                private tickScheduler:IStreamFactory, private dateRetriever:IDateRetriever, private dependency:IProjectionDependency) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
-        this.adjacencyList = this.sort.getAdjacencyList(projection);
+        this.dependencyList = this.dependency.dependencyList(projection);
     }
 
     notifications() {
@@ -62,7 +63,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         mergeStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && this.adjacencyList.indexOf(this.streamId)!==-1),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && _.includes(this.dependencyList, event.type)),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }

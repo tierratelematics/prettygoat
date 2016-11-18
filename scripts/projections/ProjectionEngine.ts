@@ -22,13 +22,13 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IStatePublisher") private statePublisher:IStatePublisher,
                 @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
                 @inject("ILogger") private logger:ILogger = NullLogger,
-                @inject("TopologicSort") private sort:IProjectionSorter
+                @inject("IProjectionSorter") private sorter:IProjectionSorter
     ) {
     }
 
     run():void {
         try{
-            this.sort.sort();
+            this.sorter.sort();
             this.snapshotRepository
                 .initialize()
                 .flatMap(a => this.snapshotRepository.getSnapshots())

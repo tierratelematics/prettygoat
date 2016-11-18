@@ -5,10 +5,11 @@ import AreaRegistry from "../registry/AreaRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
+import IProjectionDependency from "./IProjectionDependency";
 const toposort = require("toposort");
 
 @injectable()
-class ProjectionSorter implements IProjectionSorter {
+class ProjectionSorter implements IProjectionSorter,IProjectionDependency {
     private graph:string[][] = [];
 
     constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
@@ -19,7 +20,7 @@ class ProjectionSorter implements IProjectionSorter {
         return toposort(this.graph);
     }
 
-    getAdjacencyList(projection:IProjection<any>):string[]{
+    dependencyList(projection:IProjection<any>):string[]{
         return _(projection.definition)
             .keys()
             .filter(projection => this.registry.getEntry(projection, null).data != null)

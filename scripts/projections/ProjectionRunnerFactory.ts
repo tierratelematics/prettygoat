@@ -11,6 +11,7 @@ import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../Dictionary";
 import ITickScheduler from "../ticks/ITickScheduler";
 import IDateRetriever from "../util/IDateRetriever";
+import IProjectionDependency from "./IProjectionDependency";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -19,7 +20,9 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
                 @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>,
-                @inject("IDateRetriever") private dateRetriever:IDateRetriever) {
+                @inject("IDateRetriever") private dateRetriever:IDateRetriever,
+                @inject("IProjectionDependency") private dependency:IProjectionDependency
+    ) {
 
     }
 
@@ -28,11 +31,11 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let projectionRunner:IProjectionRunner<T>;
         if (!projection.split)
             projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, definitionMatcher, this.aggregateFactory,
-                this.tickSchedulerHolder[projection.name], this.dateRetriever);
+                this.tickSchedulerHolder[projection.name], this.dateRetriever, this.dependency);
         else
             projectionRunner = new SplitProjectionRunner<T>(projection, this.streamFactory, definitionMatcher,
                 new MemoizingMatcher(new Matcher(projection)), this.aggregateFactory, this.tickSchedulerHolder[projection.name],
-                this.dateRetriever);
+                this.dateRetriever, this.dependency);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }
