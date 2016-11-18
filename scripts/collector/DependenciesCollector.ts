@@ -6,7 +6,6 @@ import {IProjection} from "../projections/IProjection";
 
 @injectable()
 class DependenciesCollector implements IDependenciesCollector {
-    private graph:string[][] = [];
 
     constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
     }

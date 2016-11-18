@@ -78,7 +78,6 @@ describe("Given a ProjectionEngine", () => {
                 "test": new Snapshot(42, new Date(5000))
             }).observeOn(Scheduler.immediate));
             subject.run();
-            projectionSorter.verify(d => d.sort(), TypeMoq.Times.once());
         });
 
         it("should init a projection runner with that snapshot", () => {
@@ -90,10 +89,19 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
             subject.run();
-            projectionSorter.verify(d => d.sort(), TypeMoq.Times.once());
         });
         it("should init a projection runner without a snapshot", () => {
             expect(runner.state).to.be(10);
+        });
+    });
+
+    context("when the engine starts up", () => {
+        beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+        });
+        it("should check for circular dependencies between projections", () => {
+            subject.run();
+            projectionSorter.verify(d => d.sort(), TypeMoq.Times.once());
         });
     });
 
@@ -163,7 +171,6 @@ describe("Given a ProjectionEngine", () => {
             });
             it("should not save the snapshot", () => {
                 snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.never());
-                projectionSorter.verify(d => d.sort(), TypeMoq.Times.once());
             });
         });
     });
