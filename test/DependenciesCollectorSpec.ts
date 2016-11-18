@@ -13,7 +13,7 @@ import RegistryEntry from "../scripts/registry/RegistryEntry";
 import DependenciesCollector from "../scripts/collector/DependenciesCollector";
 import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 
-describe("DipendenciesCollectorSpec, given a collector of dipendencensies", () => {
+describe("DipendenciesCollectorSpec, given a collector of Dependencies", () => {
 
     let registry:TypeMoq.Mock<IProjectionRegistry>,
         subject:IDependenciesCollector;
