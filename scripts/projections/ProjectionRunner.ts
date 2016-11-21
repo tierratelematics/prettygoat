@@ -13,6 +13,7 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
+import * as _ from "lodash";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
@@ -44,45 +45,54 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.publishReadModel(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
+        let completions = new Rx.Subject<void>();
 
-        this.subscription = combinedStream.pausableBuffered(this.pauser).subscribe(event => {
-            try {
-                let matchFunction = this.matcher.match(event.type);
-                if (matchFunction !== Rx.helpers.identity) {
-                    let newState = matchFunction(this.state, event.payload, event);
-                    if (newState instanceof SpecialState)
-                        this.state = (<SpecialState<T>>newState).state;
-                    else
-                        this.state = newState;
-                    if (!(newState instanceof StopSignallingState))
-                        this.publishReadModel(event.timestamp);
-                    this.updateStats(event);
+        this.subscription = combinedStream
+            .pausableBuffered(this.pauser)
+            .do(event => {
+                try {
+                    let matchFunction = this.matcher.match(event.type);
+                    if (matchFunction !== Rx.helpers.identity) {
+                        let newState = matchFunction(this.state, event.payload, event);
+                        if (newState instanceof SpecialState)
+                            this.state = (<SpecialState<T>>newState).state;
+                        else
+                            this.state = newState;
+                        if (!(newState instanceof StopSignallingState))
+                            this.publishReadModel(event.timestamp);
+                        this.updateStats(event);
+                    }
+                } catch (error) {
+                    this.isFailed = true;
+                    this.subject.onError(error);
+                    this.stop();
                 }
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
+            })
+            .count()
+            .subscribe(count => {
+                if (count % 500 === 0 && count > 0) {
+                    completions.onNext(null);
+                }
+            })
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
 
-    protected updateStats(event:Event) {
+    protected updateStats(event: Event) {
         if (event.timestamp)
             this.stats.events++;
         else
             this.stats.readModels++;
     }
 
-    stop():void {
+    stop(): void {
         this.isDisposed = true;
 
         if (this.subscription)

@@ -1,7 +1,7 @@
 import {IStreamFactory} from "./IStreamFactory";
 import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
-import * as Rx from "rx";
+import {Scheduler, Observable} from "rx";
 import {Event} from "./Event";
 import {IWhen} from "../projections/IProjection";
 import ReservedEvents from "../streams/ReservedEvents";
@@ -14,24 +14,24 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:Date, definition?:IWhen<any>):Rx.Observable<Event> {
+    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
         return this.streamFactory
-            .from(lastEvent, definition)
-            .concat(Rx.Observable.just({
+            .from(lastEvent, completions, definition)
+            .concat(Observable.just({
                 type: ReservedEvents.REALTIME,
                 payload: null,
                 timestamp: null,
                 splitKey: null
             }))
             .concat(
-                Rx.Observable
+                Observable
                     .interval(this.config.interval || 30000)
-                    .flatMap(_ => this.streamFactory.from(lastEvent, definition)))
+                    .flatMap(_ => this.streamFactory.from(lastEvent, completions, definition)))
             .do(event => {
                 if (event.timestamp)
                     lastEvent = event.timestamp
             })
-            .observeOn(Rx.Scheduler.default);
+            .observeOn(Scheduler.default);
     }
 }
 

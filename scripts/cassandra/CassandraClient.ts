@@ -6,38 +6,47 @@ const cassandra = require("cassandra-driver");
 
 @injectable()
 class CassandraClient implements ICassandraClient {
-    private client:any;
-    private wrappedExecute:any;
+    private client: any;
+    private wrappedExecute: any;
+    private wrappedEachRow: any;
 
-    constructor(@inject("ICassandraConfig") config:ICassandraConfig) {
+    constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
         this.client = new cassandra.Client({
             contactPoints: config.hosts,
             keyspace: config.keyspace,
             socketOptions: {
                 readTimeout: config.readTimeout ? config.readTimeout : 12000
-            },
-            queryOptions: {
-                fetchSize: config.fetchSize ? config.fetchSize : 5000
             }
         });
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
+        this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
     }
 
-    execute(query:string):Observable<any> {
+    execute(query: string): Observable<any> {
         return this.wrappedExecute(query);
     }
 
-    stream(query:string):Observable<any> {
-        return Observable.create<Event>(observer => {
-            this.client.stream(query)
-                .on('readable', function () {
-                    let row;
-                    while (row = this.read()) {
-                        observer.onNext(row);
-                    }
-                })
-                .on('end', () => observer.onCompleted())
-                .on('error', (error) => observer.onError(error));
+
+    paginate(query: string, completions: Observable<void>): Observable<any> {
+        let resultPage = null;
+        let requesting = false;
+        completions.subscribe(() => {
+            if (resultPage && !requesting) {
+                resultPage.nextPage();
+                requesting = true;
+            }
+        });
+        return Observable.create(observer => {
+            const options = {prepare: false, fetchSize: 500};
+            this.wrappedEachRow(query, null, options,
+                (n, row) => observer.onNext(row),
+                (error, result) => {
+                    requesting = false;
+                    if (error) observer.onError(error);
+                    else if (!result.nextPage) observer.onCompleted();
+                    else result.nextPage();
+                }
+            );
             return Disposable.empty;
         });
     }

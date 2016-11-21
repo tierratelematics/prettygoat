@@ -31,46 +31,55 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
+        let completions = new Rx.Subject<void>();
 
-        this.subscription = combinedStream.pausableBuffered(this.pauser).subscribe(event => {
-            try {
-                let splitFn = this.splitMatcher.match(event.type),
-                    splitKey = splitFn(event.payload, event),
-                    matchFn = this.matcher.match(event.type);
-                if (matchFn !== Rx.helpers.identity) {
-                    if (splitFn !== Rx.helpers.identity) {
-                        event.splitKey = splitKey;
-                        let childState = this.state[splitKey];
-                        if (_.isUndefined(childState))
-                            this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
-                        else
-                            this.state[splitKey] = matchFn(childState, event.payload, event);
-                        this.notifyStateChange(splitKey, event.timestamp);
-                    } else {
-                        this.dispatchEventToAll(matchFn, event);
+        this.subscription = combinedStream
+            .pausableBuffered(this.pauser)
+            .do(event => {
+                try {
+                    let splitFn = this.splitMatcher.match(event.type),
+                        splitKey = splitFn(event.payload, event),
+                        matchFn = this.matcher.match(event.type);
+                    if (matchFn !== Rx.helpers.identity) {
+                        if (splitFn !== Rx.helpers.identity) {
+                            event.splitKey = splitKey;
+                            let childState = this.state[splitKey];
+                            if (_.isUndefined(childState))
+                                this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
+                            else
+                                this.state[splitKey] = matchFn(childState, event.payload, event);
+                            this.notifyStateChange(splitKey, event.timestamp);
+                        } else {
+                            this.dispatchEventToAll(matchFn, event);
+                        }
+                        this.updateStats(event);
                     }
-                    this.updateStats(event);
+                } catch (error) {
+                    this.isFailed = true;
+                    this.subject.onError(error);
+                    this.stop();
                 }
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
+            })
+            .count()
+            .subscribe(count => {
+                if (count % 500 === 0 && count > 0) {
+                    completions.onNext(null);
+                }
+            });
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
 
-    private getInitialState(matchFn:Function, event, splitKey:string):T {
-        let state:T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
+    private getInitialState(matchFn: Function, event, splitKey: string): T {
+        let state: T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
         this.readModelFactory.from(null).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {

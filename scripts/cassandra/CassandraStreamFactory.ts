@@ -18,7 +18,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
     }
 
-    from(lastEvent:Date, definition?:IWhen<any>):Observable<Event> {
+    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
         let eventsList:string[] = [];
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
@@ -26,7 +26,7 @@ class CassandraStreamFactory implements IStreamFactory {
             .flatMap(() => this.getBuckets(lastEvent))
             .map(buckets => {
                 return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
-                    return this.client.stream(this.buildQuery(lastEvent, bucket));
+                    return this.client.paginate(this.buildQuery(lastEvent, bucket), completions);
                 })
             })
             .concatAll()
