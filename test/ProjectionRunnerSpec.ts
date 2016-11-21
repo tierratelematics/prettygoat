@@ -18,14 +18,14 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 
 describe("Given a ProjectionRunner", () => {
-    let stream:TypeMoq.Mock<IStreamFactory>;
-    let subject:ProjectionRunner<number>;
-    let matcher:TypeMoq.Mock<IMatcher>;
-    let notifications:number[];
-    let stopped:boolean;
-    let failed:boolean;
-    let subscription:IDisposable;
-    let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
+    let stream: TypeMoq.Mock<IStreamFactory>;
+    let subject: ProjectionRunner<number>;
+    let matcher: TypeMoq.Mock<IMatcher>;
+    let notifications: number[];
+    let stopped: boolean;
+    let failed: boolean;
+    let subscription: IDisposable;
+    let readModelFactory: TypeMoq.Mock<IReadModelFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -39,7 +39,7 @@ describe("Given a ProjectionRunner", () => {
                 definition: {}
             }, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)));
-        subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
+        subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });
 
     afterEach(() => subscription.dispose());
@@ -105,7 +105,7 @@ describe("Given a ProjectionRunner", () => {
         });
 
         it("it should filter out diagnostic events", () => {
-            matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s:number, e:any) => s + e);
+            matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s: number, e: any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.just({
                 type: "__diagnostic:Size",
                 payload: 1,
@@ -119,7 +119,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no error occurs", () => {
             beforeEach(() => {
                 let date = new Date();
-                matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
+                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
                 stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
@@ -165,8 +165,8 @@ describe("Given a ProjectionRunner", () => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
-                matcher.setup(m => m.match("increment2")).returns(streamId => (s:number, e:any) => s + e);
-                matcher.setup(m => m.match("increment3")).returns(streamId => (s:number, e:any) => s + e);
+                matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
+                matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
                 matcher.setup(m => m.match("increment4")).returns(streamId => Rx.helpers.identity);
                 matcher.setup(m => m.match("increment5")).returns(streamId => Rx.helpers.identity);
             });
@@ -183,7 +183,7 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
-                matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => {
+                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });
                 stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
@@ -206,7 +206,7 @@ describe("Given a ProjectionRunner", () => {
             subject.run();
         });
         context("of the same projection", () => {
-            beforeEach(() => matcher.setup(m => m.match("test")).returns(streamId => (s:number, e:any) => s + e));
+            beforeEach(() => matcher.setup(m => m.match("test")).returns(streamId => (s: number, e: any) => s + e));
             it("should filter it", () => {
                 readModelSubject.onNext({type: "test", payload: 1});
                 expect(subject.state).to.be(42);
@@ -214,7 +214,7 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("of another projection", () => {
-            beforeEach(() => matcher.setup(m => m.match("test2")).returns(streamId => (s:number, e:any) => s + e));
+            beforeEach(() => matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e));
             it("should update the readmodels processed counter", () => {
                 readModelSubject.onNext({type: "test2", payload: 1});
                 expect(subject.stats.readModels).to.be(1);
@@ -227,7 +227,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
+            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
@@ -264,7 +264,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            matcher.setup(m => m.match("increment")).returns(streamId => (s:number, e:any) => s + e);
+            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
@@ -290,9 +290,10 @@ describe("Given a ProjectionRunner", () => {
                     42,
                     42 + 1,
                     42 + 1 + 2,
-                    42 + 1 + 2 + 4
+                    42 + 1 + 2 + 3,
+                    42 + 1 + 2 + +3 + 4
                 ]);
-                expect(subject.state).to.be(42 + 1 + 2 + 4);
+                expect(subject.state).to.be(42 + 1 + 2 + 3 + 4);
             });
         });
     });
