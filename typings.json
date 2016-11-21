@@ -1,6 +1,7 @@
 {
     "globalDevDependencies": {
         "expect.js": "registry:dt/expect.js#0.3.1+20160317120654",
+        "lolex": "registry:dt/lolex#1.2.1+20160316155526",
         "mocha": "registry:dt/mocha#2.2.5+20160317120654"
     },
     "globalDependencies": {
