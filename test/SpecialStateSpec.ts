@@ -34,7 +34,7 @@ describe("Given a a projection runner", () => {
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         let date = new Date();
-        stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
+        stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
             return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
         }).observeOn(Rx.Scheduler.immediate));
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
