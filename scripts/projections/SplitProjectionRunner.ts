@@ -32,7 +32,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
+        this.subscription = combinedStream.pausableBuffered(this.pauser).subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload, event),
