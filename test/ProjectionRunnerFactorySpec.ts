@@ -9,7 +9,6 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import Dictionary from "../scripts/Dictionary";
-import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 
@@ -18,7 +17,7 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
 
     beforeEach(() => {
         holder = {};
-        subject = new ProjectionRunnerFactory(null, null, holder, {}, null, new MockDependenciesCollector());
+        subject = new ProjectionRunnerFactory(null, null, holder, {}, null);
     });
 
     context("when all the required properties are defined", () => {

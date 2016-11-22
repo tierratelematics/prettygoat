@@ -12,15 +12,14 @@ import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import {ProjectionRunner} from "./ProjectionRunner";
-import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
 
     constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
                 private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
-                dateRetriever:IDateRetriever,dependenciesCollector:IDependenciesCollector) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever,dependenciesCollector);
+                dateRetriever:IDateRetriever) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler,dateRetriever);
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
@@ -65,7 +64,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId && _.includes(this.dependencyList, event.type)),
+            this.readModelFactory.from(null, this.projection.definition).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }

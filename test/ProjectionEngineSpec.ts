@@ -30,7 +30,6 @@ import {Matcher} from "../scripts/matcher/Matcher";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
-import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 import NullLogger from "../scripts/log/NullLogger";
 
 describe("Given a ProjectionEngine", () => {
@@ -51,7 +50,7 @@ describe("Given a ProjectionEngine", () => {
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
         runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
-            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)), new MockDependenciesCollector());
+            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)));
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);

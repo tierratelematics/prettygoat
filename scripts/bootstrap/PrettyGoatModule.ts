@@ -48,8 +48,6 @@ import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ProjectionSorter from "../projections/ProjectionSorter";
-import DependenciesCollector from "../collector/DependenciesCollector";
-import IDependenciesCollector from "../collector/IDependenciesCollector";
 
 class PrettyGoatModule implements IModule {
 
@@ -72,7 +70,6 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         kernel.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();
-        kernel.bind<IDependenciesCollector>("IDependenciesCollector").to(DependenciesCollector).inSingletonScope();
         kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
         kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();

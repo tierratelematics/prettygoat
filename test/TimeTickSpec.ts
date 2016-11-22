@@ -16,7 +16,6 @@ import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner"
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import InitTickProjectionDefinition from "./fixtures/definitions/InitTickProjectionDefinition";
-import MockDependenciesCollector from "./fixtures/MockDependenciesCollector";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -39,7 +38,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             beforeEach(() => {
                 let initTickProjection = new InitTickProjectionDefinition().define(tickScheduler);
                 let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
-                    new MockReadModelFactory(), tickScheduler, dateRetriever, new MockDependenciesCollector());
+                    new MockReadModelFactory(), tickScheduler, dateRetriever);
                 projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
                 projectionRunner.run();
             });
@@ -57,7 +56,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     context("when a new tick is scheduled", () => {
         beforeEach(() => {
             let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
-                new MockReadModelFactory(), tickScheduler, dateRetriever, new MockDependenciesCollector());
+                new MockReadModelFactory(), tickScheduler, dateRetriever);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
         });
@@ -184,7 +183,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         let projectionRunner:IProjectionRunner<Tick>;
         beforeEach(() => {
             projectionRunner = new SplitProjectionRunner<Tick>(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
-                new Matcher(projection.split), new MockReadModelFactory(), tickScheduler, dateRetriever, new MockDependenciesCollector());
+                new Matcher(projection.split), new MockReadModelFactory(), tickScheduler, dateRetriever);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
         });

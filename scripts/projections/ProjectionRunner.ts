@@ -13,8 +13,6 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
-import IDependenciesCollector from "../collector/IDependenciesCollector";
-import * as _ from "lodash";
 
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
@@ -26,13 +24,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed:boolean;
     protected isFailed:boolean;
     protected pauser = new Subject<boolean>();
-    protected dependencyList:string[];
 
     constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
-                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever, protected dependenciesCollector:IDependenciesCollector) {
+                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
-        this.dependencyList = this.dependenciesCollector.getDependenciesFor(projection);
     }
 
     notifications() {
@@ -75,9 +71,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         mergeStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => {
-                return event.type !== this.streamId && _.includes(this.dependencyList, event.type)
-            }),
+            this.readModelFactory.from(null, this.projection.definition).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
