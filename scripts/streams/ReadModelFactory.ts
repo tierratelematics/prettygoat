@@ -24,16 +24,16 @@ class ReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
+    from(lastEvent:Date,definition:IWhen<any>):Rx.Observable<Event> {
+        let readModels = values<Event>(this.readModels);
+        return Observable.from(readModels).concat(this.subject).filter(event => !_.includes(this.getDependenciesFor(definition),event.type));
+    }
+
     private getDependenciesFor(definition:IWhen<any>):string[]{
         return _(definition)
             .keys()
             .filter(projection => this.registry.getEntry(projection, null).data != null)
             .valueOf();
-    }
-
-    from(lastEvent:Date,definition:IWhen<any>):Rx.Observable<Event> {
-        let readModels = values<Event>(this.readModels);
-        return Observable.from(readModels).filter(event => !_.includes(this.getDependenciesFor(definition),event.type)).concat(this.subject);
     }
 }
 

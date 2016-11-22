@@ -21,12 +21,6 @@ describe("Given a Read Model Factory", () => {
     beforeEach(() => {
         events = [];
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
-        registry.setup(r => r.getEntry("$init", null)).returns(a => {
-            return {area: "Admin", data: null};
-        });
-        registry.setup(r => r.getEntry("TestEvent", null)).returns(a => {
-            return {area: "Admin", data: null};
-        });
         subject = new ReadModelFactory(registry.object);
         subject.publish({
                 type: "CircularA",
@@ -39,14 +33,23 @@ describe("Given a Read Model Factory", () => {
         );
     });
 
-    context("when a projection has no dependencies with any event", () => {
-        it("should receive a new event", () => {
+    context("when a read model is handled by projection", () => {
+        beforeEach(() => {
+            registry.setup(r => r.getEntry("$init", null)).returns(a => {
+                return {area: "Admin", data: null};
+            });
+            registry.setup(r => r.getEntry("TestEvent", null)).returns(a => {
+                return {area: "Admin", data: null};
+            });
+        });
+
+        it("should not emit an event", () => {
             subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => events.push(event));
             expect(events).to.have.length(1);
         });
     });
 
-    context("when a projection has a dependency with at least one event", () => {
+    context("when a read model is not handled by projection", () => {
         beforeEach(() => {
             let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
             registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
