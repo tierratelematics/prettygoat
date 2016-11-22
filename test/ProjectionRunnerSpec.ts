@@ -220,14 +220,6 @@ describe("Given a ProjectionRunner", () => {
                 readModelSubject.onNext({type: "test2", payload: 1});
                 expect(subject.stats.readModels).to.be(1);
             });
-
-            context("and the read model does not belong to the current projection", () => {
-                beforeEach(() => matcher.setup(m => m.match("notIncrement")).returns(streamId => (s:number, e:any) => s + e));
-                it("should be filtered out", () => {
-                   readModelSubject.onNext({type: "notIncrement", payload: 1});
-                   expect(subject.stats.readModels).to.be(0);
-               });
-            });
         });
     });
 
