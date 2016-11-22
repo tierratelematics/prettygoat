@@ -50,7 +50,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.publishReadModel(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
 
-        this.subscription = combinedStream.pausable(this.pauser).subscribe(event => {
+        this.subscription = combinedStream.pausableBuffered(this.pauser).subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
                 if (matchFunction !== Rx.helpers.identity) {
