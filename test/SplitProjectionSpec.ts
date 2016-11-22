@@ -12,7 +12,6 @@ import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../scripts/Dictionary";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
-import IDependenciesCollector from "../scripts/collector/IDependenciesCollector";
 import * as _ from "lodash";
 
 describe("Split projection, given a projection with a split definition", () => {
@@ -24,7 +23,6 @@ describe("Split projection, given a projection with a split definition", () => {
     let failed:boolean;
     let subscription:IDisposable;
     let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
-    let dependenciesCollector:TypeMoq.Mock<IDependenciesCollector>;
     let streamData:Subject<Event>;
     let readModelData:Subject<Event>;
     let projection = new SplitProjectionDefinition().define();
@@ -36,7 +34,6 @@ describe("Split projection, given a projection with a split definition", () => {
         streamData = new ReplaySubject<Event>();
         readModelData = new ReplaySubject<Event>();
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
-        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o => _.keys(projection.definition));
         readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
@@ -48,7 +45,7 @@ describe("Split projection, given a projection with a split definition", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
                 stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null, TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -73,7 +70,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         beforeEach(() => {
-            readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
+            readModelFactory.setup(r => r.from(null,TypeMoq.It.isValue(projection.definition))).returns(_ => Observable.empty<Event>());
             stream.setup(s => s.from(null, TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
             streamData.onNext({
                 type: "TestEvent",
@@ -127,7 +124,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and a state is not present for the generated split key", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null,TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -144,7 +141,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and the event is a read model", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null, TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
