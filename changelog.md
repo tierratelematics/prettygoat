@@ -1,3 +1,7 @@
+##0.16.3
+
+fix wrong scheduling of readmodels
+
 ##0.16.2
 
 fixes an error with split projection events not matched
