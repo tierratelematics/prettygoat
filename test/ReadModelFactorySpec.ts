@@ -17,11 +17,11 @@ describe("Given a Read Model Factory", () => {
 
     let registry: TypeMoq.Mock<IProjectionRegistry>,
         subject: ReadModelFactory,
-        events:any[],
+        notifications:Event[],
         event:Event;
 
     beforeEach(() => {
-        events = [];
+        notifications = [];
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         subject = new ReadModelFactory(registry.object);
         event = {
@@ -35,6 +35,21 @@ describe("Given a Read Model Factory", () => {
 
     context("when a read model is handled by a projection", () => {
         beforeEach(() => {
+            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                return {area: "Admin", data: circularAEntry};
+            });
+        });
+
+        it("should emit the readmodel", () => {
+            subject.from(null, new MockProjectionCircularBDefinition().define().definition).subscribe(event => notifications.push(event));
+            expect(notifications).to.have.length(1);
+            expect(notifications[0]).to.be.eql(event);
+        });
+    });
+
+    context("when a read model is not handled by a projection", () => {
+        beforeEach(() => {
             registry.setup(r => r.getEntry("$init", null)).returns(a => {
                 return {area: "Admin", data: null};
             });
@@ -43,24 +58,9 @@ describe("Given a Read Model Factory", () => {
             });
         });
 
-        it("should emit the readmodel", () => {
-            subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => events.push(event));
-            expect(events).to.have.length(1);
-            expect(events[0]).to.be.eql(event);
-        });
-    });
-
-    context("when a read model is not handled by a projection", () => {
-        beforeEach(() => {
-            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
-            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
-                return {area: "Admin", data: circularAEntry};
-            });
-        });
-
         it("should not emit the readmodel", () => {
-            subject.from(null, new MockProjectionCircularBDefinition().define().definition).subscribe(event => events.push(event));
-            expect(events).to.have.length(0);
+            subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => notifications.push(event));
+            expect(notifications).to.have.length(0);
         });
     });
 });

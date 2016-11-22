@@ -22,8 +22,7 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IStatePublisher") private statePublisher:IStatePublisher,
                 @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
                 @inject("ILogger") private logger:ILogger = NullLogger,
-                @inject("IProjectionSorter") private sorter:IProjectionSorter
-    ) {
+                @inject("IProjectionSorter") private sorter:IProjectionSorter) {
     }
 
     run():void {
