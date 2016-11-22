@@ -39,14 +39,14 @@ describe("Given a Read Model Factory", () => {
         );
     });
 
-    context("when a projection has no dependencies with any event present", () => {
+    context("when a projection has no dependencies with any event", () => {
         it("should receive a new event", () => {
             subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => events.push(event));
             expect(events).to.have.length(1);
         });
     });
 
-    context("when a projection has at least a dependency with a event present", () => {
+    context("when a projection has a dependency with at least one event", () => {
         beforeEach(() => {
             let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
             registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
