@@ -43,7 +43,7 @@ describe("Given a ProjectionRunner", () => {
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
         readModelFactory = TypeMoq.Mock.ofType(ReadModelFactory);
         dependenciesCollector = TypeMoq.Mock.ofType(MockDependenciesCollector);
-        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection)));
+        dependenciesCollector.setup(d => d.getDependenciesFor(TypeMoq.It.isValue(projection))).returns(o =>_.keys(projection.definition));
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)), dependenciesCollector.object);
         subscription = subject.notifications().subscribe((state:Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
@@ -229,7 +229,11 @@ describe("Given a ProjectionRunner", () => {
             });
 
             context("and the read model does not belong to the current projection", () => {
-               it("should be filtered out");
+                beforeEach(() => matcher.setup(m => m.match("notIncrement")).returns(streamId => (s:number, e:any) => s + e));
+                it("should be filtered out", () => {
+                   readModelSubject.onNext({type: "notIncrement", payload: 1});
+                   expect(subject.stats.readModels).to.be(0);
+               });
             });
         });
     });
