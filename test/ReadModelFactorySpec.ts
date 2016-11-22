@@ -33,7 +33,7 @@ describe("Given a Read Model Factory", () => {
         subject.publish(event);
     });
 
-    context("when a read model is handled by projection", () => {
+    context("when a read model is handled by a projection", () => {
         beforeEach(() => {
             registry.setup(r => r.getEntry("$init", null)).returns(a => {
                 return {area: "Admin", data: null};
@@ -43,14 +43,14 @@ describe("Given a Read Model Factory", () => {
             });
         });
 
-        it("should not emit an event", () => {
+        it("should emit the readmodel", () => {
             subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => events.push(event));
             expect(events).to.have.length(1);
             expect(events[0]).to.be.eql(event);
         });
     });
 
-    context("when a read model is not handled by projection", () => {
+    context("when a read model is not handled by a projection", () => {
         beforeEach(() => {
             let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
             registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
@@ -58,7 +58,7 @@ describe("Given a Read Model Factory", () => {
             });
         });
 
-        it("should not receive any event", () => {
+        it("should not emit the readmodel", () => {
             subject.from(null, new MockProjectionCircularBDefinition().define().definition).subscribe(event => events.push(event));
             expect(events).to.have.length(0);
         });
