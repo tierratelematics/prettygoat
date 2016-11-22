@@ -12,7 +12,6 @@ import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../scripts/Dictionary";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
-import * as _ from "lodash";
 
 describe("Split projection, given a projection with a split definition", () => {
 
