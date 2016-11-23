@@ -8,7 +8,6 @@ import * as _ from "lodash";
 import {IWhen} from "../projections/IProjection";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {SpecialNames} from "../matcher/SpecialNames";
-import {SpecialState} from "../projections/SpecialState";
 
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
@@ -31,7 +30,8 @@ class ReadModelFactory implements IReadModelFactory {
         let observable:Rx.Observable<Event> = Observable.from(readModels).concat(this.subject);
 
         if(!_(definition).keys().includes(SpecialNames.Any)){
-            observable = observable.filter(event => _.includes(this.getDependenciesFor(definition), event.type));
+            let dependencies = this.getDependenciesFor(definition);
+            observable = observable.filter(event => _.includes(dependencies, event.type));
         }
 
         return observable;
