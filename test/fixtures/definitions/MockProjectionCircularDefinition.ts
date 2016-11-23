@@ -28,5 +28,18 @@ export class MockProjectionCircularBDefinition implements IProjectionDefinition<
             }
         };
     }
+}
+
+@Projection("CircularAny")
+export class MockProjectionCircularAnyDefinition implements IProjectionDefinition<number> {
+
+    define():IProjection<number> {
+        return {
+            name: "CircularAny",
+            definition: {
+                $any: (s, e:number) => s + e
+            }
+        };
+    }
 
 }

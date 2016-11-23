@@ -6,7 +6,7 @@ import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {
     MockProjectionCircularADefinition,
-    MockProjectionCircularBDefinition
+    MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
 import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
@@ -61,6 +61,16 @@ describe("Given a Read Model Factory", () => {
         it("should not emit the readmodel", () => {
             subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => notifications.push(event));
             expect(notifications).to.have.length(0);
+        });
+    });
+
+
+    context("when a projection has an $any matcher", () => {
+
+        it("should emit all the readmodels", () => {
+            subject.from(null, new MockProjectionCircularAnyDefinition().define().definition).subscribe(event => notifications.push(event));
+            expect(notifications).to.have.length(1);
+            expect(notifications[0]).to.be.eql(event);
         });
     });
 });

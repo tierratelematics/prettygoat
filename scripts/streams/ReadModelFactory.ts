@@ -7,6 +7,8 @@ import {values} from "lodash";
 import * as _ from "lodash";
 import {IWhen} from "../projections/IProjection";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
+import {SpecialNames} from "../matcher/SpecialNames";
+import {SpecialState} from "../projections/SpecialState";
 
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
@@ -26,8 +28,11 @@ class ReadModelFactory implements IReadModelFactory {
 
     from(lastEvent:Date,definition:IWhen<any>):Rx.Observable<Event> {
         let readModels = values<Event>(this.readModels);
-        let dependencies = this.getDependenciesFor(definition);
-        return Observable.from(readModels).concat(this.subject).filter(event => _.includes(dependencies, event.type));
+
+        if(_(definition).keys().includes(SpecialNames.Any))
+            return Observable.from(readModels).concat(this.subject);
+        else
+            return Observable.from(readModels).concat(this.subject).filter(event => _.includes(this.getDependenciesFor(definition), event.type));
     }
 
     private getDependenciesFor(definition:IWhen<any>):string[]{
