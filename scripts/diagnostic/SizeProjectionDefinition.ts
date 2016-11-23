@@ -57,7 +57,9 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             let size = sizeof(runner.state);
             total += size;
             let data = {
-                size: humanize.filesize(size)
+                size: humanize.filesize(size),
+                events: runner.stats.events,
+                readModels: runner.stats.readModels
             };
             if (runner instanceof SplitProjectionRunner) {
                 _.assign(data, {
