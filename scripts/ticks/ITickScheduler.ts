@@ -1,6 +1,6 @@
-import {IStreamFactory} from "../streams/IStreamFactory";
+import {IEventsStream} from "../streams/IEventsStream";
 
-interface ITickScheduler extends IStreamFactory {
+interface ITickScheduler extends IEventsStream {
     schedule(dueTime:number | Date, state?:string, splitKey?:string);
 }
 

@@ -2,6 +2,7 @@ import ICassandraClient from "./ICassandraClient";
 import {Observable, Disposable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
+import DriverOptions from "./DriverOptions";
 const cassandra = require("cassandra-driver");
 
 @injectable()
@@ -26,29 +27,25 @@ class CassandraClient implements ICassandraClient {
         return this.wrappedExecute(query);
     }
 
-
-    paginate(query: string, completions: Observable<void>): Observable<any> {
-        let resultPage = null;
-        let requesting = false;
+    paginate(query: string, completions: Observable<void>): Observable<any[]> {
+        let currentPage = null;
         completions.subscribe(() => {
-            if (resultPage && !requesting) {
-                resultPage.nextPage();
-                requesting = true;
+            if (currentPage && currentPage.nextPage) {
+                currentPage.nextPage();
             }
         });
         return Observable.create(observer => {
-            const options = {prepare: false, fetchSize: 500};
+            const options = {prepare: true, fetchSize: DriverOptions.FETCH_SIZE};
             this.wrappedEachRow(query, null, options,
                 (n, row) => observer.onNext(row),
                 (error, result) => {
-                    requesting = false;
                     if (error) observer.onError(error);
                     else if (!result.nextPage) observer.onCompleted();
-                    else result.nextPage();
+                    else currentPage = result;
                 }
             );
             return Disposable.empty;
-        });
+        }).toArray();
     }
 
 }

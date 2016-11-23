@@ -1,7 +1,7 @@
-import {IStreamFactory} from "./IStreamFactory";
 import {Event} from "./Event";
+import {IEventsStream} from "./IEventsStream";
 
-interface IReadModelFactory extends IStreamFactory {
+interface IReadModelFactory extends IEventsStream {
     publish(event:Event):void;
 }
 

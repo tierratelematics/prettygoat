@@ -13,6 +13,8 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
+import * as _ from "lodash";
+import {IEventsStream} from "../streams/IEventsStream";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
@@ -23,9 +25,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed:boolean;
     protected isFailed:boolean;
     protected pauser = new Subject<boolean>();
+    protected lastEventTimestamp:Date;
 
     constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
-                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
+                protected tickScheduler:IEventsStream, protected dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
@@ -48,7 +51,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = combinedStream
             .pausableBuffered(this.pauser)
-            .do(event => {
+            .subscribe(event => {
                 try {
                     let matchFunction = this.matcher.match(event.type);
                     if (matchFunction !== Rx.helpers.identity) {
@@ -66,21 +69,25 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.subject.onError(error);
                     this.stop();
                 }
-            })
-            .count()
-            .subscribe(count => {
-                if (count % 500 === 0 && count > 0) {
+                if (event.timestamp === this.lastEventTimestamp)
                     completions.onNext(null);
-                }
             });
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
-            this.tickScheduler.from(null),
+            this.stream
+                .from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
+                .do(events => {
+                    let lastEvent = _.last(events);
+                    if (!lastEvent || (lastEvent && !lastEvent.timestamp))
+                        completions.onNext(null);
+                    else
+                        this.lastEventTimestamp = lastEvent.timestamp;
+                }),
+            this.readModelFactory.stream().filter(event => event.type !== this.streamId),
+            this.tickScheduler.stream(),
             this.dateRetriever);
     }
 
