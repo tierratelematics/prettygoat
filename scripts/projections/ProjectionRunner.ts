@@ -13,8 +13,7 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
-import * as _ from "lodash";
-import {IEventsStream} from "../streams/IEventsStream";
+import ReservedEvents from "../streams/ReservedEvents";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
@@ -25,10 +24,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed:boolean;
     protected isFailed:boolean;
     protected pauser = new Subject<boolean>();
-    protected lastEventTimestamp:Date;
 
     constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
-                protected tickScheduler:IEventsStream, protected dateRetriever:IDateRetriever) {
+                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
@@ -64,30 +62,22 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                             this.publishReadModel(event.timestamp);
                         this.updateStats(event);
                     }
+                    if (event.type === ReservedEvents.FETCH_EVENTS)
+                        completions.onNext(null);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
                 }
-                if (event.timestamp === this.lastEventTimestamp)
-                    completions.onNext(null);
             });
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream
-                .from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .do(events => {
-                    let lastEvent = _.last(events);
-                    if (!lastEvent || (lastEvent && !lastEvent.timestamp))
-                        completions.onNext(null);
-                    else
-                        this.lastEventTimestamp = lastEvent.timestamp;
-                }),
-            this.readModelFactory.stream().filter(event => event.type !== this.streamId),
-            this.tickScheduler.stream(),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.tickScheduler.from(null),
             this.dateRetriever);
     }
 

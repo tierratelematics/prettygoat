@@ -12,14 +12,13 @@ import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import {ProjectionRunner} from "./ProjectionRunner";
-import DriverOptions from "../cassandra/DriverOptions";
-import {IEventsStream} from "../streams/IEventsStream";
+import ReservedEvents from "../streams/ReservedEvents";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
 
     constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
-                private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IEventsStream,
+                private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
                 dateRetriever:IDateRetriever) {
         super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
     }
@@ -56,36 +55,29 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                         }
                         this.updateStats(event);
                     }
+                    if (event.type === ReservedEvents.FETCH_EVENTS)
+                        completions.onNext(null);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
                 }
-                if (event.timestamp === this.lastEventTimestamp)
-                    completions.onNext(null);
             });
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream
-                .from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .do(events => {
-                    let lastEvent = _.last(events);
-                    if (!lastEvent || (lastEvent && !lastEvent.timestamp))
-                        completions.onNext(null);
-                    else
-                        this.lastEventTimestamp = lastEvent.timestamp;
-                }),
-            this.readModelFactory.stream().filter(event => event.type !== this.streamId),
-            this.tickScheduler.stream(),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
+                .filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.tickScheduler.from(null),
             this.dateRetriever);
     }
 
     private getInitialState(matchFn: Function, event, splitKey: string): T {
         let state: T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
-        this.readModelFactory.stream().subscribe(readModel => {
+        this.readModelFactory.from(null).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);

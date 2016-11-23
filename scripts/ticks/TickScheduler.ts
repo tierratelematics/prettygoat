@@ -26,7 +26,7 @@ class TickScheduler implements ITickScheduler {
         });
     }
 
-    stream():Rx.Observable<Event> {
+    from(lastEvent:Date):Rx.Observable<Event> {
         return this.subject;
     }
 

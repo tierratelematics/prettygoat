@@ -2,8 +2,8 @@ import ICassandraClient from "./ICassandraClient";
 import {Observable, Disposable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
-import DriverOptions from "./DriverOptions";
 const cassandra = require("cassandra-driver");
+import ReservedEvents from "../streams/ReservedEvents";
 
 @injectable()
 class CassandraClient implements ICassandraClient {
@@ -27,25 +27,34 @@ class CassandraClient implements ICassandraClient {
         return this.wrappedExecute(query);
     }
 
-    paginate(query: string, completions: Observable<void>): Observable<any[]> {
-        let currentPage = null;
+
+    paginate(query: string, completions: Observable<void>): Observable<any> {
+        let resultPage = null;
         completions.subscribe(() => {
-            if (currentPage && currentPage.nextPage) {
-                currentPage.nextPage();
+            if (resultPage && resultPage.nextPage) {
+                resultPage.nextPage();
             }
         });
         return Observable.create(observer => {
-            const options = {prepare: true, fetchSize: DriverOptions.FETCH_SIZE};
+            const options = {prepare: false, fetchSize: 500};
             this.wrappedEachRow(query, null, options,
                 (n, row) => observer.onNext(row),
                 (error, result) => {
                     if (error) observer.onError(error);
-                    else if (!result.nextPage) observer.onCompleted();
-                    else currentPage = result;
+                    else if (result.nextPage) {
+                        resultPage = result;
+                        observer.onNext({
+                            type: ReservedEvents.FETCH_EVENTS,
+                            timestamp: null,
+                            splitKey: null,
+                            payload: null
+                        });
+                    }
+                    else observer.onCompleted();
                 }
             );
             return Disposable.empty;
-        }).toArray();
+        });
     }
 
 }

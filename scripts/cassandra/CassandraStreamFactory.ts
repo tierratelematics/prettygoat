@@ -18,7 +18,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
     }
 
-    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event[]> {
+    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
         let eventsList:string[] = [];
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
@@ -30,8 +30,8 @@ class CassandraStreamFactory implements IStreamFactory {
                 })
             })
             .concatAll()
-            .map(rows => _.map(rows, row => this.deserializer.toEvent(row)))
-            .map(events => _.filter(events, event => _.includes(eventsList, event.type)));
+            .map(row => this.deserializer.toEvent(row));
+            //.filter(event => _.includes(eventsList, event.type));
     }
 
     private getEvents():Observable<string[]> {

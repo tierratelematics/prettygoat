@@ -5,32 +5,30 @@ import * as _ from "lodash";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../util/IDateRetriever";
 
-export function mergeStreams(combined:Subject<Event>, events:Observable<Event[]>, readModels:Observable<Event>, ticks:Observable<Event>, dateRetriever:IDateRetriever) {
+export function mergeStreams(combined:Subject<Event>, events:Observable<Event>, readModels:Observable<Event>, ticks:Observable<Event>, dateRetriever:IDateRetriever) {
     let realtime = false;
     let scheduler = new HistoricalScheduler(0, helpers.defaultSubComparer);
 
-    events.subscribe(events => _.forEach(events, event => handleEvent(event)));
-    readModels
+    events
+        .merge(readModels)
         .filter(event => !_.startsWith(event.type, "__diagnostic"))
-        .subscribe(event => handleEvent(event));
-
-    function handleEvent(event:Event) {
-        if (event.type === ReservedEvents.REALTIME) {
-            if (!realtime)
-                scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
-            realtime = true;
-            return;
-        }
-        if (realtime || !event.timestamp) {
-            combined.onNext(event);
-        } else {
-            scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+        .subscribe(event => {
+            if (event.type === ReservedEvents.REALTIME) {
+                if (!realtime)
+                    scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
+                realtime = true;
+                return;
+            }
+            if (realtime || !event.timestamp) {
                 combined.onNext(event);
-                return Disposable.empty;
-            });
-            scheduler.advanceTo(+event.timestamp);
-        }
-    }
+            } else {
+                scheduler.scheduleFuture(null, event.timestamp, (scheduler, state) => {
+                    combined.onNext(event);
+                    return Disposable.empty;
+                });
+                scheduler.advanceTo(+event.timestamp);
+            }
+        });
 
     ticks.subscribe(event => {
         let payload:Tick = event.payload;
