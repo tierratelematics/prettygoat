@@ -28,11 +28,13 @@ class ReadModelFactory implements IReadModelFactory {
 
     from(lastEvent:Date,definition:IWhen<any>):Rx.Observable<Event> {
         let readModels = values<Event>(this.readModels);
+        let observable:Rx.Observable<Event> = Observable.from(readModels).concat(this.subject);
 
-        if(_(definition).keys().includes(SpecialNames.Any))
-            return Observable.from(readModels).concat(this.subject);
-        else
-            return Observable.from(readModels).concat(this.subject).filter(event => _.includes(this.getDependenciesFor(definition), event.type));
+        if(!_(definition).keys().includes(SpecialNames.Any)){
+            observable = observable.filter(event => _.includes(this.getDependenciesFor(definition), event.type));
+        }
+
+        return observable;
     }
 
     private getDependenciesFor(definition:IWhen<any>):string[]{
