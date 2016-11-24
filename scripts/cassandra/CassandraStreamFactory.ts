@@ -30,8 +30,8 @@ class CassandraStreamFactory implements IStreamFactory {
                 })
             })
             .concatAll()
-            .map(row => this.deserializer.toEvent(row));
-            //.filter(event => _.includes(eventsList, event.type));
+            .map(row => this.deserializer.toEvent(row))
+            .filter(event => _.includes(eventsList, event.type));
     }
 
     private getEvents():Observable<string[]> {
