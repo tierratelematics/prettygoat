@@ -70,7 +70,14 @@ describe("Snapshot repository, given all the streams", () => {
             cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.empty());
         });
         context("and the associated projection is not a split", () => {
-            beforeEach(() => setupProjection(registry));
+            beforeEach(() => {
+                registry.setup(r => r.getEntry("test")).returns(a => {
+                    return {
+                        area: null,
+                        data: new RegistryEntry(new MockProjectionDefinition().define(), null)
+                    }
+                });
+            });
             it("should save the snapshot correctly", () => {
                 let snapshot = new Snapshot({a: 25}, new Date(500));
                 subject.saveSnapshot("test", snapshot);
@@ -80,7 +87,14 @@ describe("Snapshot repository, given all the streams", () => {
         });
 
         context("and the associated projection is a split", () => {
-            beforeEach(() => setupSplit(registry));
+            beforeEach(() => {
+                registry.setup(r => r.getEntry("split")).returns(a => {
+                    return {
+                        area: null,
+                        data: new RegistryEntry(new SplitProjectionDefinition().define(), null)
+                    }
+                });
+            });
             it("should save every entry in a different row", () => {
                 let snapshot = new Snapshot({a: 25, b: 30}, new Date(500));
                 let streamId = "split";
@@ -97,40 +111,9 @@ describe("Snapshot repository, given all the streams", () => {
         beforeEach(() => {
             cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.empty());
         });
-
-        context("and the associated projection is not a split", () => {
-            beforeEach(() => setupProjection(registry));
-            it("should remove it correctly", () => {
-                subject.deleteSnapshot("test");
-                cassandraClient.verify(c => c.execute("delete from projections_snapshots where streamid = 'test' and split = ''"), TypeMoq.Times.once());
-            });
+        it("should remove it correctly", () => {
+            subject.deleteSnapshot("test");
+            cassandraClient.verify(c => c.execute("delete from projections_snapshots where streamid = 'test'"), TypeMoq.Times.once())
         });
-
-        context("and the associated projection is a split", () => {
-            beforeEach(() => setupSplit(registry));
-            it("should remove every split", () => {
-                subject.deleteSnapshot("split");
-                cassandraClient.verify(c => c.execute("delete from projections_snapshots where streamid = 'split' and split > ''"), TypeMoq.Times.once());
-            });
-        });
-
     });
-
-    function setupProjection(registry) {
-        registry.setup(r => r.getEntry("test")).returns(a => {
-            return {
-                area: null,
-                data: new RegistryEntry(new MockProjectionDefinition().define(), null)
-            }
-        });
-    }
-
-    function setupSplit(registry) {
-        registry.setup(r => r.getEntry("split")).returns(a => {
-            return {
-                area: null,
-                data: new RegistryEntry(new SplitProjectionDefinition().define(), null)
-            }
-        });
-    }
 });

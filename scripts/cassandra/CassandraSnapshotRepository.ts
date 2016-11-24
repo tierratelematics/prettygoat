@@ -58,13 +58,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     deleteSnapshot(streamId:string):void {
-        let entry = this.registry.getEntry(streamId),
-            query = "";
-        if (entry.data.projection.split)
-            query = `delete from projections_snapshots where streamid = '${streamId}' and split > ''`;
-        else
-            query = `delete from projections_snapshots where streamid = '${streamId}' and split = ''`;
-        this.client.execute(query);
+        this.client.execute(`delete from projections_snapshots where streamid = '${streamId}'`);
     }
 }
 
