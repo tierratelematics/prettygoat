@@ -20,7 +20,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
             lastEvent text,\
             memento blob,\
             split text,\
-            primary key ((streamId, split))\
+            primary key ((streamId), split)\
         )');
     }
 
