@@ -46,7 +46,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                             event.splitKey = splitKey;
                             let childState = this.state[splitKey];
                             if (_.isUndefined(childState))
-                                this.state[splitKey] = this.getInitialState(matchFn, event, splitKey);
+                                this.initSplit(matchFn, event, splitKey);
                             else
                                 this.state[splitKey] = matchFn(childState, event.payload, event);
                             this.notifyStateChange(splitKey, event.timestamp);
@@ -54,9 +54,9 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                             this.dispatchEventToAll(matchFn, event);
                         }
                         this.updateStats(event);
+                        if (event.type === ReservedEvents.FETCH_EVENTS)
+                            completions.onNext(null);
                     }
-                    if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(null);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
@@ -75,8 +75,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    private getInitialState(matchFn: Function, event, splitKey: string): T {
-        let state: T = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
+    private initSplit(matchFn:Function, event, splitKey:string) {
+        this.state[splitKey] = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
         this.readModelFactory.from(null).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
@@ -84,7 +84,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 this.notifyStateChange(splitKey, event.timestamp);
             }
         });
-        return state;
     }
 
     private dispatchEventToAll(matchFn:Function, event) {
