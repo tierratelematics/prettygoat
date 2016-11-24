@@ -34,7 +34,6 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                     if (this.eventsCounter % 200 === 0) {
                         let data = this.getProjectionsData();
                         return {
-                            totalEvents: this.eventsCounter,
                             processedEvents: data.processedEvents,
                             processedReadModels: data.processedReadModels,
                             totalSize: humanize.filesize(data.totalSize),
@@ -42,7 +41,6 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                         }
                     }
                     return {
-                        totalEvents: this.eventsCounter,
                         processedEvents: state.processedEvents,
                         processedReadModels: state.processedReadModels,
                         totalSize: state.totalSize,
@@ -57,7 +55,8 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
-        let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>) => {
+        let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>, key) => {
+            if (_.startsWith(key, "__diagnostic")) return;
             let size = sizeof(runner.state);
             totalSize += size;
             processedEvents += runner.stats.events;
