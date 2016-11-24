@@ -44,10 +44,13 @@ class CassandraClient implements ICassandraClient {
                     else if (result.nextPage) {
                         resultPage = result;
                         observer.onNext({
-                            type: ReservedEvents.FETCH_EVENTS,
-                            timestamp: null,
-                            splitKey: null,
-                            payload: null
+                            "system.blobastext(event)": {
+                                type: ReservedEvents.FETCH_EVENTS,
+                                payload: null
+                            },
+                            timestamp: {
+                                getDate: () => null
+                            }
                         });
                     }
                     else observer.onCompleted();
