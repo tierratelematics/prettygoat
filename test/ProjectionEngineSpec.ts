@@ -109,17 +109,25 @@ describe("Given a ProjectionEngine", () => {
                     splitKey: null
                 });
             });
-            it("should save the snapshot", (done) => {
-                setTimeout(() => {
-                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.once());
-                    done();
-                }, 500);
+            it("should save the snapshot", () => {
+                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.once());
             });
         });
 
         context("and it does not carry the timestamp information because it's calculated from a read model", () => {
             beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isAny())).returns(a => true);
+                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
+                    payload: 10,
+                    type: 'test',
+                    timestamp: new Date(1),
+                    splitKey: null
+                }))).returns(a => false);
+                snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
+                    payload: 66,
+                    type: 'test',
+                    timestamp: null,
+                    splitKey: null
+                }))).returns(a => true);
                 snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isAny()));
                 subject.run();
                 dataSubject.onNext({
@@ -129,11 +137,8 @@ describe("Given a ProjectionEngine", () => {
                     splitKey: null
                 });
             });
-            it("should not trigger a snapshot save", (done) => {
-                setTimeout(() => {
-                    snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isAny()), TypeMoq.Times.never());
-                    done();
-                }, 500);
+            it("should not trigger a snapshot save", () => {
+                snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isAny()), TypeMoq.Times.never());
             });
         });
 
