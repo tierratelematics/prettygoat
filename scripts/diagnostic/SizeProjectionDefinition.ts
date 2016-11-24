@@ -25,22 +25,26 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             definition: {
                 $init: () => {
                     this.readModels = _.keys(this.holder);
-                    return this.getProjectionsSize()[1];
+                    return this.getProjectionsData().list;
                 },
                 $any: (state, payload, event) => {
                     if (_.includes(this.readModels, event.type))
                         return state;
                     this.eventsCounter++;
                     if (this.eventsCounter % 200 === 0) {
-                        let sizes = this.getProjectionsSize();
+                        let data = this.getProjectionsData();
                         return {
                             totalEvents: this.eventsCounter,
-                            totalSize: humanize.filesize(sizes[0]),
-                            projections: sizes[1]
+                            processedEvents: data.processedEvents,
+                            processedReadModels: data.processedReadModels,
+                            totalSize: humanize.filesize(data.totalSize),
+                            projections: data.list
                         }
                     }
                     return {
                         totalEvents: this.eventsCounter,
+                        processedEvents: state.processedEvents,
+                        processedReadModels: state.processedReadModels,
                         totalSize: state.totalSize,
                         projections: state.projections
                     }
@@ -49,13 +53,19 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         };
     }
 
-    private getProjectionsSize() {
-        let total = 0;
+    private getProjectionsData() {
+        let totalSize = 0;
+        let processedEvents = 0;
+        let processedReadModels = 0;
         let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>) => {
             let size = sizeof(runner.state);
-            total += size;
+            totalSize += size;
+            processedEvents += runner.stats.events;
+            processedReadModels += runner.stats.readModels;
             let data = {
-                size: humanize.filesize(size)
+                size: humanize.filesize(size),
+                events: runner.stats.events,
+                readModels: runner.stats.readModels
             };
             if (runner instanceof SplitProjectionRunner) {
                 _.assign(data, {
@@ -64,7 +74,12 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             }
             return data;
         });
-        return [total, projections];
+        return {
+            totalSize: totalSize,
+            list: projections,
+            processedEvents: processedEvents,
+            processedReadModels: processedReadModels
+        }
     }
 }
 
