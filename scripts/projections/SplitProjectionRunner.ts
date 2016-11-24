@@ -12,6 +12,7 @@ import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import {ProjectionRunner} from "./ProjectionRunner";
+import ReservedEvents from "../streams/ReservedEvents";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
@@ -31,38 +32,43 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
+        let completions = new Rx.Subject<void>();
 
-        this.subscription = combinedStream.pausableBuffered(this.pauser).subscribe(event => {
-            try {
-                let splitFn = this.splitMatcher.match(event.type),
-                    splitKey = splitFn(event.payload, event),
-                    matchFn = this.matcher.match(event.type);
-                if (matchFn !== Rx.helpers.identity) {
-                    if (splitFn !== Rx.helpers.identity) {
-                        event.splitKey = splitKey;
-                        let childState = this.state[splitKey];
-                        if (_.isUndefined(childState))
-                            this.initSplit(matchFn, event, splitKey);
-                        else
-                            this.state[splitKey] = matchFn(childState, event.payload, event);
-                        this.notifyStateChange(splitKey, event.timestamp);
-                    } else {
-                        this.dispatchEventToAll(matchFn, event);
+        this.subscription = combinedStream
+            .pausableBuffered(this.pauser)
+            .subscribe(event => {
+                try {
+                    let splitFn = this.splitMatcher.match(event.type),
+                        splitKey = splitFn(event.payload, event),
+                        matchFn = this.matcher.match(event.type);
+                    if (matchFn !== Rx.helpers.identity) {
+                        if (splitFn !== Rx.helpers.identity) {
+                            event.splitKey = splitKey;
+                            let childState = this.state[splitKey];
+                            if (_.isUndefined(childState))
+                                this.initSplit(matchFn, event, splitKey);
+                            else
+                                this.state[splitKey] = matchFn(childState, event.payload, event);
+                            this.notifyStateChange(splitKey, event.timestamp);
+                        } else {
+                            this.dispatchEventToAll(matchFn, event);
+                        }
+                        this.updateStats(event);
+                        if (event.type === ReservedEvents.FETCH_EVENTS)
+                            completions.onNext(null);
                     }
-                    this.updateStats(event);
+                } catch (error) {
+                    this.isFailed = true;
+                    this.subject.onError(error);
+                    this.stop();
                 }
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
+            });
 
         this.resume();
 
         mergeStreams(
             combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, this.projection.definition)
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
