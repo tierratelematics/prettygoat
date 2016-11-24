@@ -16,7 +16,7 @@ class CassandraClient implements ICassandraClient {
             contactPoints: config.hosts,
             keyspace: config.keyspace,
             socketOptions: {
-                readTimeout: config.readTimeout ? config.readTimeout : 12000
+                readTimeout: config.readTimeout || 12000
             }
         });
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
@@ -30,14 +30,13 @@ class CassandraClient implements ICassandraClient {
 
     paginate(query: string, completions: Observable<void>): Observable<any> {
         let resultPage = null;
-        completions.subscribe(() => {
+        let subscription = completions.subscribe(() => {
             if (resultPage && resultPage.nextPage) {
                 resultPage.nextPage();
             }
         });
         return Observable.create(observer => {
-            const options = {prepare: false, fetchSize: 500};
-            this.wrappedEachRow(query, null, options,
+            this.wrappedEachRow(query, null, {prepare: false, fetchSize: this.config.fetchSize || 800},
                 (n, row) => observer.onNext(row),
                 (error, result) => {
                     if (error) observer.onError(error);
@@ -52,8 +51,10 @@ class CassandraClient implements ICassandraClient {
                                 getDate: () => null
                             }
                         });
+                    } else {
+                        observer.onCompleted();
+                        subscription.dispose();
                     }
-                    else observer.onCompleted();
                 }
             );
             return Disposable.empty;
