@@ -1,3 +1,7 @@
+#0.17.1
+
+fix snapshots save
+
 #0.17.0
 
 handle events backpressure
