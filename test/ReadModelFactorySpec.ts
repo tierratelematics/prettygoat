@@ -17,9 +17,10 @@ describe("Given a Read Model Factory", () => {
         event = {
             type: "EventTypeA",
             payload: null,
-            timestamp: new Date(10),
+            timestamp: new Date(86400),
             splitKey: null
         };
+        subject.publish({type: "EventTypeA", payload: null,timestamp: new Date(10),splitKey: null});
         subject.publish(event);
     });
 
