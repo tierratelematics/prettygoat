@@ -20,7 +20,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
                 private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
                 dateRetriever:IDateRetriever) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
+        super(projection, stream, matcher, readModelFactory, tickScheduler,dateRetriever);
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {

@@ -19,7 +19,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
                 @inject("IReadModelFactory") private aggregateFactory:IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>,
-                @inject("IDateRetriever") private dateRetriever:IDateRetriever) {
+                @inject("IDateRetriever") private dateRetriever:IDateRetriever
+    ) {
 
     }
 

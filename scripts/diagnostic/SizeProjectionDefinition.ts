@@ -15,8 +15,9 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     eventsCounter = 0;
     readModels:string[] = [];
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
 
+    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>
+    ) {
     }
 
     define():IProjection<any> {
@@ -30,6 +31,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                 $any: (state, payload, event) => {
                     if (_.includes(this.readModels, event.type))
                         return state;
+
                     this.eventsCounter++;
                     if (this.eventsCounter % 200 === 0) {
                         let data = this.getProjectionsData();

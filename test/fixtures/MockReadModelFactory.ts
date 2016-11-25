@@ -2,6 +2,7 @@ import {Subject} from "rx";
 import {injectable} from "inversify";
 import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
 import {Event} from "../../scripts/streams/Event";
+import {IWhen} from "../../scripts/projections/IProjection";
 
 @injectable()
 class MockReadModelFactory implements IReadModelFactory {
@@ -16,9 +17,10 @@ class MockReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
-    from(lastEvent:Date):Rx.Observable<Event> {
+    from(lastEvent: Date, completions?: Rx.Observable<void>, definition?: IWhen<any>): Rx.Observable<Event> {
         return this.subject;
     }
+
 }
 
 export default MockReadModelFactory
