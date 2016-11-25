@@ -8,6 +8,7 @@ import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 class MockProjectionDefinition implements IProjectionDefinition<number> {
 
     constructor(private strategy?:ISnapshotStrategy) {
+
     }
 
     define():IProjection<number> {
@@ -15,8 +16,7 @@ class MockProjectionDefinition implements IProjectionDefinition<number> {
             name: "test",
             definition: {
                 $init: () => 10,
-                TestEvent: (s, e:number) => s + e,
-
+                TestEvent: (s, e:number) => s + e
             },
             snapshotStrategy: this.strategy
         };

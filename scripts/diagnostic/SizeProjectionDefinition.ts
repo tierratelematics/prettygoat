@@ -16,8 +16,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     readModels:string[] = [];
 
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>
-    ) {
+    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
     }
 
     define():IProjection<any> {

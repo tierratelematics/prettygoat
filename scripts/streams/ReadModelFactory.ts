@@ -4,10 +4,6 @@ import {injectable,inject} from "inversify";
 import Dictionary from "../Dictionary";
 import {Event} from "./Event";
 import {values} from "lodash";
-import * as _ from "lodash";
-import {IWhen} from "../projections/IProjection";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {SpecialNames} from "../matcher/SpecialNames";
 
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
