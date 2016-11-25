@@ -25,7 +25,7 @@ class ReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
-    from(lastEvent:Date,definition:IWhen<any>):Rx.Observable<Event> {
+    from(lastEvent:Date,completions:Observable<void>,definition:IWhen<any>):Rx.Observable<Event> {
         let readModels = values<Event>(this.readModels);
         let observable:Rx.Observable<Event> = Observable.from(readModels).concat(this.subject);
 

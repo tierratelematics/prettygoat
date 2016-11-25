@@ -42,7 +42,7 @@ describe("Given a Read Model Factory", () => {
         });
 
         it("should emit the readmodel", () => {
-            subject.from(null, new MockProjectionCircularBDefinition().define().definition).subscribe(event => notifications.push(event));
+            subject.from(null, null,new MockProjectionCircularBDefinition().define().definition).subscribe(event => notifications.push(event));
             expect(notifications).to.have.length(1);
             expect(notifications[0]).to.be.eql(event);
         });
@@ -59,7 +59,7 @@ describe("Given a Read Model Factory", () => {
         });
 
         it("should not emit the readmodel", () => {
-            subject.from(null, new MockProjectionDefinition().define().definition).subscribe(event => notifications.push(event));
+            subject.from(null, null,new MockProjectionDefinition().define().definition).subscribe(event => notifications.push(event));
             expect(notifications).to.have.length(0);
         });
     });
@@ -68,7 +68,7 @@ describe("Given a Read Model Factory", () => {
     context("when a projection has an $any matcher", () => {
 
         it("should emit all the readmodels", () => {
-            subject.from(null, new MockProjectionCircularAnyDefinition().define().definition).subscribe(event => notifications.push(event));
+            subject.from(null, null, new MockProjectionCircularAnyDefinition().define().definition).subscribe(event => notifications.push(event));
             expect(notifications).to.have.length(1);
             expect(notifications[0]).to.be.eql(event);
         });

@@ -44,7 +44,7 @@ describe("Split projection, given a projection with a split definition", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
                 stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
-                readModelFactory.setup(r => r.from(null, TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null, null,TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -69,7 +69,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         beforeEach(() => {
-            readModelFactory.setup(r => r.from(null,TypeMoq.It.isValue(projection.definition))).returns(_ => Observable.empty<Event>());
+            readModelFactory.setup(r => r.from(null,null,TypeMoq.It.isValue(projection.definition))).returns(_ => Observable.empty<Event>());
             stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
             streamData.onNext({
                 type: "TestEvent",
@@ -123,7 +123,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and a state is not present for the generated split key", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null,TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null,null,TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -140,7 +140,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and the event is a read model", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null, TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
+                readModelFactory.setup(r => r.from(null, null,TypeMoq.It.isValue(projection.definition))).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {

@@ -70,14 +70,14 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
-            this.readModelFactory.from(null, this.projection.definition).filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null,null, this.projection.definition).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
 
     private initSplit(matchFn:Function, event, splitKey:string) {
         this.state[splitKey] = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
-        this.readModelFactory.from(null,this.projection.definition).subscribe(readModel => {
+        this.readModelFactory.from(null,null,this.projection.definition).subscribe(readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
