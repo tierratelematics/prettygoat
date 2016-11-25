@@ -36,20 +36,26 @@ class ProjectionEngine implements IProjectionEngine {
                     _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
                         let runner = this.runnerFactory.create(entry.projection),
                             context = new PushContext(areaRegistry.area, entry.name);
-                        runner.notifications().sample(500).subscribe(state => {
-                            let snapshotStrategy = entry.projection.snapshotStrategy;
-                            this.pushNotifier.notify(context, null, state.splitKey);
-                            this.logger.info(`Notifying state change on ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
-                            if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                                this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp.toISOString()}`);
-                                this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
-                            }
+                        runner
+                            .notifications()
+                            .do(state => {
+                                let snapshotStrategy = entry.projection.snapshotStrategy;
+                                if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
+                                    this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
+                                    this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp.toISOString()}`);
+                                }
+                            })
+                            .sample(200)
+                            .subscribe(state => {
+                                this.pushNotifier.notify(context, null, state.splitKey);
+                                this.logger.info(`Notifying state change on ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
                         }, error => this.logger.error(error));
                         this.statePublisher.publish(runner, context);
                         runner.run(snapshots[entry.projection.name]);
                     });
                 });
-            }).subscribe(() => null);
+            })
+            .subscribe(() => null);
     }
 }
 

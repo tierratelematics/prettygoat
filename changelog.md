@@ -1,3 +1,17 @@
+#0.17.1
+
+fix snapshots save
+
+#0.17.0
+
+handle events backpressure
+change projections_snapshots table primary key
+add events processed to diagnostic
+
+##0.16.3
+
+fix wrong scheduling of readmodels
+
 ##0.16.2
 
 fixes an error with split projection events not matched

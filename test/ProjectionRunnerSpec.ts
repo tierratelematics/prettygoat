@@ -47,7 +47,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.just({
+            stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.just({
                 type: null,
                 payload: null,
                 timestamp: new Date(),
@@ -66,7 +66,7 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.state).to.be(56);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             });
         });
 
@@ -79,7 +79,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.verify(m => m.match(SpecialNames.Init), TypeMoq.Times.once());
             });
             it("should subscribe to the event stream starting from the stream's beginning", () => {
-                stream.verify(s => s.from(null, TypeMoq.It.isAny()), TypeMoq.Times.once());
+                stream.verify(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             });
 
             it("should subscribe to the aggregates stream to build linked projections", () => {
@@ -107,7 +107,7 @@ describe("Given a ProjectionRunner", () => {
 
         it("it should filter out diagnostic events", () => {
             matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.just({
+            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.just({
                 type: "__diagnostic:Size",
                 payload: 1,
                 timestamp: new Date(),
@@ -121,7 +121,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 let date = new Date();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-                stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
                 subject.run();
@@ -162,7 +162,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no match is found for this event", () => {
             beforeEach(() => {
                 let date = new Date();
-                stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
@@ -187,7 +187,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });
-                stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
             });
@@ -203,7 +203,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             readModelFactory.setup(s => s.from(null,TypeMoq.It.isAny())).returns(_ => readModelSubject.observeOn(Scheduler.immediate));
-            stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => Observable.empty<Event>());
+            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.empty<Event>());
             subject.run();
         });
         context("of the same projection", () => {
@@ -229,7 +229,7 @@ describe("Given a ProjectionRunner", () => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny(),TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
+            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
             streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});
@@ -266,7 +266,7 @@ describe("Given a ProjectionRunner", () => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny(),TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny())).returns(_ => streamSubject);
+            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
             streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});

@@ -1,9 +1,10 @@
 import expect = require("expect.js");
 import EventsFilter from "../scripts/streams/EventsFilter";
+import ReservedEvents from "../scripts/streams/ReservedEvents";
 
 describe("EventsFilter, given a projection definition", () => {
 
-    let eventsFilter:EventsFilter;
+    let eventsFilter: EventsFilter;
 
     beforeEach(() => {
         eventsFilter = new EventsFilter();
@@ -15,14 +16,20 @@ describe("EventsFilter, given a projection definition", () => {
             expect(eventsFilter.filter({
                 $init: () => null,
                 TestEvent: (s, e) => e,
-            })).to.eql(["TestEvent"]);
+            })).to.eql(["TestEvent",
+                ReservedEvents.TICK,
+                ReservedEvents.REALTIME,
+                ReservedEvents.FETCH_EVENTS]);
         });
         context("and the projection has an $any matcher", () => {
             it("should return all the events", () => {
                 expect(eventsFilter.filter({
                     $init: () => null,
                     $any: (s, e) => e
-                })).to.eql(["TestEvent", "SecondEvent"]);
+                })).to.eql(["TestEvent", "SecondEvent",
+                    ReservedEvents.TICK,
+                    ReservedEvents.REALTIME,
+                    ReservedEvents.FETCH_EVENTS]);
             });
         });
 
@@ -31,7 +38,10 @@ describe("EventsFilter, given a projection definition", () => {
                 expect(eventsFilter.filter({
                     $init: () => null,
                     "Test*": (s, e) => e
-                })).to.eql(["TestEvent"]);
+                })).to.eql(["TestEvent",
+                    ReservedEvents.TICK,
+                    ReservedEvents.REALTIME,
+                    ReservedEvents.FETCH_EVENTS]);
             });
         });
 
@@ -39,7 +49,10 @@ describe("EventsFilter, given a projection definition", () => {
             it("should return all the events", () => {
                 expect(eventsFilter.filter({
                     $init: () => null
-                })).to.eql(["TestEvent", "SecondEvent"]);
+                })).to.eql(["TestEvent", "SecondEvent",
+                    ReservedEvents.TICK,
+                    ReservedEvents.REALTIME,
+                    ReservedEvents.FETCH_EVENTS]);
             });
         });
     });
