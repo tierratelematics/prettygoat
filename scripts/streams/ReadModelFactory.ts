@@ -16,7 +16,7 @@ class ReadModelFactory implements IReadModelFactory {
     private readModels:Dictionary<Event> = {};  // Caching the read models instead of using a replaySubject because after a while
                                                 // a new subscriber (split projections) could possibly receive thousands of states to process
 
-    constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
+    constructor() {
         this.subject = new Subject<Event>();
     }
 
@@ -25,23 +25,9 @@ class ReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
-    from(lastEvent:Date,completions:Observable<void>,definition:IWhen<any>):Rx.Observable<Event> {
+    from(lastEvent:Date):Rx.Observable<Event> {
         let readModels = values<Event>(this.readModels);
-        let observable:Rx.Observable<Event> = Observable.from(readModels).concat(this.subject);
-
-        if(!_(definition).keys().includes(SpecialNames.Any)){
-            let dependencies = this.getDependenciesFor(definition);
-            observable = observable.filter(event => _.includes(dependencies, event.type));
-        }
-
-        return observable;
-    }
-
-    private getDependenciesFor(definition:IWhen<any>):string[]{
-        return _(definition)
-            .keys()
-            .filter(projection => this.registry.getEntry(projection, null).data != null)
-            .valueOf();
+        return Observable.from(readModels).concat(this.subject);
     }
 }
 
