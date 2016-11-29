@@ -11,7 +11,6 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockModel from "./fixtures/MockModel";
 import MockStatePublisher from "./fixtures/MockStatePublisher";
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
@@ -29,6 +28,9 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {Matcher} from "../scripts/matcher/Matcher";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
+import IProjectionSorter from "../scripts/projections/IProjectionSorter";
+import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
+import NullLogger from "../scripts/log/NullLogger";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -38,6 +40,7 @@ describe("Given a ProjectionEngine", () => {
         snapshotStrategy:TypeMoq.Mock<ISnapshotStrategy>,
         runner:IProjectionRunner<number>,
         runnerFactory:TypeMoq.Mock<IProjectionRunnerFactory>,
+        projectionSorter:TypeMoq.Mock<IProjectionSorter>,
         snapshotRepository:TypeMoq.Mock<ISnapshotRepository>,
         dataSubject:Subject<Event>,
         projection:IProjection<number>;
@@ -60,10 +63,12 @@ describe("Given a ProjectionEngine", () => {
                 ])
             ]
         });
+        projectionSorter = TypeMoq.Mock.ofType(MockProjectionSorter);
+        projectionSorter.setup(s => s.sort()).returns(a => []);
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
-        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object);
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
     });
 
     context("when a snapshot is present", () => {
@@ -86,6 +91,16 @@ describe("Given a ProjectionEngine", () => {
         });
         it("should init a projection runner without a snapshot", () => {
             expect(runner.state).to.be(10);
+        });
+    });
+
+    context("when the engine starts up", () => {
+        beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+        });
+        it("should check for circular dependencies between projections", () => {
+            subject.run();
+            projectionSorter.verify(d => d.sort(), TypeMoq.Times.once());
         });
     });
 

@@ -30,7 +30,7 @@ declare module prettygoat {
 
     export class SpecialStates {
         static stopSignalling<T>(state:T):SpecialState<T>;
-        static deleteSplit():SpecialState<void>;
+        static deleteSplit():SpecialState<any>;
     }
 
     class StopSignallingState<T> extends SpecialState<T> {
@@ -39,8 +39,8 @@ declare module prettygoat {
         constructor(state:T);
     }
 
-    class DeleteSplitState extends SpecialState<void> {
-        state:void;
+    class DeleteSplitState extends SpecialState<any> {
+        state:any;
 
         constructor();
     }

@@ -8,7 +8,7 @@ export class SpecialStates {
         return new StopSignallingState(state);
     }
 
-    static deleteSplit():SpecialState<void> {
+    static deleteSplit():SpecialState<any> {
         return new DeleteSplitState();
     }
 }
@@ -22,8 +22,8 @@ export class StopSignallingState<T> extends SpecialState<T> {
     }
 }
 
-export class DeleteSplitState extends SpecialState<void> {
-    state:void;
+export class DeleteSplitState extends SpecialState<any> {
+    state:any;
 
     constructor() {
         super();

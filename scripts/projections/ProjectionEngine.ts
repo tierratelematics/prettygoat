@@ -11,6 +11,7 @@ import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
+import IProjectionSorter from "./IProjectionSorter";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -20,11 +21,12 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionRegistry") private registry:IProjectionRegistry,
                 @inject("IStatePublisher") private statePublisher:IStatePublisher,
                 @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
-                @inject("ILogger") private logger:ILogger = NullLogger) {
-
+                @inject("ILogger") private logger:ILogger = NullLogger,
+                @inject("IProjectionSorter") private sorter:IProjectionSorter) {
     }
 
     run():void {
+        this.sorter.sort();
         this.snapshotRepository
             .initialize()
             .flatMap(a => this.snapshotRepository.getSnapshots())
