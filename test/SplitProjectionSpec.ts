@@ -1,3 +1,5 @@
+import "bluebird";
+import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
@@ -69,21 +71,21 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         beforeEach(() => {
-            readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
             stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
-            streamData.onNext({
-                type: "TestEvent",
-                payload: {
-                    count: 20,
-                    id: "10"
-                },
-                timestamp: new Date(10), splitKey: null
-            });
         });
 
         context("and the event is not defined", () => {
+            beforeEach(() => readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>()));
             it("should continue replaying the stream", () => {
                 subject.run();
+                streamData.onNext({
+                    type: "TestEvent",
+                    payload: {
+                        count: 20,
+                        id: "10"
+                    },
+                    timestamp: new Date(10), splitKey: null
+                });
                 streamData.onNext({type: "invalid", payload: 10, timestamp: new Date(20), splitKey: null});
                 streamData.onNext({
                     type: "TestEvent",
@@ -99,7 +101,10 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and a state is present for the generated split key", () => {
             beforeEach(() => {
-                subject.run();
+                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
+                subject.run(new Snapshot(<Dictionary<number>>{
+                    "10": 30
+                }, null));
                 streamData.onNext({
                     type: "TestEvent",
                     payload: {
@@ -115,31 +120,49 @@ describe("Split projection, given a projection with a split definition", () => {
             });
 
             it("should notify that the read model has changed", () => {
-                expect(notifications).to.have.length(2);
-                expect(notifications[1].splitKey).to.be("10");
-                expect(notifications[1].payload).to.be(80);
+                expect(notifications).to.have.length(1);
+                expect(notifications[0].splitKey).to.be("10");
+                expect(notifications[0].payload).to.be(80);
             });
         });
 
         context("and a state is not present for the generated split key", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
-                readModelData.onNext({
-                    type: "LinkedState",
-                    payload: {
-                        count2: 2000
-                    },
-                    timestamp: new Date(30), splitKey: null
-                });
+                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
+                readModelFactory.setup(r => r.asList()).returns(a => [
+                    {
+                        type: "LinkedState",
+                        payload: {
+                            count2: 2000
+                        },
+                        timestamp: new Date(30), splitKey: null
+                    }
+                ]);
             });
             it("should initialize the new projection by pushing all the generated read models", () => {
                 subject.run();
+                streamData.onNext({
+                    type: "TestEvent",
+                    payload: {
+                        count: 20,
+                        id: "10"
+                    },
+                    timestamp: new Date(10), splitKey: null
+                });
                 expect(subject.state["10"]).to.be(2030);
             });
         });
 
         context("and the event is a read model", () => {
             beforeEach(() => {
+                streamData.onNext({
+                    type: "TestEvent",
+                    payload: {
+                        count: 20,
+                        id: "10"
+                    },
+                    timestamp: new Date(10), splitKey: null
+                });
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
@@ -148,26 +171,20 @@ describe("Split projection, given a projection with a split definition", () => {
                     },
                     timestamp: new Date(30), splitKey: null
                 });
+                subject.run();
             });
 
             it("should dispatch the read model to all the projections", () => {
-                subject.run();
                 expect(subject.state["10"]).to.be(5030);
             });
 
             it("should notify the changes of the states", () => {
-                subject.run();
                 expect(notifications).to.have.length(2);
                 expect(notifications[1].payload).to.be(5030);
                 expect(notifications[1].splitKey).to.be("10");
             });
 
             context("of the same projection", () => {
-                beforeEach(() => {
-                    stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData);
-                    subject.run();
-                });
-
                 it("should filter it", () => {
                     streamData.onNext({type: "split", payload: 10, timestamp: new Date(50), splitKey: null});
                     expect(subject.state["10"]).to.be(5030);

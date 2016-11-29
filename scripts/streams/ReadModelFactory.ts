@@ -1,9 +1,9 @@
 import IReadModelFactory from "./IReadModelFactory";
-import {Subject, Observable, Scheduler} from "rx";
-import {injectable,inject} from "inversify";
+import {Subject, Observable} from "rx";
+import {injectable} from "inversify";
 import Dictionary from "../Dictionary";
 import {Event} from "./Event";
-import {values} from "lodash";
+import {values, map} from "lodash";
 
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
@@ -11,7 +11,6 @@ class ReadModelFactory implements IReadModelFactory {
     private subject:Subject<Event>;
     private readModels:Dictionary<Event> = {};  // Caching the read models instead of using a replaySubject because after a while
                                                 // a new subscriber (split projections) could possibly receive thousands of states to process
-
     constructor() {
         this.subject = new Subject<Event>();
     }
@@ -19,6 +18,10 @@ class ReadModelFactory implements IReadModelFactory {
     publish(event:Event):void {
         this.readModels[event.type] = event;
         this.subject.onNext(event);
+    }
+
+    asList(): any[] {
+        return map(this.readModels, readModel => readModel);
     }
 
     from(lastEvent:Date):Rx.Observable<Event> {
