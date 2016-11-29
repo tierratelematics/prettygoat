@@ -1,3 +1,8 @@
+#0.17.2
+
+fix some bugs with split events match
+fix split delete type checking
+
 #0.17.1
 
 fix snapshots save
