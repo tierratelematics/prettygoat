@@ -3,7 +3,7 @@ import {Subject, Observable} from "rx";
 import {injectable} from "inversify";
 import Dictionary from "../Dictionary";
 import {Event} from "./Event";
-import {values, map} from "lodash";
+import {values} from "lodash";
 
 @injectable()
 class ReadModelFactory implements IReadModelFactory {
@@ -20,13 +20,12 @@ class ReadModelFactory implements IReadModelFactory {
         this.subject.onNext(event);
     }
 
-    asList(): any[] {
-        return map(this.readModels, readModel => readModel);
+    asList():any[] {
+        return values<Event>(this.readModels);
     }
 
     from(lastEvent:Date):Rx.Observable<Event> {
-        let readModels = values<Event>(this.readModels);
-        return Observable.from(readModels).concat(this.subject);
+        return Observable.from(this.asList()).concat(this.subject);
     }
 }
 
