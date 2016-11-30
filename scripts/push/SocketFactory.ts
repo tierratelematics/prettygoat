@@ -8,8 +8,15 @@ class SocketFactory {
     private socket:SocketIO.Server = null;
 
     socketForPath(path?:string):SocketIO.Server {
-        if (!this.socket)
+
+        if (!this.socket) {
+
+            if(!server)
+                throw new Error("Server not ready!");
+
             this.socket = io(server, {path: path || "socket.io"});
+        }
+
         return this.socket;
     }
 }

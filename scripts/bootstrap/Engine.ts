@@ -47,7 +47,6 @@ class Engine {
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
 
         createServer(this.kernel).listen(config.port || 80);
-
         logger.info(`Server listening on ${config.port || 80}`);
 
         socketFactory.socketForPath().on('connection', client => {
