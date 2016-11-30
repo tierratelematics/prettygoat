@@ -3,7 +3,6 @@ import "bluebird";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
-import MockEventsFilter from "./fixtures/MockEventsFilter";
 import TimePartitioner from "../scripts/util/TimePartitioner";
 import MockCassandraDeserializer from "./fixtures/MockCassandraDeserializer";
 import ICassandraClient from "../scripts/cassandra/ICassandraClient";
@@ -20,16 +19,9 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
     beforeEach(() => {
         events = [];
-        let eventsFilter = TypeMoq.Mock.ofType(MockEventsFilter);
         timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
         let cassandraDeserializer = new MockCassandraDeserializer();
         client = TypeMoq.Mock.ofType(MockCassandraClient);
-        client.setup(c => c.execute("select distinct ser_manifest from event_types")).returns(a => Rx.Observable.just({
-            rows: [
-                {"ser_manifest": "Event1"},
-                {"ser_manifest": "Event2"}
-            ]
-        }));
         client.setup(c => c.execute("select distinct timebucket from event_by_timestamp")).returns(a => Rx.Observable.just({
             rows: [
                 {"timebucket": "20150003"},
@@ -37,8 +29,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 {"timebucket": "20150002"}
             ]
         }));
-        eventsFilter.setup(e => e.filter(TypeMoq.It.isAny())).returns(a => ["Event1"]);
-        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer, eventsFilter.object);
+        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer);
     });
 
     context("when all the events needs to be fetched", () => {
@@ -48,10 +39,11 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
         it("should retrieve the events from the beginning", () => {
             subject.from(null, Rx.Observable.empty<void>(), {}).subscribe(event => events.push(event));
-            expect(events).to.have.length(3);
+            expect(events).to.have.length(4);
             expect(events[0].payload).to.be(10);
             expect(events[1].payload).to.be(20);
-            expect(events[2].payload).to.be(30);
+            expect(events[2].payload).to.be(0);
+            expect(events[3].payload).to.be(30);
         });
     });
 
