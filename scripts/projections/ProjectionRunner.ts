@@ -42,6 +42,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
+        this.subject.sample(100).subscribe(readModel => {
+            this.readModelFactory.publish({payload: readModel.payload, type: readModel.type, timestamp: null, splitKey: null});
+        }, error => null);
+
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
@@ -67,7 +71,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(null);
                 } catch (error) {
-                    console.log(error);
                     this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
@@ -123,7 +126,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     protected notifyStateChange(timestamp:Date, splitKey?:string) {
         this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
-        this.readModelFactory.publish({payload: this.state, type: this.streamId, timestamp: null, splitKey: null});
     }
 }
 
