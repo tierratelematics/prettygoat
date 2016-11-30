@@ -1,5 +1,5 @@
-import {server} from "../bootstrap/Server";
 import {injectable} from "inversify";
+import {server} from "../bootstrap/InversifyExpressApp";
 const io = require("socket.io");
 
 @injectable()

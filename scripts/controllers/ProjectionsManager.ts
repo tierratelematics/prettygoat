@@ -3,7 +3,7 @@ import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import IProjectionsManager from "./IProjectionsManager";
-import { Controller, Get } from 'inversify-express-utils';
+import { Controller, Get, Post } from 'inversify-express-utils';
 
 @Controller('/projections')
 @injectable()
@@ -13,15 +13,14 @@ class ProjectionsManager implements Controller,IProjectionsManager{
 
     }
 
-    @Get('/stop/:name')
+    @Post('/stop')
     stop(req: express.Request, res: express.Response): void {
-        console.log(this.projectionsRunnerCollection);
         let projection:IProjectionRunner<any> = this.getProjectionRunner(null);
 
         if(projection)
             projection.stop();
 
-        this.writeResponse(res,projection,req.params.name,"Stop");
+        this.writeResponse(res,projection,req.body.name,"Stop");
     }
 
     @Get('/pause/:name')
@@ -53,7 +52,7 @@ class ProjectionsManager implements Controller,IProjectionsManager{
         if(projectionRunner)
             res.json({name: name, operation: operation});
         else
-            res.status(500).json({error: "Projection not found"});
+            res.status(500).json({error: "Projection not found "+name});
     }
 
 }

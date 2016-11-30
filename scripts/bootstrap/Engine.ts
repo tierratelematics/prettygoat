@@ -13,9 +13,8 @@ import SocketFactory from "../push/SocketFactory";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import {createServer} from "./InversifyExpressApp";
+import {createServer,setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
-import {setIstanceServer} from "./Server";
 
 class Engine {
 
@@ -46,8 +45,8 @@ class Engine {
             config = this.kernel.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.kernel.get<SocketFactory>("SocketFactory"),
             logger = this.kernel.get<ILogger>("ILogger"),
-            socketConfig = this.kernel.get<ISocketConfig>("ISocketConfig"),
-            istanceServer = null;
+            socketConfig = this.kernel.get<ISocketConfig>("ISocketConfig");
+
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
 
         setIstanceServer(createServer(this.kernel).listen(config.port || 80));
@@ -56,13 +55,11 @@ class Engine {
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
             client.on('subscribe', context => {
-                console.log("ARRIVED",client);
                 clientRegistry.add(client.id, context);
                 pushNotifier.notify(context, client.id);
                 logger.info(`New client subscribed on ${context} with id ${client.id}`);
             });
             client.on('unsubscribe', message => {
-                console.log("ARRIVED",client);
                 clientRegistry.remove(client.id, message);
                 logger.info(`New client unsubscribed from ${message} with id ${client.id}`);
             });
