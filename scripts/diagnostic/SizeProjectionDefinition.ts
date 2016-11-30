@@ -13,8 +13,6 @@ const humanize = require("humanize");
 class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
-    readModels:string[] = [];
-
 
     constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
     }
@@ -24,29 +22,13 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             name: "__diagnostic:Size",
             definition: {
                 $init: () => {
-                    this.readModels = _.keys(this.holder);
                     return this.getProjectionsData().list;
                 },
                 $any: (state, payload, event) => {
-                    if (_.includes(this.readModels, event.type))
-                        return state;
-
                     this.eventsCounter++;
-                    if (this.eventsCounter % 200 === 0) {
-                        let data = this.getProjectionsData();
-                        return {
-                            processedEvents: data.processedEvents,
-                            processedReadModels: data.processedReadModels,
-                            totalSize: humanize.filesize(data.totalSize),
-                            projections: data.list
-                        }
-                    }
-                    return {
-                        processedEvents: state.processedEvents,
-                        processedReadModels: state.processedReadModels,
-                        totalSize: state.totalSize,
-                        projections: state.projections
-                    }
+                    if (this.eventsCounter % 200 === 0)
+                        return this.getProjectionsData();
+                    return state;
                 }
             }
         };
@@ -56,16 +38,22 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
+        let discardedEvents = 0;
+        let discardedReadModels = 0;
         let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>, key) => {
             if (_.startsWith(key, "__diagnostic")) return;
             let size = sizeof(runner.state);
             totalSize += size;
             processedEvents += runner.stats.events;
             processedReadModels += runner.stats.readModels;
+            discardedEvents += runner.stats.discardedEvents;
+            discardedReadModels += runner.stats.discardedReadModels;
             let data = {
                 size: humanize.filesize(size),
                 events: runner.stats.events,
-                readModels: runner.stats.readModels
+                readModels: runner.stats.readModels,
+                discardEvents: runner.stats.discardedEvents,
+                discardedReadModels: runner.stats.discardedReadModels
             };
             if (runner instanceof SplitProjectionRunner) {
                 _.assign(data, {
@@ -75,10 +63,12 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
             return data;
         });
         return {
-            totalSize: totalSize,
-            list: projections,
             processedEvents: processedEvents,
-            processedReadModels: processedReadModels
+            processedReadModels: processedReadModels,
+            discardedEvents: discardedEvents,
+            discardedReadModels: discardedReadModels,
+            totalSize: humanize.filesize(totalSize),
+            list: projections
         }
     }
 }

@@ -43,7 +43,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             return;
 
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.publishReadModel(new Date(1));
+        this.notifyStateChange(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
         let completions = new Rx.Subject<void>();
 
@@ -59,12 +59,15 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                         else
                             this.state = newState;
                         if (!(newState instanceof StopSignallingState))
-                            this.publishReadModel(event.timestamp);
-                        this.updateStats(event);
+                            this.notifyStateChange(event.timestamp);
+                        this.applyEventStats(event);
+                    } else {
+                        this.discardEventStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(null);
                 } catch (error) {
+                    console.log(error);
                     this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
@@ -81,11 +84,18 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    protected updateStats(event: Event) {
+    protected applyEventStats(event: Event) {
         if (event.timestamp)
             this.stats.events++;
         else
             this.stats.readModels++;
+    }
+
+    protected discardEventStats(event: Event) {
+        if (event.timestamp)
+            this.stats.discardedEvents++;
+        else
+            this.stats.discardedReadModels++;
     }
 
     stop(): void {
@@ -111,7 +121,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    private publishReadModel(timestamp:Date) {
+    protected notifyStateChange(timestamp:Date, splitKey?:string) {
         this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
         this.readModelFactory.publish({payload: this.state, type: this.streamId, timestamp: null, splitKey: null});
     }

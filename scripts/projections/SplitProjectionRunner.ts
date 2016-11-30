@@ -50,11 +50,13 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                                 this.initSplit(matchFn, event, splitKey);
                             else
                                 this.state[splitKey] = matchFn(childState, event.payload, event);
-                            this.notifyStateChange(splitKey, event.timestamp);
+                            this.notifyStateChange(event.timestamp, splitKey);
                         } else {
                             this.dispatchEventToAll(matchFn, event);
                         }
-                        this.updateStats(event);
+                        this.applyEventStats(event);
+                    } else {
+                        this.discardEventStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(null);
@@ -82,7 +84,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== Rx.helpers.identity) {
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
-                this.notifyStateChange(splitKey, event.timestamp);
+                this.notifyStateChange(event.timestamp, splitKey);
             }
         });
     }
@@ -91,12 +93,12 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         _.mapValues(this.state, (state, key) => {
             if (this.state[key]) {
                 this.state[key] = matchFn(state, event.payload, event);
-                this.notifyStateChange(key, event.timestamp);
+                this.notifyStateChange(event.timestamp, key);
             }
         });
     }
 
-    private notifyStateChange(splitKey:string, timestamp:Date) {
+    protected notifyStateChange(timestamp:Date, splitKey:string) {
         let newState = this.state[splitKey];
         if (newState instanceof SpecialState)
             this.state[splitKey] = (<any>newState).state;
