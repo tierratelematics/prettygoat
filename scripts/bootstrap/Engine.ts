@@ -15,6 +15,7 @@ import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import {createServer,setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
+import APIModule from "./APIModule";
 
 class Engine {
 
@@ -24,6 +25,7 @@ class Engine {
 
     constructor() {
         this.register(new PrettyGoatModule());
+        this.register(new APIModule());
         this.kernel.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
     }
 

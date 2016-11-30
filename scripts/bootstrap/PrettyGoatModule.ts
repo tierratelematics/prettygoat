@@ -37,7 +37,6 @@ import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import Dictionary from "../Dictionary";
-import SizeProjectionDefinition from "../diagnostic/SizeProjectionDefinition";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ITickScheduler from "../ticks/ITickScheduler";
@@ -46,8 +45,6 @@ import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
 import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
-import { Controller, TYPE } from 'inversify-express-utils';
-import ProjectionsManager from "../controllers/ProjectionsManager";
 
 class PrettyGoatModule implements IModule {
 
@@ -62,7 +59,6 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
-        kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManager).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
         kernel.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
         kernel.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
@@ -84,7 +80,6 @@ class PrettyGoatModule implements IModule {
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
-        registry.add(SizeProjectionDefinition).forArea("__diagnostic");
     }
 }
 
