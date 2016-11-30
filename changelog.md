@@ -1,3 +1,9 @@
+#0.17.3
+
+fix OperationTimedOut errors
+optimize readmodels publishing
+remove the need of an event_types table
+
 #0.17.2
 
 fix some bugs with split events match

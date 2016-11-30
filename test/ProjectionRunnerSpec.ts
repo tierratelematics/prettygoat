@@ -18,6 +18,7 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionRunnerDefinition from "./fixtures/definitions/MockProjectionRunnerDefinition";
+import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 
 describe("Given a ProjectionRunner", () => {
     let stream: TypeMoq.Mock<IStreamFactory>;
@@ -37,7 +38,7 @@ describe("Given a ProjectionRunner", () => {
         failed = false;
         stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
         matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(MockReadModelFactory);
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
             new MockDateRetriever(new Date(100000)));
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
@@ -47,12 +48,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.just({
-                type: null,
-                payload: null,
-                timestamp: new Date(),
-                splitKey: null
-            }));
+            stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
         });
@@ -148,13 +144,16 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.stats.events).to.be(5);
             });
 
-            it("should publish on the event stream the new aggregate state", () => {
-                readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
-                    type: "test",
-                    payload: 42,
-                    timestamp: null,
-                    splitKey: null
-                })), TypeMoq.Times.atLeastOnce());
+            it("should publish on the event stream the new aggregate state", (done) => {
+                setTimeout(() => {
+                    readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
+                        type: "test",
+                        payload: 42 + 1 + 2 + 3 + 4 + 5,
+                        timestamp: null,
+                        splitKey: null
+                    })), TypeMoq.Times.atLeastOnce());
+                    done();
+                }, 100);
             });
 
         });
