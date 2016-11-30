@@ -11,16 +11,19 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
 import FilterOutputType from "../filters/FilterOutputType";
 import IFilterStrategy from "../filters/IFilterStrategy";
+import app from "../bootstrap/InversifyExpressApp";
 
 @injectable()
 class ExpressStatePublisher implements IStatePublisher {
 
-    constructor( @inject("IProjectionRouter") private router: IProjectionRouter,
-        @inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry) {
+    private router:any = null;
 
+    constructor(
+        @inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry) {
     }
 
     publish<T>(projectionRunner: IProjectionRunner<T>, context: PushContext): void {
+        this.initRouter();
         let filterStrategy = this.projectionRegistry.getEntry(context.viewmodelId, context.area).data.projection.filterStrategy;
         if (projectionRunner instanceof SplitProjectionRunner) {
             this.router.get(ContextOperations.getEndpoint(context, true), (request: Request, response: Response) => {
@@ -35,6 +38,11 @@ class ExpressStatePublisher implements IStatePublisher {
                 this.writeResponse(request, response, projectionRunner.state, filterStrategy);
             });
         }
+    }
+
+    private initRouter(){
+        if(!this.router)
+            this.router = app();
     }
 
     private writeResponse<T>(request: Request, response: Response, state: T, filterStrategy: IFilterStrategy<T>): void {

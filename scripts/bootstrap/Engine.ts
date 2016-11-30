@@ -9,12 +9,11 @@ import IProjectionEngine from "../projections/IProjectionEngine";
 import IClientRegistry from "../push/IClientRegistry";
 import IPushNotifier from "../push/IPushNotifier";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import {server} from "./Server";
 import SocketFactory from "../push/SocketFactory";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import {createServer} from "./InversifyExpressApp";
+import {createServer, default as app} from "./InversifyExpressApp";
 
 class Engine {
 
@@ -46,9 +45,11 @@ class Engine {
             socketFactory = this.kernel.get<SocketFactory>("SocketFactory"),
             logger = this.kernel.get<ILogger>("ILogger");
         _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
-        createServer(this.kernel);
-        server.listen(config.port || 80);
+
+        createServer(this.kernel).listen(config.port || 80);
+
         logger.info(`Server listening on ${config.port || 80}`);
+
         socketFactory.socketForPath().on('connection', client => {
             client.on('subscribe', context => {
                 clientRegistry.add(client.id, context);
@@ -60,6 +61,7 @@ class Engine {
                 logger.info(`New client unsubscribed from ${message} with id ${client.id}`);
             });
         });
+
         projectionEngine.run();
     }
 }

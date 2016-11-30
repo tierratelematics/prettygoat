@@ -3,17 +3,20 @@ import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import IProjectionsManager from "./IProjectionsManager";
-import {Controller,Get} from "inversify-express-utils";
+import { Controller, Get } from 'inversify-express-utils';
 
 @Controller('/projections')
 @injectable()
-class ProjectionsManager implements IProjectionsManager{
+class ProjectionsManager implements Controller,IProjectionsManager{
+
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection:Dictionary<IProjectionRunner<any>>){
+
     }
 
     @Get('/stop/:name')
     stop(req: express.Request, res: express.Response): void {
-        let projection:IProjectionRunner<any> = this.getProjectionRunner(req.params.name);
+        console.log(this.projectionsRunnerCollection);
+        let projection:IProjectionRunner<any> = this.getProjectionRunner(null);
 
         if(projection)
             projection.stop();

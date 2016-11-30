@@ -6,8 +6,8 @@ export function createServer(kernel:any){
     if(!server){
         server = new InversifyExpressServer(kernel).build();
     }
+    return server;
 }
 
-const app = () => { return server; };
-
-export default app
+let app = () => server;
+export default app;

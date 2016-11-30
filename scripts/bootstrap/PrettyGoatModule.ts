@@ -46,7 +46,8 @@ import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
 import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
-// import {interfaces as interfacesExpress,TYPE} from "inversify-express-utils";
+import { Controller, TYPE } from 'inversify-express-utils';
+import ProjectionsManager from "../controllers/ProjectionsManager";
 
 class PrettyGoatModule implements IModule {
 
@@ -61,7 +62,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
-        // kernel.bind<interfacesExpress.Controller>(TYPE.Controller).to(ProjectionsManager).whenTargetNamed('ProjectionsManager');
+        kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManager).inSingletonScope();
         kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
         kernel.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
         kernel.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();

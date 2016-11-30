@@ -11,7 +11,6 @@ class SocketFactory {
         if (!this.socket)
             this.socket = io(server, {path: path || "socket.io"});
         return this.socket;
-
     }
 }
 
