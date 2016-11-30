@@ -1,7 +1,7 @@
 import {IStreamFactory} from "./IStreamFactory";
 import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
-import {Scheduler, Observable} from "rx";
+import {Observable} from "rx";
 import {Event} from "./Event";
 import {IWhen} from "../projections/IProjection";
 import ReservedEvents from "../streams/ReservedEvents";

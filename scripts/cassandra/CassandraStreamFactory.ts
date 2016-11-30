@@ -7,37 +7,24 @@ import {IWhen} from "../projections/IProjection";
 import * as _ from "lodash";
 import ICassandraClient from "./ICassandraClient";
 import {Observable} from "rx";
-import IEventsFilter from "../streams/IEventsFilter";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
     constructor(@inject("ICassandraClient") private client:ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner:TimePartitioner,
-                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer,
-                @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
+                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer) {
     }
 
     from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
-        let eventsList:string[] = [];
-        return this.getEvents()
-            .map(events => this.eventsFilter.setEventsList(events))
-            .do(() => eventsList = this.eventsFilter.filter(definition))
-            .flatMap(() => this.getBuckets(lastEvent))
+        return this.getBuckets(lastEvent)
             .map(buckets => {
                 return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
                     return this.client.paginate(this.buildQuery(lastEvent, bucket), completions);
                 })
             })
             .concatAll()
-            .map(row => this.deserializer.toEvent(row))
-            .filter(event => _.includes(eventsList, event.type));
-    }
-
-    private getEvents():Observable<string[]> {
-        return this.client.execute("select distinct ser_manifest from event_types")
-            .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row:any) => row.ser_manifest));
+            .map(row => this.deserializer.toEvent(row));
     }
 
     private getBuckets(date:Date):Observable<string[]> {
