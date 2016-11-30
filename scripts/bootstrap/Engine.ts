@@ -13,7 +13,7 @@ import SocketFactory from "../push/SocketFactory";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import {createServer, default as app} from "./InversifyExpressApp";
+import {createServer} from "./InversifyExpressApp";
 
 class Engine {
 

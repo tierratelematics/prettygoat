@@ -1,6 +1,5 @@
 import IStatePublisher from "./IStatePublisher";
 import {Request} from "express";
-import IProjectionRouter from "./IProjectionRouter";
 import {inject, injectable} from "inversify";
 import {Response} from "express";
 import IProjectionRunner from "../projections/IProjectionRunner";
@@ -16,14 +15,13 @@ import app from "../bootstrap/InversifyExpressApp";
 @injectable()
 class ExpressStatePublisher implements IStatePublisher {
 
-    private router:any = null;
+    private router = null;
 
-    constructor(
-        @inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry) {
+    constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry) {
     }
 
     publish<T>(projectionRunner: IProjectionRunner<T>, context: PushContext): void {
-        this.initRouter();
+        this.initialize();
         let filterStrategy = this.projectionRegistry.getEntry(context.viewmodelId, context.area).data.projection.filterStrategy;
         if (projectionRunner instanceof SplitProjectionRunner) {
             this.router.get(ContextOperations.getEndpoint(context, true), (request: Request, response: Response) => {
@@ -40,7 +38,7 @@ class ExpressStatePublisher implements IStatePublisher {
         }
     }
 
-    private initRouter(){
+    private initialize() {
         if(!this.router)
             this.router = app();
     }
