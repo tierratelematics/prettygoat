@@ -36,7 +36,7 @@ class CassandraClient implements ICassandraClient {
             }
         });
         return Observable.create(observer => {
-            this.wrappedEachRow(query, null, {prepare: true, fetchSize: this.config.fetchSize || 800},
+            this.wrappedEachRow(query, null, {prepare: true, fetchSize: this.config.fetchSize || 2000},
                 (n, row) => observer.onNext(row),
                 (error, result) => {
                     if (error) observer.onError(error);
