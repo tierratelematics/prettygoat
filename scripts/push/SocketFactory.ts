@@ -8,11 +8,9 @@ class SocketFactory {
     private socket:SocketIO.Server = null;
 
     socketForPath(path?:string):SocketIO.Server {
-
         if (!this.socket) {
-
             if(!server)
-                throw new Error("Server not ready!");
+                throw new Error("Instance Server not ready!");
 
             this.socket = io(server, {path: path || "socket.io"});
         }

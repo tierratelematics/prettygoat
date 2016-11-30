@@ -10,7 +10,7 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
 import FilterOutputType from "../filters/FilterOutputType";
 import IFilterStrategy from "../filters/IFilterStrategy";
-import app from "../bootstrap/InversifyExpressApp";
+import {app} from "../bootstrap/InversifyExpressApp";
 
 @injectable()
 class ExpressStatePublisher implements IStatePublisher {
@@ -40,7 +40,7 @@ class ExpressStatePublisher implements IStatePublisher {
 
     private initialize() {
         if(!this.router)
-            this.router = app();
+            this.router = app;
     }
 
     private writeResponse<T>(request: Request, response: Response, state: T, filterStrategy: IFilterStrategy<T>): void {

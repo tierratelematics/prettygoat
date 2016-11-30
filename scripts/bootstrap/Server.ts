@@ -1,9 +1,7 @@
-import InversifyExpressApp from "./InversifyExpressApp";
-
 export let server = null;
 
-export function inizializeServer(){
+export function setIstanceServer(serverIstance:any){
     if(!server){
-        server = require('http').Server(InversifyExpressApp());
+        server = serverIstance;
     }
 }
