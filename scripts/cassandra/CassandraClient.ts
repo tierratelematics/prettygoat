@@ -30,8 +30,10 @@ class CassandraClient implements ICassandraClient {
 
     paginate(query: string, completions: Observable<void>): Observable<any> {
         let resultPage = null;
+        let requesting = false;
         let subscription = completions.subscribe(() => {
-            if (resultPage && resultPage.nextPage) {
+            if (!requesting && resultPage && resultPage.nextPage) {
+                requesting = true;
                 resultPage.nextPage();
             }
         });
@@ -39,6 +41,7 @@ class CassandraClient implements ICassandraClient {
             this.wrappedEachRow(query, null, {prepare: true, fetchSize: this.config.fetchSize || 2000},
                 (n, row) => observer.onNext(row),
                 (error, result) => {
+                    requesting = false;
                     if (error) observer.onError(error);
                     else if (result.nextPage) {
                         resultPage = result;

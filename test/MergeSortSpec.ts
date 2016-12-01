@@ -5,9 +5,25 @@ import expect = require("expect.js");
 import MergeSort from "../scripts/streams/MergeSort";
 import {Event} from "../scripts/streams/Event";
 
-describe("Given some observables", () => {
+describe("Given a merge sort", () => {
 
-    context("when I need an ordered list of events", () => {
+    context("when a single observable is provided", () => {
+        it("should push all the events in order", () => {
+            let notifications: Event[] = [];
+            MergeSort([Observable.create<Event>(observer => {
+                observer.onNext(generateEvent(100));
+                observer.onNext(generateEvent(200));
+                observer.onNext(generateEvent(500));
+                observer.onCompleted();
+            })]).subscribe(event => notifications.push(event));
+            expect(notifications).to.have.length(3);
+            expect(notifications[0].timestamp).to.eql(new Date(100));
+            expect(notifications[1].timestamp).to.eql(new Date(200));
+            expect(notifications[2].timestamp).to.eql(new Date(500));
+        });
+    });
+
+    context("when multiple observable are provided", () => {
         it("should merge the events in order", () => {
             let notifications: Event[] = [];
             MergeSort([Observable.create<Event>(observer => {
