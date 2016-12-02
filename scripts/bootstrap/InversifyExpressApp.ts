@@ -16,11 +16,12 @@ export function createServer(kernel:any) {
             })
             .build();
     }
+
     return app;
 }
 
 export function setIstanceServer(serverIstance:any){
-    if(!server){
+    if(!server) {
         server = serverIstance;
     }
 }

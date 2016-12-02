@@ -13,10 +13,12 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
+import ProjectionRunnerStatus from "./ProjectionRunnerStatus";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
     public stats = new ProjectionStats();
+    public status:ProjectionRunnerStatus;
     protected streamId:string;
     protected subject:Subject<Event>;
     protected subscription:Rx.IDisposable;
@@ -28,6 +30,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
+        this.status = ProjectionRunnerStatus.Pause;
     }
 
     notifications() {
@@ -84,6 +87,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     stop():void {
         this.isDisposed = true;
+        this.status = ProjectionRunnerStatus.Stop;
 
         if (this.subscription)
             this.subscription.dispose();
@@ -92,10 +96,12 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     pause():void {
+        this.status = ProjectionRunnerStatus.Pause;
         this.pauser.onNext(false);
     }
 
     resume():void {
+        this.status = ProjectionRunnerStatus.Run;
         this.pauser.onNext(true);
     }
 
