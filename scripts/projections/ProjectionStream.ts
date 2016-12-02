@@ -61,12 +61,11 @@ export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
             }, () => {
                 completed[i] = true;
                 if (_.every(completed, completion => completion)) {
-                    let flushed = false;
-                    while (!flushed) {
-                        let item = getLowestItem(buffers);
+                    let item = null;
+                    do {
+                        item = getLowestItem(buffers);
                         if (item) observer.onNext(item);
-                        else flushed = true;
-                    }
+                    } while (item)
                     observer.onCompleted();
                 }
             }));

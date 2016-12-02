@@ -2,15 +2,15 @@ import "bluebird";
 import "reflect-metadata";
 import {Observable} from "rx";
 import expect = require("expect.js");
-import MergeSort from "../scripts/streams/MergeSort";
 import {Event} from "../scripts/streams/Event";
+import {mergeSort} from "../scripts/projections/ProjectionStream";
 
 describe("Given a merge sort", () => {
 
     context("when a single observable is provided", () => {
         it("should push all the events in order", () => {
             let notifications: Event[] = [];
-            MergeSort([Observable.create<Event>(observer => {
+            mergeSort([Observable.create<Event>(observer => {
                 observer.onNext(generateEvent(100));
                 observer.onNext(generateEvent(200));
                 observer.onNext(generateEvent(500));
@@ -26,7 +26,7 @@ describe("Given a merge sort", () => {
     context("when multiple observable are provided", () => {
         it("should merge the events in order", () => {
             let notifications: Event[] = [];
-            MergeSort([Observable.create<Event>(observer => {
+            mergeSort([Observable.create<Event>(observer => {
                 observer.onNext(generateEvent(100));
                 observer.onNext(generateEvent(200));
                 observer.onNext(generateEvent(500));
