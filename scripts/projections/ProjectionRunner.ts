@@ -13,7 +13,7 @@ import {mergeStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
-import ProjectionRunnerStatus from "./ProjectionRunnerStatus";
+import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;

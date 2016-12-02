@@ -1,30 +1,45 @@
 import "bluebird";
 import "reflect-metadata";
-import { IProjection } from "../scripts/projections/IProjection";
-import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/projections/ProjectionAnalyzer";
 import expect = require("expect.js");
 import ProjectionsManager from "../scripts/controllers/ProjectionsManager";
 import Dictionary from "../scripts/Dictionary";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import IProjectionsManager from "../scripts/controllers/IProjectionsManager";
+import MockRequest from "./fixtures/express/MockRequest";
+import * as TypeMoq from "typemoq";
+import {Response,Request} from "express";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
+import MockResponse from "./fixtures/express/MockResponse";
 
-describe("Given a ProjectionsManager, and a projection name", () => {
-    let holder:Dictionary<IProjectionRunner<any>>,
-        projectionRunner:TypeMoq.Mock<IProjectionRunner>,
-        subject: ProjectionsManager;
+describe("Given a ProjectionsService, and a projection name", () => {
+    let holder:Dictionary<any>,
+        projectionRunner:TypeMoq.Mock<IProjectionRunner<any>>,
+        request:TypeMoq.Mock<Request>,
+        response:TypeMoq.Mock<Response>,
+        responseStatus:TypeMoq.Mock<Response>,
+        subject: IProjectionsManager,
+        nameProjection:string;
 
     beforeEach(
         () => {
+            holder = {};
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder['nameProjection'] = projectionRunner;
+            request = TypeMoq.Mock.ofType(MockRequest);
+            response = TypeMoq.Mock.ofType(MockResponse);
+            responseStatus = TypeMoq.Mock.ofType(MockResponse);
             subject = new ProjectionsManager(holder);
         }
     );
 
     context("and there isn't a projection with that name", () => {
+        beforeEach( () => {
+            request.setup(s => s.param("name")).returns(a => "errorProjection");
+        });
+
         it("should trigger an error", () => {
-            // let result = subject.analyze(<IProjection<number>>{ definition: {} });
-            // expect(result).to.eql([ProjectionErrors.NoName]);
+            subject.pause(request.object,response.object);
+            response.verify(s => s.status(500), TypeMoq.Times.once());
         });
     });
 
