@@ -26,7 +26,11 @@ export function combineStreams(combined:Subject<Event>, events:Observable<Event>
                     combined.onNext(event);
                     return Disposable.empty;
                 });
-                scheduler.advanceTo(+event.timestamp);
+                try {
+                    scheduler.advanceTo(+event.timestamp);
+                } catch (error) {
+                    combined.onError(error);
+                }
             }
         });
 
