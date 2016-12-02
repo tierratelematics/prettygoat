@@ -8,7 +8,7 @@ import * as _ from "lodash";
 import ICassandraClient from "./ICassandraClient";
 import {Observable} from "rx";
 import IEventsFilter from "../streams/IEventsFilter";
-import MergeSort from "../streams/MergeSort";
+import {mergeSort} from "../projections/ProjectionStream";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -27,7 +27,7 @@ class CassandraStreamFactory implements IStreamFactory {
             .flatMap(() => this.getBuckets(lastEvent))
             .map(buckets => {
                 return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
-                    return MergeSort(_.map(eventsList, event => {
+                    return mergeSort(_.map(eventsList, event => {
                         return this.client
                             .paginate(this.buildQuery(lastEvent, bucket, event), completions)
                             .map(row => this.deserializer.toEvent(row));

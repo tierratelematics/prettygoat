@@ -9,7 +9,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
-import {mergeStreams} from "./ProjectionStream";
+import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
@@ -79,7 +79,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.resume();
 
-        mergeStreams(
+        combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),

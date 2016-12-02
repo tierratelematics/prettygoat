@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import {mergeStreams} from "./ProjectionStream";
+import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
@@ -69,7 +69,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.resume();
 
-        mergeStreams(
+        combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
                 .filter(event => event.type !== this.streamId),
