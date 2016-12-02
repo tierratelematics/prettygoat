@@ -50,7 +50,7 @@ export function combineStreams(combined:Subject<Event>, events:Observable<Event>
 export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
     return Observable.create<Event>(observer => {
         if (!observables.length) return observer.onCompleted();
-        
+
         let buffers: Event[][] = _.map(observables, o => []);
         let completed:boolean[] = _.map(observables, o => false);
         let disposable = new CompositeDisposable();
@@ -64,11 +64,7 @@ export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
             }, () => {
                 completed[i] = true;
                 if (_.every(completed, completion => completion)) {
-                    let item = null;
-                    do {
-                        item = getLowestItem(buffers);
-                        if (item) observer.onNext(item);
-                    } while (item)
+                    flushBuffer(buffers, observer);
                     observer.onCompleted();
                 } else {
                     loop(buffers, completed, observer);
@@ -85,6 +81,14 @@ function loop(buffers:Event[][], completed:boolean[], observer:Observer<Event>) 
         let item = getLowestItem(buffers);
         if (item) observer.onNext(item);
     }
+}
+
+function flushBuffer(buffers:Event[][], observer:Observer<Event>) {
+    let item = null;
+    do {
+        item = getLowestItem(buffers);
+        if (item) observer.onNext(item);
+    } while (item)
 }
 
 function observablesHaveEmitted(buffers:Event[][], completed:boolean[]): boolean {
