@@ -64,9 +64,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                             this.state = newState;
                         if (!(newState instanceof StopSignallingState))
                             this.notifyStateChange(event.timestamp);
-                        this.applyEventStats(event);
-                    } else {
-                        this.discardEventStats(event);
+                        this.updateStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(event.payload);
@@ -87,18 +85,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    protected applyEventStats(event: Event) {
+    protected updateStats(event: Event) {
         if (event.timestamp)
             this.stats.events++;
         else
             this.stats.readModels++;
-    }
-
-    protected discardEventStats(event: Event) {
-        if (event.timestamp)
-            this.stats.discardedEvents++;
-        else
-            this.stats.discardedReadModels++;
     }
 
     stop(): void {

@@ -38,22 +38,16 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
-        let discardedEvents = 0;
-        let discardedReadModels = 0;
         let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>, key) => {
             if (_.startsWith(key, "__diagnostic")) return;
             let size = sizeof(runner.state);
             totalSize += size;
             processedEvents += runner.stats.events;
             processedReadModels += runner.stats.readModels;
-            discardedEvents += runner.stats.discardedEvents;
-            discardedReadModels += runner.stats.discardedReadModels;
             let data = {
                 size: humanize.filesize(size),
                 events: runner.stats.events,
-                readModels: runner.stats.readModels,
-                discardEvents: runner.stats.discardedEvents,
-                discardedReadModels: runner.stats.discardedReadModels
+                readModels: runner.stats.readModels
             };
             if (runner instanceof SplitProjectionRunner) {
                 _.assign(data, {
@@ -65,8 +59,6 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         return {
             processedEvents: processedEvents,
             processedReadModels: processedReadModels,
-            discardedEvents: discardedEvents,
-            discardedReadModels: discardedReadModels,
             totalSize: humanize.filesize(totalSize),
             list: projections
         }
