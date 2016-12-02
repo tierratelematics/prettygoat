@@ -4,38 +4,25 @@ import * as _ from "lodash";
 
 export default function (observables: Observable<Event>[]): Observable<Event> {
     return Observable.create<Event>(observer => {
-        let activeObservables = observables.length;
         let buffers: Event[][] = _.map(observables, o => []);
+        let completed:boolean[] = _.map(observables, o => false);
         let disposable = new CompositeDisposable();
-        let lastElement = null;
 
         _.forEach(observables, (observable, i) => {
             disposable.add(observable.subscribe(event => {
                 buffers[i].push(event);
-                let observablesWithItems = _.filter(buffers, buffer => buffer.length).length;
-                console.log(observablesWithItems, activeObservables);
-                if (observablesWithItems >= activeObservables) {
+                if (observablesHaveEmitted(buffers, completed)) {
                     let item = getLowestItem(buffers);
-                    if (item && lastElement &&  item.timestamp < lastElement.timestamp) {
-                        console.log('MERGE SORT ERROR', item, lastElement, buffers);
-                    }
                     if (item) observer.onNext(item);
-                    if (item)
-                        lastElement = item;
                 }
             }, error => {
                 observer.onError(error);
             }, () => {
-                activeObservables--;
-                if (!activeObservables) {
+                completed[i] = true;
+                if (_.every(completed, completion => completion)) {
                     let flushed = false;
                     while (!flushed) {
                         let item = getLowestItem(buffers);
-                        if (item && lastElement &&  item.timestamp < lastElement.timestamp) {
-                            console.log('MERGE SORT ERROR', item, lastElement, buffers);
-                        }
-                        if (item)
-                            lastElement = item;
                         if (item) observer.onNext(item);
                         else flushed = true;
                     }
@@ -46,6 +33,10 @@ export default function (observables: Observable<Event>[]): Observable<Event> {
 
         return disposable;
     });
+}
+
+function observablesHaveEmitted(buffers:Event[][], completed:boolean[]): boolean {
+    return _.every(buffers, (buffer, i) => completed[i] || buffer.length);
 }
 
 function getLowestItem(buffers: Event[][]): Event {
