@@ -52,7 +52,7 @@ export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
         _.forEach(observables, (observable, i) => {
             disposable.add(observable.subscribe(event => {
                 buffers[i].push(event);
-                if (observablesHaveEmitted(buffers, completed)) {
+                while (observablesHaveEmitted(buffers, completed)) {
                     let item = getLowestItem(buffers);
                     if (item) observer.onNext(item);
                 }
@@ -84,7 +84,7 @@ function getLowestItem(buffers: Event[][]): Event {
     if (!lowestItems.length) {
         return null;
     }
-    let min = _.minBy(lowestItems, item => item.event.timestamp);
+    let min = _.minBy(lowestItems, item => !item.event.timestamp ? 0:item.event.timestamp);
     return buffers[min.index].shift();
 }
 

@@ -4,6 +4,7 @@ import {Observable} from "rx";
 import expect = require("expect.js");
 import {Event} from "../scripts/streams/Event";
 import {mergeSort} from "../scripts/projections/ProjectionStream";
+import ReservedEvents from "../scripts/streams/ReservedEvents";
 
 describe("Given a merge sort", () => {
 
@@ -44,7 +45,34 @@ describe("Given a merge sort", () => {
             expect(notifications[3].timestamp).to.eql(new Date(450));
             expect(notifications[4].timestamp).to.eql(new Date(500));
             expect(notifications[5].timestamp).to.eql(new Date(600));
-        })
+        });
+
+        context("and a fetch events is pushed in the sequence", () => {
+            it("should maintain the order of that event", () => {
+                let notifications: Event[] = [];
+                mergeSort([Observable.create<Event>(observer => {
+                    observer.onNext(generateEvent(100));
+                    observer.onNext(generateEvent(200));
+                    observer.onNext({
+                        type: ReservedEvents.FETCH_EVENTS,
+                        payload: null,
+                        splitKey: null,
+                        timestamp: null
+                    });
+                    observer.onCompleted();
+                }), Observable.create<Event>(observer => {
+                    observer.onNext(generateEvent(150));
+                    observer.onNext(generateEvent(450));
+                    observer.onCompleted();
+                })]).subscribe(event => notifications.push(event));
+                expect(notifications).to.have.length(5);
+                expect(notifications[0].timestamp).to.eql(new Date(100));
+                expect(notifications[1].timestamp).to.eql(new Date(150));
+                expect(notifications[2].timestamp).to.eql(new Date(200));
+                expect(notifications[3].type).to.eql(ReservedEvents.FETCH_EVENTS);
+                expect(notifications[4].timestamp).to.eql(new Date(450));
+            });
+        });
     });
 
     function generateEvent(timestamp: number) {
