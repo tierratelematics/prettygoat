@@ -75,6 +75,14 @@ describe("Given a merge sort", () => {
         });
     });
 
+    context("when no observables are provided", () => {
+       it("should fire an onCompleted", () => {
+           let completed = false;
+           mergeSort([]).subscribeOnCompleted(() => completed = true);
+           expect(completed).to.be(true);
+       }) ;
+    });
+
     function generateEvent(timestamp: number) {
         return {
             type: null,

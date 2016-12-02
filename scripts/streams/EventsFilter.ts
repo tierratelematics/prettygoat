@@ -19,7 +19,6 @@ class EventsFilter implements IEventsFilter {
             eventsList = _(this.events).map(event => {
                 return matcher.match(event) !== helpers.identity ? event : null;
             }).compact().valueOf();
-            eventsList = !eventsList.length ? this.events : eventsList;
         }
         return eventsList;
     }

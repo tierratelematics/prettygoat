@@ -1,6 +1,7 @@
+import "bluebird";
+import "reflect-metadata";
 import expect = require("expect.js");
 import EventsFilter from "../scripts/streams/EventsFilter";
-import ReservedEvents from "../scripts/streams/ReservedEvents";
 
 describe("EventsFilter, given a projection definition", () => {
 
@@ -33,14 +34,6 @@ describe("EventsFilter, given a projection definition", () => {
                     $init: () => null,
                     "Test*": (s, e) => e
                 })).to.eql(["TestEvent"]);
-            });
-        });
-
-        context("and no events are matched", () => {
-            it("should return all the events", () => {
-                expect(eventsFilter.filter({
-                    $init: () => null
-                })).to.eql(["TestEvent", "SecondEvent"]);
             });
         });
     });

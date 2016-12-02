@@ -45,6 +45,8 @@ export function combineStreams(combined:Subject<Event>, events:Observable<Event>
 
 export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
     return Observable.create<Event>(observer => {
+        if (!observables.length) return observer.onCompleted();
+        
         let buffers: Event[][] = _.map(observables, o => []);
         let completed:boolean[] = _.map(observables, o => false);
         let disposable = new CompositeDisposable();
