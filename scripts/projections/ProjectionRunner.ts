@@ -49,7 +49,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<void>();
+        let completions = new Rx.Subject<string>();
 
         this.subscription = combinedStream
             .pausableBuffered(this.pauser)
@@ -69,7 +69,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                         this.discardEventStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(null);
+                        completions.onNext(event.payload);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);

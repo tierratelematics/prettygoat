@@ -1,5 +1,5 @@
 import {Event} from "../streams/Event";
-import {Observable, Subject, Disposable, helpers, HistoricalScheduler, CompositeDisposable} from "rx";
+import {Observable, Subject, Disposable, helpers, HistoricalScheduler, CompositeDisposable, Observer} from "rx";
 import ReservedEvents from "../streams/ReservedEvents";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../util/IDateRetriever";
@@ -52,10 +52,7 @@ export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
         _.forEach(observables, (observable, i) => {
             disposable.add(observable.subscribe(event => {
                 buffers[i].push(event);
-                while (observablesHaveEmitted(buffers, completed)) {
-                    let item = getLowestItem(buffers);
-                    if (item) observer.onNext(item);
-                }
+                loop(buffers, completed, observer);
             }, error => {
                 observer.onError(error);
             }, () => {
@@ -67,12 +64,21 @@ export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
                         if (item) observer.onNext(item);
                     } while (item)
                     observer.onCompleted();
+                } else {
+                    loop(buffers, completed, observer);
                 }
             }));
         });
 
         return disposable;
     });
+}
+
+function loop(buffers:Event[][], completed:boolean[], observer:Observer<Event>) {
+    while (observablesHaveEmitted(buffers, completed)) {
+        let item = getLowestItem(buffers);
+        if (item) observer.onNext(item);
+    }
 }
 
 function observablesHaveEmitted(buffers:Event[][], completed:boolean[]): boolean {
@@ -84,7 +90,7 @@ function getLowestItem(buffers: Event[][]): Event {
     if (!lowestItems.length) {
         return null;
     }
-    let min = _.minBy(lowestItems, item => !item.event.timestamp ? 0:item.event.timestamp);
+    let min = _.minBy(lowestItems, item => !item.event.timestamp ? 0 : item.event.timestamp);
     return buffers[min.index].shift();
 }
 

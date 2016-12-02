@@ -14,7 +14,7 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
+    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event> {
         return this.streamFactory
             .from(lastEvent, completions, definition)
             .concat(Observable.just({

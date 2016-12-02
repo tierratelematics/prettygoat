@@ -19,7 +19,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
     }
 
-    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
+    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event> {
         let eventsList:string[] = [];
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
@@ -29,7 +29,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
                     return mergeSort(_.map(eventsList, event => {
                         return this.client
-                            .paginate(this.buildQuery(lastEvent, bucket, event), completions)
+                            .paginate(this.buildQuery(lastEvent, bucket), event, completions)
                             .map(row => this.deserializer.toEvent(row));
                     }));
                 });
@@ -51,8 +51,8 @@ class CassandraStreamFactory implements IStreamFactory {
             .map(rows => _.map(rows, (row:any) => row.timebucket).sort());
     }
 
-    private buildQuery(lastEvent:Date, bucket:string, event:string):string {
-        let query = `select blobAsText(event), timestamp from event_by_manifest where timebucket = '${bucket}' and ser_manifest = '${event}'`;
+    private buildQuery(lastEvent:Date, bucket:string):string {
+        let query = `select blobAsText(event), timestamp from event_by_manifest where timebucket = '${bucket}'`;
         if (lastEvent)
             query += ` and timestamp > maxTimeUuid('${lastEvent.toISOString()}')`;
         return query;

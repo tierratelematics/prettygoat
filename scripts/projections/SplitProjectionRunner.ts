@@ -33,7 +33,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<void>();
+        let completions = new Rx.Subject<string>();
 
         this.subscription = combinedStream
             .pausableBuffered(this.pauser)
@@ -59,7 +59,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                         this.discardEventStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(null);
+                        completions.onNext(event.payload);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
