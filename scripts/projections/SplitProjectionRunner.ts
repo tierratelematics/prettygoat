@@ -12,6 +12,7 @@ import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import {ProjectionRunner} from "./ProjectionRunner";
+import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     public state:Dictionary<T> = {};
@@ -23,7 +24,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     run(snapshot?:Snapshot<T|Dictionary<T>>):void {
-        if (this.isDisposed)
+        if (this.status == ProjectionRunnerStatus.Dispose || this.status == ProjectionRunnerStatus.Stop)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
@@ -52,7 +53,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                     this.updateStats(event);
                 }
             } catch (error) {
-                this.isFailed = true;
+                this.status = ProjectionRunnerStatus.Error;
                 this.subject.onError(error);
                 this.stop();
             }

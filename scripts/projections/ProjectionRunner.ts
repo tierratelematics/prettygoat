@@ -16,18 +16,16 @@ import ProjectionStats from "./ProjectionStats";
 import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    public state:T|Dictionary<T>;
+    public state: T|Dictionary<T>;
     public stats = new ProjectionStats();
-    protected status:ProjectionRunnerStatus;
-    protected streamId:string;
-    protected subject:Subject<Event>;
-    protected subscription:Rx.IDisposable;
-    protected isDisposed:boolean;
-    protected isFailed:boolean;
+    protected status: ProjectionRunnerStatus;
+    protected streamId: string;
+    protected subject: Subject<Event>;
+    protected subscription: Rx.IDisposable;
     protected pauser = new Subject<boolean>();
 
-    constructor(protected projection:IProjection<T>, protected stream:IStreamFactory, protected matcher:IMatcher, protected readModelFactory:IReadModelFactory,
-                protected tickScheduler:IStreamFactory, protected dateRetriever:IDateRetriever) {
+    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher, protected readModelFactory: IReadModelFactory,
+                protected tickScheduler: IStreamFactory, protected dateRetriever: IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
         this.status = ProjectionRunnerStatus.Pause;
@@ -37,8 +35,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         return this.subject;
     }
 
-    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
-        if (this.isDisposed)
+    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+        if (this.status == ProjectionRunnerStatus.Dispose || this.status == ProjectionRunnerStatus.Stop)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
@@ -62,7 +60,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.updateStats(event);
                 }
             } catch (error) {
-                this.isFailed = true;
+                this.status = ProjectionRunnerStatus.Error;
                 this.subject.onError(error);
                 this.stop();
             }
@@ -78,49 +76,49 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    protected updateStats(event:Event) {
+    protected updateStats(event: Event) {
         if (event.timestamp)
             this.stats.events++;
         else
             this.stats.readModels++;
     }
 
-    stop():void {
-        if(this.status==ProjectionRunnerStatus.Stop)
+    stop(): void {
+        if (this.status == ProjectionRunnerStatus.Stop)
             throw Error("Projection already stopped");
 
-        this.isDisposed = true;
-        this.status = ProjectionRunnerStatus.Stop;
-
+        if (this.status != ProjectionRunnerStatus.Error)
+            this.subject.onCompleted();
         if (this.subscription)
             this.subscription.dispose();
-        if (!this.isFailed)
-            this.subject.onCompleted();
+
+        this.status = ProjectionRunnerStatus.Stop;
     }
 
-    pause():void {
-        if(this.status!=ProjectionRunnerStatus.Run)
-            throw Error("Projection is not runned");
+    pause(): void {
+        if (this.status != ProjectionRunnerStatus.Run)
+            throw Error("Projection is not started");
 
         this.status = ProjectionRunnerStatus.Pause;
         this.pauser.onNext(false);
     }
 
-    resume():void {
-        if(this.status!=ProjectionRunnerStatus.Pause)
+    resume(): void {
+        if (this.status != ProjectionRunnerStatus.Pause)
             throw Error("Projection is not paused");
 
         this.status = ProjectionRunnerStatus.Run;
         this.pauser.onNext(true);
     }
 
-    dispose():void {
+    dispose(): void {
         this.stop();
+        this.status = ProjectionRunnerStatus.Dispose;
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
 
-    private publishReadModel(timestamp:Date) {
+    private publishReadModel(timestamp: Date) {
         this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
         this.readModelFactory.publish({payload: this.state, type: this.streamId, timestamp: null, splitKey: null});
     }
