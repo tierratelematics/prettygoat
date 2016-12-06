@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as net from "net";
 
-class MockRequest implements express.Request{
+class MockRequest implements express.Request {
 
     headers: { [key: string]: string; };
     path: string;
@@ -31,7 +31,7 @@ class MockRequest implements express.Request{
     statusCode: number;
     statusMessage: string;
     socket: net.Socket;
-    readable:boolean;
+    readable: boolean;
     accepted: express.MediaType[];
     protocol: string;
     secure: boolean;
@@ -48,8 +48,7 @@ class MockRequest implements express.Request{
     }
 
 
-    accepts(arg: string | string[]): any
-    {
+    accepts(arg: string | string[]): any {
         return null;
     }
 

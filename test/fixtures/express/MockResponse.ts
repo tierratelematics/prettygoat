@@ -2,16 +2,22 @@ import * as express from 'express';
 import {Errback} from "express";
 
 class MockResponse implements express.Response {
-    public send: express.Send;
-    public json: express.Send;
-    public jsonp: express.Send;
+    public send: express.Send = function (body: any): express.Response {
+        return this;
+    };
+    public json: express.Send = function (body: any): express.Response {
+        return this;
+    };
+    public jsonp: express.Send = function (body: any): express.Response {
+        return this;
+    };
     public headersSent: boolean;
     public locals: any;
     public charset: string;
     public statusCode: number;
     public statusMessage: string;
     public sendDate: boolean;
-    public writable:boolean;
+    public writable: boolean;
 
     status(code: number): express.Response {
         return this;
@@ -29,7 +35,7 @@ class MockResponse implements express.Response {
     sendfile(path: string, options: any): void;
     sendfile(path: string, fn: Errback): void;
     sendfile(path: string, options: any, fn: Errback): void;
-    sendfile(path:string,...arg:any[]){
+    sendfile(path: string, ...arg: any[]) {
         return null;
     }
 
@@ -38,11 +44,11 @@ class MockResponse implements express.Response {
     sendFile(path: string, options: any): void;
     sendFile(path: string, fn: Errback): void;
     sendFile(path: string, options: any, fn: Errback): void;
-    sendFile(path:string,options?:any, fn?:any){
+    sendFile(path: string, options?: any, fn?: any) {
         return null;
     }
 
-    download(path: string,filename?: string | express.Errback, fn?: express.Errback): void {
+    download(path: string, filename?: string | express.Errback, fn?: express.Errback): void {
     }
 
     contentType(type: string): express.Response {
@@ -64,7 +70,7 @@ class MockResponse implements express.Response {
 
     set(field: any): express.Response;
     set(field: string, value?: string): express.Response;
-    set(...args:any[]):express.Response{
+    set(...args: any[]): express.Response {
         return null;
     }
 
@@ -85,7 +91,7 @@ class MockResponse implements express.Response {
     cookie(name: string, val: string, options: express.CookieOptions): express.Response;
     cookie(name: string, val: any, options: express.CookieOptions): express.Response;
     cookie(name: string, val: any): express.Response;
-    cookie(name:string,...args:any[]){
+    cookie(name: string, ...args: any[]) {
         return null;
     }
 
@@ -97,13 +103,13 @@ class MockResponse implements express.Response {
     redirect(url: string): void;
     redirect(status: number, url: string): void;
     redirect(url: string, status: number): void;
-    redirect(...args:any[]){
+    redirect(...args: any[]) {
         return null;
     }
 
     render(view: string, options?: Object, callback?: (err: Error, html: string)=>void): void;
     render(view: string, callback?: (err: Error, html: string)=>void): void;
-    render(view:string,...args:any[]): void{
+    render(view: string, ...args: any[]): void {
 
     }
 
@@ -154,7 +160,7 @@ class MockResponse implements express.Response {
 
     writeHead(statusCode: number, reasonPhrase?: string, headers?: any): void;
     writeHead(statusCode: number, headers?: any): void;
-    writeHead(statusCode: number, ...args:any[]): void {
+    writeHead(statusCode: number, ...args: any[]): void {
     }
 
     setHeader(name: string, value: string|string[]): void {
@@ -177,7 +183,7 @@ class MockResponse implements express.Response {
     end(data?: any, encoding?: string): void;
     end(chunk: any, cb?: Function): void;
     end(chunk: any, encoding?: string, cb?: Function): void;
-    end(data?:any,encoding?:any,cb?:any):void{
+    end(data?: any, encoding?: any, cb?: any): void {
 
     }
 
@@ -188,7 +194,7 @@ class MockResponse implements express.Response {
     write(buffer: Buffer): boolean;
     write(chunk: any, cb?: Function): boolean;
     write(chunk: any, encoding?: string, cb?: Function): boolean;
-    write(...args:any[]):any{
+    write(...args: any[]): any {
         return null;
     }
 }

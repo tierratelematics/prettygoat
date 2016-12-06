@@ -1,23 +1,22 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import ProjectionsManager from "../scripts/controllers/ProjectionsManager";
-import Dictionary from "../scripts/Dictionary";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import IProjectionsManager from "../scripts/controllers/IProjectionsManager";
-import MockRequest from "./fixtures/express/MockRequest";
+import Dictionary from "../../scripts/Dictionary";
+import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
+import MockRequest from "../fixtures/express/MockRequest";
 import * as TypeMoq from "typemoq";
-import {Response,Request} from "express";
-import MockProjectionRunner from "./fixtures/MockProjectionRunner";
-import MockResponse from "./fixtures/express/MockResponse";
+import {Response, Request} from "express";
+import MockProjectionRunner from "../fixtures/MockProjectionRunner";
+import MockResponse from "../fixtures/express/MockResponse";
+import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
 
 describe("Given a ProjectionsService, and a projection name", () => {
-    let holder:Dictionary<any>,
-        projectionRunner:TypeMoq.Mock<IProjectionRunner<any>>,
-        request:TypeMoq.Mock<Request>,
-        response:TypeMoq.Mock<Response>,
-        subject: IProjectionsManager,
-        nameProjection:string;
+    let holder: Dictionary<any>,
+        projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
+        request: TypeMoq.Mock<Request>,
+        response: TypeMoq.Mock<Response>,
+        subject: ProjectionsManagerController,
+        nameProjection: string;
 
     beforeEach(
         () => {
@@ -26,19 +25,21 @@ describe("Given a ProjectionsService, and a projection name", () => {
             holder['nameProjection'] = projectionRunner;
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
-            subject = new ProjectionsManager(holder);
+            subject = new ProjectionsManagerController(holder);
         }
     );
 
     context("and there isn't a projection with that name", () => {
-        beforeEach( () => {
-            request.setup(s => s.param("name")).returns(a => "errorProjection");
-            // response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => null);
+        beforeEach(() => {
+            request.object.body = {name: "errorProjection"};
+            response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
         });
 
         it("should trigger an error", () => {
-            subject.pause(request.object,response.object);
-            response.verify(s => s.status(500), TypeMoq.Times.once());
+            subject.pause(request.object, response.object);
+            subject.stop(request.object, response.object);
+            subject.resume(request.object, response.object);
+            response.verify(s => s.status(400), TypeMoq.Times.exactly(3));
         });
     });
 
