@@ -21,7 +21,7 @@ class MockReadModelFactory implements IReadModelFactory {
         return [];
     }
 
-    from(lastEvent: Date, completions?: Rx.Observable<void>, definition?: IWhen<any>): Rx.Observable<Event> {
+    from(lastEvent: Date, completions?: Rx.Observable<string>, definition?: IWhen<any>): Rx.Observable<Event> {
         return this.subject;
     }
 

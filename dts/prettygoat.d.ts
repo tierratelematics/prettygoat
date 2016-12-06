@@ -84,7 +84,7 @@ declare module prettygoat {
     }
 
     export interface IStreamFactory {
-        from(lastEvent:Date, definition?:IWhen<any>):Observable<Event>;
+        from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event>;
     }
 
     interface ICassandraDeserializer {

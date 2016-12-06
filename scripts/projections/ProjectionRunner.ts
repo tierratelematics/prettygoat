@@ -9,7 +9,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
-import {mergeStreams} from "./ProjectionStream";
+import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
@@ -49,7 +49,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<void>();
+        let completions = new Rx.Subject<string>();
 
         this.subscription = combinedStream
             .pausableBuffered(this.pauser)
@@ -64,12 +64,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                             this.state = newState;
                         if (!(newState instanceof StopSignallingState))
                             this.notifyStateChange(event.timestamp);
-                        this.applyEventStats(event);
-                    } else {
-                        this.discardEventStats(event);
+                        this.updateStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(null);
+                        completions.onNext(event.payload);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
@@ -79,7 +77,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.resume();
 
-        mergeStreams(
+        combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
@@ -87,18 +85,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    protected applyEventStats(event: Event) {
+    protected updateStats(event: Event) {
         if (event.timestamp)
             this.stats.events++;
         else
             this.stats.readModels++;
-    }
-
-    protected discardEventStats(event: Event) {
-        if (event.timestamp)
-            this.stats.discardedEvents++;
-        else
-            this.stats.discardedReadModels++;
     }
 
     stop(): void {

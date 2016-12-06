@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import {mergeStreams} from "./ProjectionStream";
+import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState} from "./SpecialState";
@@ -33,7 +33,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<void>();
+        let completions = new Rx.Subject<string>();
 
         this.subscription = combinedStream
             .pausableBuffered(this.pauser)
@@ -54,12 +54,10 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                         } else {
                             this.dispatchEventToAll(matchFn, event);
                         }
-                        this.applyEventStats(event);
-                    } else {
-                        this.discardEventStats(event);
+                        this.updateStats(event);
                     }
                     if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(null);
+                        completions.onNext(event.payload);
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
@@ -69,7 +67,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.resume();
 
-        mergeStreams(
+        combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
                 .filter(event => event.type !== this.streamId),

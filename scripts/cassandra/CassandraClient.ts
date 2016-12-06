@@ -28,13 +28,13 @@ class CassandraClient implements ICassandraClient {
     }
 
 
-    paginate(query: string, completions: Observable<void>): Observable<any> {
+    paginate(query: string, event: string, completions: Observable<string>): Observable<any> {
         let resultPage = null;
-        let subscription = completions.subscribe(() => {
-            if (resultPage && resultPage.nextPage) {
-                resultPage.nextPage();
-            }
-        });
+        query += ` and ser_manifest = '${event}'`;
+        let subscription = completions
+            .filter(completion => completion === event)
+            .filter(completion => resultPage && resultPage.nextPage)
+            .subscribe(completion => resultPage.nextPage());
         return Observable.create(observer => {
             this.wrappedEachRow(query, null, {prepare: true, fetchSize: this.config.fetchSize || 2000},
                 (n, row) => observer.onNext(row),
@@ -45,7 +45,7 @@ class CassandraClient implements ICassandraClient {
                         observer.onNext({
                             "system.blobastext(event)": JSON.stringify({
                                 type: ReservedEvents.FETCH_EVENTS,
-                                payload: null
+                                payload: event
                             }),
                             timestamp: {
                                 getDate: () => null

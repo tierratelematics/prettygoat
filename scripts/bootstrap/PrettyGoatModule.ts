@@ -42,6 +42,8 @@ import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ITickScheduler from "../ticks/ITickScheduler";
 import TickScheduler from "../ticks/TickScheduler";
+import EventsFilter from "../streams/EventsFilter";
+import IEventsFilter from "../streams/IEventsFilter";
 import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
 import IProjectionSorter from "../projections/IProjectionSorter";
@@ -78,6 +80,7 @@ class PrettyGoatModule implements IModule {
         kernel.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
         kernel.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
         kernel.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
+        kernel.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
