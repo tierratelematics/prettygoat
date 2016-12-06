@@ -15,7 +15,7 @@ import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import {createServer,setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
-import APIModule from "./APIModule";
+import APIModule from "../api/APIModule";
 
 class Engine {
 

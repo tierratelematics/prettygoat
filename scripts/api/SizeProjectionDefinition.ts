@@ -13,13 +13,13 @@ const humanize = require("humanize");
 class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
-    readModels:string[] = [];
+    readModels: string[] = [];
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
 
     }
 
-    define():IProjection<any> {
+    define(): IProjection<any> {
         return {
             name: "__diagnostic:Size",
             definition: {
@@ -51,7 +51,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     private getProjectionsSize() {
         let total = 0;
-        let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>) => {
+        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>) => {
             let size = sizeof(runner.state);
             total += size;
             let data = {
