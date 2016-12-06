@@ -8,7 +8,7 @@ import * as TypeMoq from "typemoq";
 import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
-import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
+import ProjectionsManagerController from "../../scripts/api/ProjectionManagerController";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 describe("Given a ProjectionsService, and a projection name", () => {
@@ -16,18 +16,17 @@ describe("Given a ProjectionsService, and a projection name", () => {
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
         request: TypeMoq.Mock<Request>,
         response: TypeMoq.Mock<Response>,
-        subject: ProjectionsManagerController,
-        nameProjection: string;
+        subject: ProjectionsManagerController;
 
     beforeEach(
         () => {
             holder = {};
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
-            holder['nameProjection'] = projectionRunner.object;
+            holder["nameProjection"] = projectionRunner.object;
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
-            subject = new ProjectionsManagerController(holder);
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
+            subject = new ProjectionsManagerController(holder);
         }
     );
 
@@ -102,7 +101,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
 
         });
 
-
         context("and want to pause it", () => {
 
             context("and the projection is not runned", () => {
@@ -128,7 +126,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
             });
 
         });
-
 
     });
 
