@@ -11,7 +11,7 @@ import MockResponse from "../fixtures/express/MockResponse";
 import ProjectionsManagerController from "../../scripts/api/ProjectionManagerController";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
-describe("Given a ProjectionsService, and a projection name", () => {
+describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
         request: TypeMoq.Mock<Request>,
@@ -30,7 +30,7 @@ describe("Given a ProjectionsService, and a projection name", () => {
         }
     );
 
-    context("and there isn't a projection with that name", () => {
+    context("when there isn't a projection with that name", () => {
         beforeEach(() => {
             request.object.body = {name: "errorProjection"};
         });
@@ -46,13 +46,12 @@ describe("Given a ProjectionsService, and a projection name", () => {
         });
     });
 
-    context("and there is a projection with that name ", () => {
+    context("when there is a projection with that name ", () => {
         beforeEach(() => {
             request.object.body = {name: "nameProjection"};
         });
 
-        context("and want to stop it", () => {
-
+        context("and a stop command is sent", () => {
             context("and the projection is already stopped", () => {
                 beforeEach(() => {
                     projectionRunner.setup(s => s.stop()).throws(new Error());
@@ -66,7 +65,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
             });
 
             context("and the projection is not stopped", () => {
-
                 it("should stop it", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
@@ -74,11 +72,9 @@ describe("Given a ProjectionsService, and a projection name", () => {
                 });
 
             });
-
         });
 
-        context("and want to resume it", () => {
-
+        context("and a resume command is sent", () => {
             context("and the projection is not paused", () => {
                 beforeEach(() => {
                     projectionRunner.setup(s => s.resume()).throws(new Error());
@@ -92,7 +88,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
             });
 
             context("and the projection is paused", () => {
-
                 it("should resume it", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
@@ -103,9 +98,8 @@ describe("Given a ProjectionsService, and a projection name", () => {
 
         });
 
-        context("and want to pause it", () => {
-
-            context("and the projection is not runned", () => {
+        context("and a pause command is sent", () => {
+            context("and the projection is not started", () => {
                 beforeEach(() => {
                     projectionRunner.setup(s => s.pause()).throws(new Error());
                 });
@@ -117,8 +111,7 @@ describe("Given a ProjectionsService, and a projection name", () => {
                 });
             });
 
-            context("and the projection is runned", () => {
-
+            context("and the projection is started", () => {
                 it("should stop it", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
