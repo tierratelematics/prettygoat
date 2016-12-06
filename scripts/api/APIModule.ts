@@ -5,11 +5,13 @@ import IServiceLocator from "../bootstrap/IServiceLocator";
 import {Controller, TYPE} from 'inversify-express-utils';
 import ProjectionsManagerController from "./ProjectionManagerController";
 import SizeProjectionDefinition from "./SizeProjectionDefinition";
+import SnapshotManagerController from "./SnapshotManagerController";
 
 class APIModule implements IModule {
 
     modules = (kernel: interfaces.Kernel) => {
         kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).inSingletonScope();
+        kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

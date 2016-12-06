@@ -9,7 +9,6 @@ import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
 import ProjectionsManagerController from "../../scripts/api/ProjectionManagerController";
-import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,

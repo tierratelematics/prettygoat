@@ -3,44 +3,40 @@ import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {Controller, Get, Post} from 'inversify-express-utils';
+import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 
 @Controller('/api/snapshots')
 @injectable()
-class ProjectionsManagerController implements Controller {
+class SnapshotManagerController implements Controller {
 
-    constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>,
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository) {
     }
 
-    @Post('/stop')
-    stop(request: express.Request, response: express.Response): void {
-        try {
-            this.getProjectionRunner(request.body.name).stop();
-        } catch (e) {
-            response.status(400).json({error: "Projection not found or is already stopped"});
+    @Post('/save')
+    saveSnapshot(request: express.Request, response: express.Response): void {
+        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
+
+        if (!projection) {
+            response.status(400).json({error: "Projection not found"});
+            return;
         }
-        this.writeResponse(response, request.body.name, "Stop");
+
+        this.snapshotRepository.saveSnapshot(request.body.name, new Snapshot(projection.state, new Date()));
+        this.writeResponse(response, request.body.name, "Create Snapshot");
     }
 
-    @Post('/pause')
-    pause(request: express.Request, response: express.Response): void {
-        try {
-            this.getProjectionRunner(request.body.name).pause();
-        }
-        catch (e) {
-            response.status(400).json({error: "Projection not found or is not started"});
-        }
-        this.writeResponse(response, request.body.name, "Pause");
-    }
+    @Post('/delete')
+    deleteSnapshot(request: express.Request, response: express.Response): void {
+        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
 
-    @Post('/resume')
-    resume(request: express.Request, response: express.Response): void {
-        try {
-            this.getProjectionRunner(request.body.name).resume();
+        if (!projection) {
+            response.status(400).json({error: "Projection not found"});
+            return;
         }
-        catch (e) {
-            response.status(400).json({error: "Projection not found or is not paused"});
-        }
-        this.writeResponse(response, request.body.name, "Resume");
+
+        this.snapshotRepository.deleteSnapshot(request.body.name);
+        this.writeResponse(response, request.body.name, "Delete Snapshot");
     }
 
     private getProjectionRunner(name: string): IProjectionRunner<any> {
@@ -52,4 +48,4 @@ class ProjectionsManagerController implements Controller {
     }
 }
 
-export default ProjectionsManagerController;
+export default SnapshotManagerController;
