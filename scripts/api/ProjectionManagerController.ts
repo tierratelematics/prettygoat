@@ -15,48 +15,47 @@ class ProjectionsManagerController implements Controller {
     @Post('/stop')
     stop(request: express.Request, response: express.Response): void {
 
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
-
-        if (!projection || projection.status == ProjectionRunnerStatus.Stop) {
-            response.status(400).json({error: "Projection not found or already stopped"});
-            return;
+        try{
+            this.getProjectionRunner(request.body.name).stop();
+            this.writeResponse(response, request.body.name, "Stop");
         }
-
-        projection.stop();
-        this.writeResponse(response, request.body.name, "Stop");
+        catch(e){
+            response.status(400).json({error: "Projection not found or is already stopped"});
+        }
     }
 
     @Post('/pause')
     pause(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
 
-        if (!projection || projection.status != ProjectionRunnerStatus.Run) {
-            response.status(400).json({error: "Projection not found or not runned"});
-            return;
+        try{
+            this.getProjectionRunner(request.body.name).pause();
+            this.writeResponse(response, request.body.name, "Pause");
+        }
+        catch(e){
+            response.status(400).json({error: "Projection not found or is not runned"});
         }
 
-        projection.pause();
-        this.writeResponse(response, request.body.name, "Pause");
     }
 
     @Post('/resume')
     resume(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
 
-        if (!projection || projection.status != ProjectionRunnerStatus.Pause) {
-            response.status(400).json({error: "Projection not found or not paused"});
-            return;
+        try{
+            this.getProjectionRunner(request.body.name).resume();
+            this.writeResponse(response, request.body.name, "Resume");
+        }
+        catch(e){
+            response.status(400).json({error: "Projection not found or is not paused"});
         }
 
-        this.writeResponse(response, request.body.name, "Resume");
     }
 
     private getProjectionRunner(name: string): IProjectionRunner<any> {
-        return (this.projectionsRunnerCollection[name]) ? this.projectionsRunnerCollection[name] : null;
+        return this.projectionsRunnerCollection[name];
     }
 
     private writeResponse(response: express.Response, name: string, operation: string) {
-        response.status(200).json({name: name, operation: operation});
+        response.json({name: name, operation: operation});
     }
 }
 

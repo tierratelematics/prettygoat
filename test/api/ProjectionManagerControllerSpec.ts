@@ -40,37 +40,39 @@ describe("Given a ProjectionsService, and a projection name", () => {
             subject.stop(request.object, response.object);
             subject.resume(request.object, response.object);
             response.verify(s => s.status(400), TypeMoq.Times.exactly(3));
-            response.verify(s => s.status(200), TypeMoq.Times.never());
+            projectionRunner.verify(s => s.pause(), TypeMoq.Times.never());
+            projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
+            projectionRunner.verify(s => s.resume(), TypeMoq.Times.never());
         });
     });
 
-    context("there is a projection with that name ", () => {
+    context("and there is a projection with that name ", () => {
         beforeEach(() => {
             request.object.body = {name: "nameProjection"};
         });
 
         context("and want to stop it", () => {
 
-            context("and the projection is stopped", () => {
+            context("and the projection is already stopped", () => {
                 beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Stop;
+                    projectionRunner.setup(s => s.stop()).throws(new Error());
                 });
 
-                it("should erase an error", () => {
+                it("should trigger an error", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
+                    projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
                 });
             });
 
             context("and the projection is not stopped", () => {
-                beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Run;
-                });
 
                 it("should stop it", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
+                    projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
                 });
+
             });
 
         });
@@ -79,24 +81,24 @@ describe("Given a ProjectionsService, and a projection name", () => {
 
             context("and the projection is not paused", () => {
                 beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Stop;
+                    projectionRunner.setup(s => s.resume()).throws(new Error());
                 });
 
-                it("should erase an error", () => {
+                it("trigger an error", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
+                    projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
                 });
             });
 
             context("and the projection is paused", () => {
-                beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Pause;
-                });
 
                 it("should resume it", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
+                    projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
                 });
+
             });
 
         });
@@ -105,24 +107,24 @@ describe("Given a ProjectionsService, and a projection name", () => {
 
             context("and the projection is not runned", () => {
                 beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Stop;
+                    projectionRunner.setup(s => s.pause()).throws(new Error());
                 });
 
-                it("should erase an error", () => {
+                it("trigger an error", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
+                    projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
                 });
             });
 
             context("and the projection is runned", () => {
-                beforeEach(() => {
-                    projectionRunner.object.status = ProjectionRunnerStatus.Run;
-                });
 
                 it("should stop it", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
+                    projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
                 });
+
             });
 
         });

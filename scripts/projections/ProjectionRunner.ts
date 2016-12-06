@@ -18,7 +18,7 @@ import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state:T|Dictionary<T>;
     public stats = new ProjectionStats();
-    public status:ProjectionRunnerStatus;
+    protected status:ProjectionRunnerStatus;
     protected streamId:string;
     protected subject:Subject<Event>;
     protected subscription:Rx.IDisposable;
@@ -86,6 +86,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     stop():void {
+        if(this.status==ProjectionRunnerStatus.Stop)
+            throw Error("Projection already stopped");
+
         this.isDisposed = true;
         this.status = ProjectionRunnerStatus.Stop;
 
@@ -96,11 +99,17 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     pause():void {
+        if(this.status!=ProjectionRunnerStatus.Run)
+            throw Error("Projection is not runned");
+
         this.status = ProjectionRunnerStatus.Pause;
         this.pauser.onNext(false);
     }
 
     resume():void {
+        if(this.status!=ProjectionRunnerStatus.Pause)
+            throw Error("Projection is not paused");
+
         this.status = ProjectionRunnerStatus.Run;
         this.pauser.onNext(true);
     }

@@ -8,7 +8,6 @@ import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunner
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
     stats:ProjectionStats;
-    status:ProjectionRunnerStatus;
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {
@@ -35,6 +34,7 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     dispose():void {
 
     }
+
 }
 
 function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
