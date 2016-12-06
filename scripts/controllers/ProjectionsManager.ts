@@ -10,6 +10,9 @@ import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 @injectable()
 class ProjectionsManager implements Controller,IProjectionsManager{
 
+    public status: number;
+    public response: Dictionary<any>;
+
     constructor(
         @inject("IProjectionRunnerHolder") private projectionsRunnerCollection:Dictionary<IProjectionRunner<any>>
     ){
@@ -50,7 +53,7 @@ class ProjectionsManager implements Controller,IProjectionsManager{
         if(projection && projection.status==ProjectionRunnerStatus.Pause)
             projection.resume();
         else
-            operationDone =false;
+            operationDone = false;
 
         this.writeResponse(res,projection,req.param("name"),"Resume",operationDone);
     }
@@ -60,12 +63,10 @@ class ProjectionsManager implements Controller,IProjectionsManager{
     }
 
     private writeResponse(res:express.Response,projectionRunner:IProjectionRunner<any>,name:string,operation:string,operationDone:boolean) {
-        if (projectionRunner){
-            res.json({name: name, operation: operation});
-        }
-        else{
-            res.send(500,{error: "Projection "+name+" not found"});
-        }
+        this.status = (projectionRunner) ? 200 : 500;
+        this.response = (projectionRunner) ? {name: name, operation: operation} : {error: "Projection "+name+" not found"};
+
+        res.status(this.status).json(this.response);
     }
 }
 

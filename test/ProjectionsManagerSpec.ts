@@ -16,7 +16,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
         projectionRunner:TypeMoq.Mock<IProjectionRunner<any>>,
         request:TypeMoq.Mock<Request>,
         response:TypeMoq.Mock<Response>,
-        responseStatus:TypeMoq.Mock<Response>,
         subject: IProjectionsManager,
         nameProjection:string;
 
@@ -27,7 +26,6 @@ describe("Given a ProjectionsService, and a projection name", () => {
             holder['nameProjection'] = projectionRunner;
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
-            responseStatus = TypeMoq.Mock.ofType(MockResponse);
             subject = new ProjectionsManager(holder);
         }
     );
@@ -35,6 +33,7 @@ describe("Given a ProjectionsService, and a projection name", () => {
     context("and there isn't a projection with that name", () => {
         beforeEach( () => {
             request.setup(s => s.param("name")).returns(a => "errorProjection");
+            // response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => null);
         });
 
         it("should trigger an error", () => {
