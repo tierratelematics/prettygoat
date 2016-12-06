@@ -258,7 +258,7 @@ describe("Given a ProjectionRunner", () => {
             });
         });
 
-        context("and the projection is already stopped", () => {
+        context("but the projection is already stopped", () => {
             it("should throw an error", () => {
                 expect(() => subject.stop()).to.throwError();
             });
@@ -313,7 +313,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when resuming a projection", () => {
         beforeEach( () => {
-            subject.stop();
+            subject.resume();
         });
 
         context("and the projection is not paused", () => {

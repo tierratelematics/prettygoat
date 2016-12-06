@@ -3,9 +3,8 @@ import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {Controller, Get, Post} from 'inversify-express-utils';
-import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 
-@Controller('/projections')
+@Controller('/api/projections')
 @injectable()
 class ProjectionsManagerController implements Controller {
 
@@ -14,40 +13,34 @@ class ProjectionsManagerController implements Controller {
 
     @Post('/stop')
     stop(request: express.Request, response: express.Response): void {
-
-        try{
+        try {
             this.getProjectionRunner(request.body.name).stop();
-            this.writeResponse(response, request.body.name, "Stop");
-        }
-        catch(e){
+        } catch (e) {
             response.status(400).json({error: "Projection not found or is already stopped"});
         }
+        this.writeResponse(response, request.body.name, "Stop");
     }
 
     @Post('/pause')
     pause(request: express.Request, response: express.Response): void {
-
-        try{
+        try {
             this.getProjectionRunner(request.body.name).pause();
-            this.writeResponse(response, request.body.name, "Pause");
         }
-        catch(e){
-            response.status(400).json({error: "Projection not found or is not runned"});
+        catch (e) {
+            response.status(400).json({error: "Projection not found or is not started"});
         }
-
+        this.writeResponse(response, request.body.name, "Pause");
     }
 
     @Post('/resume')
     resume(request: express.Request, response: express.Response): void {
-
-        try{
+        try {
             this.getProjectionRunner(request.body.name).resume();
-            this.writeResponse(response, request.body.name, "Resume");
         }
-        catch(e){
+        catch (e) {
             response.status(400).json({error: "Projection not found or is not paused"});
         }
-
+        this.writeResponse(response, request.body.name, "Resume");
     }
 
     private getProjectionRunner(name: string): IProjectionRunner<any> {
