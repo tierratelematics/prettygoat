@@ -22,6 +22,7 @@ class ProjectionsManagerController implements Controller {
         catch(e){
             response.status(400).json({error: "Projection not found or is already stopped"});
         }
+
     }
 
     @Post('/pause')
