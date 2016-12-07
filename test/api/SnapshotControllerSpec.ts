@@ -8,22 +8,27 @@ import * as TypeMoq from "typemoq";
 import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
-import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
+import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import SnapshotManagerController from "../../scripts/api/SnapshotManagerController";
+import IDateRetriever from "../../scripts/util/IDateRetriever";
+import MockDateRetriever from "../fixtures/MockDateRetriever";
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
+        dateRetriever: TypeMoq.Mock<IDateRetriever>,
         request: TypeMoq.Mock<Request>,
         response: TypeMoq.Mock<Response>,
         snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        snapshot: Snapshot<any>,
         subject: SnapshotManagerController;
 
     beforeEach(
         () => {
-            holder = {};
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
+            dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
+            holder = {};
             holder["namePrj"] = projectionRunner.object;
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
@@ -56,12 +61,14 @@ describe("Given a SnapshotController and a projection name", () => {
         context("and a create snapshot command is sent", () => {
             beforeEach(() => {
                 projectionRunner.object.state = {a: 25, b: 30};
+                dateRetriever.setup(d => d.getDate()).returns(o => new Date());
+                snapshot = new Snapshot(projectionRunner.object.state, dateRetriever.object.getDate());
             });
 
             it("should save it", () => {
                 subject.saveSnapshot(request.object, response.object);
                 response.verify(s => s.status(400), TypeMoq.Times.never());
-                snapshotRepository.verify(s => s.saveSnapshot("namePrj", TypeMoq.It.isAny()), TypeMoq.Times.once());
+                snapshotRepository.verify(s => s.saveSnapshot("namePrj", TypeMoq.It.isValue(snapshot)), TypeMoq.Times.once());
             });
         });
 

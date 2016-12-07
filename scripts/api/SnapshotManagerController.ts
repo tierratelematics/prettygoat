@@ -4,6 +4,7 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {Controller, Get, Post} from 'inversify-express-utils';
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
+import DateRetriever from "../util/DateRetriever";
 
 @Controller('/api/snapshots')
 @injectable()
@@ -22,7 +23,7 @@ class SnapshotManagerController implements Controller {
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(request.body.name, new Snapshot(projection.state, new Date()));
+        this.snapshotRepository.saveSnapshot(request.body.name, new Snapshot(projection.state, new DateRetriever().getDate()));
         this.writeResponse(response, request.body.name, "Create Snapshot");
     }
 
