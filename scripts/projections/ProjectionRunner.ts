@@ -23,6 +23,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected streamId: string;
     protected subject: Subject<Event>;
     protected subscription: Rx.IDisposable;
+    protected isDisposed: boolean;
+    protected isFailed: boolean;
     protected pauser = new Subject<boolean>();
 
     constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher, protected readModelFactory: IReadModelFactory,
@@ -37,14 +39,19 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     run(snapshot?: Snapshot<T|Dictionary<T>>): void {
-        if (this.status == ProjectionRunnerStatus.Dispose || this.status == ProjectionRunnerStatus.Stop)
+        if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
 
         this.subject.sample(100).subscribe(readModel => {
-            this.readModelFactory.publish({payload: readModel.payload, type: readModel.type, timestamp: null, splitKey: null});
+            this.readModelFactory.publish({
+                payload: readModel.payload,
+                type: readModel.type,
+                timestamp: null,
+                splitKey: null
+            });
         }, error => null);
 
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
@@ -70,11 +77,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(event.payload);
                 } catch (error) {
-                    this.status = ProjectionRunnerStatus.Error;
+                    this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
                 }
-        });
+            });
 
         this.resume();
 
@@ -97,10 +104,12 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.status == ProjectionRunnerStatus.Stop)
             throw Error("Projection already stopped");
 
-        if (this.status != ProjectionRunnerStatus.Error)
-            this.subject.onCompleted();
+        this.isDisposed = true;
+
         if (this.subscription)
             this.subscription.dispose();
+        if (!this.isFailed)
+            this.subject.onCompleted();
 
         this.status = ProjectionRunnerStatus.Stop;
     }
@@ -123,12 +132,12 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     dispose(): void {
         this.stop();
-        this.status = ProjectionRunnerStatus.Dispose;
+
         if (!this.subject.isDisposed)
             this.subject.dispose();
     }
 
-    protected notifyStateChange(timestamp:Date, splitKey?:string) {
+    protected notifyStateChange(timestamp: Date, splitKey?: string) {
         this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
     }
 }

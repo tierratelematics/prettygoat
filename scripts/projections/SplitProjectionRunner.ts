@@ -17,16 +17,16 @@ import ReservedEvents from "../streams/ReservedEvents";
 import {EventMatch} from "../matcher/Matcher";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
-    public state:Dictionary<T> = {};
+    public state: Dictionary<T> = {};
 
-    constructor(projection:IProjection<T>, stream:IStreamFactory, matcher:IMatcher,
-                private splitMatcher:IMatcher, readModelFactory:IReadModelFactory, tickScheduler:IStreamFactory,
-                dateRetriever:IDateRetriever) {
+    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
+                private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
+                dateRetriever: IDateRetriever) {
         super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
     }
 
-    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
-        if (this.status == ProjectionRunnerStatus.Dispose || this.status == ProjectionRunnerStatus.Stop)
+    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+        if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
@@ -60,11 +60,11 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(event.payload);
                 } catch (error) {
-                    this.status = ProjectionRunnerStatus.Error;
+                    this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
                 }
-        });
+            });
 
         this.resume();
 
@@ -77,7 +77,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    private initSplit(matchFn:Function, event, splitKey:string) {
+    private initSplit(matchFn: Function, event, splitKey: string) {
         this.state[splitKey] = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
         _.forEach(this.readModelFactory.asList(), readModel => {
             let matchFn = this.matcher.match(readModel.type);
@@ -88,7 +88,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         });
     }
 
-    private dispatchEventToAll(matchFn:Function, event) {
+    private dispatchEventToAll(matchFn: Function, event) {
         _.mapValues(this.state, (state, key) => {
             if (this.state[key]) {
                 this.state[key] = matchFn(state, event.payload, event);
@@ -97,7 +97,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         });
     }
 
-    protected notifyStateChange(timestamp:Date, splitKey:string) {
+    protected notifyStateChange(timestamp: Date, splitKey: string) {
         let newState = this.state[splitKey];
         if (newState instanceof SpecialState)
             this.state[splitKey] = (<any>newState).state;
