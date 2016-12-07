@@ -10,8 +10,8 @@ import ProjectionsManagerController from "./ProjectionsManagerController";
 class APIModule implements IModule {
 
     modules = (kernel: interfaces.Kernel) => {
-        kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).inSingletonScope();
-        kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).inSingletonScope();
+        kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
+        kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
