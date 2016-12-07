@@ -39,7 +39,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let processedEvents = 0;
         let processedReadModels = 0;
         let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key) => {
-            let data = {};
+            let data;
             if (!_.startsWith(key, "__diagnostic")) {
                 let size = sizeof(runner.state);
                 totalSize += size;
