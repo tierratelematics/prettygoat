@@ -42,6 +42,7 @@ describe("Given a SnapshotController and a projection name", () => {
             subject.saveSnapshot(request.object, response.object);
             subject.deleteSnapshot(request.object, response.object);
             response.verify(s => s.status(400), TypeMoq.Times.exactly(2));
+            response.verify(s => s.json(TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
             snapshotRepository.verify(s => s.saveSnapshot(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
             snapshotRepository.verify(s => s.deleteSnapshot(TypeMoq.It.isAny()), TypeMoq.Times.never());
         });
@@ -62,7 +63,6 @@ describe("Given a SnapshotController and a projection name", () => {
                 response.verify(s => s.status(400), TypeMoq.Times.never());
                 snapshotRepository.verify(s => s.saveSnapshot("namePrj", TypeMoq.It.isAny()), TypeMoq.Times.once());
             });
-
         });
 
         context("and a delete snapshot command is sent", () => {
@@ -71,7 +71,6 @@ describe("Given a SnapshotController and a projection name", () => {
                 response.verify(s => s.status(400), TypeMoq.Times.never());
                 snapshotRepository.verify(s => s.deleteSnapshot("namePrj"), TypeMoq.Times.once());
             });
-
         });
 
 

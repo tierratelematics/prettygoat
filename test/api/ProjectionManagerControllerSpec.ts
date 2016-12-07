@@ -39,6 +39,7 @@ describe("Given a ProjectionsController and a projection name", () => {
             subject.stop(request.object, response.object);
             subject.resume(request.object, response.object);
             response.verify(s => s.status(400), TypeMoq.Times.exactly(3));
+            response.verify(s => s.json(TypeMoq.It.isAny()), TypeMoq.Times.exactly(3));
             projectionRunner.verify(s => s.pause(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.resume(), TypeMoq.Times.never());
