@@ -6,15 +6,20 @@ import ISocketConfig from "../configs/ISocketConfig";
 @injectable()
 class SocketEventEmitter implements IEventEmitter {
 
-    private socket:SocketIO.Server;
+    private socket:SocketIO.Server = null;
 
-    constructor(@inject("SocketFactory") socketFactory:SocketFactory,
-                @inject("ISocketConfig") socketConfig:ISocketConfig) {
-        this.socket = socketFactory.socketForPath(socketConfig.path);
+    constructor(@inject("SocketFactory") private socketFactory:SocketFactory) {
     }
 
     emitTo(clientId:string, event:string, parameters:any):void {
+        this.initialize();
         this.socket.to(clientId).emit(event, parameters);
+    }
+
+    private initialize(){
+        if(!this.socket){
+            this.socket = this.socketFactory.socketForPath();
+        }
     }
 
 }

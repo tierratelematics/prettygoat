@@ -1,13 +1,15 @@
 {
     "globalDevDependencies": {
         "expect.js": "registry:dt/expect.js#0.3.1+20160317120654",
+        "lolex": "registry:dt/lolex#1.2.1+20160316155526",
         "mocha": "registry:dt/mocha#2.2.5+20160317120654"
     },
     "globalDependencies": {
         "bluebird": "registry:dt/bluebird#2.0.0+20160319051630",
         "express": "registry:dt/express#4.0.0+20160317120654",
         "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160322035842",
-        "inversify-dts": "npm:inversify-dts/inversify/inversify.d.ts",
+        "inversify": "npm:inversify-dts/inversify/inversify.d.ts",
+        "inversify-express-utils": "npm:inversify-dts/inversify-express-utils/inversify-express-utils.d.ts",
         "mime": "registry:dt/mime#0.0.0+20160316155526",
         "moment": "registry:dt/moment#2.8.0+20160316155526",
         "moment-node": "registry:dt/moment-node#2.11.1+20160511043338",

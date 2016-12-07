@@ -257,6 +257,13 @@ describe("Given a ProjectionRunner", () => {
                 expect(() => subject.run()).to.throwError();
             });
         });
+
+        context("but the projection is already stopped", () => {
+            it("should throw an error", () => {
+                expect(() => subject.stop()).to.throwError();
+            });
+        });
+
     });
 
     context("when pausing a projection", () => {
@@ -296,5 +303,26 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.state).to.be(42 + 1 + 2 + 3 + 4);
             });
         });
+
+        context("and the projection is not runned", () => {
+            it("should throw an error", () => {
+                expect(() => subject.pause()).to.throwError();
+            });
+        });
+
     });
+
+    context("when resuming a projection", () => {
+        beforeEach( () => {
+            subject.resume();
+        });
+
+        context("and the projection is not paused", () => {
+            it("should throw an error", () => {
+                expect(() => subject.resume()).to.throwError();
+            });
+        });
+
+    });
+
 });

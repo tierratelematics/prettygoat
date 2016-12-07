@@ -14,10 +14,10 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
 
-    constructor(@inject("IProjectionRunnerHolder") private holder:Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
     }
 
-    define():IProjection<any> {
+    define(): IProjection<any> {
         return {
             name: "__diagnostic:Size",
             definition: {
@@ -38,35 +38,29 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
-        let discardedEvents = 0;
-        let discardedReadModels = 0;
-        let projections = _.mapValues(this.holder, (runner:IProjectionRunner<any>, key) => {
-            if (_.startsWith(key, "__diagnostic")) return;
-            let size = sizeof(runner.state);
-            totalSize += size;
-            processedEvents += runner.stats.events;
-            processedReadModels += runner.stats.readModels;
-            discardedEvents += runner.stats.discardedEvents;
-            discardedReadModels += runner.stats.discardedReadModels;
-            let data = {
-                size: humanize.filesize(size),
-                events: runner.stats.events,
-                readModels: runner.stats.readModels,
-                discardEvents: runner.stats.discardedEvents,
-                discardedReadModels: runner.stats.discardedReadModels
-            };
-            if (runner instanceof SplitProjectionRunner) {
-                _.assign(data, {
-                    splits: _.keys(runner.state).length
-                });
+        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key) => {
+            let data;
+            if (!_.startsWith(key, "__diagnostic")) {
+                let size = sizeof(runner.state);
+                totalSize += size;
+                processedEvents += runner.stats.events;
+                processedReadModels += runner.stats.readModels;
+                data = {
+                    size: humanize.filesize(size),
+                    events: runner.stats.events,
+                    readModels: runner.stats.readModels
+                };
+                if (runner instanceof SplitProjectionRunner) {
+                    _.assign(data, {
+                        splits: _.keys(runner.state).length
+                    });
+                }
             }
             return data;
         });
         return {
             processedEvents: processedEvents,
             processedReadModels: processedReadModels,
-            discardedEvents: discardedEvents,
-            discardedReadModels: discardedReadModels,
             totalSize: humanize.filesize(totalSize),
             list: projections
         }

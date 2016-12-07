@@ -7,7 +7,7 @@ export default class MockCassandraClient implements ICassandraClient {
         return Rx.Observable.empty();
     }
 
-    paginate(query:string, completions:Rx.Observable<void>):Rx.Observable<any> {
+    paginate(query:string, event:string, completions:Rx.Observable<string>):Rx.Observable<any> {
         return Rx.Observable.empty();
     }
 

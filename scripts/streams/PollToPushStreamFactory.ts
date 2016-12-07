@@ -1,7 +1,7 @@
 import {IStreamFactory} from "./IStreamFactory";
 import {injectable, inject} from "inversify";
 import IPollToPushConfig from "../configs/IPollToPushConfig";
-import {Observable} from "rx";
+import {Scheduler, Observable} from "rx";
 import {Event} from "./Event";
 import {IWhen} from "../projections/IProjection";
 import ReservedEvents from "../streams/ReservedEvents";
@@ -14,7 +14,7 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent:Date, completions?:Observable<void>, definition?:IWhen<any>):Observable<Event> {
+    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event> {
         return this.streamFactory
             .from(lastEvent, completions, definition)
             .concat(Observable.just({

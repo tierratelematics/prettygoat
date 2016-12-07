@@ -3,6 +3,7 @@ import MockModel from "./MockModel";
 import {Subject} from "rx";
 import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
+import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
@@ -33,6 +34,7 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
     dispose():void {
 
     }
+
 }
 
 function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {

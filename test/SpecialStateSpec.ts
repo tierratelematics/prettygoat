@@ -18,7 +18,7 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 
-describe("Given a a projection runner", () => {
+describe("Given a projection runner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
     let readModel:TypeMoq.Mock<IReadModelFactory>;
     let subject:IProjectionRunner<number>;
