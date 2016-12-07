@@ -34,7 +34,7 @@ describe("Given a SnapshotController and a projection name", () => {
             response = TypeMoq.Mock.ofType(MockResponse);
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
             snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
-            subject = new SnapshotManagerController(holder, snapshotRepository.object);
+            subject = new SnapshotManagerController(holder, snapshotRepository.object, dateRetriever.object);
         }
     );
 
