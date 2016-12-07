@@ -8,7 +8,7 @@ import * as TypeMoq from "typemoq";
 import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
-import ProjectionsManagerController from "../../scripts/api/ProjectionManagerController";
+import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,

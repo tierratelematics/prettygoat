@@ -3,9 +3,9 @@ import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../bootstrap/IServiceLocator";
 import {Controller, TYPE} from 'inversify-express-utils';
-import ProjectionsManagerController from "./ProjectionManagerController";
 import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import SnapshotManagerController from "./SnapshotManagerController";
+import ProjectionsManagerController from "./ProjectionsManagerController";
 
 class APIModule implements IModule {
 
