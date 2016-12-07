@@ -70,15 +70,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     if (event.type === ReservedEvents.FETCH_EVENTS)
                         completions.onNext(event.payload);
                 } catch (error) {
-                    this.isFailed = true;
+                    this.status = ProjectionRunnerStatus.Error;
                     this.subject.onError(error);
                     this.stop();
                 }
-            } catch (error) {
-                this.status = ProjectionRunnerStatus.Error;
-                this.subject.onError(error);
-                this.stop();
-            }
         });
 
         this.resume();
