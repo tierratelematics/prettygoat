@@ -4,7 +4,6 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {Controller, Get, Post} from 'inversify-express-utils';
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import DateRetriever from "../util/DateRetriever";
 import IDateRetriever from "../util/IDateRetriever";
 
 @Controller('/api/snapshots')
@@ -13,8 +12,7 @@ class SnapshotManagerController implements Controller {
 
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
-                @inject("IDateRetriever") private dateRetriever:IDateRetriever
-    ) {
+                @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
     }
 
     @Post('/save')
