@@ -31,6 +31,7 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
+import * as lolex from "lolex";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -105,9 +106,12 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when a projections triggers a new state", () => {
+        let clock;
         beforeEach(() => {
+            clock = lolex.install();
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         });
+        afterEach(() => clock.uninstall());
         context("and a snapshot is needed", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
@@ -125,6 +129,7 @@ describe("Given a ProjectionEngine", () => {
                 });
             });
             it("should save the snapshot", () => {
+                clock.tick(500);
                 snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.once());
             });
         });
@@ -153,6 +158,7 @@ describe("Given a ProjectionEngine", () => {
                 });
             });
             it("should not trigger a snapshot save", () => {
+                clock.tick(500);
                 snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isAny()), TypeMoq.Times.never());
             });
         });
