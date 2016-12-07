@@ -1,3 +1,8 @@
+#0.18.0
+
+add API for projections and snapshots
+add filtering of events directly on Cassandra (requires event_types and event_by_manifest tables)
+
 #0.17.3
 
 fix OperationTimedOut errors
