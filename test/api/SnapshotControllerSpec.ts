@@ -61,8 +61,8 @@ describe("Given a SnapshotController and a projection name", () => {
         context("and a create snapshot command is sent", () => {
             beforeEach(() => {
                 projectionRunner.object.state = {a: 25, b: 30};
-                dateRetriever.setup(d => d.getDate()).returns(o => new Date());
-                snapshot = new Snapshot(projectionRunner.object.state, dateRetriever.object.getDate());
+                dateRetriever.setup(d => d.getDate()).returns(o => new Date(500));
+                snapshot = new Snapshot(projectionRunner.object.state, new Date(500));
             });
 
             it("should save it", () => {
