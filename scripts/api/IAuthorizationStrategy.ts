@@ -1,5 +1,5 @@
 interface IAuthorizationStrategy {
-    authorize(token: string): boolean;
+    authorize(token: string): Promise<boolean>;
 }
 
 export default IAuthorizationStrategy

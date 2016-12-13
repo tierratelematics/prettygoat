@@ -1,10 +1,10 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import IAuthorizationStrategy from "../../scripts/api/authorization/IAuthorizationStrategy";
-import AuthorizationStrategy from "../../scripts/api/authorization/AuthorizationStrategy";
+import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
+import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 
-describe("Given a Authorization Strategy", () => {
+describe("Given an Authorization Strategy", () => {
     let tokenCollection: string[],
         token: string,
         subject: IAuthorizationStrategy;
@@ -16,7 +16,7 @@ describe("Given a Authorization Strategy", () => {
         }
     );
 
-    context("when token isn't matched", () => {
+    context("when the api key isn't matched", () => {
         beforeEach(() => token = "1234567890");
 
         it("should not authorize it", () => {
