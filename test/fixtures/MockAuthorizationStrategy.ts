@@ -1,4 +1,4 @@
-import IAuthorizationStrategy from "../../scripts/api/authorization/IAuthorizationStrategy";
+import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
 
 class MockAuthorizationStrategy implements IAuthorizationStrategy{
 

@@ -1,5 +1,5 @@
 interface IAuthorizationConfig {
-    tokenCollection:string[];
+    [index:number]:string;
 }
 
 export default IAuthorizationConfig
