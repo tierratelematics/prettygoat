@@ -17,7 +17,6 @@ class APIModule implements IModule {
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
         registry.add(SizeProjectionDefinition).forArea("__diagnostic");
     }
-
 }
 
 export default APIModule;
