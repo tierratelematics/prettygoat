@@ -29,7 +29,7 @@ describe("Given an Authorization Strategy", () => {
 
         it("should not authorize it", () => {
             subject.authorize(request.object).then((authorized: boolean) => {
-                expect(authorized).to.be.equal(false);
+                expect(authorized).to.not.be.ok();
             });
             request.verify(r => r.header("Authorization"), TypeMoq.Times.once());
         });
