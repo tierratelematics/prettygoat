@@ -6,10 +6,11 @@ import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 import * as TypeMoq from "typemoq";
 import {Request} from "express";
 import MockRequest from "../fixtures/express/MockRequest";
+import IAuthorizationConfig from "../../scripts/configs/IAuthorizationConfig";
 
 
 describe("Given an Authorization Strategy", () => {
-    let tokenCollection: string[],
+    let tokenCollection: IAuthorizationConfig,
         request: TypeMoq.Mock<Request>,
         subject: IAuthorizationStrategy;
 

@@ -1,8 +1,6 @@
 import {InversifyExpressServer} from 'inversify-express-utils';
 import IAuthorizationStrategy from "../api/IAuthorizationStrategy";
 import {Request, Response, NextFunction} from 'express';
-import {inject} from 'inversify';
-
 
 const cors = require("cors");
 const bodyParser = require('body-parser');

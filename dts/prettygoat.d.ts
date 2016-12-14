@@ -2,6 +2,7 @@
 
 import {interfaces} from "inversify";
 import {IObservable, IDisposable, Observable} from "rx";
+import {List} from "lodash";
 
 declare module prettygoat {
 
@@ -162,8 +163,7 @@ declare module prettygoat {
         get<T>(key:string, name?:string):T;
     }
 
-    export interface IAuthorizationConfig {
-        [index:number]:string;
+    export interface IAuthorizationConfig extends List<string> {
     }
 
     export interface IEndpointConfig {

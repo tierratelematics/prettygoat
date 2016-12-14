@@ -1,5 +1,5 @@
-interface IAuthorizationConfig {
-    [index:number]:string;
+import {List} from "lodash";
+interface IAuthorizationConfig extends List<string> {
 }
 
 export default IAuthorizationConfig
