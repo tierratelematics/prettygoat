@@ -1,4 +1,8 @@
-import { InversifyExpressServer } from 'inversify-express-utils';
+import {InversifyExpressServer} from 'inversify-express-utils';
+import IAuthorizationStrategy from "../api/IAuthorizationStrategy";
+import {Request, Response, NextFunction} from 'express';
+import {inject} from 'inversify';
+
 
 const cors = require("cors");
 const bodyParser = require('body-parser');
@@ -6,13 +10,21 @@ const bodyParser = require('body-parser');
 export let app = null;
 export let server = null;
 
-export function createServer(kernel:any) {
-    if(!app) {
+export function createServer(kernel: any) {
+    if (!app) {
         app = new InversifyExpressServer(kernel)
             .setConfig((app) => {
                 app.use(bodyParser.urlencoded({extended: true}))
-                   .use(bodyParser.json())
-                   .use(cors());
+                    .use(bodyParser.json())
+                    .use(cors())
+                    .use('/api', (request: Request, response: Response, next:NextFunction) => {
+                        <IAuthorizationStrategy>kernel.get("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
+                            if (!authorized)
+                                response.status(405).json({"error": "Not Authorized"});
+                            else
+                                next();
+                        });
+                    })
             })
             .build();
     }
@@ -20,8 +32,8 @@ export function createServer(kernel:any) {
     return app;
 }
 
-export function setIstanceServer(serverIstance:any){
-    if(!server) {
+export function setIstanceServer(serverIstance: any) {
+    if (!server) {
         server = serverIstance;
     }
 }

@@ -162,6 +162,10 @@ declare module prettygoat {
         get<T>(key:string, name?:string):T;
     }
 
+    export interface IAuthorizationConfig {
+        [index:number]:string;
+    }
+
     export interface IEndpointConfig {
         host:string;
         port?:number;

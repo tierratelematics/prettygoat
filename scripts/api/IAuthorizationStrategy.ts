@@ -1,5 +1,7 @@
+import {Request} from 'express';
+
 interface IAuthorizationStrategy {
-    authorize(token: string): Promise<boolean>;
+    authorize(request: Request): Promise<boolean>;
 }
 
 export default IAuthorizationStrategy

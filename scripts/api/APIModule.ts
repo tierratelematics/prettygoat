@@ -6,10 +6,13 @@ import {Controller, TYPE} from 'inversify-express-utils';
 import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import SnapshotManagerController from "./SnapshotManagerController";
 import ProjectionsManagerController from "./ProjectionsManagerController";
+import IAuthorizationStrategy from "./IAuthorizationStrategy";
+import AuthorizationStrategy from "./AuthorizationStrategy";
 
 class APIModule implements IModule {
 
     modules = (kernel: interfaces.Kernel) => {
+        kernel.bind<IAuthorizationStrategy>("IAuthorizationStrategy").to(AuthorizationStrategy).inSingletonScope();
         kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
         kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
     };
