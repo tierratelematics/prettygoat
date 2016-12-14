@@ -10,7 +10,6 @@ import MockRequest from "../fixtures/express/MockRequest";
 
 describe("Given an Authorization Strategy", () => {
     let tokenCollection: string[],
-        token: string,
         request: TypeMoq.Mock<Request>,
         subject: IAuthorizationStrategy;
 

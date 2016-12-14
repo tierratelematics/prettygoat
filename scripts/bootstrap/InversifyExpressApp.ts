@@ -17,7 +17,7 @@ export function createServer(kernel: any) {
                 app.use(bodyParser.urlencoded({extended: true}))
                     .use(bodyParser.json())
                     .use(cors())
-                    .use('/api', (request: Request, response: Response, next:NextFunction) => {
+                    .use('/api', (request: Request, response: Response, next: NextFunction) => {
                         <IAuthorizationStrategy>kernel.get("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
                             if (!authorized)
                                 response.status(405).json({"error": "Not Authorized"});
