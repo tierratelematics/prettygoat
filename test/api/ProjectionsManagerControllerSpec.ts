@@ -8,9 +8,9 @@ import * as TypeMoq from "typemoq";
 import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
-import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
-import IAuthorizationStrategy from "../../scripts/api/authorization/IAuthorizationStrategy";
 import MockAuthorizationStrategy from "../fixtures/MockAuthorizationStrategy";
+import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
+import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
