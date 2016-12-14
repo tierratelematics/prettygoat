@@ -24,27 +24,27 @@ describe("Given an Authorization Strategy", () => {
 
     context("when the api key isn't matched", () => {
         beforeEach(() => {
-            request.setup(r => r.header("apiKey")).returns(o => "1234567890");
+            request.setup(r => r.header("authorization")).returns(o => "1234567890");
         });
 
         it("should not authorize it", () => {
-            subject.authorize(request.object).then((authorized:boolean) => {
+            subject.authorize(request.object).then((authorized: boolean) => {
                 expect(authorized).to.be.equal(false);
             });
-            request.verify(r => r.header("apiKey"), TypeMoq.Times.once());
+            request.verify(r => r.header("authorization"), TypeMoq.Times.once());
         });
     });
 
     context("when the api key is matched", () => {
         beforeEach(() => {
-            request.setup(r => r.header("apiKey")).returns(o => "6RSL11DR1OCFJ7P");
+            request.setup(r => r.header("authorization")).returns(o => "6RSL11DR1OCFJ7P");
         });
 
         it("should authorize it", () => {
-            subject.authorize(request.object).then((authorized:boolean) => {
+            subject.authorize(request.object).then((authorized: boolean) => {
                 expect(authorized).to.be.ok();
             });
-            request.verify(r => r.header("apiKey"), TypeMoq.Times.once());
+            request.verify(r => r.header("authorization"), TypeMoq.Times.once());
         });
     });
 

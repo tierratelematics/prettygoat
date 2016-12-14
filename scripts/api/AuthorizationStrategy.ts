@@ -11,7 +11,7 @@ class AuthorizationStrategy implements IAuthorizationStrategy {
     }
 
     authorize(request: Request): Promise<boolean> {
-        return Promise.resolve(_.includes(<string[]>this.tokenCollection,request.header("apiKey")));
+        return Promise.resolve(_.includes(this.tokenCollection, request.header("authorization")));
     }
 }
 

@@ -2,13 +2,14 @@ import {InversifyExpressServer} from 'inversify-express-utils';
 import IAuthorizationStrategy from "../api/IAuthorizationStrategy";
 import {Request, Response, NextFunction} from 'express';
 
+
 const cors = require("cors");
 const bodyParser = require('body-parser');
 
 export let app = null;
 export let server = null;
 
-export function createServer(kernel: any) {
+export function createServer(kernel: inversify.interfaces.Kernel) {
     if (!app) {
         app = new InversifyExpressServer(kernel)
             .setConfig((app) => {
@@ -16,7 +17,7 @@ export function createServer(kernel: any) {
                     .use(bodyParser.json())
                     .use(cors())
                     .use('/api', (request: Request, response: Response, next: NextFunction) => {
-                        <IAuthorizationStrategy>kernel.get("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
+                        kernel.get<IAuthorizationStrategy>("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
                             if (!authorized)
                                 response.status(405).json({"error": "Not Authorized"});
                             else
