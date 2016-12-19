@@ -154,7 +154,7 @@ declare module prettygoat {
     }
 
     export interface IModule {
-        modules?:(kernel:interfaces.Kernel) => void;
+        modules?:(container:interfaces.Container) => void;
         register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void;
     }
 

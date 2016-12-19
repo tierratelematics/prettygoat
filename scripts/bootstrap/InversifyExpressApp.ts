@@ -1,4 +1,5 @@
 import { InversifyExpressServer } from 'inversify-express-utils';
+import {interfaces} from "inversify";
 
 const cors = require("cors");
 const bodyParser = require('body-parser');
@@ -6,9 +7,9 @@ const bodyParser = require('body-parser');
 export let app = null;
 export let server = null;
 
-export function createServer(kernel:any) {
+export function createServer(container:interfaces.Container) {
     if(!app) {
-        app = new InversifyExpressServer(kernel)
+        app = new InversifyExpressServer(container)
             .setConfig((app) => {
                 app.use(bodyParser.urlencoded({extended: true}))
                    .use(bodyParser.json())
