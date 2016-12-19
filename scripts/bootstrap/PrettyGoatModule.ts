@@ -50,7 +50,7 @@ import ProjectionSorter from "../projections/ProjectionSorter";
 
 class PrettyGoatModule implements IModule {
 
-    modules = (container:interfaces.Kernel) => {
+    modules = (container:interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();

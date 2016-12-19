@@ -14,8 +14,8 @@ export default class ObjectContainer implements IObjectContainer {
 
     set<T>(key:string, object:interfaces.Newable<T>|T, parent?:string) {
         let binding = _.isFunction(object)
-            ? this.container.bind<T>(key).to(object)
-            : this.container.bind<T>(key).toConstantValue(object);
+            ? this.container.bind<T>(key).to(<interfaces.Newable<T>>object)
+            : this.container.bind<T>(key).toConstantValue(<T>object);
         if (parent)
             binding.whenInjectedInto(parent);
     }
