@@ -2,12 +2,9 @@ language: node_js
 node_js:
   - '6'
 install:
-  - npm install smild -g
-  - npm install typings@1.3.0 -g
+  - npm install smild@4.0.0 -g
   - npm install
-  - rm -rf typings
-  - typings install
-script: smild js
+script: smild test && smild build
 deploy:
   skip_cleanup: true
   provider: npm
