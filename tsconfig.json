@@ -4,6 +4,9 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
-    "types": ["mocha", "node", "reflect-metadata"]
-  }
+    "types": ["mocha", "node", "reflect-metadata", "socket.io"]
+  },
+  "include": [
+    "node_modules/rx/ts/rx.all.d.ts"
+  ]
 }
