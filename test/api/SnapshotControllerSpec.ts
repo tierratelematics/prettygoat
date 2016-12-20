@@ -40,7 +40,7 @@ describe("Given a SnapshotController and a projection name", () => {
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            request.object.body = {name: "errorProjection"};
+            request.object.body = {payload:{name: "errorProjection"}};
         });
 
         it("should trigger an error", () => {
@@ -55,7 +55,7 @@ describe("Given a SnapshotController and a projection name", () => {
 
     context("when there is a projection with that name ", () => {
         beforeEach(() => {
-            request.object.body = {name: "namePrj"};
+            request.object.body = {payload:{name: "namePrj"}};
         });
 
         context("and a create snapshot command is sent", () => {

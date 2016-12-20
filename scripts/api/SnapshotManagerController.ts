@@ -17,28 +17,28 @@ class SnapshotManagerController implements Controller {
 
     @Post('/save')
     saveSnapshot(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
+        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.payload.name);
 
         if (!projection) {
             response.status(400).json({error: "Projection not found"});
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(request.body.name, new Snapshot(projection.state, this.dateRetriever.getDate()));
-        this.writeResponse(response, request.body.name, "Create Snapshot");
+        this.snapshotRepository.saveSnapshot(request.body.payload.name, new Snapshot(projection.state, this.dateRetriever.getDate()));
+        this.writeResponse(response, request.body.payload.name, "Create Snapshot");
     }
 
     @Post('/delete')
     deleteSnapshot(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.name);
+        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.payload.name);
 
         if (!projection) {
             response.status(400).json({error: "Projection not found"});
             return;
         }
 
-        this.snapshotRepository.deleteSnapshot(request.body.name);
-        this.writeResponse(response, request.body.name, "Delete Snapshot");
+        this.snapshotRepository.deleteSnapshot(request.body.payload.name);
+        this.writeResponse(response, request.body.payload.name, "Delete Snapshot");
     }
 
     private getProjectionRunner(name: string): IProjectionRunner<any> {

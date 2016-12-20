@@ -32,7 +32,7 @@ describe("Given a ProjectionsController and a projection name", () => {
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            request.object.body = {name: "errorProjection"};
+            request.object.body = {payload:{name: "errorProjection"}};
         });
 
         it("should trigger an error", () => {
@@ -49,7 +49,7 @@ describe("Given a ProjectionsController and a projection name", () => {
 
     context("when there is a projection with that name ", () => {
         beforeEach(() => {
-            request.object.body = {name: "nameProjection"};
+            request.object.body = {payload:{name: "nameProjection"}};
         });
 
         context("and a stop command is sent", () => {

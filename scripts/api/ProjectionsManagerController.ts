@@ -14,8 +14,8 @@ class ProjectionsManagerController implements Controller {
     @Post('/stop')
     stop(request: express.Request, response: express.Response): void {
         try {
-            this.getProjectionRunner(request.body.name).stop();
-            this.writeResponse(response, request.body.name, "Stop");
+            this.getProjectionRunner(request.body.payload.name).stop();
+            this.writeResponse(response, request.body.payload.name, "Stop");
         } catch (e) {
             response.status(400).json({error: "Projection not found or is already stopped"});
         }
@@ -24,8 +24,8 @@ class ProjectionsManagerController implements Controller {
     @Post('/pause')
     pause(request: express.Request, response: express.Response): void {
         try {
-            this.getProjectionRunner(request.body.name).pause();
-            this.writeResponse(response, request.body.name, "Pause");
+            this.getProjectionRunner(request.body.payload.name).pause();
+            this.writeResponse(response, request.body.payload.name, "Pause");
         }
         catch (e) {
             response.status(400).json({error: "Projection not found or is not started"});
@@ -35,8 +35,8 @@ class ProjectionsManagerController implements Controller {
     @Post('/resume')
     resume(request: express.Request, response: express.Response): void {
         try {
-            this.getProjectionRunner(request.body.name).resume();
-            this.writeResponse(response, request.body.name, "Resume");
+            this.getProjectionRunner(request.body.payload.name).resume();
+            this.writeResponse(response, request.body.payload.name, "Resume");
         }
         catch (e) {
             response.status(400).json({error: "Projection not found or is not paused"});
