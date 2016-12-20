@@ -48,11 +48,18 @@ declare module prettygoat {
     export interface IProjectionRunner<T> extends IDisposable {
         state:T|Dictionary<T>;
         stats:ProjectionStats;
+        status:ProjectionRunnerStatus;
         run(snapshot?:Snapshot<T|Dictionary<T>>):void;
         stop():void;
         pause():void;
         resume():void;
         notifications:Observable<Event>;
+    }
+
+    export class ProjectionRunnerStatus {
+        static Pause: string;
+        static Run: string;
+        static Stop: string;
     }
 
     export class ProjectionStats {
