@@ -35,5 +35,6 @@
     "toposort": "~1.0.0",
     "wildcard2": "0.0.2"
   },
-  "main": "dist/prettygoat.js"
+  "main": "dist/prettygoat.js",
+  "typings": "declarations/prettygoat.d.ts"
 }
