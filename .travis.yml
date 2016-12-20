@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - '6'
 install:
-  - npm install smild@4.0.0 -g
+  - npm install smild@4.1.0 -g
   - npm install
 script: smild test && smild build
 deploy:
