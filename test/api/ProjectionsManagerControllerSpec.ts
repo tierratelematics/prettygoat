@@ -12,8 +12,8 @@ import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerCo
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
-        request: TypeMoq.Mock<any>, //casting due to express bundled types mismatch
-        response: TypeMoq.Mock<any>, //casting due to express bundled types mismatch
+        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
+        response: TypeMoq.Mock<any>,
         subject: ProjectionsManagerController;
 
     beforeEach(

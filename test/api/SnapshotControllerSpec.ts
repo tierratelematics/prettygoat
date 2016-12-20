@@ -17,8 +17,8 @@ describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
         dateRetriever: TypeMoq.Mock<IDateRetriever>,
-        request: TypeMoq.Mock<any>, //casting due to express bundled types mismatch
-        response: TypeMoq.Mock<any>, //casting due to express bundled types mismatch
+        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
+        response: TypeMoq.Mock<any>,
         snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
         snapshot: Snapshot<any>,
         subject: SnapshotManagerController;
