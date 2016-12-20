@@ -11,7 +11,6 @@ import * as TypeMoq from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
@@ -19,6 +18,7 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionRunnerDefinition from "./fixtures/definitions/MockProjectionRunnerDefinition";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
+import * as lolex from "lolex";
 
 describe("Given a ProjectionRunner", () => {
     let stream: TypeMoq.Mock<IStreamFactory>;
@@ -30,8 +30,10 @@ describe("Given a ProjectionRunner", () => {
     let subscription: IDisposable;
     let readModelFactory: TypeMoq.Mock<IReadModelFactory>;
     let projection:IProjection<number>;
+    let clock:lolex.Clock;
 
     beforeEach(() => {
+        clock = lolex.install();
         projection = new MockProjectionRunnerDefinition().define();
         notifications = [];
         stopped = false;
@@ -44,7 +46,10 @@ describe("Given a ProjectionRunner", () => {
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });
 
-    afterEach(() => subscription.dispose());
+    afterEach(() => {
+        subscription.dispose();
+        clock.uninstall();
+    });
 
     context("when initializing a projection", () => {
         beforeEach(() => {
@@ -144,16 +149,14 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.stats.events).to.be(5);
             });
 
-            it("should publish on the event stream the new aggregate state", (done) => {
-                setTimeout(() => {
-                    readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
-                        type: "test",
-                        payload: 42 + 1 + 2 + 3 + 4 + 5,
-                        timestamp: null,
-                        splitKey: null
-                    })), TypeMoq.Times.atLeastOnce());
-                    done();
-                }, 100);
+            it("should publish on the event stream the new aggregate state", () => {
+                clock.tick(100);
+                readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
+                    type: "test",
+                    payload: 42 + 1 + 2 + 3 + 4 + 5,
+                    timestamp: null,
+                    splitKey: null
+                })), TypeMoq.Times.atLeastOnce());
             });
 
         });
@@ -183,6 +186,7 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
+                clock.uninstall();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });

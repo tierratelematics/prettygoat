@@ -40,9 +40,11 @@ describe("Given a ProjectionEngine", () => {
         projectionSorter: TypeMoq.Mock<IProjectionSorter>,
         snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
         dataSubject: Subject<Event>,
-        projection: IProjection<number>;
+        projection: IProjection<number>,
+        clock:lolex.Clock;
 
     beforeEach(() => {
+        clock = lolex.install();
         snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
@@ -67,6 +69,8 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
     });
+
+    afterEach(() => clock.uninstall());
 
     function publishReadModel(state, timestamp) {
         runner.object.state = state;
@@ -115,12 +119,9 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when a projections triggers a new state", () => {
-        let clock;
         beforeEach(() => {
-            clock = lolex.install();
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         });
-        afterEach(() => clock.uninstall());
         context("and a snapshot is needed", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
