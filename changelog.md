@@ -1,3 +1,8 @@
+#0.19.0
+
+typescript 2.1 support
+move to smild 4
+
 #0.18.0
 
 add API for projections and snapshots
