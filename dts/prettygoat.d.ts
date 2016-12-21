@@ -56,7 +56,7 @@ declare module prettygoat {
         notifications:Observable<Event>;
     }
 
-    export class ProjectionRunnerStatus {
+    class ProjectionRunnerStatus {
         static Pause: string;
         static Run: string;
         static Stop: string;

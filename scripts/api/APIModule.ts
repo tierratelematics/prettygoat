@@ -9,6 +9,7 @@ import ProjectionsManagerController from "./ProjectionsManagerController";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import AuthorizationStrategy from "./AuthorizationStrategy";
 import AuthorizationController from "./AuthorizationController";
+import {ISubject,Subject} from "rx";
 
 class APIModule implements IModule {
 
@@ -17,6 +18,7 @@ class APIModule implements IModule {
         kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
         kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
         kernel.bind<Controller>(TYPE.Controller).to(AuthorizationController).whenTargetNamed('AuthorizationController');
+        kernel.bind<ISubject<string>>("SubjectProjectionStatus").toConstantValue(new Subject<string>());
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

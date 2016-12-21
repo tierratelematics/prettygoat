@@ -8,6 +8,7 @@ import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunner
 class MockProjectionRunner implements IProjectionRunner<MockModel> {
     state:MockModel;
     stats:ProjectionStats;
+    status:ProjectionRunnerStatus;
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {

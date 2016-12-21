@@ -6,6 +6,8 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
+import {ISubject} from "rx";
+import TickScheduler from "../ticks/TickScheduler";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -14,10 +16,16 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
 
-    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
+                @inject("SubjectProjectionStatus") private subjectProjectionStatus: ISubject<string>) {
     }
 
-    define(): IProjection<any> {
+    define(ticketScheduler:TickScheduler): IProjection<any> {
+
+        this.subjectProjectionStatus.subscribe(t => {
+            ticketScheduler.schedule(1);
+        });
+
         return {
             name: "__diagnostic:Size",
             definition: {
@@ -26,7 +34,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                 },
                 $any: (state, payload, event) => {
                     this.eventsCounter++;
-                    if (this.eventsCounter % 200 === 0)
+                    if (this.eventsCounter % 200 === 0 || event.type=='Tick')
                         return this.getProjectionsData();
                     return state;
                 }

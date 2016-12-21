@@ -9,10 +9,13 @@ import {Response, Request} from "express";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
 import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
+import MockSubject from "../fixtures/MockSubject";
+import {ISubject} from "rx";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
+        mockSubject: TypeMoq.Mock<ISubject<any>>,
         request: TypeMoq.Mock<Request>,
         response: TypeMoq.Mock<Response>,
         subject: ProjectionsManagerController;
@@ -22,10 +25,11 @@ describe("Given a ProjectionsController and a projection name", () => {
             holder = {};
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder["nameProjection"] = projectionRunner.object;
+            mockSubject = TypeMoq.Mock.ofType(MockSubject);
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-            subject = new ProjectionsManagerController(holder);
+            subject = new ProjectionsManagerController(holder,mockSubject.object);
         }
     );
 
@@ -44,6 +48,9 @@ describe("Given a ProjectionsController and a projection name", () => {
             projectionRunner.verify(s => s.pause(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.resume(), TypeMoq.Times.never());
+            mockSubject.verify(s => s.onNext("STOP_PROJECTION"), TypeMoq.Times.never());
+            mockSubject.verify(s => s.onNext("RESUME_PROJECTION"), TypeMoq.Times.never());
+            mockSubject.verify(s => s.onNext("PAUSE_PROJECTION"), TypeMoq.Times.never());
         });
     });
 
@@ -62,6 +69,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("STOP_PROJECTION"), TypeMoq.Times.never());
                 });
             });
 
@@ -70,6 +78,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("STOP_PROJECTION"), TypeMoq.Times.once());
                 });
 
             });
@@ -85,6 +94,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("RESUME_PROJECTION"), TypeMoq.Times.never());
                 });
             });
 
@@ -93,6 +103,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("RESUME_PROJECTION"), TypeMoq.Times.once());
                 });
 
             });
@@ -109,6 +120,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("PAUSE_PROJECTION"), TypeMoq.Times.never());
                 });
             });
 
@@ -117,6 +129,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
+                    mockSubject.verify(s => s.onNext("PAUSE_PROJECTION"), TypeMoq.Times.once());
                 });
 
             });
