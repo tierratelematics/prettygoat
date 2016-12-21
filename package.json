@@ -17,7 +17,7 @@
     "@types/node": "~6.0.52",
     "@types/serve-static": "~1.7.31",
     "@types/socket.io": "~1.4.27",
-    "bivio": "~0.1.0",
+    "bivio": "~0.2.0",
     "bluebird": "~3.4.0",
     "body-parser": "~1.15.2",
     "cassandra-driver": "~3.1.1",
