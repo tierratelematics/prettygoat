@@ -50,36 +50,36 @@ import ProjectionSorter from "../projections/ProjectionSorter";
 
 class PrettyGoatModule implements IModule {
 
-    modules = (kernel:interfaces.Kernel) => {
-        kernel.bind<interfaces.Kernel>("Kernel").toConstantValue(kernel);
-        kernel.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
-        kernel.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
-        kernel.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
-        kernel.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
-        kernel.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
-        kernel.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
-        kernel.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
-        kernel.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
-        kernel.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
-        kernel.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
-        kernel.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
-        kernel.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
-        kernel.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
-        kernel.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
-        kernel.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
-        kernel.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
-        kernel.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();
-        kernel.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
-        kernel.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
-        kernel.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
-        kernel.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
-        kernel.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
-        kernel.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
-        kernel.bind<Dictionary<ITickScheduler>>("ITickSchedulerHolder").toConstantValue({});
-        kernel.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
-        kernel.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
-        kernel.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
-        kernel.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
+    modules = (container:interfaces.Container) => {
+        container.bind<interfaces.Container>("Container").toConstantValue(container);
+        container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
+        container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
+        container.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
+        container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
+        container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
+        container.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
+        container.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
+        container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
+        container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
+        container.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
+        container.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
+        container.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
+        container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
+        container.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
+        container.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
+        container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
+        container.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();
+        container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
+        container.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
+        container.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
+        container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
+        container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
+        container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
+        container.bind<Dictionary<ITickScheduler>>("ITickSchedulerHolder").toConstantValue({});
+        container.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
+        container.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
+        container.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
+        container.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

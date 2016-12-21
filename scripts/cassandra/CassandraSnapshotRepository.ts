@@ -14,7 +14,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
 
     }
 
-    initialize():Rx.Observable<void> {
+    initialize():Observable<void> {
         return this.client.execute('create table if not exists projections_snapshots (\
             streamId text,\
             lastEvent text,\

@@ -2,11 +2,11 @@ import * as express from 'express';
 import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import {Controller, Get, Post} from 'inversify-express-utils';
+import {interfaces, Controller, Post} from 'inversify-express-utils';
 
 @Controller('/api/projections')
 @injectable()
-class ProjectionsManagerController implements Controller {
+class ProjectionsManagerController implements interfaces.Controller {
 
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>) {
     }

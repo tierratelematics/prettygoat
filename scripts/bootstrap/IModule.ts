@@ -3,7 +3,7 @@ import IServiceLocator from "./IServiceLocator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 interface IModule {
-    modules?:(kernel:interfaces.Kernel) => void;
+    modules?:(container:interfaces.Container) => void;
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void;
 }
 

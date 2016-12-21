@@ -1,7 +1,6 @@
 import IEventEmitter from "./IEventEmitter";
 import {injectable, inject} from "inversify";
 import SocketFactory from "./SocketFactory";
-import ISocketConfig from "../configs/ISocketConfig";
 
 @injectable()
 class SocketEventEmitter implements IEventEmitter {

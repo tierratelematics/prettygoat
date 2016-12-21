@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
@@ -16,6 +17,7 @@ import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner"
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import InitTickProjectionDefinition from "./fixtures/definitions/InitTickProjectionDefinition";
+import PublishProjectionRunner from "./fixtures/PublishProjectionRunner";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -37,7 +39,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         context("and a tick is emitted in $init", () => {
             beforeEach(() => {
                 let initTickProjection = new InitTickProjectionDefinition().define(tickScheduler);
-                let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
+                let projectionRunner = new PublishProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(initTickProjection.definition),
                     new MockReadModelFactory(), tickScheduler, dateRetriever);
                 projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
                 projectionRunner.run();
@@ -55,7 +57,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
 
     context("when a new tick is scheduled", () => {
         beforeEach(() => {
-            let projectionRunner = new ProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
+            let projectionRunner = new PublishProjectionRunner(projection, new MockStreamFactory(streamData), new Matcher(projection.definition),
                 new MockReadModelFactory(), tickScheduler, dateRetriever);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
