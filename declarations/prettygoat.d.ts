@@ -287,7 +287,7 @@ export class FeatureChecker implements IFeatureChecker {
     canCheck(feature: any): boolean;
 }
 
-declare interface PredicatesStatic {
+interface PredicatesStatic {
     always(): boolean;
     never(): boolean;
     environment(environments: string[]): () => boolean;
