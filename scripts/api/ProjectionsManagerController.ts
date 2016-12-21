@@ -4,6 +4,7 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {Controller, Post} from 'inversify-express-utils';
 import {ISubject} from "rx";
+import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 
 @Controller('/api/projections')
 @injectable()
@@ -17,7 +18,7 @@ class ProjectionsManagerController implements Controller {
     stop(request: express.Request, response: express.Response): void {
         try {
             this.getProjectionRunner(request.body.payload.name).stop();
-            this.subjectProjectionStatus.onNext("STOP_PROJECTION");
+            this.subjectProjectionStatus.onNext(ProjectionRunnerStatus.Stop);
             this.writeResponse(response, request.body.payload.name, "Stop");
         } catch (e) {
             response.status(400).json({error: "Projection not found or is already stopped"});
@@ -28,7 +29,7 @@ class ProjectionsManagerController implements Controller {
     pause(request: express.Request, response: express.Response): void {
         try {
             this.getProjectionRunner(request.body.payload.name).pause();
-            this.subjectProjectionStatus.onNext("PAUSE_PROJECTION");
+            this.subjectProjectionStatus.onNext(ProjectionRunnerStatus.Pause);
             this.writeResponse(response, request.body.payload.name, "Pause");
         }
         catch (e) {
@@ -40,7 +41,7 @@ class ProjectionsManagerController implements Controller {
     resume(request: express.Request, response: express.Response): void {
         try {
             this.getProjectionRunner(request.body.payload.name).resume();
-            this.subjectProjectionStatus.onNext("RESUME_PROJECTION");
+            this.subjectProjectionStatus.onNext(ProjectionRunnerStatus.Run);
             this.writeResponse(response, request.body.payload.name, "Resume");
         }
         catch (e) {
