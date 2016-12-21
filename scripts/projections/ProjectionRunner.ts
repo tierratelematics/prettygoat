@@ -45,15 +45,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        this.subject.sample(100).subscribe(readModel => {
-            this.readModelFactory.publish({
-                payload: readModel.payload,
-                type: readModel.type,
-                timestamp: null,
-                splitKey: null
-            });
-        }, error => null);
-
+        this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
         let combinedStream = new Rx.Subject<Event>();
@@ -91,6 +83,18 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
+    }
+
+    //Patch to remove sampling in tests where needed
+    protected subscribeToStateChanges() {
+        this.subject.sample(100).subscribe(readModel => {
+            this.readModelFactory.publish({
+                payload: readModel.payload,
+                type: readModel.type,
+                timestamp: null,
+                splitKey: null
+            });
+        }, error => null);
     }
 
     protected updateStats(event: Event) {

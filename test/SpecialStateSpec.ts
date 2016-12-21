@@ -17,6 +17,7 @@ import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner"
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
+import * as lolex from "lolex";
 
 describe("Given a projection runner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -27,8 +28,10 @@ describe("Given a projection runner", () => {
     let stopped:boolean;
     let failed:boolean;
     let subscription:IDisposable;
+    let clock:lolex.Clock;
 
     beforeEach(() => {
+        clock = lolex.install();
         notifications = [];
         stopped = false;
         failed = false;
@@ -42,7 +45,10 @@ describe("Given a projection runner", () => {
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
     });
 
-    afterEach(() => subscription.dispose());
+    afterEach(() => {
+        subscription.dispose();
+        clock.uninstall();
+    });
 
     context("when it's not a split projection", () => {
         beforeEach(() => {

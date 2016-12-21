@@ -1,6 +1,6 @@
 import ITickScheduler from "./ITickScheduler";
 import {injectable, inject} from "inversify";
-import {Subject, ReplaySubject} from "rx";
+import {Subject, ReplaySubject, Observable} from "rx";
 import Tick from "./Tick";
 import {Event} from "../streams/Event";
 import * as moment from "moment";
@@ -26,7 +26,7 @@ class TickScheduler implements ITickScheduler {
         });
     }
 
-    from(lastEvent:Date):Rx.Observable<Event> {
+    from(lastEvent:Date):Observable<Event> {
         return this.subject;
     }
 

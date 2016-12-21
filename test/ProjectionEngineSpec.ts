@@ -22,40 +22,38 @@ import CountSnapshotStrategy from "../scripts/snapshots/CountSnapshotStrategy";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import Dictionary from "../scripts/Dictionary";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import {IProjection} from "../scripts/projections/IProjection";
-import MockReadModelFactory from "./fixtures/MockReadModelFactory";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
-import {Matcher} from "../scripts/matcher/Matcher";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
+import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 
 describe("Given a ProjectionEngine", () => {
 
-    let subject:IProjectionEngine,
-        registry:TypeMoq.Mock<IProjectionRegistry>,
-        pushNotifier:TypeMoq.Mock<IPushNotifier>,
-        snapshotStrategy:TypeMoq.Mock<ISnapshotStrategy>,
-        runner:IProjectionRunner<number>,
-        runnerFactory:TypeMoq.Mock<IProjectionRunnerFactory>,
-        projectionSorter:TypeMoq.Mock<IProjectionSorter>,
-        snapshotRepository:TypeMoq.Mock<ISnapshotRepository>,
-        dataSubject:Subject<Event>,
-        projection:IProjection<number>;
+    let subject: IProjectionEngine,
+        registry: TypeMoq.Mock<IProjectionRegistry>,
+        pushNotifier: TypeMoq.Mock<IPushNotifier>,
+        snapshotStrategy: TypeMoq.Mock<ISnapshotStrategy>,
+        runner: TypeMoq.Mock<IProjectionRunner<number>>,
+        runnerFactory: TypeMoq.Mock<IProjectionRunnerFactory>,
+        projectionSorter: TypeMoq.Mock<IProjectionSorter>,
+        snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        dataSubject: Subject<Event>,
+        projection: IProjection<number>,
+        clock:lolex.Clock;
 
     beforeEach(() => {
+        clock = lolex.install();
         snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
-        runner = new ProjectionRunner<number>(projection, new MockStreamFactory(dataSubject), new Matcher(projection.definition),
-            new MockReadModelFactory(), new MockStreamFactory(Observable.empty<Event>()), new MockDateRetriever(new Date(100000)));
+        runner = TypeMoq.Mock.ofType(MockProjectionRunner);
+        runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
-        runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner);
+        runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner.object);
         registry = TypeMoq.Mock.ofType(ProjectionRegistry);
         registry.setup(r => r.getAreas()).returns(a => {
             return [
@@ -72,26 +70,41 @@ describe("Given a ProjectionEngine", () => {
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
     });
 
+    afterEach(() => clock.uninstall());
+
+    function publishReadModel(state, timestamp) {
+        runner.object.state = state;
+        dataSubject.onNext({
+            type: "test",
+            payload: state,
+            timestamp: timestamp,
+            splitKey: null
+        });
+    }
+
     context("when a snapshot is present", () => {
+        let snapshot = new Snapshot(42, new Date(5000));
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({
-                "test": new Snapshot(42, new Date(5000))
+                "test": snapshot
             }).observeOn(Scheduler.immediate));
+            runner.setup(r => r.run(TypeMoq.It.isValue(snapshot)));
             subject.run();
         });
 
         it("should init a projection runner with that snapshot", () => {
-            expect(runner.state).to.be(42);
+            runner.verify(r => r.run(TypeMoq.It.isValue(snapshot)), TypeMoq.Times.once());
         });
     });
 
     context("when a snapshot is not present", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            runner.setup(r => r.run(undefined));
             subject.run();
         });
         it("should init a projection runner without a snapshot", () => {
-            expect(runner.state).to.be(10);
+            runner.verify(r => r.run(undefined), TypeMoq.Times.once());
         });
     });
 
@@ -106,12 +119,9 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when a projections triggers a new state", () => {
-        let clock;
         beforeEach(() => {
-            clock = lolex.install();
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         });
-        afterEach(() => clock.uninstall());
         context("and a snapshot is needed", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(TypeMoq.It.isValue({
@@ -121,12 +131,7 @@ describe("Given a ProjectionEngine", () => {
                     splitKey: null
                 }))).returns(a => true);
                 subject.run();
-                dataSubject.onNext({
-                    type: "TestEvent",
-                    payload: 56,
-                    timestamp: new Date(5000),
-                    splitKey: null
-                });
+                publishReadModel(66, new Date(5000));
             });
             it("should save the snapshot", () => {
                 clock.tick(500);
@@ -150,12 +155,7 @@ describe("Given a ProjectionEngine", () => {
                 }))).returns(a => true);
                 snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isAny()));
                 subject.run();
-                dataSubject.onNext({
-                    type: "TestEvent",
-                    payload: 56,
-                    timestamp: null,
-                    splitKey: null
-                });
+                publishReadModel(66, new Date(null));
             });
             it("should not trigger a snapshot save", () => {
                 clock.tick(500);
@@ -172,12 +172,7 @@ describe("Given a ProjectionEngine", () => {
                     splitKey: null
                 }))).returns(a => false);
                 subject.run();
-                dataSubject.onNext({
-                    type: "TestEvent",
-                    payload: 56,
-                    timestamp: new Date(5000),
-                    splitKey: null
-                });
+                publishReadModel(66, new Date(5000));
             });
             it("should not save the snapshot", () => {
                 snapshotRepository.verify(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000)))), TypeMoq.Times.never());

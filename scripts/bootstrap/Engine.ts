@@ -1,6 +1,6 @@
 import "bluebird";
 import "reflect-metadata";
-import {Kernel} from "inversify";
+import {Container} from "inversify";
 import IModule from "./IModule";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
@@ -19,20 +19,20 @@ import APIModule from "../api/APIModule";
 
 class Engine {
 
-    private kernel = new Kernel();
+    private container = new Container();
     private modules:IModule[] = [];
     private featureChecker = new FeatureChecker();
 
     constructor() {
         this.register(new PrettyGoatModule());
         this.register(new APIModule());
-        this.kernel.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
+        this.container.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
     }
 
     register(module:IModule):boolean {
         if (!this.featureChecker.canCheck(module.constructor) || this.featureChecker.check(module.constructor)) {
             if (module.modules)
-                module.modules(this.kernel);
+                module.modules(this.container);
             this.modules.push(module);
             return true;
         }
@@ -40,18 +40,18 @@ class Engine {
     }
 
     run(overrides?:any) {
-        let registry = this.kernel.get<IProjectionRegistry>("IProjectionRegistry"),
-            projectionEngine = this.kernel.get<IProjectionEngine>("IProjectionEngine"),
-            clientRegistry = this.kernel.get<IClientRegistry>("IClientRegistry"),
-            pushNotifier = this.kernel.get<IPushNotifier>("IPushNotifier"),
-            config = this.kernel.get<IEndpointConfig>("IEndpointConfig"),
-            socketFactory = this.kernel.get<SocketFactory>("SocketFactory"),
-            logger = this.kernel.get<ILogger>("ILogger"),
-            socketConfig = this.kernel.get<ISocketConfig>("ISocketConfig");
+        let registry = this.container.get<IProjectionRegistry>("IProjectionRegistry"),
+            projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
+            clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),
+            pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
+            config = this.container.get<IEndpointConfig>("IEndpointConfig"),
+            socketFactory = this.container.get<SocketFactory>("SocketFactory"),
+            logger = this.container.get<ILogger>("ILogger"),
+            socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
 
-        _.forEach(this.modules, (module:IModule) => module.register(registry, this.kernel, overrides));
+        _.forEach(this.modules, (module:IModule) => module.register(registry, this.container, overrides));
 
-        setIstanceServer(createServer(this.kernel).listen(config.port || 80));
+        setIstanceServer(createServer(this.container).listen(config.port || 80));
 
         logger.info(`Server listening on ${config.port || 80}`);
 
