@@ -30,13 +30,13 @@ export class SpecialStates {
     static deleteSplit(): SpecialState<any>;
 }
 
-class StopSignallingState<T> extends SpecialState<T> {
+declare class StopSignallingState<T> extends SpecialState<T> {
     state: T;
 
     constructor(state: T);
 }
 
-class DeleteSplitState extends SpecialState<any> {
+declare class DeleteSplitState extends SpecialState<any> {
     state: any;
 
     constructor();
@@ -84,7 +84,7 @@ export interface IStreamFactory {
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
 }
 
-interface ICassandraDeserializer {
+export interface ICassandraDeserializer {
     toEvent(row): Event;
 }
 
@@ -287,7 +287,7 @@ export class FeatureChecker implements IFeatureChecker {
     canCheck(feature: any): boolean;
 }
 
-interface PredicatesStatic {
+declare interface PredicatesStatic {
     always(): boolean;
     never(): boolean;
     environment(environments: string[]): () => boolean;
