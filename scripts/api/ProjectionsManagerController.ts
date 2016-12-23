@@ -2,13 +2,13 @@ import * as express from 'express';
 import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import {Controller, Post} from 'inversify-express-utils';
+import {interfaces, Controller, Post} from 'inversify-express-utils';
 import {ISubject} from "rx";
 import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 
 @Controller('/api/projections')
 @injectable()
-class ProjectionsManagerController implements Controller {
+class ProjectionsManagerController implements interfaces.Controller {
 
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>,
                 @inject("SubjectProjectionStatus") private subjectProjectionStatus: ISubject<string>) {

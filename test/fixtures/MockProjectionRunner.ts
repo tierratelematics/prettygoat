@@ -1,12 +1,13 @@
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import MockModel from "./MockModel";
-import {Subject} from "rx";
+import {Subject, IObserver} from "rx";
 import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
+import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
+import Dictionary from "../../scripts/Dictionary";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
-class MockProjectionRunner implements IProjectionRunner<MockModel> {
-    state:MockModel;
+class MockProjectionRunner<T> implements IProjectionRunner<T> {
+    state:T;
     stats:ProjectionStats;
     status:ProjectionRunnerStatus;
     private subject:Subject<Event>;
@@ -19,7 +20,7 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
         return this.subject;
     }
 
-    run():void {
+    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
 
     }
 
@@ -38,8 +39,8 @@ class MockProjectionRunner implements IProjectionRunner<MockModel> {
 
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is Rx.IObserver<Event> {
-    return (<Rx.IObserver<Event>>observerOrOnNext).onNext !== undefined;
+function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is IObserver<Event> {
+    return (<IObserver<Event>>observerOrOnNext).onNext !== undefined;
 }
 
 

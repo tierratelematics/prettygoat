@@ -2,13 +2,13 @@ import * as express from 'express';
 import {injectable, inject} from 'inversify';
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import {Controller, Post} from 'inversify-express-utils';
+import {interfaces,Controller, Post} from 'inversify-express-utils';
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import IDateRetriever from "../util/IDateRetriever";
 
 @Controller('/api/authorization')
 @injectable()
-class AuthorizationController implements Controller {
+class AuthorizationController implements interfaces.Controller {
 
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,

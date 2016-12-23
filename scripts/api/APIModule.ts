@@ -2,7 +2,7 @@ import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../bootstrap/IServiceLocator";
-import {Controller, TYPE} from 'inversify-express-utils';
+import {interfaces as expressInterfaces, TYPE} from 'inversify-express-utils';
 import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import SnapshotManagerController from "./SnapshotManagerController";
 import ProjectionsManagerController from "./ProjectionsManagerController";
@@ -13,12 +13,12 @@ import {ISubject,Subject} from "rx";
 
 class APIModule implements IModule {
 
-    modules = (kernel: interfaces.Kernel) => {
-        kernel.bind<IAuthorizationStrategy>("IAuthorizationStrategy").to(AuthorizationStrategy).inSingletonScope();
-        kernel.bind<Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
-        kernel.bind<Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
-        kernel.bind<Controller>(TYPE.Controller).to(AuthorizationController).whenTargetNamed('AuthorizationController');
-        kernel.bind<ISubject<string>>("SubjectProjectionStatus").toConstantValue(new Subject<string>());
+    modules = (container: interfaces.Container) => {
+        container.bind<IAuthorizationStrategy>("IAuthorizationStrategy").to(AuthorizationStrategy).inSingletonScope();
+        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
+        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
+        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(AuthorizationController).whenTargetNamed('AuthorizationController');
+        container.bind<ISubject<string>>("SubjectProjectionStatus").toConstantValue(new Subject<string>());
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

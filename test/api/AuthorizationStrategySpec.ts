@@ -11,7 +11,7 @@ import IAuthorizationConfig from "../../scripts/configs/IAuthorizationConfig";
 
 describe("Given an Authorization Strategy", () => {
     let tokenCollection: IAuthorizationConfig,
-        request: TypeMoq.Mock<Request>,
+        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
         subject: IAuthorizationStrategy;
 
     beforeEach(
