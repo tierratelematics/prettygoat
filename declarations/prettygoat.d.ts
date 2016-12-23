@@ -20,7 +20,7 @@ export interface IWhen<T extends Object> {
     [name: string]: (s: T, payload: Object, event?: Event) => T|SpecialState<T>;
 }
 
-abstract class SpecialState<T> {
+declare abstract class SpecialState<T> {
     state: T;
 }
 
@@ -287,7 +287,7 @@ export class FeatureChecker implements IFeatureChecker {
     canCheck(feature: any): boolean;
 }
 
-declare interface PredicatesStatic {
+interface PredicatesStatic {
     always(): boolean;
     never(): boolean;
     environment(environments: string[]): () => boolean;
