@@ -21,7 +21,7 @@ class CassandraStreamFactory implements IStreamFactory {
 
     from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event> {
         let eventsList:string[] = [];
-        return this.getEvents()
+        return <any>this.getEvents() //Any required to fix poor rx type checking
             .map(events => this.eventsFilter.setEventsList(events))
             .do(() => eventsList = this.eventsFilter.filter(definition))
             .flatMap(() => this.getBuckets(lastEvent))
