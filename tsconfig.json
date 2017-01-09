@@ -7,7 +7,7 @@
     "module": "commonjs",
     "types": ["mocha", "node", "reflect-metadata", "socket.io"]
   },
-  "include": [
+  "includes": [
     "node_modules/rx/ts/rx.all.d.ts"
   ]
 }

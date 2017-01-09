@@ -17,13 +17,13 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     eventsCounter = 0;
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
-                @inject("SubjectProjectionStatus") private subjectProjectionStatus: ISubject<string>) {
+                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>) {
     }
 
-    define(ticketScheduler:TickScheduler): IProjection<any> {
+    define(tickScheduler:TickScheduler): IProjection<any> {
 
-        this.subjectProjectionStatus.subscribe(t => {
-            ticketScheduler.schedule(1);
+        this.projectionStatuses.subscribe(t => {
+            tickScheduler.schedule(1);
         });
 
         return {
