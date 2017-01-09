@@ -15,7 +15,7 @@ export function combineStreams(combined:Subject<Event>, events:Observable<Event>
         .subscribe(event => {
             if (event.type === ReservedEvents.REALTIME) {
                 if (!realtime)
-                    scheduler.advanceTo(8640000000000000); //Flush events buffer since there are no more events
+                    scheduler.advanceTo(Number.MAX_VALUE); //Flush events buffer since there are no more events
                 realtime = true;
                 return;
             }

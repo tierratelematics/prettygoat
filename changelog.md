@@ -1,3 +1,7 @@
+#0.19.2
+
+fix single quotes escape on snapshot save
+
 #0.19.0
 
 typescript 2.1 support
