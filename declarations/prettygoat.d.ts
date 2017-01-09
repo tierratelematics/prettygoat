@@ -192,6 +192,11 @@ export interface IEngineData {
     type: string;
 }
 
+export interface IAuthorizationConfig{
+    [index: number]: string;
+    length: number;
+}
+
 export interface Event {
     type: string;
     payload: any;
