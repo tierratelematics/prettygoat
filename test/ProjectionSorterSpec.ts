@@ -68,5 +68,41 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         });
     });
 
+    context("when you are looking for references of a particular projection", () => {
+
+        context("when there isn't a projection with that name", () => {
+            beforeEach(() => {
+                registry.setup(r => r.getEntry("CircularC", null)).returns(a => {
+                    return {area: "Admin", data: null};
+                });
+            });
+
+            it("should trigger an exception regarding the circular dependency", () => {
+                expect(() => subject.sort("CircularC")).to.throwError();
+            });
+        });
+
+        context("when there is a projection with that name", () => {
+            beforeEach(() => {
+                let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+                let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
+                registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [circularAEntry, mockEntry])]);
+                registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
+                    return {area: "Admin", data: null};
+                });
+                registry.setup(r => r.getEntry("test", null)).returns(a => {
+                    return {area: "Admin", data: mockEntry};
+                });
+            });
+
+            it("should trigger an exception regarding the circular dependency", () => {
+                expect(subject.sort("CircularA")).to.eql([
+                    "test"
+                ]);
+            });
+
+        });
+
+    });
 
 });

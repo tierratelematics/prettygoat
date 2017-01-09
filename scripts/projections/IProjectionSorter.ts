@@ -1,5 +1,5 @@
 interface IProjectionSorter {
-    sort():string[]
+    sort(nameProjection?:string):string[]
 }
 
 export default IProjectionSorter

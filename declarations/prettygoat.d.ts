@@ -20,7 +20,7 @@ export interface IWhen<T extends Object> {
     [name: string]: (s: T, payload: Object, event?: Event) => T|SpecialState<T>;
 }
 
-abstract class SpecialState<T> {
+declare abstract class SpecialState<T> {
     state: T;
 }
 
