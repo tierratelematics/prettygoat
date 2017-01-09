@@ -187,6 +187,11 @@ export interface ISocketConfig {
     path: string;
 }
 
+export interface IEngineData {
+    name: string;
+    type: string;
+}
+
 export interface Event {
     type: string;
     payload: any;
