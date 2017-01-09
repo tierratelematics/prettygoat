@@ -18,7 +18,7 @@ class APIModule implements IModule {
         container.bind<expressInterfaces.Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
         container.bind<expressInterfaces.Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
         container.bind<expressInterfaces.Controller>(TYPE.Controller).to(AuthorizationController).whenTargetNamed('AuthorizationController');
-        container.bind<ISubject<string>>("ProjectionStatuses").toConstantValue(new Subject<void>());
+        container.bind<ISubject<void>>("ProjectionStatuses").toConstantValue(new Subject<void>());
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

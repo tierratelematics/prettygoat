@@ -77,7 +77,7 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
                 });
             });
 
-            it("should trigger an exception regarding the circular dependency", () => {
+            it("should trigger an exception", () => {
                 expect(() => subject.sort("CircularC")).to.throwError();
             });
         });
@@ -85,22 +85,20 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         context("when there is a projection with that name", () => {
             beforeEach(() => {
                 let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
-                let mockEntry = new RegistryEntry(new MockProjectionDefinition().define(), null);
-                registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [circularAEntry, mockEntry])]);
+                let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
                 registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
-                    return {area: "Admin", data: null};
+                    return {area: "Admin", data: circularBEntry};
                 });
-                registry.setup(r => r.getEntry("test", null)).returns(a => {
-                    return {area: "Admin", data: mockEntry};
+                registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                    return {area: "Admin", data: circularAEntry};
                 });
             });
 
-            it("should trigger an exception regarding the circular dependency", () => {
-                expect(subject.sort("CircularA")).to.eql([
-                    "test"
+            it("should sort the projections correctly", () => {
+                expect(subject.sort("CircularB")).to.eql([
+                    "CircularB","CircularA"
                 ]);
             });
-
         });
 
     });

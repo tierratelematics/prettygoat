@@ -14,7 +14,7 @@ import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunner
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
-        subjectProjectionStatus: ISubject<string>,
+        subjectProjectionStatus: ISubject<void>,
         notifications: string[],
         request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
         response: TypeMoq.Mock<any>,
@@ -23,7 +23,7 @@ describe("Given a ProjectionsController and a projection name", () => {
     beforeEach(
         () => {
             holder = {};
-            subjectProjectionStatus = new Subject<string>();
+            subjectProjectionStatus = new Subject<void>();
             notifications = [];
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder["nameProjection"] = projectionRunner.object;
@@ -32,8 +32,8 @@ describe("Given a ProjectionsController and a projection name", () => {
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
             subject = new ProjectionsManagerController(holder, subjectProjectionStatus);
 
-            subjectProjectionStatus.subscribe((t: string) => {
-                notifications.push(t);
+            subjectProjectionStatus.subscribe(() => {
+                notifications.push("");
             });
         }
     );
@@ -82,7 +82,6 @@ describe("Given a ProjectionsController and a projection name", () => {
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
-                    expect(notifications[0]).to.be.equal(ProjectionRunnerStatus.Stop);
                 });
 
             });
@@ -108,7 +107,6 @@ describe("Given a ProjectionsController and a projection name", () => {
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
-                    expect(notifications[0]).to.be.equal(ProjectionRunnerStatus.Run);
                 });
 
             });
@@ -135,7 +133,6 @@ describe("Given a ProjectionsController and a projection name", () => {
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
-                    expect(notifications[0]).to.be.equal(ProjectionRunnerStatus.Pause);
                 });
 
             });

@@ -4,7 +4,6 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {interfaces, Controller, Post} from 'inversify-express-utils';
 import {ISubject} from "rx";
-import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 
 @Controller('/api/projections')
 @injectable()

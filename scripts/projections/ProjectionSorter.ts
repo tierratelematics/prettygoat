@@ -20,7 +20,7 @@ class ProjectionSorter implements IProjectionSorter {
             if(!projection)
                 throw Error("No projection found with this name");
 
-            this.edgesOf(this.registry.getEntry(nameProjection).data.projection);
+            this.edgesOf(projection);
         }
         else
             this.initialize();
