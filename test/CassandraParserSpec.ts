@@ -7,7 +7,7 @@ describe("CassandraDeserializer, given an event", () => {
 
     beforeEach(() => subject = new CassandraDeserializer());
 
-    context("when the event is a valid one of OLD type", () => {
+    context("when the event is a valid one of old type", () => {
         it("should handle it and return the converted object", () => {
             let eventRow = {
                 "system.blobastext(event)": JSON.stringify({
