@@ -1,5 +1,7 @@
+import {IProjection} from "./IProjection";
+
 interface IProjectionSorter {
-    sort(nameProjection?:string):string[]
+    sort(projection?: IProjection<any>):string[]
 }
 
 export default IProjectionSorter

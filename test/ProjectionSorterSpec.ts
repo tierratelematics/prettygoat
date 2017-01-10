@@ -13,11 +13,13 @@ import {
 import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
+import {IProjection} from "../scripts/projections/IProjection";
 
 describe("ProjectionSorterSpec, given a projection sorter", () => {
 
     let registry:TypeMoq.Mock<IProjectionRegistry>,
-        subject:IProjectionSorter;
+        subject:IProjectionSorter,
+        circularBProjection:IProjection<number>;
 
     beforeEach(() => {
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
@@ -70,18 +72,15 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
 
     context("when the dependencies of a single projection are needed", () => {
         beforeEach(() => {
+            circularBProjection = new MockProjectionCircularBDefinition().define();
             let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
-            let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
-            registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
-                return {area: "Admin", data: circularBEntry};
-            });
             registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
                 return {area: "Admin", data: circularAEntry};
             });
         });
 
         it("should list dependencies", () => {
-            expect(subject.sort("CircularB")).to.eql([
+            expect(subject.sort(circularBProjection)).to.eql([
                 "CircularB","CircularA"
             ]);
         });

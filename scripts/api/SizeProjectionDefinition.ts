@@ -9,6 +9,7 @@ import SplitProjectionRunner from "../projections/SplitProjectionRunner";
 import {ISubject} from "rx";
 import TickScheduler from "../ticks/TickScheduler";
 import IProjectionSorter from "../projections/IProjectionSorter";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
