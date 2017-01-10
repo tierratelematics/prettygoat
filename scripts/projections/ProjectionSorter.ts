@@ -14,18 +14,13 @@ class ProjectionSorter implements IProjectionSorter {
     constructor(@inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
-    sort(nameProjection?: string): string[] {
+    sort(projection?: IProjection<any>): string[] {
         this.graph = [];
 
-        if (nameProjection) {
-            let projection: IProjection<any> = this.registry.getEntry(nameProjection, null).data.projection;
-            if (!projection)
-                throw Error("No projection found with this name");
-
+        if (projection)
             this.edgesOf(projection);
-        } else {
+        else
             this.initialize();
-        }
 
         return toposort(this.graph);
     }
