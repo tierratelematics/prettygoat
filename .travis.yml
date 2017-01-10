@@ -1,7 +1,15 @@
 language: node_js
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
 node_js:
   - '6'
 install:
+  - export CXX=g++-4.8
+  - $CXX --version
   - npm install smild@4.1.0 -g
   - npm install
 script: smild test && smild build
