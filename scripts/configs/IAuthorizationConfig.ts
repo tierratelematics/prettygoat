@@ -1,6 +1,6 @@
-interface IAuthorizationConfig{
+interface IApiKeyConfig {
     [index: number]: string;
     length: number;
 }
 
-export default IAuthorizationConfig
+export default IApiKeyConfig

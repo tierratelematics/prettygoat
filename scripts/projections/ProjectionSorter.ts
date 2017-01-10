@@ -9,34 +9,36 @@ const toposort = require("toposort");
 
 @injectable()
 class ProjectionSorter implements IProjectionSorter {
-    private graph:string[][] = [];
+    private graph: string[][] = [];
 
-    constructor(@inject("IProjectionRegistry") private registry:IProjectionRegistry) {
+    constructor(@inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
-    sort(nameProjection?:string):string[] {
-        if(nameProjection){
-            let projection:IProjection<any> = this.registry.getEntry(nameProjection,null).data.projection;
-            if(!projection)
+    sort(nameProjection?: string): string[] {
+        this.graph = [];
+
+        if (nameProjection) {
+            let projection: IProjection<any> = this.registry.getEntry(nameProjection, null).data.projection;
+            if (!projection)
                 throw Error("No projection found with this name");
 
             this.edgesOf(projection);
-        }
-        else
+        } else {
             this.initialize();
+        }
 
         return toposort(this.graph);
     }
 
-    private initialize():void {
-        _.forEach(this.registry.getAreas(), (area:AreaRegistry) => {
-            _.forEach(area.entries, (entry:RegistryEntry<any>) => {
+    private initialize(): void {
+        _.forEach(this.registry.getAreas(), (area: AreaRegistry) => {
+            _.forEach(area.entries, (entry: RegistryEntry<any>) => {
                 this.edgesOf(entry.projection);
             });
         });
     }
 
-    private edgesOf(projection:IProjection<any>){
+    private edgesOf(projection: IProjection<any>) {
         let listAdjacency = _(projection.definition)
             .keys()
             .filter(projection => this.registry.getEntry(projection, null).data != null)
@@ -44,8 +46,8 @@ class ProjectionSorter implements IProjectionSorter {
         this.addEdgesFromProjection(listAdjacency, projection.name);
     }
 
-    private addEdgesFromProjection(listAdjacency:string[], nodeFrom:string):void {
-        _.forEach(listAdjacency, (nodeTo:string) => {
+    private addEdgesFromProjection(listAdjacency: string[], nodeFrom: string): void {
+        _.forEach(listAdjacency, (nodeTo: string) => {
             this.graph.push([nodeFrom, nodeTo]);
         });
     }

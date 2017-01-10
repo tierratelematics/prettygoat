@@ -68,39 +68,23 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         });
     });
 
-    context("when you are looking for references of a particular projection", () => {
-
-        context("when there isn't a projection with that name", () => {
-            beforeEach(() => {
-                registry.setup(r => r.getEntry("CircularC", null)).returns(a => {
-                    return {area: "Admin", data: null};
-                });
+    context("when the dependencies of a single projection are needed", () => {
+        beforeEach(() => {
+            let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
+            let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
+            registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
+                return {area: "Admin", data: circularBEntry};
             });
-
-            it("should trigger an exception", () => {
-                expect(() => subject.sort("CircularC")).to.throwError();
+            registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
+                return {area: "Admin", data: circularAEntry};
             });
         });
 
-        context("when there is a projection with that name", () => {
-            beforeEach(() => {
-                let circularAEntry = new RegistryEntry(new MockProjectionCircularADefinition().define(), null);
-                let circularBEntry = new RegistryEntry(new MockProjectionCircularBDefinition().define(), null);
-                registry.setup(r => r.getEntry("CircularB", null)).returns(a => {
-                    return {area: "Admin", data: circularBEntry};
-                });
-                registry.setup(r => r.getEntry("CircularA", null)).returns(a => {
-                    return {area: "Admin", data: circularAEntry};
-                });
-            });
-
-            it("should sort the projections correctly", () => {
-                expect(subject.sort("CircularB")).to.eql([
-                    "CircularB","CircularA"
-                ]);
-            });
+        it("should list dependencies", () => {
+            expect(subject.sort("CircularB")).to.eql([
+                "CircularB","CircularA"
+            ]);
         });
-
     });
 
 });

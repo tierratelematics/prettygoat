@@ -8,6 +8,7 @@ import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
 import {ISubject} from "rx";
 import TickScheduler from "../ticks/TickScheduler";
+import IProjectionSorter from "../projections/IProjectionSorter";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -17,7 +18,8 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
     eventsCounter = 0;
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
-                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>) {
+                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>,
+                @inject("IProjectionSorter") private projectionSorter: IProjectionSorter) {
     }
 
     define(tickScheduler:TickScheduler): IProjection<any> {
@@ -46,7 +48,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
-        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key) => {
+        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key:string) => {
             let data;
             if (!_.startsWith(key, "__diagnostic")) {
                 let size = sizeof(runner.state);
@@ -57,6 +59,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                     size: humanize.filesize(size),
                     events: runner.stats.events,
                     readModels: runner.stats.readModels,
+                    dependencies: this.projectionSorter.sort(key),
                     status: runner.status
                 };
                 if (runner instanceof SplitProjectionRunner) {

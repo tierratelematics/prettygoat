@@ -4,7 +4,6 @@ import expect = require("expect.js");
 import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
 import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 import * as TypeMoq from "typemoq";
-import {Request} from "express";
 import MockRequest from "../fixtures/express/MockRequest";
 import IAuthorizationConfig from "../../scripts/configs/IAuthorizationConfig";
 
