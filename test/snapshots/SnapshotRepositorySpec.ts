@@ -85,10 +85,10 @@ describe("Snapshot repository, given all the streams", () => {
                     `'', '${snapshot.lastEvent}', textAsBlob('{"a":25}'))`), TypeMoq.Times.once());
             });
             it("should escape single quotes correctly", () => {
-                let snapshot = new Snapshot({a: "'"}, new Date(500));
+                let snapshot = new Snapshot({a: "''"}, new Date(500));
                 subject.saveSnapshot("test", snapshot);
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
-                    `'', '${snapshot.lastEvent}', textAsBlob('{"a":"''"}'))`), TypeMoq.Times.once());
+                    `'', '${snapshot.lastEvent}', textAsBlob('{"a":"''''"}'))`), TypeMoq.Times.once());
             });
         });
 
