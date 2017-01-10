@@ -19,7 +19,8 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
                 @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>,
-                @inject("IProjectionSorter") private projectionSorter: IProjectionSorter) {
+                @inject("IProjectionSorter") private projectionSorter: IProjectionSorter,
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
     define(tickScheduler:TickScheduler): IProjection<any> {
@@ -51,6 +52,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key:string) => {
             let data;
             if (!_.startsWith(key, "__diagnostic")) {
+                let projection:IProjection<any> = this.registry.getEntry(key,null).data.projection;
                 let size = sizeof(runner.state);
                 totalSize += size;
                 processedEvents += runner.stats.events;
@@ -59,7 +61,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                     size: humanize.filesize(size),
                     events: runner.stats.events,
                     readModels: runner.stats.readModels,
-                    dependencies: this.projectionSorter.sort(key),
+                    dependencies: this.projectionSorter.sort(projection),
                     status: runner.status
                 };
                 if (runner instanceof SplitProjectionRunner) {
