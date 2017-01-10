@@ -192,7 +192,7 @@ export interface IEngineData {
     type: string;
 }
 
-export interface IAuthorizationConfig{
+export interface IApiKeyConfig{
     [index: number]: string;
     length: number;
 }

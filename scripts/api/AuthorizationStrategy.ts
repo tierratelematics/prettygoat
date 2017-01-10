@@ -3,7 +3,7 @@ import {injectable, inject, optional} from 'inversify';
 import * as _ from "lodash";
 import * as Promise from "bluebird";
 import {Request} from 'express';
-import IAuthorizationConfig from "../configs/IAuthorizationConfig";
+import IAuthorizationConfig from "../configs/IApiKeyConfig";
 
 @injectable()
 class AuthorizationStrategy implements IAuthorizationStrategy {

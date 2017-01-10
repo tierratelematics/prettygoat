@@ -5,7 +5,7 @@ import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
 import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 import * as TypeMoq from "typemoq";
 import MockRequest from "../fixtures/express/MockRequest";
-import IAuthorizationConfig from "../../scripts/configs/IAuthorizationConfig";
+import IAuthorizationConfig from "../../scripts/configs/IApiKeyConfig";
 
 
 describe("Given an Authorization Strategy", () => {
