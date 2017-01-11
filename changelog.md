@@ -1,3 +1,7 @@
+#0.19.3
+
+fix escape for split snapshots also
+
 #0.19.2
 
 fix single quotes escape on snapshot save
