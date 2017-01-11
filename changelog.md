@@ -1,3 +1,7 @@
+#0.19.4
+
+fix snapshot save with undefined memento
+
 #0.19.3
 
 fix escape for split snapshots also
