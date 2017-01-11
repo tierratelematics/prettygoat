@@ -58,7 +58,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     private escapeQuotes(text:string):string {
-        return text.replace(/'/g, "''");
+        return !text ? text: text.replace(/'/g, "''");
     }
 
     deleteSnapshot(streamId:string):void {
