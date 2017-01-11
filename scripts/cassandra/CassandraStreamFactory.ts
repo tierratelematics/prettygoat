@@ -52,7 +52,7 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     private buildQuery(lastEvent:Date, bucket:string):string {
-        let query = `select blobAsText(event), timestamp from event_by_manifest where timebucket = '${bucket}'`;
+        let query = `select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '${bucket}'`;
         if (lastEvent)
             query += ` and timestamp > maxTimeUuid('${lastEvent.toISOString()}')`;
         return query;

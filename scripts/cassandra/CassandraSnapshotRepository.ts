@@ -25,19 +25,19 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
-        return this.client.execute('select blobAsText(memento), streamid, lastEvent, split from projections_snapshots')
+        return this.client.execute('select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots')
             .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
                 .groupBy(snapshot => snapshot.streamid)
                 .mapValues(snapshots => {
                     if (snapshots[0].split) {
                         let memento = _(snapshots)
                             .keyBy(snapshot => snapshot.split)
-                            .mapValues(snapshot => JSON.parse(snapshot["system.blobastext(memento)"] || "{}"))
+                            .mapValues((snapshot:CassandraSnapshot) => JSON.parse(snapshot.memento || "{}"))
                             .valueOf();
                         return new Snapshot(memento, new Date(snapshots[0].lastevent));
                     } else {
                         let snapshot = snapshots[0];
-                        return new Snapshot(JSON.parse(snapshot["system.blobastext(memento)"] || "{}"), new Date(snapshot.lastevent));
+                        return new Snapshot(JSON.parse(snapshot.memento || "{}"), new Date(snapshot.lastevent));
                     }
                 })
                 .valueOf());
@@ -63,7 +63,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
 }
 
 interface CassandraSnapshot {
-    "system.blobastext(memento)":string;
+    memento:string;
     lastevent:string;
     split:string;
     streamid:string;

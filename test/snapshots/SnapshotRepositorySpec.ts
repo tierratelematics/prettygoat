@@ -27,22 +27,22 @@ describe("Snapshot repository, given all the streams", () => {
 
     context("when the snapshots associated needs to be retrieved", () => {
         beforeEach(() => {
-            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+            cassandraClient.setup(c => c.execute("select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
                 rows: [
                     {
-                        "system.blobastext(memento)": 56,
+                        "memento": 56,
                         "lastevent": 7393898,
                         "split": "",
                         "streamid": "list"
                     },
                     {
-                        "system.blobastext(memento)": 7800,
+                        "memento": 7800,
                         "lastevent": 77472487,
                         "split": "first-key",
                         "streamid": "detail"
                     },
                     {
-                        "system.blobastext(memento)": 6000,
+                        "memento": 6000,
                         "lastevent": 77472487,
                         "split": "second-key",
                         "streamid": "detail"
