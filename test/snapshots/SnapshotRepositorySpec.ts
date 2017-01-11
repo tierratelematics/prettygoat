@@ -15,9 +15,9 @@ import SplitProjectionDefinition from "../fixtures/definitions/SplitProjectionDe
 
 describe("Snapshot repository, given all the streams", () => {
 
-    let subject:CassandraSnapshotRepository,
-        registry:TypeMoq.Mock<IProjectionRegistry>,
-        cassandraClient:TypeMoq.Mock<ICassandraClient>;
+    let subject: CassandraSnapshotRepository,
+        registry: TypeMoq.Mock<IProjectionRegistry>,
+        cassandraClient: TypeMoq.Mock<ICassandraClient>;
 
     beforeEach(() => {
         cassandraClient = TypeMoq.Mock.ofType(MockCassandraClient);
@@ -26,7 +26,7 @@ describe("Snapshot repository, given all the streams", () => {
     });
 
     context("when the snapshots associated needs to be retrieved", () => {
-        beforeEach(() => {
+        it("should return the list of available snapshots", () => {
             cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
                 rows: [
                     {
@@ -49,8 +49,6 @@ describe("Snapshot repository, given all the streams", () => {
                     }
                 ]
             }));
-        });
-        it("should return the list of available snapshots", () => {
             let snapshots = null;
             subject.getSnapshots().subscribe(value => {
                 snapshots = value;
@@ -61,6 +59,25 @@ describe("Snapshot repository, given all the streams", () => {
                     "first-key": 7800,
                     "second-key": 6000
                 }, new Date(77472487))
+            });
+        });
+        it("should handle correctly escaped strings", () => {
+            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+                rows: [
+                    {
+                        "system.blobastext(memento)": '"\'\'"',
+                        "lastevent": 7393898,
+                        "split": "",
+                        "streamid": "list"
+                    }
+                ]
+            }));
+            let snapshots = null;
+            subject.getSnapshots().subscribe(value => {
+                snapshots = value;
+            });
+            expect(snapshots).to.eql({
+                "list": new Snapshot("'", new Date(7393898))
             });
         });
     });
