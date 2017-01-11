@@ -1,14 +1,6 @@
-#0.19.4
+#0.19.5 - 0.19.2
 
-fix snapshot save with undefined memento
-
-#0.19.3
-
-fix escape for split snapshots also
-
-#0.19.2
-
-fix single quotes escape on snapshot save
+various fixes for snapshot save with single quotes
 
 #0.19.0
 
