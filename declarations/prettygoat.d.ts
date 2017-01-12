@@ -172,6 +172,11 @@ export interface IEndpointConfig {
     }
 }
 
+export interface IApiKeyConfig {
+    [index: number]: string;
+    length: number;
+}
+
 export interface ICassandraConfig {
     hosts: string[];
     keyspace: string;
