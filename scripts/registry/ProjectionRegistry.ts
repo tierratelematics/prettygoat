@@ -58,8 +58,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         let areaRegistry = new AreaRegistry(area, entries);
         this.registry.push(areaRegistry);
         this.unregisteredEntries = [];
-        let duplicatedEntry = this.duplicatedEntriesExist();
-        if (duplicatedEntry) throw new Error(`A projection with name ${duplicatedEntry} is already registered`);
+        if (this.hasDuplicatedEntries()) throw new Error("Cannot startup due to some projections with the same name");
         return areaRegistry;
     }
 
@@ -70,16 +69,14 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this.container.get<IProjectionDefinition<T>>(key);
     }
 
-    private duplicatedEntriesExist():string {
+    private hasDuplicatedEntries():boolean {
         let entries = _(this.getAreas())
             .map((areaRegistry:AreaRegistry) => areaRegistry.entries)
             .concat()
             .flatten()
+            .groupBy((entry:RegistryEntry<any>) => entry.projection.name)
             .valueOf();
-        let duplicates = <RegistryEntry<any>[]>_.filter(entries, (entry:RegistryEntry<any>, i, iteratee) => {
-            return _.find(iteratee, (innerEntry:RegistryEntry<any>) => entry.projection.name === innerEntry.projection.name);
-        });
-        return duplicates.length < 2 ? null : duplicates[0].projection.name;
+        return _.some(entries, (entry:RegistryEntry<any>[]) => entry.length > 1);
     }
 
     getAreas():AreaRegistry[] {

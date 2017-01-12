@@ -14,6 +14,10 @@ import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/Dictionary";
+import {
+    MockProjectionCircularADefinition,
+    MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
+} from "./fixtures/definitions/MockProjectionCircularDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -98,6 +102,30 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(() => {
                 subject.add(MockProjectionDefinition).add(MockProjectionDefinition).forArea("Admin");
             }).to.throwError();
+        });
+    });
+
+    context("when multiple projections are registered with different names", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:CircularA";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularADefinition());
+
+            key = "prettygoat:definitions:Admin:CircularAny";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularAnyDefinition());
+
+            key = "prettygoat:definitions:Admin:CircularB";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularBDefinition());
+        });
+        it("should register them correctly", () => {
+            expect(() => {
+                subject.add(MockProjectionCircularBDefinition)
+                    .add(MockProjectionCircularADefinition)
+                    .add(MockProjectionCircularAnyDefinition)
+                    .forArea("Admin");
+            }).not.to.throwError();
         });
     });
 
