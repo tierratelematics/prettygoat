@@ -10,6 +10,7 @@ import IObjectContainer from "../bootstrap/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../Dictionary";
+import {IProjection} from "../projections/IProjection";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -44,13 +45,6 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this;
     }
 
-    private getDefinitionFromConstructor<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, area:string, name:string):IProjectionDefinition<T> {
-        const key = `prettygoat:definitions:${area}:${name}`;
-        if (!this.container.contains(key))
-            this.container.set(key, constructor);
-        return this.container.get<IProjectionDefinition<T>>(key);
-    }
-
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
@@ -64,7 +58,28 @@ class ProjectionRegistry implements IProjectionRegistry {
         let areaRegistry = new AreaRegistry(area, entries);
         this.registry.push(areaRegistry);
         this.unregisteredEntries = [];
+        let duplicatedEntry = this.duplicatedEntriesExist();
+        if (duplicatedEntry) throw new Error(`A projection with name ${duplicatedEntry} is already registered`);
         return areaRegistry;
+    }
+
+    private getDefinitionFromConstructor<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, area:string, name:string):IProjectionDefinition<T> {
+        const key = `prettygoat:definitions:${area}:${name}`;
+        if (!this.container.contains(key))
+            this.container.set(key, constructor);
+        return this.container.get<IProjectionDefinition<T>>(key);
+    }
+
+    private duplicatedEntriesExist():string {
+        let entries = _(this.getAreas())
+            .map((areaRegistry:AreaRegistry) => areaRegistry.entries)
+            .concat()
+            .flatten()
+            .valueOf();
+        let duplicates = <RegistryEntry<any>[]>_.filter(entries, (entry:RegistryEntry<any>, i, iteratee) => {
+            return _.find(iteratee, (innerEntry:RegistryEntry<any>) => entry.projection.name === innerEntry.projection.name);
+        });
+        return duplicates.length < 2 ? null : duplicates[0].projection.name;
     }
 
     getAreas():AreaRegistry[] {
