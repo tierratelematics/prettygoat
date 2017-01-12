@@ -19,7 +19,7 @@ import ReservedEvents from "../streams/ReservedEvents";
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state: T|Dictionary<T>;
     public stats = new ProjectionStats();
-    protected status: ProjectionRunnerStatus;
+    public status: ProjectionRunnerStatus;
     protected streamId: string;
     protected subject: Subject<Event>;
     protected subscription: Rx.IDisposable;

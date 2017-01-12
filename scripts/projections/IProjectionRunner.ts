@@ -8,6 +8,7 @@ import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 interface IProjectionRunner<T> extends IDisposable {
     state:T|Dictionary<T>;
     stats:ProjectionStats;
+    status:ProjectionRunnerStatus;
     run(snapshot?:Snapshot<T|Dictionary<T>>):void;
     stop():void;
     pause():void;
