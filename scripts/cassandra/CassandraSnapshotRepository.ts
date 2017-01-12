@@ -32,12 +32,12 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                     if (snapshots[0].split) {
                         let memento = _(snapshots)
                             .keyBy(snapshot => snapshot.split)
-                            .mapValues(snapshot => JSON.parse(this.replaceQuotes(snapshot["system.blobastext(memento)"])))
+                            .mapValues((snapshot:CassandraSnapshot) => JSON.parse(this.replaceQuotes(snapshot.memento)))
                             .valueOf();
                         return new Snapshot(memento, new Date(snapshots[0].lastevent));
                     } else {
                         let snapshot = snapshots[0];
-                        return new Snapshot(JSON.parse(this.replaceQuotes(snapshot["system.blobastext(memento)"])), new Date(snapshot.lastevent));
+                        return new Snapshot(JSON.parse(this.replaceQuotes(snapshot.memento)), new Date(snapshot.lastevent));
                     }
                 })
                 .valueOf());
