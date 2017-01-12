@@ -5,9 +5,9 @@ import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
 import MockEventsFilter from "./fixtures/MockEventsFilter";
 import TimePartitioner from "../scripts/util/TimePartitioner";
-import MockCassandraDeserializer from "./fixtures/MockCassandraDeserializer";
+import MockCassandraDeserializer from "./fixtures/cassandra/MockCassandraDeserializer";
 import ICassandraClient from "../scripts/cassandra/ICassandraClient";
-import MockCassandraClient from "./fixtures/MockCassandraClient";
+import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
 

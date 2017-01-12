@@ -1,4 +1,4 @@
-import ICassandraClient from "../../scripts/cassandra/ICassandraClient";
+import ICassandraClient from "../../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
 
 export default class MockCassandraClient implements ICassandraClient {

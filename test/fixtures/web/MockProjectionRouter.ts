@@ -1,4 +1,4 @@
-import IProjectionRouter from "../../scripts/routing/IProjectionRouter";
+import IProjectionRouter from "../../../scripts/routing/IProjectionRouter";
 import {IRouterMatcher} from "express";
 import {RequestHandler} from "express";
 

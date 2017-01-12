@@ -11,7 +11,7 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockStatePublisher from "./fixtures/MockStatePublisher";
+import MockStatePublisher from "./fixtures/web/MockStatePublisher";
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
