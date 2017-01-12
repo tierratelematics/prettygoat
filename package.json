@@ -1,6 +1,6 @@
 {
   "name": "prettygoat",
-  "version": "0.19.2",
+  "version": "0.19.5",
   "devDependencies": {
     "@types/expect.js": "~0.3.29",
     "@types/lolex": "~1.5.30",

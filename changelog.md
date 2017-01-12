@@ -1,6 +1,6 @@
-#0.19.2
+#0.19.5 - 0.19.2
 
-fix single quotes escape on snapshot save
+various fixes for snapshot save with single quotes
 
 #0.19.0
 
