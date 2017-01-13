@@ -1,16 +1,17 @@
+import ICluster from "./ICluster";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
-class Cluster {
+class Cluster implements ICluster {
     name = "";
     size = 0;
     basePort = 0;
     bootstrapNodes: string[] = [];
 
     constructor(options) {
-        this.name = opts.name;
-        this.size = opts.size;
-        this.basePort = opts.basePort;
+        this.name = options.name;
+        this.size = options.size;
+        this.basePort = options.basePort;
         this.bootstrapNodes = [];
         for (let i = 0; i < this.size; i++) {
             this.bootstrapNodes.push('127.0.0.1:' + (this.basePort + i));
@@ -18,7 +19,7 @@ class Cluster {
     }
 
     launch(callback: Function) {
-        let done = after(self.size, callback);
+        let done = after(this.size, callback);
 
         for (let i = 0; i < this.size; i++) {
             let addr = this.bootstrapNodes[i];
