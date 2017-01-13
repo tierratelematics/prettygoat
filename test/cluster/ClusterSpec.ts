@@ -20,6 +20,8 @@ import MockStatePublisher from "../fixtures/web/MockStatePublisher";
 import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import MockProjectionRegistry from "../fixtures/MockProjectionRegistry";
 import MockProjectionRunnerFactory from "../fixtures/MockProjectionRunnerFactory";
+import {Event} from "../../scripts/streams/Event";
+import * as TypeMoq from "typemoq";
 
 describe("Given a set of nodes", () => {
     let subject: IProjectionEngine,
@@ -53,8 +55,9 @@ describe("Given a set of nodes", () => {
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
-        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, null, projectionSorter.object);
     });
+
     context("when the cluster starts", () => {
         it("should run the projections that match", () => {
 
