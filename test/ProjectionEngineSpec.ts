@@ -4,9 +4,6 @@ import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import PushNotifier from "../scripts/push/PushNotifier";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
@@ -28,6 +25,9 @@ import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
+import MockPushNotifier from "./fixtures/web/MockPushNotifier";
+import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
+import MockProjectionRunnerFactory from "./fixtures/MockProjectionRunnerFactory";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -50,11 +50,11 @@ describe("Given a ProjectionEngine", () => {
         dataSubject = new Subject<Event>();
         runner = TypeMoq.Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
-        pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
+        pushNotifier = TypeMoq.Mock.ofType(MockPushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
-        runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
+        runnerFactory = TypeMoq.Mock.ofType(MockProjectionRunnerFactory);
         runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner.object);
-        registry = TypeMoq.Mock.ofType(ProjectionRegistry);
+        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         registry.setup(r => r.getAreas()).returns(a => {
             return [
                 new AreaRegistry("Admin", [
