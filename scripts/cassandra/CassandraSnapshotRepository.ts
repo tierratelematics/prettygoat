@@ -45,7 +45,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
 
     private replaceQuotes(text:string):string {
         if (!_.isString(text)) return text;
-        return text ? text.replace(/''/g, "'"): "{}";
+        return text && text !== 'undefined' ? text.replace(/''/g, "'"): null;
     }
 
     saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
@@ -63,7 +63,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     }
 
     private escapeQuotes(text:string):string {
-        return !text ? text: text.replace(/'/g, "''");
+        return text ? text.replace(/'/g, "''"): null;
     }
 
     deleteSnapshot(streamId:string):void {
