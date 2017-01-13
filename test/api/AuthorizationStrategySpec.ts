@@ -2,22 +2,22 @@ import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
-import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
+import AuthorizationStrategy from "../../scripts/api/ApiKeyAuthorizationStrategy";
 import * as TypeMoq from "typemoq";
 import MockRequest from "../fixtures/express/MockRequest";
-import IAuthorizationConfig from "../../scripts/configs/IApiKeyConfig";
+import IApiKeyConfig from "../../scripts/configs/IApiKeyConfig";
 
 
 describe("Given an Authorization Strategy", () => {
-    let tokenCollection: IAuthorizationConfig,
+    let config: IApiKeyConfig,
         request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
         subject: IAuthorizationStrategy;
 
     beforeEach(
         () => {
-            tokenCollection = ["6RSL11DR1OCFJ7P", "7toYUi5wtVFgrsr"];
+            config = ["6RSL11DR1OCFJ7P", "7toYUi5wtVFgrsr"];
             request = TypeMoq.Mock.ofType(MockRequest);
-            subject = new AuthorizationStrategy(tokenCollection);
+            subject = new AuthorizationStrategy(config);
         }
     );
 
