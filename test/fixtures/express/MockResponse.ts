@@ -6,7 +6,7 @@ import * as net from "net";
 
 class MockResponse{
     
-    send: express.Send = function (body: any): express.Response {
+    send: express.Send = function (body?: any): express.Response {
         return this;
     };
 
@@ -37,6 +37,9 @@ class MockResponse{
         return null;
     }
 
+    end(): void{
+
+    }
 }
 
 export default MockResponse;

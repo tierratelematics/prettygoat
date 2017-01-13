@@ -6,6 +6,10 @@ import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
+import {ISubject} from "rx";
+import TickScheduler from "../ticks/TickScheduler";
+import IProjectionSorter from "../projections/IProjectionSorter";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -14,10 +18,18 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
 
     eventsCounter = 0;
 
-    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
+                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>,
+                @inject("IProjectionSorter") private projectionSorter: IProjectionSorter,
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
-    define(): IProjection<any> {
+    define(tickScheduler:TickScheduler): IProjection<any> {
+
+        this.projectionStatuses.subscribe(t => {
+            tickScheduler.schedule(1);
+        });
+
         return {
             name: "__diagnostic:Size",
             definition: {
@@ -26,7 +38,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                 },
                 $any: (state, payload, event) => {
                     this.eventsCounter++;
-                    if (this.eventsCounter % 200 === 0)
+                    if (this.eventsCounter % 200 === 0 || event.type=='Tick')
                         return this.getProjectionsData();
                     return state;
                 }
@@ -38,9 +50,10 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
         let totalSize = 0;
         let processedEvents = 0;
         let processedReadModels = 0;
-        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key) => {
+        let projections = _.mapValues(this.holder, (runner: IProjectionRunner<any>, key:string) => {
             let data;
             if (!_.startsWith(key, "__diagnostic")) {
+                let projection:IProjection<any> = this.registry.getEntry(key,null).data.projection;
                 let size = sizeof(runner.state);
                 totalSize += size;
                 processedEvents += runner.stats.events;
@@ -48,7 +61,9 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                 data = {
                     size: humanize.filesize(size),
                     events: runner.stats.events,
-                    readModels: runner.stats.readModels
+                    readModels: runner.stats.readModels,
+                    dependencies: this.projectionSorter.sort(projection),
+                    status: runner.status
                 };
                 if (runner instanceof SplitProjectionRunner) {
                     _.assign(data, {

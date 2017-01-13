@@ -5,6 +5,7 @@ export {default as CountSnapshotStrategy} from "./snapshots/CountSnapshotStrateg
 export {default as FilterOutputType} from "./filters/FilterOutputType";
 export {default as LogLevel} from "./log/LogLevel";
 export {default as ConsoleLogger} from "./log/ConsoleLogger";
+export {ProjectionRunnerStatus} from "./projections/ProjectionRunnerStatus";
 export {default as NullLogger} from "./log/NullLogger";
 export {FeatureToggle} from "bivio";
 export {IFeatureChecker} from "bivio";

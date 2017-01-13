@@ -1,3 +1,9 @@
+#0.20.0
+
+check for projections with same name
+add authorization for apis
+fix snapshots retrieve with undefined strings
+
 #0.19.5 - 0.19.2
 
 various fixes for snapshot save with single quotes

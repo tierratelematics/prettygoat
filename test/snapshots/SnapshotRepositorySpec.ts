@@ -80,6 +80,26 @@ describe("Snapshot repository, given all the streams", () => {
                 "list": new Snapshot("'", new Date(7393898))
             });
         });
+
+        it("should handle correctly undefined values", () => {
+            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+                rows: [
+                    {
+                        'system.blobastext(memento)': 'undefined',
+                        streamid: 'Asset:Detail',
+                        lastevent: 7393898,
+                        split: '6654'
+                    }
+                ]
+            }));
+            let snapshots = null;
+            subject.getSnapshots().subscribe(value => {
+                snapshots = value;
+            });
+            expect(snapshots).to.eql({
+                "Asset:Detail": new Snapshot({"6654": null}, new Date(7393898))
+            });
+        });
     });
 
     context("when a snapshot needs to be saved", () => {
@@ -108,15 +128,11 @@ describe("Snapshot repository, given all the streams", () => {
                     `'', '${snapshot.lastEvent}', textAsBlob('{"a":"''''"}'))`), TypeMoq.Times.once());
             });
             it("should handle correctly a snapshot with an undefined value", () => {
-                let snapshotUndefined = new Snapshot(undefined, new Date(500)),
-                    snapshotNull = new Snapshot(null, new Date(500));
+                let snapshotUndefined = new Snapshot(undefined, new Date(500));
                 subject.saveSnapshot("test", snapshotUndefined);
-                subject.saveSnapshot("test", snapshotNull);
 
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
                     `'', '${snapshotUndefined.lastEvent}', textAsBlob('null'))`), TypeMoq.Times.once());
-                cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
-                    `'', '${snapshotNull.lastEvent}', textAsBlob('undefined'))`), TypeMoq.Times.once());
             });
         });
 

@@ -8,10 +8,14 @@ import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import MockResponse from "../fixtures/express/MockResponse";
 import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
+import {ISubject, Subject} from "rx";
+import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
+        subjectProjectionStatus: ISubject<void>,
+        notifications: string[],
         request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
         response: TypeMoq.Mock<any>,
         subject: ProjectionsManagerController;
@@ -19,18 +23,25 @@ describe("Given a ProjectionsController and a projection name", () => {
     beforeEach(
         () => {
             holder = {};
+            subjectProjectionStatus = new Subject<void>();
+            notifications = [];
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder["nameProjection"] = projectionRunner.object;
             request = TypeMoq.Mock.ofType(MockRequest);
             response = TypeMoq.Mock.ofType(MockResponse);
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-            subject = new ProjectionsManagerController(holder);
+            subject = new ProjectionsManagerController(holder, subjectProjectionStatus);
+
+            subjectProjectionStatus.subscribe(() => {
+                notifications.push("");
+            });
         }
     );
 
+
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            request.object.body = {name: "errorProjection"};
+            request.object.body = {payload: {name: "errorProjection"}};
         });
 
         it("should trigger an error", () => {
@@ -42,12 +53,13 @@ describe("Given a ProjectionsController and a projection name", () => {
             projectionRunner.verify(s => s.pause(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
             projectionRunner.verify(s => s.resume(), TypeMoq.Times.never());
+            expect(notifications).to.have.length(0);
         });
     });
 
     context("when there is a projection with that name ", () => {
         beforeEach(() => {
-            request.object.body = {name: "nameProjection"};
+            request.object.body = {payload: {name: "nameProjection"}};
         });
 
         context("and a stop command is sent", () => {
@@ -60,6 +72,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(0);
                 });
             });
 
@@ -68,6 +81,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.stop(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(1);
                 });
 
             });
@@ -83,6 +97,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(0);
                 });
             });
 
@@ -91,6 +106,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.resume(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(1);
                 });
 
             });
@@ -107,14 +123,16 @@ describe("Given a ProjectionsController and a projection name", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(0);
                 });
             });
 
             context("and the projection is started", () => {
-                it("should stop it", () => {
+                it("should pause it", () => {
                     subject.pause(request.object, response.object);
                     response.verify(s => s.status(400), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
+                    expect(notifications).to.have.length(1);
                 });
 
             });
@@ -122,5 +140,4 @@ describe("Given a ProjectionsController and a projection name", () => {
         });
 
     });
-
 });

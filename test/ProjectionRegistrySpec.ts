@@ -14,13 +14,17 @@ import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/Dictionary";
+import {
+    MockProjectionCircularADefinition,
+    MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
+} from "./fixtures/definitions/MockProjectionCircularDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
-    let subject:IProjectionRegistry,
-        objectContainer:TypeMoq.Mock<IObjectContainer>,
-        tickScheduler:ITickScheduler,
-        holder:Dictionary<ITickScheduler>;
+    let subject: IProjectionRegistry,
+        objectContainer: TypeMoq.Mock<IObjectContainer>,
+        tickScheduler: ITickScheduler,
+        holder: Dictionary<ITickScheduler>;
 
     beforeEach(() => {
         let analyzer = new ProjectionAnalyzer();
@@ -53,10 +57,10 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(holder["test"]).to.be(tickScheduler);
         });
 
-        function setUpTickScheduler():TypeMoq.Mock<IProjectionDefinition<number>> {
+        function setUpTickScheduler(): TypeMoq.Mock<IProjectionDefinition<number>> {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
-            let projectionDefinition:TypeMoq.Mock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
+            let projectionDefinition: TypeMoq.Mock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
             objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
             projectionDefinition.setup(p => p.define(TypeMoq.It.isValue(tickScheduler))).returns(a => {
                 return {name: "test", definition: {}};
@@ -85,6 +89,43 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
         it("should throw an error", () => {
             expect(() => subject.add(MockBadProjectionDefinition).forArea("Test")).to.throwError();
+        });
+    });
+
+    context("when a projection with that name already exists", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:Mock";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+        });
+        it("should throw an error", () => {
+            expect(() => {
+                subject.add(MockProjectionDefinition).add(MockProjectionDefinition).forArea("Admin");
+            }).to.throwError();
+        });
+    });
+
+    context("when multiple projections are registered with different names", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:CircularA";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularADefinition());
+
+            key = "prettygoat:definitions:Admin:CircularAny";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularAnyDefinition());
+
+            key = "prettygoat:definitions:Admin:CircularB";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularBDefinition());
+        });
+        it("should register them correctly", () => {
+            expect(() => {
+                subject.add(MockProjectionCircularBDefinition)
+                    .add(MockProjectionCircularADefinition)
+                    .add(MockProjectionCircularAnyDefinition)
+                    .forArea("Admin");
+            }).not.to.throwError();
         });
     });
 
