@@ -13,40 +13,33 @@ import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
-import IProjectionRunner from "./IProjectionRunner";
+import Dictionary from "../Dictionary";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
 
-    constructor(@inject("IProjectionRunnerFactory") private runnerFactory:IProjectionRunnerFactory,
-                @inject("IPushNotifier") private pushNotifier:IPushNotifier,
-                @inject("IProjectionRegistry") private registry:IProjectionRegistry,
-                @inject("IStatePublisher") private statePublisher:IStatePublisher,
-                @inject("ISnapshotRepository") private snapshotRepository:ISnapshotRepository,
-                @inject("ILogger") private logger:ILogger = NullLogger,
-                @inject("IProjectionSorter") private sorter:IProjectionSorter) {
+    snapshots: Dictionary<Snapshot<any>>;
+
+    constructor(@inject("IProjectionRunnerFactory") private runnerFactory: IProjectionRunnerFactory,
+                @inject("IPushNotifier") private pushNotifier: IPushNotifier,
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry,
+                @inject("IStatePublisher") private statePublisher: IStatePublisher,
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
+                @inject("ILogger") private logger: ILogger = NullLogger,
+                @inject("IProjectionSorter") private sorter: IProjectionSorter) {
     }
 
-    run(projection?:IProjection<any>) {
-        this.sorter.sort();
-        this.snapshotRepository.initialize().subscribe(() => this.restart(projection));
+    run(projection?: IProjection<any>, context?: PushContext) {
+        if (!projection) {
+            this.sorter.sort();
+            this.snapshotRepository.initialize().subscribe(() => this.restart(projection));
+        } else {
+            this.createProjection(projection, context);
+        }
     }
 
-    restart(projection?:IProjection<any>) {
-        this.snapshotRepository.getSnapshots().subscribe(snapshots => {
-            let areas = this.registry.getAreas();
-            _.forEach<AreaRegistry>(areas, areaRegistry => {
-                _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry:RegistryEntry<any>) => {
-                    let runner = this.createProjectionRunner(entry.projection, entry.name, areaRegistry.area);
-                    runner.run(snapshots[entry.projection.name]);
-                });
-            });
-        });
-    }
-
-    private createProjectionRunner<T>(projection:IProjection<T>, exposedName:string, area?:string):IProjectionRunner<T> {
-        let runner = this.runnerFactory.create(projection),
-            context = new PushContext(area, exposedName);
+    private createProjection(projection: IProjection<any>, context: PushContext) {
+        let runner = this.runnerFactory.create(projection);
 
         runner
             .notifications()
@@ -64,8 +57,19 @@ class ProjectionEngine implements IProjectionEngine {
             }, error => this.logger.error(error));
 
         this.statePublisher.publish(runner, context);
+        runner.run(this.snapshots[projection.name]);
+    }
 
-        return runner;
+    restart(projection?: IProjection<any>, context?: PushContext) {
+        this.snapshotRepository.getSnapshots().subscribe(snapshots => {
+            this.snapshots = snapshots;
+            let areas = this.registry.getAreas();
+            _.forEach<AreaRegistry>(areas, areaRegistry => {
+                _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
+                    this.createProjection(entry.projection, new PushContext(entry.name, areaRegistry.area));
+                });
+            });
+        });
     }
 }
 
