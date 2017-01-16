@@ -12,13 +12,14 @@ export let server = null;
 
 export function createServer(container:interfaces.Container) {
     if(!app) {
+        let authorizeStrategy = container.get<IAuthorizationStrategy>("IAuthorizationStrategy");
         app = new InversifyExpressServer(container)
             .setConfig((app) => {
                 app.use(bodyParser.urlencoded({extended: true}))
                     .use(bodyParser.json())
                     .use(cors())
                     .use('/api', (request: Request, response: Response, next: NextFunction) => {
-                        container.get<IAuthorizationStrategy>("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
+                        authorizeStrategy.authorize(request).then((authorized: boolean) => {
                             if (!authorized)
                                 response.status(401).json({"error": "Not Authorized"});
                             else
