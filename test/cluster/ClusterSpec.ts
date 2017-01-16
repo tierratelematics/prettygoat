@@ -5,26 +5,23 @@ import {IProjection} from "../../scripts/projections/IProjection";
 import {Subject, Observable} from "rx";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
-import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
-import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import AreaRegistry from "../../scripts/registry/AreaRegistry";
 import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import MockProjectionRegistry from "../fixtures/MockProjectionRegistry";
-import {Event} from "../../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
 import DynamicNameProjection from "../fixtures/definitions/DynamicNameProjection";
 import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
-import IProjectionEngine from "../../scripts/projections/IProjectionEngine";
 import ClusteredProjectionEngine from "../../scripts/cluster/ClusteredProjectionEngine";
+import {Scheduler} from "rx";
+import Dictionary from "../../scripts/Dictionary";
+import MockProjectionEngine from "../fixtures/MockProjectionEngine";
 
 describe("Given a set of nodes", () => {
     let subject: IProjectionEngine,
         registry: TypeMoq.Mock<IProjectionRegistry>,
         snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
-        dataSubject: Subject<Event>,
         projection1: IProjection<any>,
         projection2: IProjection<any>,
         cluster: TypeMoq.Mock<ICluster>,
@@ -48,9 +45,9 @@ describe("Given a set of nodes", () => {
         snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         cluster = TypeMoq.Mock.ofType(MockCluster);
         cluster.setup(c => c.whoami()).returns(() => "my-address");
-        subject = new ClusteredProjectionEngine(engine.subject);
+        engine = TypeMoq.Mock.ofType(MockProjectionEngine);
+        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, {});
     });
-
     context("when the cluster starts", () => {
         beforeEach(() => {
             cluster.setup(c => c.lookup("projection1")).returns(() => "not-my-ip");
@@ -58,19 +55,8 @@ describe("Given a set of nodes", () => {
         });
         it("should run the projections that match", () => {
             subject.run();
-            engine.verify(e => e.run(TypeMoq.It.isValue(projection1)), TypeMoq.Times.never());
-            engine.verify(e => e.run(TypeMoq.It.isValue(projection2)), TypeMoq.Times.once());
-        });
-    });
-
-    context("when a projection running on a node dies", () => {
-        beforeEach(() => {
-            cluster.setup(c => c.lookup("projection2")).returns(() => "my-ip");
-            subject.run();
-            dataSubject.onError(new Error("Booom!"));
-        });
-        it("should restart the projection", () => {
-            runnerFactory.verify(r => r.create(TypeMoq.It.isValue(projection2)), TypeMoq.Times.exactly(2));
+            engine.verify(e => e.run(TypeMoq.It.isValue(projection1), TypeMoq.It.isAny()), TypeMoq.Times.never());
+            engine.verify(e => e.run(TypeMoq.It.isValue(projection2), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
     });
 });

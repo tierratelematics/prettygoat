@@ -118,6 +118,16 @@ describe("Given a ProjectionEngine", () => {
         });
     });
 
+    context("when a running projection dies", () => {
+        beforeEach(() => {
+            subject.run();
+            dataSubject.onError(new Error("Booom!"));
+        });
+        it("should restart the projection", () => {
+            runnerFactory.verify(r => r.create(TypeMoq.It.isValue(projection)), TypeMoq.Times.exactly(2));
+        });
+    });
+
     context("when a projections triggers a new state", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));

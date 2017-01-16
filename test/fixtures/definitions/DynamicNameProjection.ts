@@ -11,7 +11,8 @@ class DynamicNameProjection implements IProjectionDefinition<any> {
 
     define(): IProjection<any> {
         return {
-            name: this.name
+            name: this.name,
+            definition: {}
         }
     }
 
