@@ -20,7 +20,7 @@ export function createServer(container:interfaces.Container) {
                     .use('/api', (request: Request, response: Response, next: NextFunction) => {
                         container.get<IAuthorizationStrategy>("IAuthorizationStrategy").authorize(request).then((authorized: boolean) => {
                             if (!authorized)
-                                response.status(405).json({"error": "Not Authorized"});
+                                response.status(401).json({"error": "Not Authorized"});
                             else
                                 next();
                         });
