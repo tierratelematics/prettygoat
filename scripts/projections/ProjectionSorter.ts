@@ -16,18 +16,20 @@ class ProjectionSorter implements IProjectionSorter {
 
     sort(projection?: IProjection<any>): string[] {
         this.graph = [];
-
-        if (projection){
-            this.edgesOf(projection);
-            return _(toposort(this.graph)).filter(p => p!=projection.name).valueOf();
-        }
-        else{
-            this.initialize();
-            return toposort(this.graph);
-        }
+        return (projection) ? this.sortOf(projection) : this.globalSort();
     }
 
-    private initialize(): void {
+    private sortOf(projection?: IProjection<any>): string[] {
+        this.edgesOf(projection);
+        return _.filter(toposort(this.graph), (p: string) => p != projection.name);
+    }
+
+    private globalSort(): string[] {
+        this.initializeGraph();
+        return toposort(this.graph);
+    }
+
+    private initializeGraph(): void {
         _.forEach(this.registry.getAreas(), (area: AreaRegistry) => {
             _.forEach(area.entries, (entry: RegistryEntry<any>) => {
                 this.edgesOf(entry.projection);
