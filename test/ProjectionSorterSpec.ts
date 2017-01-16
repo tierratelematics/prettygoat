@@ -81,7 +81,7 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
 
         it("should list dependencies", () => {
             expect(subject.sort(circularBProjection)).to.eql([
-                "CircularB","CircularA"
+                "CircularA"
             ]);
         });
     });

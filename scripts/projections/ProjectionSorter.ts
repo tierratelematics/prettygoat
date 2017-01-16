@@ -17,12 +17,14 @@ class ProjectionSorter implements IProjectionSorter {
     sort(projection?: IProjection<any>): string[] {
         this.graph = [];
 
-        if (projection)
+        if (projection){
             this.edgesOf(projection);
-        else
+            return _(toposort(this.graph)).filter(p => p!=projection.name).valueOf();
+        }
+        else{
             this.initialize();
-
-        return toposort(this.graph);
+            return toposort(this.graph);
+        }
     }
 
     private initialize(): void {
