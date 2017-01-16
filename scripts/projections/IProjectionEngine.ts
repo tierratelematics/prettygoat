@@ -1,5 +1,8 @@
+import {IProjection} from "./IProjection";
+
 interface IProjectionEngine {
-    run():void;
+    run(projection?:IProjection<any>);
+    restart(projection?:IProjection<any>);
 }
 
 export default IProjectionEngine
