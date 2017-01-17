@@ -5,6 +5,8 @@ import IServiceLocator from "../ioc/IServiceLocator";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import ClusteredProjectionEngine from "./ClusteredProjectionEngine";
+import ICluster from "./ICluster";
+import {Cluster} from "cluster";
 
 class ClusterModule implements IModule {
 
@@ -12,6 +14,7 @@ class ClusterModule implements IModule {
         container.unbind("IProjectionEngine");
         container.bind<IProjectionEngine>("ProjectionEngine").to(ProjectionEngine).inSingletonScope().whenInjectedInto(ClusteredProjectionEngine);
         container.bind<IProjectionEngine>("IProjectionEngine").to(ClusteredProjectionEngine).inSingletonScope();
+        container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
     }
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

@@ -3,7 +3,7 @@ import {inject, injectable} from "inversify";
 import {IProjection} from "../projections/IProjection";
 import PushContext from "../push/PushContext";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";

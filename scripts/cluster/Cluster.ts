@@ -1,62 +1,60 @@
 import ICluster from "./ICluster";
+import {inject, injectable, optional} from "inversify";
+import ClusterMessage from "./ClusterMessage";
+import {Observable, Disposable} from "rx";
+import {EmbeddedClusterConfig} from "./ClusterConfig";
+import {ServerResponse} from "http";
+import {ClientRequest} from "http";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
+@injectable()
 class Cluster implements ICluster {
-    name = "";
-    size = 0;
-    basePort = 0;
-    bootstrapNodes: string[] = [];
 
-    constructor(options) {
-        this.name = options.name;
-        this.size = options.size;
-        this.basePort = options.basePort;
-        this.bootstrapNodes = [];
-        for (let i = 0; i < this.size; i++) {
-            this.bootstrapNodes.push('127.0.0.1:' + (this.basePort + i));
-        }
+    ringpop: any;
+
+    constructor(@inject("IClusterConfig") @optional private clusterConfig = new EmbeddedClusterConfig()) {
+
     }
 
-    launch(callback: Function) {
-        let done = after(this.size, callback);
 
-        for (let i = 0; i < this.size; i++) {
-            let addr = this.bootstrapNodes[i];
-            let addrParts = addr.split(':');
-
+    startup(): Observable<void> {
+        return Observable.create(observer => {
             let tchannel = new TChannel();
-            let ringpop = new Ringpop({
-                app: this.name,
-                hostPort: addr,
+            this.ringpop = new Ringpop({
+                app: "ringpop",
+                hostPort: `${this.clusterConfig.host}:${this.clusterConfig.port}`,
                 channel: tchannel.makeSubChannel({
                     serviceName: 'ringpop',
                     trace: false
                 })
             });
             ringpop.setupChannel();
-
-            // First make sure TChannel is accepting connections.
-            tchannel.listen(+addrParts[1], addrParts[0], () => ringpop.bootstrap(this.bootstrapNodes, done));
-        }
+            tchannel.listen(this.clusterConfig.port, this.clusterConfig.host, () => {
+                ringpop.bootstrap(this.clusterConfig.nodes, () => {
+                    observer.onNext(null);
+                    observer.onCompleted();
+                });
+            });
+            return Disposable.empty();
+        });
     }
-}
 
-function after(count, callback) {
-    let countdown = count;
+    whoami(): string {
+        return this.ringpop.whoami();
+    }
 
-    return function shim(err) {
-        if (typeof callback !== 'function') return;
+    lookup(key: string): string {
+        return this.ringpop.lookup(key);
+    }
 
-        if (err) {
-            callback(err);
-            callback = null;
-            return;
-        }
+    handleOrProxy(key: string, request: ClientRequest, response: ServerResponse): boolean {
+        return this.ringpop.handleOrProxy(key, request, response);
+    }
 
-        if (--countdown === 0) {
-            callback();
-            callback = null;
-        }
-    };
+    requests(): Observable<ClusterMessage> {
+        return Observable.fromEvent(this.ringpop, 'request', (request, response) => {
+            return {request: request, response: response};
+        });
+    }
 }
