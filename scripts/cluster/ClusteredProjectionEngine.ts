@@ -11,6 +11,7 @@ import RegistryEntry from "../registry/RegistryEntry";
 import AreaRegistry from "../registry/AreaRegistry";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ICluster from "./ICluster";
+import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
 
 @injectable()
 class ClusteredProjectionEngine implements IProjectionEngine {
@@ -35,9 +36,14 @@ class ClusteredProjectionEngine implements IProjectionEngine {
                     let areas = this.registry.getAreas();
                     _.forEach<AreaRegistry>(areas, areaRegistry => {
                         _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                            let projection = entry.projection;
-                            if (this.cluster.lookup(projection.name) === this.cluster.whoami())
-                                this.engine.run(projection, new PushContext(entry.name, areaRegistry.area));
+                            let projection = entry.projection,
+                                runner = this.holder[projection.name];
+                            if (this.cluster.lookup(projection.name) === this.cluster.whoami()) {
+                                if (!runner || (runner && runner.status !== ProjectionRunnerStatus.Run))
+                                    this.engine.run(projection, new PushContext(entry.name, areaRegistry.area));
+                            } else if (runner) {
+                                runner.stop();
+                            }
                         });
                     });
                 });

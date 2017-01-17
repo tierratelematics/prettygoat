@@ -63,6 +63,8 @@ describe("Given a set of projections to redistribute", () => {
         cluster = TypeMoq.Mock.ofType(MockCluster);
         cluster.setup(c => c.whoami()).returns(() => "my-ip");
         engine = TypeMoq.Mock.ofType(MockProjectionEngine);
+        engine.setup(e => e.run(TypeMoq.It.isValue(projection1), TypeMoq.It.isAny()));
+        engine.setup(e => e.run(TypeMoq.It.isValue(projection2), TypeMoq.It.isAny()));
         subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, holder, cluster.object);
     });
 
@@ -70,22 +72,23 @@ describe("Given a set of projections to redistribute", () => {
         beforeEach(() => {
             cluster.setup(c => c.lookup("projection1")).returns(() => "not-my-ip");
             cluster.setup(c => c.lookup("projection2")).returns(() => "my-ip");
-            subject.run();
         });
         context("and it was already running", () => {
             beforeEach(() => {
-                holder["projection1"].status = ProjectionRunnerStatus.Run;
+                holder["projection2"].status = ProjectionRunnerStatus.Run;
             });
             it("should keep it like that", () => {
-                runner1.verify(r => r.run(), TypeMoq.Times.never());
+                subject.run();
+                engine.verify(e => e.run(TypeMoq.It.isValue(projection2), TypeMoq.It.isAny()), TypeMoq.Times.never());
             });
         });
         context("and it was not running", () => {
             beforeEach(() => {
-                holder["projection1"].status = null;
+                holder["projection2"].status = null;
             });
             it("should run that projection", () => {
-                runner1.verify(r => r.run(), TypeMoq.Times.once());
+                subject.run();
+                engine.verify(e => e.run(TypeMoq.It.isValue(projection2), TypeMoq.It.isAny()), TypeMoq.Times.once());
             });
         });
     });
