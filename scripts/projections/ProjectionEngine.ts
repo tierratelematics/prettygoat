@@ -26,12 +26,25 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionSorter") private sorter: IProjectionSorter) {
     }
 
-    run(projection?: IProjection<any>, context?: PushContext, snapshot?: Snapshot<any>) {
-        if (!projection) {
-            this.sorter.sort();
-            this.snapshotRepository.initialize().subscribe(() => this.restart(projection));
+    run(projection?: IProjection<any>, context?: PushContext) {
+        if (projection) {
+            this.snapshotRepository.getSnapshot(projection.name).subscribe(snapshot => {
+                this.runSingleProjection(projection, context, snapshot);
+            });
         } else {
-            this.runSingleProjection(projection, context, snapshot);
+            this.sorter.sort();
+            this.snapshotRepository
+                .initialize()
+                .flatMap(() => this.snapshotRepository.getSnapshots())
+                .subscribe(snapshots => {
+                    let areas = this.registry.getAreas();
+                    _.forEach<AreaRegistry>(areas, areaRegistry => {
+                        _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
+                            let projection = entry.projection;
+                            this.runSingleProjection(projection, new PushContext(entry.name, areaRegistry.area), snapshots[projection.name]);
+                        });
+                    });
+                });
         }
     }
 
@@ -53,30 +66,14 @@ class ProjectionEngine implements IProjectionEngine {
             this.pushNotifier.notify(context, null, state.splitKey);
             this.logger.info(`Notifying state change on ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
         }, error => {
+            subscription.dispose();
             this.logger.error(error);
             this.logger.info(`Restarting projection due to error ${projection.name}`);
-            this.restart(projection, context);
-        });
-
-        sequence.finally(() => {
-            console.log('finally');
-            subscription.dispose()
+            this.run(projection, context);
         });
 
         this.statePublisher.publish(runner, context);
         runner.run(snapshot);
-    }
-
-    restart(projection?: IProjection<any>, context?: PushContext, snapshot?: Snapshot<any>) {
-        this.snapshotRepository.getSnapshots().subscribe(snapshots => {
-            let areas = this.registry.getAreas();
-            _.forEach<AreaRegistry>(areas, areaRegistry => {
-                _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                    let projection = entry.projection;
-                    this.runSingleProjection(projection, new PushContext(entry.name, areaRegistry.area), snapshots[projection.name]);
-                });
-            });
-        });
     }
 }
 

@@ -43,6 +43,10 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                 .valueOf());
     }
 
+    getSnapshot<T>(streamId: string): Rx.Observable<Snapshot<T>> {
+        return this.getSnapshots().map(snapshots => snapshots[streamId]);
+    }
+
     private replaceQuotes(text:string):string {
         if (!_.isString(text)) return text;
         return text ? text.replace(/''/g, "'"): "{}";
