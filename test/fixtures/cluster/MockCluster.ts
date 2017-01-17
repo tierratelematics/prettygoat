@@ -1,8 +1,10 @@
 import ICluster from "../../../scripts/cluster/ICluster";
+import ClusterMessage from "../../../scripts/cluster/ClusterMessage";
+import {Observable} from "rx";
 
 class MockCluster implements ICluster {
 
-    startup(): Rx.Observable<void> {
+    startup(): Observable<void> {
         return undefined;
     }
 
@@ -17,6 +19,9 @@ class MockCluster implements ICluster {
     handleOrForward(key) {
     }
 
+    requests(): Observable<ClusterMessage> {
+        return undefined;
+    }
 }
 
 export default MockCluster
