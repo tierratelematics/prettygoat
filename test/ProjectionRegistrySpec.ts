@@ -9,7 +9,7 @@ import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectio
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import MockObjectContainer from "./fixtures/MockObjectContainer";
-import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
+import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";

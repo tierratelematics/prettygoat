@@ -1,7 +1,7 @@
 import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import IServiceLocator from "../bootstrap/IServiceLocator";
+import IServiceLocator from "../ioc/IServiceLocator";
 import {interfaces as expressInterfaces, TYPE} from 'inversify-express-utils';
 import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import SnapshotManagerController from "./SnapshotManagerController";

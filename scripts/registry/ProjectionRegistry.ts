@@ -6,7 +6,7 @@ import Constants from "./Constants";
 import {injectable, inject} from "inversify";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import {interfaces} from "inversify";
-import IObjectContainer from "../bootstrap/IObjectContainer";
+import IObjectContainer from "../ioc/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../Dictionary";
