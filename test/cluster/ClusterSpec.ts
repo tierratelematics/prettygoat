@@ -17,6 +17,8 @@ import ClusteredProjectionEngine from "../../scripts/cluster/ClusteredProjection
 import {Scheduler} from "rx";
 import Dictionary from "../../scripts/Dictionary";
 import MockProjectionEngine from "../fixtures/MockProjectionEngine";
+import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
+import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
 
 describe("Given a set of nodes", () => {
     let subject: IProjectionEngine,
@@ -25,7 +27,8 @@ describe("Given a set of nodes", () => {
         projection1: IProjection<any>,
         projection2: IProjection<any>,
         cluster: TypeMoq.Mock<ICluster>,
-        engine: TypeMoq.Mock<IProjectionEngine>;
+        engine: TypeMoq.Mock<IProjectionEngine>,
+        projectionSorter: TypeMoq.Mock<IProjectionSorter>;
 
     beforeEach(() => {
         projection1 = new DynamicNameProjection("projection1").define();
@@ -39,14 +42,16 @@ describe("Given a set of nodes", () => {
                 ])
             ]
         });
+        projectionSorter = TypeMoq.Mock.ofType(MockProjectionSorter);
+        projectionSorter.setup(s => s.sort()).returns(a => []);
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         cluster = TypeMoq.Mock.ofType(MockCluster);
-        cluster.setup(c => c.whoami()).returns(() => "my-address");
+        cluster.setup(c => c.whoami()).returns(() => "my-ip");
         engine = TypeMoq.Mock.ofType(MockProjectionEngine);
-        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, {});
+        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, {}, cluster.object);
     });
     context("when the cluster starts", () => {
         beforeEach(() => {

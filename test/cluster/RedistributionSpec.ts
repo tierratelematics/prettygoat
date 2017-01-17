@@ -20,6 +20,8 @@ import MockProjectionEngine from "../fixtures/MockProjectionEngine";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
+import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
+import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
 
 describe("Given a set of projections to redistribute", () => {
     let subject: IProjectionEngine,
@@ -30,6 +32,7 @@ describe("Given a set of projections to redistribute", () => {
         runner1: TypeMoq.Mock<IProjectionRunner<any>>,
         runner2: TypeMoq.Mock<IProjectionRunner<any>>,
         cluster: TypeMoq.Mock<ICluster>,
+        projectionSorter: TypeMoq.Mock<IProjectionSorter>,
         engine: TypeMoq.Mock<IProjectionEngine>,
         holder: Dictionary<IProjectionRunner<any>>;
 
@@ -51,21 +54,23 @@ describe("Given a set of projections to redistribute", () => {
                 ])
             ]
         });
+        projectionSorter = TypeMoq.Mock.ofType(MockProjectionSorter);
+        projectionSorter.setup(s => s.sort()).returns(a => []);
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
         cluster = TypeMoq.Mock.ofType(MockCluster);
-        cluster.setup(c => c.whoami()).returns(() => "my-address");
+        cluster.setup(c => c.whoami()).returns(() => "my-ip");
         engine = TypeMoq.Mock.ofType(MockProjectionEngine);
-        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, holder);
+        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, holder, cluster.object);
     });
 
     context("when a projection is assigned to a node", () => {
         beforeEach(() => {
             cluster.setup(c => c.lookup("projection1")).returns(() => "not-my-ip");
             cluster.setup(c => c.lookup("projection2")).returns(() => "my-ip");
-            subject.restart();
+            subject.run();
         });
         context("and it was already running", () => {
             beforeEach(() => {
@@ -88,7 +93,7 @@ describe("Given a set of projections to redistribute", () => {
         beforeEach(() => {
             cluster.setup(c => c.lookup("projection1")).returns(() => "not-my-ip");
             cluster.setup(c => c.lookup("projection2")).returns(() => "my-ip");
-            subject.restart();
+            subject.run();
         });
         it("should be shut down", () => {
             runner1.verify(r => r.stop(), TypeMoq.Times.once());
