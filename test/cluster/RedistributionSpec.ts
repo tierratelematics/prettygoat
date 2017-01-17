@@ -39,8 +39,8 @@ describe("Given a set of projections to redistribute", () => {
         runner1 = TypeMoq.Mock.ofType(MockProjectionRunner);
         runner2 = TypeMoq.Mock.ofType(MockProjectionRunner);
         holder = {
-            projection1: runner1,
-            projection2: runner2
+            projection1: runner1.object,
+            projection2: runner2.object
         };
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         registry.setup(r => r.getAreas()).returns(a => {

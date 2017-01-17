@@ -3,7 +3,6 @@ import {interfaces} from "inversify";
 import IAuthorizationStrategy from "../api/IAuthorizationStrategy";
 import {Request, Response, NextFunction} from 'express';
 
-
 const cors = require("cors");
 const bodyParser = require('body-parser');
 

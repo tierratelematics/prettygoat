@@ -119,11 +119,20 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when a running projection dies", () => {
+        let triggerError = true;
         beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            runner.reset();
+            runner.setup(r => r.notifications()).returns(() => {
+                let obs = triggerError ? dataSubject: Observable.empty<Event>();
+                triggerError = false;
+                return obs;
+            });
             subject.run();
             dataSubject.onError(new Error("Booom!"));
         });
         it("should restart the projection", () => {
+            snapshotRepository.verify(s => s.getSnapshots(), TypeMoq.Times.exactly(2));
             runnerFactory.verify(r => r.create(TypeMoq.It.isValue(projection)), TypeMoq.Times.exactly(2));
         });
     });
