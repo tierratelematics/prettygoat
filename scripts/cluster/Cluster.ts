@@ -1,7 +1,7 @@
 import ICluster from "./ICluster";
 import {inject, injectable, optional} from "inversify";
 import ClusterMessage from "./ClusterMessage";
-import {Observable, Disposable} from "rx";
+import {Observable} from "rx";
 import {EmbeddedClusterConfig} from "./ClusterConfig";
 import {ServerResponse} from "http";
 import {ClientRequest} from "http";
@@ -19,7 +19,7 @@ class Cluster implements ICluster {
 
 
     startup(): Observable<void> {
-        return Observable.create(observer => {
+        return Observable.create<void>(observer => {
             let tchannel = new TChannel();
             this.ringpop = new Ringpop({
                 app: "ringpop",
@@ -36,7 +36,6 @@ class Cluster implements ICluster {
                     observer.onCompleted();
                 });
             });
-            return Disposable.empty();
         });
     }
 
@@ -53,8 +52,8 @@ class Cluster implements ICluster {
     }
 
     requests(): Observable<ClusterMessage> {
-        return Observable.fromEvent(this.ringpop, 'request', (request, response) => {
-            return {request: request, response: response};
+        return Observable.fromEvent(this.ringpop, 'request', (args:any[]) => {
+            return {request: args[0], response: args[1]};
         });
     }
 }

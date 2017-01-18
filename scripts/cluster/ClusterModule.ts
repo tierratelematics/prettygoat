@@ -15,7 +15,7 @@ class ClusterModule implements IModule {
         container.bind<IProjectionEngine>("ProjectionEngine").to(ProjectionEngine).inSingletonScope().whenInjectedInto(ClusteredProjectionEngine);
         container.bind<IProjectionEngine>("IProjectionEngine").to(ClusteredProjectionEngine).inSingletonScope();
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
-    }
+    };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
     }
