@@ -51,8 +51,6 @@ class ProjectionRegistry implements IProjectionRegistry {
                 projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(tickScheduler),
                 validationErrors = this.analyzer.analyze(projection);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
-            if (projection.split && !entry.parametersKey)
-                throw new Error(`Missing parameters key function from projection ${projection.name} registration`);
             if (validationErrors.length > 0)
                 throw new Error(validationErrors[0]);
             return new RegistryEntry(projection, entry.name, entry.parametersKey);
