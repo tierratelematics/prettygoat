@@ -1,6 +1,6 @@
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import {Observable} from "rx";
-import Dictionary from "../../scripts/Dictionary";
+import Dictionary from "../../scripts/util/Dictionary";
 
 class MockSnapshotRepository implements ISnapshotRepository {
 

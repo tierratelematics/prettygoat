@@ -13,7 +13,7 @@ import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition

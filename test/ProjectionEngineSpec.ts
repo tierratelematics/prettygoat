@@ -16,7 +16,7 @@ import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
 import CountSnapshotStrategy from "../scripts/snapshots/CountSnapshotStrategy";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import {IProjection} from "../scripts/projections/IProjection";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";

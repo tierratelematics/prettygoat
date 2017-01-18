@@ -1,7 +1,7 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import Dictionary from "../../scripts/Dictionary";
+import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockRequest from "../fixtures/web/MockRequest";
 import * as TypeMoq from "typemoq";

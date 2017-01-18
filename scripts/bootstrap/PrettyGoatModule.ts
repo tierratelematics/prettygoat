@@ -29,7 +29,7 @@ import TimePartitioner from "../cassandra/TimePartitioner";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ITickScheduler from "../ticks/ITickScheduler";

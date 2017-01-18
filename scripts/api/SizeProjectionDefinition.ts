@@ -2,7 +2,7 @@ import Projection from "../registry/ProjectionDecorator";
 import IProjectionDefinition from "../registry/IProjectionDefinition";
 import {IProjection} from "../projections/IProjection";
 import {inject} from "inversify";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";

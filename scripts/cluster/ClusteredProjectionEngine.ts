@@ -4,7 +4,7 @@ import {IProjection} from "../projections/IProjection";
 import PushContext from "../web/PushContext";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import RegistryEntry from "../registry/RegistryEntry";

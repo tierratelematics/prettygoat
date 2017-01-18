@@ -1,6 +1,6 @@
 import {Observable, IDisposable} from "rx";
 import {Event} from "../streams/Event";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import ProjectionStats from "./ProjectionStats";
 import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";

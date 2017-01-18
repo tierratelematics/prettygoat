@@ -15,7 +15,7 @@ import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
 import ClusteredProjectionEngine from "../../scripts/cluster/ClusteredProjectionEngine";
 import {Scheduler} from "rx";
-import Dictionary from "../../scripts/Dictionary";
+import Dictionary from "../../scripts/util/Dictionary";
 import MockProjectionEngine from "../fixtures/MockProjectionEngine";
 import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";

@@ -8,7 +8,7 @@ import {Matcher} from "../matcher/Matcher";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import SplitProjectionRunner from "./SplitProjectionRunner";
 import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import ITickScheduler from "../ticks/ITickScheduler";
 import IDateRetriever from "../util/IDateRetriever";
 

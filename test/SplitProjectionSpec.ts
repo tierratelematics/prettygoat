@@ -12,7 +12,7 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 import {Matcher} from "../scripts/matcher/Matcher";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("Split projection, given a projection with a split definition", () => {

@@ -3,7 +3,7 @@ import {Subject, IObserver} from "rx";
 import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../../scripts/Dictionary";
+import Dictionary from "../../scripts/util/Dictionary";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {

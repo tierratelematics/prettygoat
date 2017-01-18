@@ -57,7 +57,7 @@ class Cluster implements ICluster {
     }
 
     changes(): Observable<void> {
-        return Observable.fromEvent(this.ringpop, 'ringChanged');
+        return Observable.fromEvent<void>(this.ringpop, 'ringChanged');
     }
 
 }

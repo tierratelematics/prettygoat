@@ -1,5 +1,5 @@
 import {Observable} from "rx";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 
 export class Snapshot<T> {
     public static Empty:Snapshot<any> = new Snapshot<any>(undefined, undefined);

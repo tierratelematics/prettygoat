@@ -1,6 +1,6 @@
 import * as express from 'express';
 import {injectable, inject} from 'inversify';
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {interfaces, Controller, Post} from 'inversify-express-utils';
 import {ISubject} from "rx";

@@ -9,7 +9,7 @@ import {interfaces} from "inversify";
 import IObjectContainer from "../ioc/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import {IProjection} from "../projections/IProjection";
 
 @injectable()
