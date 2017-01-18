@@ -1,5 +1,6 @@
 interface IEventEmitter {
-    emitTo(clientId:string, event:string, parameters:any):void;
+    broadcastTo(room: string, event:string, data:any);
+    emitTo(clientId: string, event: string, data: any);
 }
 
 export default IEventEmitter

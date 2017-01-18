@@ -10,9 +10,13 @@ class SocketEventEmitter implements IEventEmitter {
     constructor(@inject("ISocketFactory") private socketFactory:ISocketFactory) {
     }
 
-    emitTo(clientId:string, event:string, parameters:any):void {
+    broadcastTo(room: string, data: any) {
+        this.socket.to(room).emit(event, data);
+    }
+
+    emitTo(clientId:string, event:string, data:any):void {
         this.initialize();
-        this.socket.to(clientId).emit(event, parameters);
+        this.socket.to(clientId).emit(event, data);
     }
 
     private initialize(){

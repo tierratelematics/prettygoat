@@ -2,9 +2,7 @@ import IPushNotifier from "./IPushNotifier";
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import IEventEmitter from "./IEventEmitter";
-import IClientRegistry from "./IClientRegistry";
 import * as _ from "lodash";
-import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
@@ -16,28 +14,19 @@ class PushNotifier implements IPushNotifier {
     private config:IEndpointConfig;
 
     constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
-                @inject("IClientRegistry") private clientRegistry:IClientRegistry,
-                @inject("IEndpointConfig") config:IEndpointConfig,
-                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
+                @inject("IEndpointConfig") config:IEndpointConfig) {
         this.config = <IEndpointConfig>_.assign({}, config, config ? config.notifications : {});
     }
 
     notify(context:PushContext, clientId?:string, splitKey?:string):void {
-        let clients = this.clientRegistry.clientsFor(context),
-            entry = this.projectionRegistry.getEntry(context.viewmodelId, context.area),
-            parametersKey = entry.data.parametersKey,
-            isSplit = entry.data.projection.split;
         if (clientId) {
-            if (isSplit) {
-                this.emitToClient(clientId, context, parametersKey(context.parameters));
-            } else {
-                this.emitToClient(clientId, context);
-            }
+            this.emitToSingleClient(clientId, context, splitKey);
         } else {
-            _.forEach<ClientEntry>(clients, client => {
-                if (!isSplit || (isSplit && parametersKey(client.parameters) === splitKey))
-                    this.emitToClient(client.id, context, splitKey || "");
-            });
+            this.eventEmitter.broadcastTo(
+                ContextOperations.getRoom(context, splitKey),
+                ContextOperations.getChannel(context),
+                this.buildNotification(context, splitKey)
+            );
         }
     }
 
@@ -54,7 +43,7 @@ class PushNotifier implements IPushNotifier {
         };
     }
 
-    private emitToClient(clientId:string, context:PushContext, splitKey:string = ""):void {
+    private emitToSingleClient(clientId:string, context:PushContext, splitKey:string = ""):void {
         let notification = this.buildNotification(context, splitKey);
         this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }

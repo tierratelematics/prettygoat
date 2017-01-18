@@ -63,9 +63,9 @@ class Engine {
                 pushNotifier.notify(context, client.id);
                 logger.info(`New client subscribed on ${context} with id ${client.id}`);
             });
-            client.on('unsubscribe', message => {
-                clientRegistry.remove(client.id, message);
-                logger.info(`New client unsubscribed from ${message} with id ${client.id}`);
+            client.on('unsubscribe', context => {
+                clientRegistry.remove(client.id, context);
+                logger.info(`New client unsubscribed from ${context} with id ${client.id}`);
             });
         });
 
