@@ -43,7 +43,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                 .valueOf());
     }
 
-    getSnapshot<T>(streamId: string): Rx.Observable<Snapshot<T>> {
+    getSnapshot<T>(streamId: string): Observable<Snapshot<T>> {
         return this.getSnapshots().map(snapshots => snapshots[streamId]);
     }
 

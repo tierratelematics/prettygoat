@@ -6,7 +6,7 @@ import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import ClusteredProjectionEngine from "./ClusteredProjectionEngine";
 import ICluster from "./ICluster";
-import {Cluster} from "cluster";
+import Cluster from "./Cluster";
 
 class ClusterModule implements IModule {
 

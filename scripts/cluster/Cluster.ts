@@ -13,7 +13,7 @@ class Cluster implements ICluster {
 
     ringpop: any;
 
-    constructor(@inject("IClusterConfig") @optional private clusterConfig = new EmbeddedClusterConfig()) {
+    constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig()) {
 
     }
 
@@ -29,9 +29,9 @@ class Cluster implements ICluster {
                     trace: false
                 })
             });
-            ringpop.setupChannel();
+            this.ringpop.setupChannel();
             tchannel.listen(this.clusterConfig.port, this.clusterConfig.host, () => {
-                ringpop.bootstrap(this.clusterConfig.nodes, () => {
+                this.ringpop.bootstrap(this.clusterConfig.nodes, () => {
                     observer.onNext(null);
                     observer.onCompleted();
                 });
@@ -58,3 +58,5 @@ class Cluster implements ICluster {
         });
     }
 }
+
+export default Cluster
