@@ -1,10 +1,9 @@
 import PushContext from "./PushContext";
-import ClientEntry from "./ClientEntry";
+import ISocketClient from "./ISocketClient";
 
 interface IClientRegistry {
-    add(clientId:string, context:PushContext):void;
-    clientsFor(context:PushContext):ClientEntry[];
-    remove(clientId:string, context:PushContext):void;
+    add(client: ISocketClient, context: PushContext);
+    remove(client: ISocketClient, context: PushContext);
 }
 
 export default IClientRegistry
