@@ -1,5 +1,4 @@
 import IProjectionEngine from "./IProjectionEngine";
-import IPushNotifier from "../web/IPushNotifier";
 import {injectable, inject} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
@@ -13,6 +12,7 @@ import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
+import {IPushNotifier} from "../web/IPushComponents";
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {

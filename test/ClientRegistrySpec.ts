@@ -1,14 +1,13 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import PushContext from "../scripts/web/PushContext";
-import ClientRegistry from "../scripts/web/ClientRegistry";
-import IClientRegistry from "../scripts/web/IClientRegistry";
-import ISocketClient from "../scripts/web/ISocketClient";
 import * as TypeMoq from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockSocketClient from "./fixtures/web/MockSocketClient";
+import {IClientRegistry, ISocketClient} from "../scripts/web/IPushComponents";
+import ClientRegistry from "../scripts/web/ClientRegistry";
 
 describe("ClientRegistry, given a client", () => {
 

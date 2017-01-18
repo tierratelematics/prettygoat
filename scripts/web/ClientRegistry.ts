@@ -1,9 +1,8 @@
-import IClientRegistry from "./IClientRegistry";
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
-import ISocketClient from "./ISocketClient";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
+import {IClientRegistry, ISocketClient} from "./IPushComponents";
 
 @injectable()
 class ClientRegistry implements IClientRegistry {

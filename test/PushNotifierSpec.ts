@@ -2,13 +2,12 @@ import "bluebird";
 import "reflect-metadata";
 import expect = require('expect.js');
 import * as TypeMoq from "typemoq";
-import IPushNotifier from "../scripts/web/IPushNotifier";
-import PushNotifier from "../scripts/web/PushNotifier";
 import PushContext from "../scripts/web/PushContext";
 import {Subject} from "rx";
-import IEventEmitter from "../scripts/web/IEventEmitter";
 import MockEventEmitter from "./fixtures/web/MockEventEmitter";
 import {Event} from "../scripts/streams/Event";
+import {IPushNotifier, IEventEmitter} from "../scripts/web/IPushComponents";
+import PushNotifier from "../scripts/web/PushNotifier";
 
 describe("Given a push notifier", () => {
 

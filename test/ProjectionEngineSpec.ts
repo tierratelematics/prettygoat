@@ -1,11 +1,9 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import IPushNotifier from "../scripts/web/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import MockStatePublisher from "./fixtures/web/MockStatePublisher";
@@ -28,6 +26,7 @@ import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import MockPushNotifier from "./fixtures/web/MockPushNotifier";
 import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import MockProjectionRunnerFactory from "./fixtures/MockProjectionRunnerFactory";
+import {IPushNotifier} from "../scripts/web/IPushComponents";
 
 describe("Given a ProjectionEngine", () => {
 

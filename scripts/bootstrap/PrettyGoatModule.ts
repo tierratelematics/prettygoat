@@ -5,13 +5,7 @@ import IServiceLocator from "../ioc/IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
 import IProjectionRouter from "../web/IProjectionRouter";
 import ExpressApp from "./ExpressApp";
-import IEventEmitter from "../web/IEventEmitter";
-import SocketEventEmitter from "../web/SocketEventEmitter";
-import ClientRegistry from "../web/ClientRegistry";
-import IClientRegistry from "../web/IClientRegistry";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
-import PushNotifier from "../web/PushNotifier";
-import IPushNotifier from "../web/IPushNotifier";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "../ioc/IObjectContainer";
@@ -21,7 +15,6 @@ import CassandraDeserializer from "../cassandra/CassandraDeserializer";
 import ICassandraDeserializer from "../cassandra/ICassandraDeserializer";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
-import SocketFactory from "../web/SocketFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
@@ -47,7 +40,11 @@ import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ProjectionSorter from "../projections/ProjectionSorter";
-import ISocketFactory from "../web/ISocketFactory";
+import PushNotifier from "../web/PushNotifier";
+import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../web/IPushComponents";
+import ClientRegistry from "../web/ClientRegistry";
+import SocketEventEmitter from "../web/SocketEventEmitter";
+import SocketFactory from "../web/SocketFactory";
 
 class PrettyGoatModule implements IModule {
 

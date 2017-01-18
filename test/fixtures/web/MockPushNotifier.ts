@@ -1,4 +1,4 @@
-import IPushNotifier from "../../../scripts/web/IPushNotifier";
+import {IPushNotifier} from "../../../scripts/web/IPushComponents";
 import PushContext from "../../../scripts/web/PushContext";
 
 class MockPushNotifier implements IPushNotifier {

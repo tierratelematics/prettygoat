@@ -1,6 +1,5 @@
-import IEventEmitter from "./IEventEmitter";
 import {injectable, inject} from "inversify";
-import ISocketFactory from "./ISocketFactory";
+import {IEventEmitter, ISocketFactory} from "./IPushComponents";
 
 @injectable()
 class SocketEventEmitter implements IEventEmitter {
@@ -10,7 +9,7 @@ class SocketEventEmitter implements IEventEmitter {
     constructor(@inject("ISocketFactory") private socketFactory:ISocketFactory) {
     }
 
-    broadcastTo(room: string, data: any) {
+    broadcastTo(room: string, event: string, data: any) {
         this.socket.to(room).emit(event, data);
     }
 
@@ -19,7 +18,7 @@ class SocketEventEmitter implements IEventEmitter {
         this.socket.to(clientId).emit(event, data);
     }
 
-    private initialize(){
+    private initialize() {
         if(!this.socket){
             this.socket = this.socketFactory.socketForPath();
         }

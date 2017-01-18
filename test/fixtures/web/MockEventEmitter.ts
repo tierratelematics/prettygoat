@@ -1,4 +1,4 @@
-import IEventEmitter from "../../../scripts/web/IEventEmitter";
+import {IEventEmitter} from "../../../scripts/web/IPushComponents";
 
 class MockEventEmitter implements IEventEmitter {
     broadcastTo(room: string, event: string, data: any) {

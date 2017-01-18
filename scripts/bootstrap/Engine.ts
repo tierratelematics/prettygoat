@@ -6,22 +6,21 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
-import IClientRegistry from "../web/IClientRegistry";
-import IPushNotifier from "../web/IPushNotifier";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import {createServer,setIstanceServer} from "./InversifyExpressApp";
+import {createServer, setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import ClusterModule from "../cluster/ClusterModule";
-import ISocketFactory from "../web/ISocketFactory";
+import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
+import SocketClient from "../web/SocketClient";
 
 class Engine {
 
     private container = new Container();
-    private modules:IModule[] = [];
+    private modules: IModule[] = [];
     private featureChecker = new FeatureChecker();
 
     constructor() {
@@ -31,7 +30,7 @@ class Engine {
         this.container.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
     }
 
-    register(module:IModule):boolean {
+    register(module: IModule): boolean {
         if (!this.featureChecker.canCheck(module.constructor) || this.featureChecker.check(module.constructor)) {
             if (module.modules)
                 module.modules(this.container);
@@ -41,7 +40,7 @@ class Engine {
         return false;
     }
 
-    run(overrides?:any) {
+    run(overrides?: any) {
         let registry = this.container.get<IProjectionRegistry>("IProjectionRegistry"),
             projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
             clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),

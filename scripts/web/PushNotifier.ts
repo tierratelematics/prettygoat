@@ -1,12 +1,9 @@
-import IPushNotifier from "./IPushNotifier";
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
-import IEventEmitter from "./IEventEmitter";
 import * as _ from "lodash";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import PushNotification from "./PushNotification";
+import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
