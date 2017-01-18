@@ -7,6 +7,8 @@ import ProjectionEngine from "../projections/ProjectionEngine";
 import ClusteredProjectionEngine from "./ClusteredProjectionEngine";
 import ICluster from "./ICluster";
 import Cluster from "./Cluster";
+import {ISocketFactory} from "../web/IPushComponents";
+import ClusteredSocketFactory from "./ClusteredSocketFactory";
 
 class ClusterModule implements IModule {
 
@@ -15,6 +17,8 @@ class ClusterModule implements IModule {
         container.bind<IProjectionEngine>("ProjectionEngine").to(ProjectionEngine).inSingletonScope().whenInjectedInto(ClusteredProjectionEngine);
         container.bind<IProjectionEngine>("IProjectionEngine").to(ClusteredProjectionEngine).inSingletonScope();
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
+        container.unbind("ISocketFactory");
+        container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
