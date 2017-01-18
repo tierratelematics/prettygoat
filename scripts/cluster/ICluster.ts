@@ -9,6 +9,7 @@ interface ICluster {
     lookup(key: string): string;
     handleOrProxy(key: string, request: ClientRequest, response: ServerResponse):boolean;
     requests(): Observable<ClusterMessage>;
+    changes(): Observable<void>;
 }
 
 export default ICluster

@@ -5,6 +5,9 @@ import {ClientRequest} from "http";
 import {ServerResponse} from "http";
 
 class MockCluster implements ICluster {
+    changes(): Observable<void> {
+        return undefined;
+    }
 
     startup(): Observable<void> {
         return undefined;

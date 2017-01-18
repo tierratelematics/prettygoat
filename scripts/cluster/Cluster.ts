@@ -10,7 +10,6 @@ const TChannel = require('tchannel');
 
 @injectable()
 class Cluster implements ICluster {
-
     ringpop: any;
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig()) {
@@ -56,6 +55,11 @@ class Cluster implements ICluster {
             return {request: args[0], response: args[1]};
         });
     }
+
+    changes(): Observable<void> {
+        return Observable.fromEvent(this.ringpop, 'ringChanged');
+    }
+
 }
 
 export default Cluster

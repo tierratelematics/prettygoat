@@ -16,6 +16,8 @@ import APIModule from "../api/APIModule";
 import ClusterModule from "../cluster/ClusterModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
 import SocketClient from "../web/SocketClient";
+import ICluster from "../cluster/ICluster";
+import {Observable} from "rx";
 
 class Engine {
 
@@ -48,7 +50,8 @@ class Engine {
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
             logger = this.container.get<ILogger>("ILogger"),
-            socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
+            socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
+            cluster = this.container.get<ICluster>("ICluster");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
@@ -69,7 +72,7 @@ class Engine {
             });
         });
 
-        projectionEngine.run();
+        Observable.merge(cluster.startup(), cluster.changes()).subscribe(() => projectionEngine.run());
     }
 }
 
