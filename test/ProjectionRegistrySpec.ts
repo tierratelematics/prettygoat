@@ -18,6 +18,7 @@ import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
+import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -179,6 +180,18 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
                 expect(entry.data.projection.name).to.be("test");
             });
+        });
+    });
+
+    context("when a split projection is registered without a parameters key", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:Split";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new SplitProjectionDefinition());
+        });
+
+        it("should throw an error", () => {
+            expect(() => subject.add(SplitProjectionDefinition).forArea("Admin")).to.throwError();
         });
     });
 });
