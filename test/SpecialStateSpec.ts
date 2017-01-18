@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
@@ -18,6 +17,7 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import * as lolex from "lolex";
+import * as _ from "lodash";
 
 describe("Given a projection runner", () => {
     let stream:TypeMoq.Mock<IStreamFactory>;
@@ -120,6 +120,10 @@ describe("Given a projection runner", () => {
                 expect(subject.state["1"]).to.be(undefined);
                 expect(subject.state["2"]).to.be(undefined);
                 expect(subject.state["3"]).to.be(392);
+            });
+
+            it("should also remove the key itself", () => {
+                expect(_.has(subject.state, "2")).to.be(false);
             });
 
             it("should not receive readmodels anymore", () => {

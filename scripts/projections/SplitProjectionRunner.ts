@@ -10,7 +10,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
-import {SpecialState, StopSignallingState} from "./SpecialState";
+import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
 import {ProjectionRunner} from "./ProjectionRunner";
 import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 import ReservedEvents from "../streams/ReservedEvents";
@@ -101,6 +101,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         let newState = this.state[splitKey];
         if (newState instanceof SpecialState)
             this.state[splitKey] = (<any>newState).state;
+        if (newState instanceof DeleteSplitState)
+            delete this.state[splitKey];
         if (!(newState instanceof StopSignallingState))
             this.subject.onNext({
                 type: this.streamId,
