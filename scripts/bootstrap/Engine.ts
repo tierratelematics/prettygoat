@@ -50,20 +50,21 @@ class Engine {
             logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
 
-        _.forEach(this.modules, (module:IModule) => module.register(registry, this.container, overrides));
+        _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
         setIstanceServer(createServer(this.container).listen(config.port || 80));
 
         logger.info(`Server listening on ${config.port || 80}`);
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
+            let wrappedClient = new SocketClient(client);
             client.on('subscribe', context => {
-                clientRegistry.add(client.id, context);
+                clientRegistry.add(wrappedClient, context);
                 pushNotifier.notify(context, client.id);
                 logger.info(`New client subscribed on ${context} with id ${client.id}`);
             });
             client.on('unsubscribe', context => {
-                clientRegistry.remove(client.id, context);
+                clientRegistry.add(wrappedClient, context);
                 logger.info(`New client unsubscribed from ${context} with id ${client.id}`);
             });
         });
