@@ -1,6 +1,6 @@
 import * as moment from "moment";
 import {injectable, inject} from "inversify";
-import IDateRetriever from "./IDateRetriever";
+import IDateRetriever from "../util/IDateRetriever";
 
 @injectable()
 class TimePartitioner {

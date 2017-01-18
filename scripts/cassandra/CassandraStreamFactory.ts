@@ -1,7 +1,7 @@
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {injectable, inject} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
-import TimePartitioner from "../util/TimePartitioner";
+import TimePartitioner from "./TimePartitioner";
 import {Event} from "../streams/Event";
 import {IWhen} from "../projections/IProjection";
 import * as _ from "lodash";

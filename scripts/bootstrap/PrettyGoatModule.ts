@@ -25,7 +25,7 @@ import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import CassandraSnapshotRepository from "../cassandra/CassandraSnapshotRepository";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
 import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
-import TimePartitioner from "../util/TimePartitioner";
+import TimePartitioner from "../cassandra/TimePartitioner";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import IProjectionRunner from "../projections/IProjectionRunner";
