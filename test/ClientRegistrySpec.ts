@@ -1,9 +1,9 @@
 import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
-import PushContext from "../scripts/push/PushContext";
-import ClientRegistry from "../scripts/push/ClientRegistry";
-import IClientRegistry from "../scripts/push/IClientRegistry";
+import PushContext from "../scripts/web/PushContext";
+import ClientRegistry from "../scripts/web/ClientRegistry";
+import IClientRegistry from "../scripts/web/IClientRegistry";
 
 describe("ClientRegistry, given a client", () => {
 

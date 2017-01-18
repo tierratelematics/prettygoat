@@ -1,11 +1,11 @@
 import IProjectionEngine from "./IProjectionEngine";
-import IPushNotifier from "../push/IPushNotifier";
+import IPushNotifier from "../web/IPushNotifier";
 import {injectable, inject} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
-import PushContext from "../push/PushContext";
-import IStatePublisher from "../routing/IStatePublisher";
+import PushContext from "../web/PushContext";
+import IStatePublisher from "../web/IStatePublisher";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";

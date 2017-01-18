@@ -1,4 +1,4 @@
-import PushContext from "../push/PushContext";
+import PushContext from "./PushContext";
 import IProjectionRunner from "../projections/IProjectionRunner";
 
 interface IStatePublisher {

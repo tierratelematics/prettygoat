@@ -1,5 +1,5 @@
-import IStatePublisher from "../../../scripts/routing/IStatePublisher";
-import PushContext from "../../../scripts/push/PushContext";
+import IStatePublisher from "../../../scripts/web/IStatePublisher";
+import PushContext from "../../../scripts/web/PushContext";
 import IProjectionRunner from "../../../scripts/projections/IProjectionRunner";
 
 class MockStatePublisher implements IStatePublisher {

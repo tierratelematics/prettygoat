@@ -1,4 +1,4 @@
-import IEventEmitter from "../../../scripts/push/IEventEmitter";
+import IEventEmitter from "../../../scripts/web/IEventEmitter";
 
 class MockEventEmitter implements IEventEmitter {
 
