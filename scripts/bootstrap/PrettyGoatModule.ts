@@ -47,6 +47,7 @@ import ICassandraClient from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ProjectionSorter from "../projections/ProjectionSorter";
+import ISocketFactory from "../web/ISocketFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -65,7 +66,7 @@ class PrettyGoatModule implements IModule {
         container.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
         container.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
-        container.bind<SocketFactory>("SocketFactory").to(SocketFactory).inSingletonScope();
+        container.bind<ISocketFactory>("ISocketFactory").to(SocketFactory).inSingletonScope();
         container.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         container.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();

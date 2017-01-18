@@ -9,7 +9,6 @@ import IProjectionEngine from "../projections/IProjectionEngine";
 import IClientRegistry from "../web/IClientRegistry";
 import IPushNotifier from "../web/IPushNotifier";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import SocketFactory from "../web/SocketFactory";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
@@ -17,6 +16,7 @@ import {createServer,setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import ClusterModule from "../cluster/ClusterModule";
+import ISocketFactory from "../web/ISocketFactory";
 
 class Engine {
 
@@ -47,7 +47,7 @@ class Engine {
             clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
-            socketFactory = this.container.get<SocketFactory>("SocketFactory"),
+            socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
             logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
 

@@ -1,13 +1,13 @@
 import IEventEmitter from "./IEventEmitter";
 import {injectable, inject} from "inversify";
-import SocketFactory from "./SocketFactory";
+import ISocketFactory from "./ISocketFactory";
 
 @injectable()
 class SocketEventEmitter implements IEventEmitter {
 
     private socket:SocketIO.Server = null;
 
-    constructor(@inject("SocketFactory") private socketFactory:SocketFactory) {
+    constructor(@inject("ISocketFactory") private socketFactory:ISocketFactory) {
     }
 
     emitTo(clientId:string, event:string, parameters:any):void {
