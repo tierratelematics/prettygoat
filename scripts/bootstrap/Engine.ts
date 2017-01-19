@@ -13,21 +13,17 @@ import {IFeatureChecker} from "bivio";
 import {createServer, setIstanceServer} from "./InversifyExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
-import ClusterModule from "../cluster/ClusterModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
 import SocketClient from "../web/SocketClient";
-import ICluster from "../cluster/ICluster";
-import {Observable} from "rx";
 
 class Engine {
 
-    private container = new Container();
+    protected container = new Container();
     private modules: IModule[] = [];
     private featureChecker = new FeatureChecker();
 
     constructor() {
         this.register(new PrettyGoatModule());
-        this.register(new ClusterModule());
         this.register(new APIModule());
         this.container.bind<IFeatureChecker>("IFeatureChecker").toConstantValue(this.featureChecker);
     }
@@ -42,16 +38,14 @@ class Engine {
         return false;
     }
 
-    run(overrides?: any) {
+    boot(overrides?: any) {
         let registry = this.container.get<IProjectionRegistry>("IProjectionRegistry"),
-            projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
             clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
             logger = this.container.get<ILogger>("ILogger"),
-            socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
-            cluster = this.container.get<ICluster>("ICluster");
+            socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
@@ -71,8 +65,11 @@ class Engine {
                 logger.info(`New client unsubscribed from ${context} with id ${client.id}`);
             });
         });
+    }
 
-        Observable.merge(cluster.startup(), cluster.changes()).subscribe(() => projectionEngine.run());
+    run(overrides?: any) {
+        this.boot(overrides);
+        this.container.get<IProjectionEngine>("IProjectionEngine").run();
     }
 }
 
