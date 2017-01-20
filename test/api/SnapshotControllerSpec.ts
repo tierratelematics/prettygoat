@@ -3,22 +3,23 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import MockRequest from "../fixtures/web/MockRequest";
 import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
-import MockResponse from "../fixtures/web/MockResponse";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import SnapshotManagerController from "../../scripts/api/SnapshotManagerController";
 import IDateRetriever from "../../scripts/util/IDateRetriever";
 import MockDateRetriever from "../fixtures/MockDateRetriever";
+import {Request, Response} from "express";
+import {createMockRequest} from "../fixtures/web/MockRequest";
+import {createMockResponse} from "../fixtures/web/MockResponse";
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
         dateRetriever: TypeMoq.Mock<IDateRetriever>,
-        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
-        response: TypeMoq.Mock<any>,
+        request: TypeMoq.Mock<Request>,
+        response: TypeMoq.Mock<Response>,
         snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
         snapshot: Snapshot<any>,
         subject: SnapshotManagerController;
@@ -29,8 +30,8 @@ describe("Given a SnapshotController and a projection name", () => {
             dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
             holder = {};
             holder["namePrj"] = projectionRunner.object;
-            request = TypeMoq.Mock.ofType(MockRequest);
-            response = TypeMoq.Mock.ofType(MockResponse);
+            request = TypeMoq.Mock.ofInstance(createMockRequest());
+            response = TypeMoq.Mock.ofInstance(createMockResponse());
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
             snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
             subject = new SnapshotManagerController(holder, snapshotRepository.object, dateRetriever.object);

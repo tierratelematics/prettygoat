@@ -3,21 +3,21 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import MockRequest from "../fixtures/web/MockRequest";
 import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
-import MockResponse from "../fixtures/web/MockResponse";
 import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
 import {ISubject, Subject} from "rx";
-import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
+import {Request, Response} from "express";
+import {createMockRequest} from "../fixtures/web/MockRequest";
+import {createMockResponse} from "../fixtures/web/MockResponse";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
         subjectProjectionStatus: ISubject<void>,
         notifications: string[],
-        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
-        response: TypeMoq.Mock<any>,
+        request: TypeMoq.Mock<Request>, //Casting due to express bundled types mismatch
+        response: TypeMoq.Mock<Response>,
         subject: ProjectionsManagerController;
 
     beforeEach(
@@ -27,8 +27,8 @@ describe("Given a ProjectionsController and a projection name", () => {
             notifications = [];
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder["nameProjection"] = projectionRunner.object;
-            request = TypeMoq.Mock.ofType(MockRequest);
-            response = TypeMoq.Mock.ofType(MockResponse);
+            request = TypeMoq.Mock.ofInstance(createMockRequest());
+            response = TypeMoq.Mock.ofInstance(createMockResponse());
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
             subject = new ProjectionsManagerController(holder, subjectProjectionStatus);
 

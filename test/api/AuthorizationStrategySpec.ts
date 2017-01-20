@@ -4,19 +4,20 @@ import expect = require("expect.js");
 import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
 import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 import * as TypeMoq from "typemoq";
-import MockRequest from "../fixtures/web/MockRequest";
 import IAuthorizationConfig from "../../scripts/configs/IApiKeyConfig";
+import {Request} from "express";
+import {createMockRequest} from "../fixtures/web/MockRequest";
 
 
 describe("Given an Authorization Strategy", () => {
     let tokenCollection: IAuthorizationConfig,
-        request: TypeMoq.Mock<any>, //Casting due to express bundled types mismatch
+        request: TypeMoq.Mock<Request>,
         subject: IAuthorizationStrategy;
 
     beforeEach(
         () => {
             tokenCollection = ["6RSL11DR1OCFJ7P", "7toYUi5wtVFgrsr"];
-            request = TypeMoq.Mock.ofType(MockRequest);
+            request = TypeMoq.Mock.ofInstance(createMockRequest());
             subject = new AuthorizationStrategy(tokenCollection);
         }
     );
