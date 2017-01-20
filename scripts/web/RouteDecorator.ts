@@ -1,7 +1,7 @@
 import {injectable, decorate} from "inversify";
 import Methods from "./Methods";
 
-function Request(method: Methods, path: string) {
+function Route(method: Methods, path: string) {
     return function (target: any) {
         decorate(injectable(), target);
         Reflect.defineMetadata("prettygoat:method", method, target);
@@ -10,4 +10,4 @@ function Request(method: Methods, path: string) {
     };
 }
 
-export default Request
+export default Route

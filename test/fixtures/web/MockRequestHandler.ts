@@ -1,18 +1,18 @@
 import {IRequestHandler} from "../../../scripts/web/IRequestComponents";
-import {IncomingMessage} from "http";
-import {ServerResponse} from "http";
-import Request from "../../../scripts/web/RequestDecorator";
 import Methods from "../../../scripts/web/Methods";
+import {Request, Response} from "express";
+import Route from "../../../scripts/web/RouteDecorator";
 
-@Request(Methods.Get, "/test")
+@Route(Methods.Get, "/test")
 export default class MockRequestHandler implements IRequestHandler {
 
-    handle(request: IncomingMessage, response: ServerResponse) {
-
+    handle(request: Request, response: Response) {
+        //Access request in order to test handler call
+        request.get("");
     }
 
-    keyFor(request: IncomingMessage): string {
-        return undefined;
+    keyFor(request: Request): string {
+        return "testkey";
     }
 
 }

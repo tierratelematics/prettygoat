@@ -17,7 +17,7 @@ class MockResponse {
     headers: any;
 
     status(code: number): Response {
-        return null;
+        return <Response><any>this;
     }
 
     sendStatus(code: number): Response {

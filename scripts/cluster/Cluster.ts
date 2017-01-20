@@ -3,8 +3,7 @@ import {inject, injectable, optional} from "inversify";
 import ClusterMessage from "./ClusterMessage";
 import {Observable} from "rx";
 import {EmbeddedClusterConfig} from "./ClusterConfig";
-import {ServerResponse} from "http";
-import {ClientRequest} from "http";
+import {Request, Response} from "express";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
@@ -46,7 +45,7 @@ class Cluster implements ICluster {
         return this.ringpop.lookup(key);
     }
 
-    handleOrProxy(key: string, request: ClientRequest, response: ServerResponse): boolean {
+    handleOrProxy(key: string, request: Request, response: Response): boolean {
         return this.ringpop.handleOrProxy(key, request, response);
     }
 
