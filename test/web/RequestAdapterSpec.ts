@@ -4,10 +4,10 @@ import * as TypeMoq from "typemoq";
 import {IRequestAdapter, IRequestHandler} from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import MockRequestHandler from "../fixtures/web/MockRequestHandler";
-import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
 import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
+import {createMockRequest} from "../fixtures/web/MockRequest";
+import {createMockResponse} from "../fixtures/web/MockResponse";
 const anyValue = TypeMoq.It.isAny;
 
 describe("Given a RequestAdapter", () => {
@@ -30,16 +30,14 @@ describe("Given a RequestAdapter", () => {
                     cluster.setup(c => c.lookup("testkey")).returns(() => "my-ip");
                 });
                 it("should route the message to the specific handler", () => {
-                    let request: any = new MockRequest();
-                    request.originalUrl = "/test";
-                    subject.route(request, <any>new MockResponse());
+                    let request = createMockRequest("/test");
+                    subject.route(request, createMockResponse());
                     requestHandler.verify(r => r.handle(anyValue(), anyValue()), TypeMoq.Times.once());
                 });
 
                 it("should handle correctly query strings on the request path", () => {
-                    let request: any = new MockRequest();
-                    request.originalUrl = "/test?foo=bar";
-                    subject.route(request, <any>new MockResponse());
+                    let request = createMockRequest("/test?foo=bar");
+                    subject.route(request, createMockResponse());
                     requestHandler.verify(r => r.handle(anyValue(), anyValue()), TypeMoq.Times.once());
                 });
             });
@@ -49,9 +47,8 @@ describe("Given a RequestAdapter", () => {
                     cluster.setup(c => c.lookup("testkey")).returns(() => "not-my-ip");
                 });
                 it("should proxy the request to the next node", () => {
-                    let request: any = new MockRequest();
-                    request.originalUrl = "/test";
-                    subject.route(request, <any>new MockResponse());
+                    let request = createMockRequest("/test");
+                    subject.route(request, createMockResponse());
                     requestHandler.verify(r => r.handle(anyValue(), anyValue()), TypeMoq.Times.never());
                     cluster.verify(c => c.handleOrProxy("testkey", anyValue(), anyValue()), TypeMoq.Times.once());
                 });
@@ -60,9 +57,8 @@ describe("Given a RequestAdapter", () => {
 
         context("when a specific handler does not exists for the request", () => {
             it("should drop the connection with a not found", () => {
-                let request: any = new MockRequest();
-                let response: any = TypeMoq.Mock.ofType(MockResponse);
-                request.originalUrl = "/notfound";
+                let request = createMockRequest("/notfound");
+                let response = TypeMoq.Mock.ofInstance(createMockResponse());
                 subject.route(request, response.object);
                 requestHandler.verify(r => r.handle(anyValue(), anyValue()), TypeMoq.Times.never());
                 response.verify(r => r.status(404), TypeMoq.Times.once());

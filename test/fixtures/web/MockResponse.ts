@@ -1,31 +1,31 @@
-import * as express from 'express';
+import {Response, Send} from "express";
 
 class MockResponse {
 
-    send: express.Send = function (body?: any): express.Response {
+    send: Send = function (body?: any): Response {
         return this;
     };
 
-    json: express.Send = function (body: any): express.Response {
+    json: Send = function (body: any): Response {
         return this;
     };
 
-    jsonp: express.Send = function (body: any): express.Response {
+    jsonp: Send = function (body: any): Response {
         return this;
     };
 
     headers: any;
 
-    status(code: number): express.Response {
+    status(code: number): Response {
         return null;
     }
 
-    sendStatus(code: number): express.Response {
+    sendStatus(code: number): Response {
         return null;
     }
 
-    header(field: any): express.Response;
-    header(field: any | string, value?: string): express.Response {
+    header(field: any): Response;
+    header(field: any | string, value?: string): Response {
         return null;
     }
 
@@ -38,4 +38,7 @@ class MockResponse {
     }
 }
 
-export default MockResponse;
+//Factory function used to avoid the implementation of the huge express response interface
+export function createMockResponse(): Response {
+    return <Response><any>new MockResponse();
+}
