@@ -100,10 +100,10 @@ export interface IEventEmitter {
 
 export class PushContext {
     area: string;
-    viewmodelId: string;
+    projectionName: string;
     parameters: any;
 
-    constructor(area: string, viewmodelId?: string, parameters?: any);
+    constructor(area: string, projectionName?: string, parameters?: any);
 }
 
 export interface IClientRegistry {

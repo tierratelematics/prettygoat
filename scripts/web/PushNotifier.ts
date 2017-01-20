@@ -8,14 +8,14 @@ import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents"
 @injectable()
 class PushNotifier implements IPushNotifier {
 
-    private config:IEndpointConfig;
+    private config: IEndpointConfig;
 
-    constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
-                @inject("IEndpointConfig") config:IEndpointConfig) {
+    constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
+                @inject("IEndpointConfig") config: IEndpointConfig) {
         this.config = <IEndpointConfig>_.assign({}, config, config ? config.notifications : {});
     }
 
-    notify(context:PushContext, clientId?:string, splitKey?:string):void {
+    notify(context: PushContext, clientId?: string, splitKey?: string): void {
         if (clientId) {
             this.emitToSingleClient(clientId, context, splitKey);
         } else {
@@ -27,8 +27,8 @@ class PushNotifier implements IPushNotifier {
         }
     }
 
-    private buildNotification(context:PushContext, splitKey:string = ""):PushNotification {
-        let endpoint = ContextOperations.getEndpoint(context),
+    private buildNotification(context: PushContext, splitKey: string = ""): PushNotification {
+        let endpoint = `/${context.area}/${context.projectionName}`.toLowerCase(),
             url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
             url += `:${this.config.port}`;
@@ -40,7 +40,7 @@ class PushNotifier implements IPushNotifier {
         };
     }
 
-    private emitToSingleClient(clientId:string, context:PushContext, splitKey:string = ""):void {
+    private emitToSingleClient(clientId: string, context: PushContext, splitKey: string = ""): void {
         let notification = this.buildNotification(context, splitKey);
         this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }

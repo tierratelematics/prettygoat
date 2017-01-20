@@ -3,8 +3,7 @@ import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import IProjectionRouter from "../web/IProjectionRouter";
-import ExpressApp from "./ExpressApp";
+import ExpressApp from "../web/ExpressApp";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
@@ -19,8 +18,6 @@ import ReadModelFactory from "../streams/ReadModelFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
-import ExpressStatePublisher from "../web/ExpressStatePublisher";
-import IStatePublisher from "../web/IStatePublisher";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import CassandraSnapshotRepository from "../cassandra/CassandraSnapshotRepository";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
@@ -45,6 +42,9 @@ import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../
 import ClientRegistry from "../web/ClientRegistry";
 import SocketEventEmitter from "../web/SocketEventEmitter";
 import SocketFactory from "../web/SocketFactory";
+import {IRequestAdapter, IRouteResolver} from "../web/IRequestComponents";
+import RequestAdapter from "../web/RequestAdapter";
+import RouteResolver from "../web/RouteResolver";
 
 class PrettyGoatModule implements IModule {
 
@@ -52,7 +52,6 @@ class PrettyGoatModule implements IModule {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
-        container.bind<IProjectionRouter>("IProjectionRouter").toConstantValue(ExpressApp);
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
         container.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
@@ -68,7 +67,6 @@ class PrettyGoatModule implements IModule {
         container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         container.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
-        container.bind<IStatePublisher>("IStatePublisher").to(ExpressStatePublisher).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
@@ -78,6 +76,8 @@ class PrettyGoatModule implements IModule {
         container.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
         container.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
         container.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
+        container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
+        container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

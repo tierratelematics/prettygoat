@@ -14,7 +14,7 @@ class ClientRegistry implements IClientRegistry {
         if (!context.parameters) {
             client.join(ContextOperations.getRoom(context));
         } else {
-            let entry = this.registry.getEntry(context.viewmodelId, context.area);
+            let entry = this.registry.getEntry(context.projectionName, context.area);
             client.join(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
         }
     }
@@ -23,7 +23,7 @@ class ClientRegistry implements IClientRegistry {
         if (!context.parameters) {
             client.leave(ContextOperations.getRoom(context));
         } else {
-            let entry = this.registry.getEntry(context.viewmodelId, context.area);
+            let entry = this.registry.getEntry(context.projectionName, context.area);
             client.leave(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
         }
     }

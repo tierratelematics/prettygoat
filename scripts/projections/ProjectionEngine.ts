@@ -4,7 +4,6 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
 import PushContext from "../web/PushContext";
-import IStatePublisher from "../web/IStatePublisher";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
@@ -20,7 +19,6 @@ class ProjectionEngine implements IProjectionEngine {
     constructor(@inject("IProjectionRunnerFactory") private runnerFactory: IProjectionRunnerFactory,
                 @inject("IPushNotifier") private pushNotifier: IPushNotifier,
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
-                @inject("IStatePublisher") private statePublisher: IStatePublisher,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IProjectionSorter") private sorter: IProjectionSorter) {
@@ -64,7 +62,7 @@ class ProjectionEngine implements IProjectionEngine {
 
         let subscription = sequence.subscribe(state => {
             this.pushNotifier.notify(context, null, state.splitKey);
-            this.logger.info(`Notifying state change on ${context.area}:${context.viewmodelId} with key ${state.splitKey}`);
+            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} with key ${state.splitKey}`);
         }, error => {
             subscription.dispose();
             this.logger.error(error);
@@ -72,7 +70,6 @@ class ProjectionEngine implements IProjectionEngine {
             this.run(projection, context);
         });
 
-        this.statePublisher.publish(runner, context);
         runner.run(snapshot);
     }
 }
