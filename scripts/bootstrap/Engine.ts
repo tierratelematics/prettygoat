@@ -15,6 +15,7 @@ import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
 import SocketClient from "../web/SocketClient";
+import {IRequestAdapter} from "../web/IRequestComponents";
 
 class Engine {
 
@@ -45,10 +46,12 @@ class Engine {
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
             logger = this.container.get<ILogger>("ILogger"),
-            socketConfig = this.container.get<ISocketConfig>("ISocketConfig");
+            socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
+            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
+        server.all("*", (request, response) => requestAdapter.route(request, response));
         server.listen(config.port || 80);
 
         logger.info(`Server listening on ${config.port || 80}`);
