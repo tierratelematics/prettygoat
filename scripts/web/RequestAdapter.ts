@@ -10,7 +10,7 @@ class RequestAdapter implements IRequestAdapter {
     }
 
     route(request: Request, response: Response) {
-        let requestHandler = this.routeResolver.resolve(request.originalUrl);
+        let requestHandler = this.routeResolver.resolve(request.originalUrl, request.method);
         if (requestHandler) {
             if (this.cluster.handleOrProxy(requestHandler.keyFor(request), request, response)) {
                 requestHandler.handle(request, response);

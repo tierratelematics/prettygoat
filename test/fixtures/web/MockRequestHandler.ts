@@ -1,9 +1,8 @@
 import {IRequestHandler} from "../../../scripts/web/IRequestComponents";
-import Methods from "../../../scripts/web/Methods";
 import {Request, Response} from "express";
 import Route from "../../../scripts/web/RouteDecorator";
 
-@Route(Methods.Get, "/test")
+@Route("GET", "/test")
 export default class MockRequestHandler implements IRequestHandler {
 
     handle(request: Request, response: Response) {

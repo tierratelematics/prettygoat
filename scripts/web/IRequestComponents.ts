@@ -1,6 +1,7 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Request, Response} from "express";
+import Methods from "./Methods";
 
 export interface IRequestAdapter {
     route(request: Request, response: Response);
@@ -12,7 +13,7 @@ export interface IRequestHandler {
 }
 
 export interface IRouteResolver {
-    resolve(path: string): IRequestHandler;
+    resolve(path: string, method: string): IRequestHandler;
 }
 
 export interface IRequestParser {

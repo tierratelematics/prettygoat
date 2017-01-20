@@ -23,9 +23,9 @@ class RouteResolver implements IRouteResolver {
         });
     }
 
-    resolve(path: string): IRequestHandler {
+    resolve(path: string, method: string): IRequestHandler {
         let pathname = url.parse(path).pathname;
-        let route = _.find<Route>(this.routes, route => route.matcher.match(pathname));
+        let route = _.find<Route>(this.routes, route => route.matcher.match(pathname) && route.method === method);
         return route ? route.handler : null;
     }
 
