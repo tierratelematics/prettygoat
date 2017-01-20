@@ -1,7 +1,6 @@
 import {IRequestHandler} from "../web/IRequestComponents";
 import {Request, Response} from "express";
 import Route from "../web/RouteDecorator";
-import Methods from "../web/Methods";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import FilterOutputType from "../filters/FilterOutputType";
 import IFilterStrategy from "../filters/IFilterStrategy";
@@ -10,7 +9,7 @@ import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 
-@Route(Methods.Get, "/:area/:projectionName(/:splitKey)")
+@Route("GET", "/:area/:projectionName(/:splitKey)")
 class ProjectionRequestHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,

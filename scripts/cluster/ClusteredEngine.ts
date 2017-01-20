@@ -2,7 +2,8 @@ import Engine from "../bootstrap/Engine";
 import ClusterModule from "./ClusterModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ICluster from "./ICluster";
-import {Observable} from "rx";
+import {IRequestAdapter} from "../web/IRequestComponents";
+const express = require("express");
 
 class ClusteredEngine extends Engine {
 
@@ -14,9 +15,19 @@ class ClusteredEngine extends Engine {
     run(overrides?: any) {
         this.boot(overrides);
         let projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
-            cluster = this.container.get<ICluster>("ICluster");
+            cluster = this.container.get<ICluster>("ICluster"),
+            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");
 
-        Observable.merge(cluster.startup(), cluster.changes()).subscribe(() => projectionEngine.run());
+        cluster.startup()
+            .do(() => {
+                cluster.requests().subscribe(message => {
+                    message.request.__proto__ = express.request;
+                    message.response.__proto__ = express.response;
+                    requestAdapter.route(message.request, message.response);
+                })
+            })
+            .merge(cluster.changes())
+            .subscribe(() => projectionEngine.run());
     }
 }
 
