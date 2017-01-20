@@ -1,13 +1,10 @@
-import * as express from 'express';
-import * as net from "net";
-import {Readable} from "stream";
-
-class MockRequest{
+class MockRequest {
 
     headers: {};
     body: any;
     params: any;
     query: any;
+    originalUrl: string;
 
     get(name: string): string {
         return null;

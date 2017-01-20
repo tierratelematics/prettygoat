@@ -1,14 +1,14 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-import Methods from "./Methods";
+import {Request, Response} from "express";
 
 export interface IRequestAdapter {
-    route(request: IRequest, response: IResponse);
+    route(request: Request, response: Response);
 }
 
 export interface IRequestHandler {
-    handle(request: IncomingMessage, response: ServerResponse);
-    keyFor(request: IncomingMessage): string;
+    handle(request: Request, response: Response);
+    keyFor(request: Request): string;
 }
 
 export interface IRouteResolver {
@@ -16,16 +16,5 @@ export interface IRouteResolver {
 }
 
 export interface IRequestParser {
-    parse(request: IncomingMessage, response: ServerResponse): Promise<[IRequest, IResponse]>;
-}
-
-export interface IRequest {
-    path: string;
-    headers: string[];
-    method: Methods;
-    body: any;
-}
-
-export interface IResponse {
-
+    parse(request: IncomingMessage, response: ServerResponse): Promise<[Request, Response]>;
 }

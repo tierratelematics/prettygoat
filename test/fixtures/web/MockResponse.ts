@@ -1,11 +1,7 @@
 import * as express from 'express';
-import {Errback} from "express";
-import {ServerResponse} from "http";
-import * as net from "net";
 
+class MockResponse {
 
-class MockResponse{
-    
     send: express.Send = function (body?: any): express.Response {
         return this;
     };
@@ -37,7 +33,7 @@ class MockResponse{
         return null;
     }
 
-    end(): void{
+    end(): void {
 
     }
 }
