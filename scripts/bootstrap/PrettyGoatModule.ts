@@ -3,7 +3,6 @@ import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import ExpressApp from "../web/ExpressApp";
 import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";

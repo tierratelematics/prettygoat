@@ -1,7 +1,7 @@
 import {injectable} from "inversify";
 import {ISocketFactory} from "./IPushComponents";
 const io = require("socket.io");
-import app from "./ExpressApp";
+import {server} from "./ExpressApp";
 
 @injectable()
 class SocketFactory implements ISocketFactory {
@@ -10,7 +10,7 @@ class SocketFactory implements ISocketFactory {
 
     socketForPath(path?: string): SocketIO.Server {
         if (!this.socket) {
-            this.socket = io(app, {path: path || "socket.io"});
+            this.socket = io(server, {path: path || "socket.io"});
         }
 
         return this.socket;

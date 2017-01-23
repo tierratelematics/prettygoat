@@ -1,7 +1,9 @@
 const cors = require("cors");
 const bodyParser = require('body-parser');
-const server = require("express")();
+const app = require("express")();
+const server = require('http').Server(app);
 
-server.use(cors()).use(bodyParser.json());
+app.use(cors()).use(bodyParser.json());
 
-export default server
+export {app}
+export {server}

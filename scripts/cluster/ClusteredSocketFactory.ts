@@ -1,6 +1,6 @@
 import {injectable, inject, optional} from "inversify";
 const io = require("socket.io");
-import app from "../web/ExpressApp";
+import {server} from "../web/ExpressApp";
 import {ISocketFactory} from "../web/IPushComponents";
 import IRedisConfig from "../configs/IRedisConfig";
 import * as redis from "socket.io-redis";
@@ -16,7 +16,7 @@ class ClusteredSocketFactory implements ISocketFactory {
 
     socketForPath(path?: string): SocketIO.Server {
         if (!this.socket) {
-            this.socket = io(app, {path: path || "socket.io"});
+            this.socket = io(server, {path: path || "socket.io"});
             if (this.redisConfig)
                 this.socket.adapter(redis({host: this.redisConfig.host, port: this.redisConfig.port}))
         }

@@ -10,7 +10,7 @@ import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import AuthorizationStrategy from "./AuthorizationStrategy";
 import AuthorizationController from "./AuthorizationController";
 import {ISubject, Subject} from "rx";
-import app from "../web/ExpressApp";
+import {app} from "../web/ExpressApp";
 import {NextFunction, Request, Response} from "express";
 
 class APIModule implements IModule {

@@ -10,7 +10,7 @@ import IEndpointConfig from "../configs/IEndpointConfig";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import server from "../web/ExpressApp";
+import {server, app} from "../web/ExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
@@ -51,7 +51,7 @@ class Engine {
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
-        server.all("*", (request, response) => requestAdapter.route(request, response));
+        app.all("*", (request, response) => requestAdapter.route(request, response));
         server.listen(config.port || 80);
 
         logger.info(`Server listening on ${config.port || 80}`);
