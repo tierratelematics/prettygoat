@@ -66,8 +66,6 @@ class ProjectionEngine implements IProjectionEngine {
         }, error => {
             subscription.dispose();
             this.logger.error(error);
-            this.logger.info(`Restarting projection due to error ${projection.name}`);
-            this.run(projection, context);
         });
 
         runner.run(snapshot);
