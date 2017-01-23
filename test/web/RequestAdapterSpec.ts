@@ -83,4 +83,13 @@ describe("Given a RequestAdapter and a new request", () => {
             response.verify(r => r.status(404), TypeMoq.Times.once());
         });
     });
+
+    context("when a cluster instance is not provided", () => {
+        it("should not proxy the request", () => {
+            subject = new RequestAdapter(null, routeResolver);
+            request.object.originalUrl = "/test";
+            subject.route(request.object, response.object);
+            request.verify(r => r.get(""), TypeMoq.Times.once());
+        });
+    });
 });
