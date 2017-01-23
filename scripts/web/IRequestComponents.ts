@@ -13,8 +13,10 @@ export interface IRequestHandler {
 }
 
 export interface IRouteResolver {
-    resolve(path: string, method: string): IRequestHandler;
+    resolve(path: string, method: string): IRouteContext;
 }
+
+export type IRouteContext = [IRequestHandler, any];
 
 export interface IRequestParser {
     parse(request: IncomingMessage, response: ServerResponse): Promise<[Request, Response]>;

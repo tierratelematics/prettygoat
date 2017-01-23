@@ -1,20 +1,19 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
-import {IRequestAdapter, IRequestHandler, IRouteResolver} from "../../scripts/web/IRequestComponents";
+import {IRequestAdapter, IRouteResolver} from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
-import MockRequestHandler from "../fixtures/web/MockRequestHandler";
 import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
 import {createMockRequest} from "../fixtures/web/MockRequest";
 import {createMockResponse} from "../fixtures/web/MockResponse";
 import RouteResolver from "../../scripts/web/RouteResolver";
 import {Request, Response} from "express";
+import {MockRequestHandler, ParamRequestHandler} from "../fixtures/web/MockRequestHandler";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
     let subject: IRequestAdapter;
-    let requestHandler: IRequestHandler;
     let routeResolver: IRouteResolver;
     let cluster: TypeMoq.Mock<ICluster>;
     let request: TypeMoq.Mock<Request>;
@@ -27,8 +26,7 @@ describe("Given a RequestAdapter and a new request", () => {
         response = TypeMoq.Mock.ofInstance(createMockResponse());
         response.setup(r => r.status(anyValue)).returns(() => response.object);
         cluster = TypeMoq.Mock.ofType(MockCluster);
-        requestHandler = new MockRequestHandler();
-        routeResolver = new RouteResolver([requestHandler]);
+        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler()]);
         subject = new RequestAdapter(cluster.object, routeResolver);
     });
 
@@ -48,6 +46,14 @@ describe("Given a RequestAdapter and a new request", () => {
                     request.object.originalUrl = "/test?foo=bar";
                     subject.route(request.object, response.object);
                     request.verify(r => r.get(""), TypeMoq.Times.once());
+                });
+
+                it("should correctly deserialize url params", () => {
+                    request.object.originalUrl = "/foo/f4587s";
+                    subject.route(request.object, response.object);
+                    expect(request.object.params).to.eql({
+                        id: "f4587s"
+                    });
                 });
             });
 

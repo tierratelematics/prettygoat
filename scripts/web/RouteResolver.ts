@@ -1,5 +1,5 @@
-import {IRouteResolver, IRequestHandler} from "./IRequestComponents";
-import {multiInject, inject, injectable, optional} from "inversify";
+import {IRouteResolver, IRequestHandler, IRouteContext} from "./IRequestComponents";
+import {multiInject, injectable, optional} from "inversify";
 import * as _ from "lodash";
 import Methods from "./Methods";
 import * as UrlPattern from "url-pattern";
@@ -24,10 +24,14 @@ class RouteResolver implements IRouteResolver {
         });
     }
 
-    resolve(path: string, method: string): IRequestHandler {
+    resolve(path: string, method: string): IRouteContext {
         let pathname = url.parse(path).pathname;
-        let route = _.find<Route>(this.routes, route => route.matcher.match(pathname) && route.method === method);
-        return route ? route.handler : null;
+        return <IRouteContext>_(this.routes)
+            .filter(route => route.method === method)
+            .map(route => [route.handler, route.matcher.match(pathname)])
+            .filter(route => route[1])
+            .flatten()
+            .valueOf();
     }
 
 }
