@@ -3,7 +3,6 @@ import ClusterModule from "./ClusterModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ICluster from "./ICluster";
 import {IRequestAdapter} from "../web/IRequestComponents";
-const express = require("express");
 
 class ClusteredEngine extends Engine {
 
@@ -20,11 +19,7 @@ class ClusteredEngine extends Engine {
 
         cluster.startup().subscribe(() => {
             projectionEngine.run();
-            cluster.requests().subscribe(message => {
-                message.request.__proto__ = express.request;
-                message.response.__proto__ = express.response;
-                requestAdapter.route(message.request, message.response);
-            });
+            cluster.requests().subscribe(message => requestAdapter.route(message.request, message.response))
         });
         cluster.changes().subscribe(() => projectionEngine.run());
     }

@@ -6,7 +6,6 @@ import {EmbeddedClusterConfig} from "./ClusterConfig";
 import {Request, Response} from "express";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
-import {Disposable} from "rx";
 
 @injectable()
 class Cluster implements ICluster {
@@ -53,7 +52,6 @@ class Cluster implements ICluster {
     requests(): Observable<ClusterMessage> {
         return Observable.create(observer => {
             this.ringpop.on('request', (request, response) => {
-                console.log(request, response);
                 observer.onNext({
                     request: request,
                     response: response
