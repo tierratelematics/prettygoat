@@ -172,6 +172,12 @@ export interface ISocketConfig {
     path: string;
 }
 
+export interface IClusterConfig {
+    nodes: string[];
+    port: number;
+    host: string;
+}
+
 export interface Event {
     type: string;
     payload: any;
