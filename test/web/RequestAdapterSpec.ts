@@ -37,19 +37,19 @@ describe("Given a RequestAdapter and a new request", () => {
                     cluster.setup(c => c.handleOrProxy("testkey", anyValue, anyValue)).returns(() => true);
                 });
                 it("should route the message to the specific handler", () => {
-                    request.object.originalUrl = "/test";
+                    request.object.url = "/test";
                     subject.route(request.object, response.object);
                     request.verify(r => r.get(""), TypeMoq.Times.once());
                 });
 
                 it("should handle correctly query strings on the request path", () => {
-                    request.object.originalUrl = "/test?foo=bar";
+                    request.object.url = "/test?foo=bar";
                     subject.route(request.object, response.object);
                     request.verify(r => r.get(""), TypeMoq.Times.once());
                 });
 
                 it("should correctly deserialize url params", () => {
-                    request.object.originalUrl = "/foo/f4587s";
+                    request.object.url = "/foo/f4587s";
                     subject.route(request.object, response.object);
                     expect(request.object.params).to.eql({
                         id: "f4587s"
@@ -62,7 +62,7 @@ describe("Given a RequestAdapter and a new request", () => {
                     cluster.setup(c => c.handleOrProxy("testkey", anyValue, anyValue)).returns(() => false);
                 });
                 it("should proxy the request to the next node", () => {
-                    request.object.originalUrl = "/test";
+                    request.object.url = "/test";
                     subject.route(request.object, response.object);
                     request.verify(r => r.get(""), TypeMoq.Times.never());
                     cluster.verify(c => c.handleOrProxy("testkey", anyValue, anyValue), TypeMoq.Times.once());
@@ -72,7 +72,7 @@ describe("Given a RequestAdapter and a new request", () => {
 
         context("and a specific handler does not exists for the request", () => {
             it("should drop the connection with a not found", () => {
-                request.object.originalUrl = "/notfound";
+                request.object.url = "/notfound";
                 subject.route(request.object, response.object);
                 request.verify(r => r.get(""), TypeMoq.Times.never());
                 response.verify(r => r.status(404), TypeMoq.Times.once());
@@ -82,7 +82,7 @@ describe("Given a RequestAdapter and a new request", () => {
 
     context("when the request method does not match", () => {
         it("should drop the connection with an error code", () => {
-            request.object.originalUrl = "/test";
+            request.object.url = "/test";
             request.object.method = "POST";
             subject.route(request.object, response.object);
             request.verify(r => r.get(""), TypeMoq.Times.never());
@@ -93,7 +93,7 @@ describe("Given a RequestAdapter and a new request", () => {
     context("when a cluster instance is not provided", () => {
         it("should not proxy the request", () => {
             subject = new RequestAdapter(null, routeResolver);
-            request.object.originalUrl = "/test";
+            request.object.url = "/test";
             subject.route(request.object, response.object);
             request.verify(r => r.get(""), TypeMoq.Times.once());
         });

@@ -6,7 +6,7 @@ export class MockRequest {
     body: any;
     params: any;
     query: any;
-    originalUrl: string;
+    url: string;
 
     get(name: string): string {
         return null;
