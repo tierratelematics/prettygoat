@@ -8,6 +8,7 @@ import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
+import SplitProjectionRunner from "./SplitProjectionRunner";
 
 @Route("GET", "/:area/:projectionName(/:splitKey)")
 class ProjectionStateHandler implements IRequestHandler {
@@ -19,16 +20,18 @@ class ProjectionStateHandler implements IRequestHandler {
     handle(request: Request, response: Response) {
         let projectionName = request.params.projectionName,
             area = request.params.area,
-            splitKey = request.params.key,
+            splitKey = request.params.splitKey,
             entry = this.projectionRegistry.getEntry(projectionName, area).data;
         if (!entry) {
             this.sendNotFound(response);
         } else {
             let filterStrategy = entry.projection.filterStrategy,
                 projectionRunner = this.holder[entry.projection.name],
+                state;
+            if (projectionRunner instanceof SplitProjectionRunner) {
+                state = projectionRunner.state[splitKey];
+            } else {
                 state = projectionRunner.state;
-            if (splitKey) {
-                state = state[splitKey];
             }
             if (state)
                 this.sendResponse(request, response, state, filterStrategy);
