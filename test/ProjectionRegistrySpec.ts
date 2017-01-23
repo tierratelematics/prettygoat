@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
@@ -179,6 +178,14 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
                 let entry = subject.getEntry("Mock", "Admin");
 
                 expect(entry.data.projection.name).to.be("test");
+            });
+        });
+
+        context("and I supply an inexistent area name", () => {
+            it("should return no data", () => {
+                let entry = subject.getEntry("Mock", "AdminBad");
+
+                expect(entry.data).to.be(null);
             });
         });
     });

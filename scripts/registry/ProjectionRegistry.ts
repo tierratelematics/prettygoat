@@ -93,8 +93,10 @@ class ProjectionRegistry implements IProjectionRegistry {
         let entry = null;
         if (area) {
             let areaRegistry = this.getArea(area);
-            entry = _.find(areaRegistry.entries, (entry:RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
-            area = areaRegistry.area;
+            if (areaRegistry) {
+                entry = _.find(areaRegistry.entries, (entry: RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
+                area = areaRegistry.area;
+            }
         } else {
             let areas = this.getAreas();
             _.forEach(areas, (areaRegistry:AreaRegistry) => {
