@@ -116,26 +116,6 @@ describe("Given a ProjectionEngine", () => {
         });
     });
 
-    context("when a running projection dies", () => {
-        let triggerError = true;
-        beforeEach(() => {
-            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
-            snapshotRepository.setup(s => s.getSnapshot("test")).returns(a => Observable.just<Snapshot<any>>(null));
-            runner.reset();
-            runner.setup(r => r.notifications()).returns(() => {
-                let obs = triggerError ? dataSubject: Observable.empty<Event>();
-                triggerError = false;
-                return obs;
-            });
-            subject.run();
-            dataSubject.onError(new Error("Booom!"));
-        });
-        it("should restart the projection", () => {
-            snapshotRepository.verify(s => s.getSnapshot("test"), TypeMoq.Times.exactly(1));
-            runnerFactory.verify(r => r.create(TypeMoq.It.isValue(projection)), TypeMoq.Times.exactly(2));
-        });
-    });
-
     context("when a projections triggers a new state", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
