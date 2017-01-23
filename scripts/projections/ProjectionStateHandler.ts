@@ -10,7 +10,7 @@ import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 
 @Route("GET", "/:area/:projectionName(/:splitKey)")
-class ProjectionRequestHandler implements IRequestHandler {
+class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
@@ -66,4 +66,4 @@ class ProjectionRequestHandler implements IRequestHandler {
 
 }
 
-export default ProjectionRequestHandler
+export default ProjectionStateHandler
