@@ -1,15 +1,16 @@
 import {IRouteResolver, IRequestHandler} from "./IRequestComponents";
-import {multiInject} from "inversify";
+import {multiInject, inject, injectable, optional} from "inversify";
 import * as _ from "lodash";
 import Methods from "./Methods";
 import * as UrlPattern from "url-pattern";
 import * as url from "url";
 
+@injectable()
 class RouteResolver implements IRouteResolver {
 
     private routes: Route[];
 
-    constructor(@multiInject("IRequestHandler") requestHandlers: IRequestHandler[]) {
+    constructor(@multiInject("IRequestHandler") @optional() requestHandlers: IRequestHandler[] = []) {
         this.routes = this.mapRoutes(requestHandlers);
     }
 
