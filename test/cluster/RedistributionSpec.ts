@@ -22,6 +22,7 @@ import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
+import {has} from "lodash";
 
 describe("Given a set of projections to redistribute", () => {
     let subject: IProjectionEngine,
@@ -100,6 +101,10 @@ describe("Given a set of projections to redistribute", () => {
         });
         it("should be shut down", () => {
             runner1.verify(r => r.stop(), TypeMoq.Times.once());
+        });
+
+        it("should be removed from the runners holder", () => {
+            expect(has(holder, "projection1")).to.be(false);
         });
     });
 });

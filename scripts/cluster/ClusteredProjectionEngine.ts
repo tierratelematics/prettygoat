@@ -39,10 +39,12 @@ class ClusteredProjectionEngine implements IProjectionEngine {
                             let projection = entry.projection,
                                 runner = this.holder[projection.name];
                             if (this.cluster.lookup(projection.name) === this.cluster.whoami()) {
-                                if (!runner || (runner && runner.status !== ProjectionRunnerStatus.Run))
+                                if (!runner || (runner && runner.status !== ProjectionRunnerStatus.Run)) {
                                     this.engine.run(projection, new PushContext(entry.name, areaRegistry.area));
-                            } else if (runner) {
+                                }
+                            } else if (runner && runner.status !== ProjectionRunnerStatus.Stop) {
                                 runner.stop();
+                                delete this.holder[projection.name];
                             }
                         });
                     });
