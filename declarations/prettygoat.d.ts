@@ -1,5 +1,6 @@
 import {interfaces} from "inversify";
-import {IObservable, IDisposable, Observable} from "rx";
+import {Observable} from "rx";
+import {Request, Response} from "express";
 
 export interface IProjection<T> {
     name: string;
@@ -42,50 +43,24 @@ declare class DeleteSplitState extends SpecialState<any> {
     constructor();
 }
 
-export interface IProjectionRunner<T> extends IDisposable {
-    state: T|Dictionary<T>;
-    stats: ProjectionStats;
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
-    stop(): void;
-    pause(): void;
-    resume(): void;
-    notifications: Observable<Event>;
-}
-
-export class ProjectionStats {
-    events: number;
-    readModels: number;
-}
-
-export interface IProjectionRunnerFactory {
-    create<T>(projection: IProjection<T>): IProjectionRunner<T>
-}
-
 export interface IProjectionDefinition<T> {
     define(tickScheduler?: ITickScheduler): IProjection<T>;
-}
-
-export interface IMatcher {
-    match(name: string): Function;
 }
 
 export interface Dictionary<T> {
     [index: string]: T
 }
 
+export interface ICassandraDeserializer {
+    toEvent(row): Event;
+}
+
 export interface ISnapshotRepository {
     initialize(): Observable<void>;
     getSnapshots(): Observable<Dictionary<Snapshot<any>>>;
+    getSnapshot<T>(streamId: string): Observable<Snapshot<T>>;
     saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void;
     deleteSnapshot(streamId: string): void;
-}
-
-export interface IStreamFactory {
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
-}
-
-export interface ICassandraDeserializer {
-    toEvent(row): Event;
 }
 
 export class Snapshot<T> {
@@ -94,8 +69,23 @@ export class Snapshot<T> {
     constructor(memento: T, lastEvent: string);
 }
 
-export interface IEventEmitter {
-    emitTo(clientId: string, event: string, parameters: any): void;
+
+export interface ISnapshotStrategy {
+    needsSnapshot(event: Event): boolean;
+}
+
+export class TimeSnapshotStrategy implements ISnapshotStrategy {
+
+    needsSnapshot(event: Event): boolean;
+
+    saveThreshold(ms: number);
+}
+
+export class CountSnapshotStrategy implements ISnapshotStrategy {
+
+    needsSnapshot(event: Event): boolean;
+
+    saveThreshold(threshold: number): void;
 }
 
 export class PushContext {
@@ -104,19 +94,6 @@ export class PushContext {
     parameters: any;
 
     constructor(area: string, projectionName?: string, parameters?: any);
-}
-
-export interface IClientRegistry {
-    add(clientId: string, context: PushContext): void;
-    clientsFor(context: PushContext): ClientEntry[];
-    remove(clientId: string, context: PushContext): void;
-}
-
-export class ClientEntry {
-    id: string;
-    parameters: any;
-
-    constructor(id: string, parameters?: any);
 }
 
 export interface IProjectionRegistry {
@@ -144,8 +121,11 @@ export class RegistryEntry<T> {
 export function Projection(name: string);
 
 export class Engine {
+    protected container:interfaces.Container;
 
     register(module: IModule): boolean;
+
+    boot(overrides?: any);
 
     run(overrides?: any);
 }
@@ -197,24 +177,6 @@ export interface Event {
     payload: any;
     timestamp: string;
     splitKey: string;
-}
-
-export interface ISnapshotStrategy {
-    needsSnapshot(event: Event): boolean;
-}
-
-export class TimeSnapshotStrategy implements ISnapshotStrategy {
-
-    needsSnapshot(event: Event): boolean;
-
-    saveThreshold(ms: number);
-}
-
-export class CountSnapshotStrategy implements ISnapshotStrategy {
-
-    needsSnapshot(event: Event): boolean;
-
-    saveThreshold(threshold: number): void;
 }
 
 export interface IFilterStrategy<T> {
@@ -302,3 +264,16 @@ interface PredicatesStatic {
 }
 
 export var FeaturePredicates: PredicatesStatic;
+
+export function Route(method: Methods, path: string);
+
+export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "PATCH";
+
+export interface IRequestHandler {
+    handle(request: Request, response: Response);
+    keyFor(request: Request): string;
+}
+
+export class ClusteredEngine extends Engine {
+    run(overrides?: any);
+}
