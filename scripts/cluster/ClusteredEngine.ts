@@ -18,16 +18,15 @@ class ClusteredEngine extends Engine {
             cluster = this.container.get<ICluster>("ICluster"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");
 
-        cluster.startup()
-            .do(() => {
-                cluster.requests().subscribe(message => {
-                    message.request.__proto__ = express.request;
-                    message.response.__proto__ = express.response;
-                    requestAdapter.route(message.request, message.response);
-                })
-            })
-            .merge(cluster.changes())
-            .subscribe(() => projectionEngine.run());
+        cluster.startup().subscribe(() => {
+            projectionEngine.run();
+            cluster.requests().subscribe(message => {
+                message.request.__proto__ = express.request;
+                message.response.__proto__ = express.response;
+                requestAdapter.route(message.request, message.response);
+            });
+        });
+        cluster.changes().subscribe(() => projectionEngine.run());
     }
 }
 

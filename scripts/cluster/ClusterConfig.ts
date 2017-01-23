@@ -5,7 +5,7 @@ export interface IClusterConfig {
 }
 
 export class EmbeddedClusterConfig implements IClusterConfig {
-    nodes = ["127.0.0.1:3000"];
+    nodes = ["127.0.0.1:4000"];
     port = 4000;
-    host = "localhost";
+    host = "127.0.0.1";
 }
