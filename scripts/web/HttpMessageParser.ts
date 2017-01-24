@@ -5,7 +5,7 @@ import {injectable} from "inversify";
 @injectable()
 class HttpMessageParser implements IMessageParser<Request, Response> {
 
-    parse(request: Request, response: Response): [IRequest, IResponse] {
+    parse(request: Request, response: Response): Promise<[IRequest, IResponse]> {
         let requestParsed = {
             url: request.url,
             method: request.method,
@@ -33,7 +33,7 @@ class HttpMessageParser implements IMessageParser<Request, Response> {
             originalResponse: response
         };
 
-        return [requestParsed, responseParsed];
+        return Promise.resolve([requestParsed, responseParsed]);
     }
 
 }

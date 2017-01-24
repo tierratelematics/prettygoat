@@ -21,6 +21,7 @@
     "@types/socket.io-redis": "~1.0.21",
     "bivio": "~0.2.0",
     "bluebird": "~3.4.0",
+    "body": "~5.1.0",
     "body-parser": "~1.15.2",
     "cassandra-driver": "~3.1.1",
     "cors": "~2.7.1",

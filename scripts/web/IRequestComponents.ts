@@ -35,5 +35,5 @@ export interface IResponse {
 }
 
 export interface IMessageParser<T, U> {
-    parse(request: T, response: U): [IRequest, IResponse];
+    parse(request: T, response: U): Promise<[IRequest, IResponse]>;
 }
