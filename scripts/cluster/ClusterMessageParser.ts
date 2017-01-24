@@ -4,7 +4,9 @@ import Dictionary from "../util/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
 import {IMessageParser, IRequest, IResponse} from "../web/IRequestComponents";
+import {injectable} from "inversify";
 
+@injectable()
 class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
 
     parse(request: IncomingMessage, response: ServerResponse): [IRequest, IResponse] {

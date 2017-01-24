@@ -1,6 +1,8 @@
 import {IMessageParser, IRequest, IResponse} from "./IRequestComponents";
 import {Request, Response} from "express";
+import {injectable} from "inversify";
 
+@injectable()
 class HttpMessageParser implements IMessageParser<Request, Response> {
 
     parse(request: Request, response: Response): [IRequest, IResponse] {
