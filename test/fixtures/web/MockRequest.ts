@@ -1,25 +1,11 @@
-import {Request} from "express";
+import {IRequest} from "../../../scripts/web/IRequestComponents";
 
-export class MockRequest {
-
+export default class MockRequest implements IRequest {
+    url: "";
+    method: "";
     headers: {};
-    body: any;
-    params: any;
-    query: any;
-    url: string;
-
-    get(name: string): string {
-        return null;
-    }
-
-    header(name: string): string {
-        return null;
-    }
-}
-
-//Factory function used to avoid the implementation of the huge express request interface
-export function createMockRequest(url?: string): Request {
-    let req = <Request><any>new MockRequest();
-    req.url = url;
-    return req;
+    query: {};
+    params: {};
+    body: {};
+    originalRequest: null;
 }

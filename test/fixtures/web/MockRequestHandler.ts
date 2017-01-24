@@ -1,16 +1,16 @@
-import {IRequestHandler} from "../../../scripts/web/IRequestComponents";
-import {Request, Response} from "express";
+import {IRequestHandler, IRequest, IResponse} from "../../../scripts/web/IRequestComponents";
 import Route from "../../../scripts/web/RouteDecorator";
 
 @Route("GET", "/test")
 export class MockRequestHandler implements IRequestHandler {
 
-    handle(request: Request, response: Response) {
+    handle(request: IRequest, response: IResponse) {
         //Access request in order to test handler call
-        request.get("");
+        request.params = request.params || {};
+        request.params.accessed = true;
     }
 
-    keyFor(request: Request): string {
+    keyFor(request: IRequest): string {
         return "testkey";
     }
 
@@ -19,12 +19,13 @@ export class MockRequestHandler implements IRequestHandler {
 @Route("GET", "/foo/:id")
 export class ParamRequestHandler implements IRequestHandler {
 
-    handle(request: Request, response: Response) {
+    handle(request: IRequest, response: IResponse) {
         //Access request in order to test handler call
-        request.get("");
+        request.params = request.params || {};
+        request.params.accessed = true;
     }
 
-    keyFor(request: Request): string {
+    keyFor(request: IRequest): string {
         return "testkey";
     }
 

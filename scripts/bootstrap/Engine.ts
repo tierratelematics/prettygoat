@@ -15,7 +15,8 @@ import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
 import SocketClient from "../web/SocketClient";
-import {IRequestAdapter} from "../web/IRequestComponents";
+import {IRequestAdapter, IMessageParser} from "../web/IRequestComponents";
+import {Request, Response} from "express";
 
 class Engine {
 
@@ -47,11 +48,15 @@ class Engine {
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
             logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
-            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");
+            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
+            messageParser = this.container.get<IMessageParser<Request,  Response>>("HttpMessageParser");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
-        app.all("*", (request, response) => requestAdapter.route(request, response));
+        app.all("*", (request, response) => {
+            let context = messageParser.parse(request, response);
+            requestAdapter.route(context[0], context[1]);
+        });
         server.listen(config.port || 80);
 
         logger.info(`Server listening on ${config.port || 80}`);

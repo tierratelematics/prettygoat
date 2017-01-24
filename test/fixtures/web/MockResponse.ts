@@ -1,44 +1,16 @@
-import {Response, Send} from "express";
+import {IResponse} from "../../../scripts/web/IRequestComponents";
 
-class MockResponse {
+export default class MockResponse implements IResponse {
+    originalResponse: null;
 
-    send: Send = function (body?: any): Response {
-        return this;
-    };
-
-    json: Send = function (body: any): Response {
-        return this;
-    };
-
-    jsonp: Send = function (body: any): Response {
-        return this;
-    };
-
-    headers: any;
-
-    status(code: number): Response {
-        return <Response><any>this;
+    header(key: string, value: string) {
     }
 
-    sendStatus(code: number): Response {
-        return null;
+    status(code: number) {
     }
 
-    header(field: any): Response;
-    header(field: any | string, value?: string): Response {
-        return null;
+    send(data: any) {
     }
 
-    get(field: string): string {
-        return null;
-    }
-
-    end(): void {
-
-    }
 }
 
-//Factory function used to avoid the implementation of the huge express response interface
-export function createMockResponse(): Response {
-    return <Response><any>new MockResponse();
-}

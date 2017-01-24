@@ -41,10 +41,11 @@ import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../
 import ClientRegistry from "../web/ClientRegistry";
 import SocketEventEmitter from "../web/SocketEventEmitter";
 import SocketFactory from "../web/SocketFactory";
-import {IRequestAdapter, IRouteResolver, IRequestHandler} from "../web/IRequestComponents";
+import {IRequestAdapter, IRouteResolver, IRequestHandler, IMessageParser} from "../web/IRequestComponents";
 import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
 import ProjectionStateHandler from "../projections/ProjectionStateHandler";
+import HttpMessageParser from "../web/HttpMessageParser";
 
 class PrettyGoatModule implements IModule {
 
@@ -79,6 +80,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
+        container.bind<IMessageParser<any, any>>("HttpMessageParser").to(HttpMessageParser).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

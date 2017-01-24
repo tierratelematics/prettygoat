@@ -1,12 +1,12 @@
 import {Observable} from "rx";
 import ClusterMessage from "./ClusterMessage";
-import {Request, Response} from "express";
+import {IncomingMessage, ServerResponse} from "http";
 
 interface ICluster {
     startup(): Observable<void>;
     whoami(): string;
     lookup(key: string): string;
-    handleOrProxy(key: string, request: Request, response: Response):boolean;
+    handleOrProxy(key: string, request: IncomingMessage, response: ServerResponse): boolean;
     requests(): Observable<ClusterMessage>;
     changes(): Observable<void>;
 }

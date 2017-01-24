@@ -9,6 +9,8 @@ import ICluster from "./ICluster";
 import Cluster from "./Cluster";
 import {ISocketFactory} from "../web/IPushComponents";
 import ClusteredSocketFactory from "./ClusteredSocketFactory";
+import {IMessageParser} from "../web/IRequestComponents";
+import ClusterMessageParser from "./ClusterMessageParser";
 
 class ClusterModule implements IModule {
 
@@ -19,6 +21,7 @@ class ClusterModule implements IModule {
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
         container.unbind("ISocketFactory");
         container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
+        container.bind<IMessageParser<any,any>>("ClusterMessageParser").to(ClusterMessageParser).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

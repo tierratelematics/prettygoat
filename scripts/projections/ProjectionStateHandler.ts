@@ -1,5 +1,4 @@
-import {IRequestHandler} from "../web/IRequestComponents";
-import {Request, Response} from "express";
+import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import FilterOutputType from "../filters/FilterOutputType";
@@ -17,7 +16,7 @@ class ProjectionStateHandler implements IRequestHandler {
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
     }
 
-    handle(request: Request, response: Response) {
+    handle(request: IRequest, response: IResponse) {
         let projectionName = request.params.projectionName,
             area = request.params.area,
             splitKey = request.params.splitKey,
@@ -40,30 +39,34 @@ class ProjectionStateHandler implements IRequestHandler {
         }
     }
 
-    private sendNotFound(response: Response) {
-        response.status(404).json({error: "Projection not found"});
+    private sendNotFound(response: IResponse) {
+        response.status(404)
+        response.send({error: "Projection not found"});
     }
 
-    private sendResponse<T>(request: Request, response: Response, state: T,
+    private sendResponse<T>(request: IRequest, response: IResponse, state: T,
                             filterStrategy: IFilterStrategy<T> = new IdentityFilterStrategy<T>()): void {
         let filterContext = {headers: request.headers, params: request.query};
         let filteredProjection = filterStrategy.filter(state, filterContext);
         switch (filteredProjection.type) {
             case FilterOutputType.CONTENT:
-                response.status(200).json(filteredProjection.filteredState);
+                response.status(200);
+                response.send(filteredProjection.filteredState);
                 break;
             case FilterOutputType.UNAUTHORIZED:
-                response.status(401).json({error: "Unauthorized"});
+                response.status(401);
+                response.send({error: "Unauthorized"});
                 break;
             case FilterOutputType.FORBIDDEN:
-                response.status(403).json({error: "Forbidden"});
+                response.status(403);
+                response.send({error: "Forbidden"});
                 break;
             default:
-                response.json({});
+                response.send({});
         }
     }
 
-    keyFor(request: Request): string {
+    keyFor(request: IRequest): string {
         let projectionName = request.params.projectionName,
             area = request.params.area;
         let entry = this.projectionRegistry.getEntry(projectionName, area).data;

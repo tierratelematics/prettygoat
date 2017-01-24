@@ -1,5 +1,4 @@
-import {IRequestAdapter, IRouteResolver} from "./IRequestComponents";
-import {Request, Response} from "express";
+import {IRequestAdapter, IRouteResolver, IRequest, IResponse} from "./IRequestComponents";
 import {inject, injectable, optional} from "inversify";
 import ICluster from "../cluster/ICluster";
 
@@ -10,7 +9,7 @@ class RequestAdapter implements IRequestAdapter {
                 @inject("IRouteResolver") private routeResolver: IRouteResolver) {
     }
 
-    route(request: Request, response: Response) {
+    route(request: IRequest, response: IResponse) {
         let context = this.routeResolver.resolve(request.url, request.method);
         let requestHandler = context[0];
         let params = context[1];
@@ -18,11 +17,15 @@ class RequestAdapter implements IRequestAdapter {
         if (params)
             request.params = params;
         if (requestHandler) {
-            if (!this.cluster || (this.cluster && this.cluster.handleOrProxy(requestHandler.keyFor(request), request, response))) {
+            let shardKey = requestHandler.keyFor(request),
+                originalRequest = request.originalRequest,
+                originalResponse = response.originalResponse;
+            if (!this.cluster || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse))) {
                 requestHandler.handle(request, response);
             }
         } else {
-            response.status(404).end();
+            response.status(404);
+            response.send();
         }
     }
 
