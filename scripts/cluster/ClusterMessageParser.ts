@@ -5,6 +5,7 @@ import * as url from "url";
 import * as qs from "qs";
 import {IMessageParser, IRequest, IResponse} from "../web/IRequestComponents";
 import {injectable} from "inversify";
+import * as _ from "lodash";
 
 @injectable()
 class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
@@ -31,9 +32,12 @@ class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResp
             status: (code: number) => {
                 statusCode = code;
             },
-            send: (data: any) => {
-                response.writeHead(statusCode, headers);
-                response.write(JSON.stringify(data));
+            send: (data?: any) => {
+                response.writeHead(statusCode, _.assign(headers, {
+                    "Content-Type": "application/json; charset=utf-8"
+                }));
+                if (data)
+                    response.write(JSON.stringify(data));
                 response.end();
             },
             originalResponse: response
