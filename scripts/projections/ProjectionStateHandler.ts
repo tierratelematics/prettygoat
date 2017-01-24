@@ -8,6 +8,7 @@ import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import SplitProjectionRunner from "./SplitProjectionRunner";
+import {STATUS_CODES} from "http";
 
 @Route("GET", "/:area/:projectionName(/:splitKey)")
 class ProjectionStateHandler implements IRequestHandler {
@@ -40,7 +41,7 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     private sendNotFound(response: IResponse) {
-        response.status(404)
+        response.status(404);
         response.send({error: "Projection not found"});
     }
 
@@ -55,11 +56,11 @@ class ProjectionStateHandler implements IRequestHandler {
                 break;
             case FilterOutputType.UNAUTHORIZED:
                 response.status(401);
-                response.send({error: "Unauthorized"});
+                response.send({error: STATUS_CODES[401]});
                 break;
             case FilterOutputType.FORBIDDEN:
                 response.status(403);
-                response.send({error: "Forbidden"});
+                response.send({error: STATUS_CODES[403]});
                 break;
             default:
                 response.send({});
