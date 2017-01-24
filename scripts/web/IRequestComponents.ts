@@ -1,7 +1,5 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-import {Request, Response} from "express";
-import Methods from "./Methods";
 import Dictionary from "../util/Dictionary";
 
 export interface IRequestAdapter {
@@ -18,10 +16,6 @@ export interface IRouteResolver {
 }
 
 export type IRouteContext = [IRequestHandler, any];
-
-export interface IRequestParser {
-    parse(request: IncomingMessage, response: ServerResponse): Promise<[Request, Response]>;
-}
 
 export interface IRequest {
     url: string,
