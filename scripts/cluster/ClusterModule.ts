@@ -21,7 +21,7 @@ class ClusterModule implements IModule {
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
         container.unbind("ISocketFactory");
         container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
-        container.bind<IMessageParser<any,any>>("ClusterMessageParser").to(ClusterMessageParser).inSingletonScope();
+        container.bind<IMessageParser<any,any>>("IMessageParser").to(ClusterMessageParser).whenInjectedInto(Cluster).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

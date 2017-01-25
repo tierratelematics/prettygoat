@@ -1,7 +1,8 @@
 import ICluster from "../../../scripts/cluster/ICluster";
-import ClusterMessage from "../../../scripts/cluster/ClusterMessage";
 import {Observable} from "rx";
-import {Request, Response} from "express";
+import {IncomingMessage} from "http";
+import {ServerResponse} from "http";
+import {RequestData} from "../../../scripts/web/IRequestComponents";
 
 class MockCluster implements ICluster {
     changes(): Observable<void> {
@@ -20,11 +21,11 @@ class MockCluster implements ICluster {
         return undefined;
     }
 
-    handleOrProxy(key: string, request: Request, response: Response):boolean {
+    handleOrProxy(key: string, request: IncomingMessage, response: ServerResponse): boolean {
         return false;
     }
 
-    requests(): Observable<ClusterMessage> {
+    requests(): Observable<RequestData> {
         return undefined;
     }
 }

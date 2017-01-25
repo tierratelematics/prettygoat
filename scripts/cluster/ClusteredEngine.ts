@@ -2,9 +2,7 @@ import Engine from "../bootstrap/Engine";
 import ClusterModule from "./ClusterModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ICluster from "./ICluster";
-import {IRequestAdapter, IMessageParser} from "../web/IRequestComponents";
-import {IncomingMessage} from "http";
-import {ServerResponse} from "http";
+import {IRequestAdapter} from "../web/IRequestComponents";
 
 class ClusteredEngine extends Engine {
 
@@ -17,14 +15,12 @@ class ClusteredEngine extends Engine {
         this.boot(overrides);
         let projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
             cluster = this.container.get<ICluster>("ICluster"),
-            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
-            messageParser = this.container.get<IMessageParser<IncomingMessage, ServerResponse>>("ClusterMessageParser");
+            requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");
 
         cluster.startup().subscribe(() => {
             projectionEngine.run();
             cluster.requests().subscribe(message => {
-                let context = messageParser.parse(message.request, message.response);
-                requestAdapter.route(context[0], context[1]);
+                requestAdapter.route(message[0], message[1]);
             })
         });
         cluster.changes().subscribe(() => projectionEngine.run());

@@ -1,11 +1,11 @@
-import {IMessageParser, IRequest, IResponse} from "./IRequestComponents";
+import {IMessageParser, IRequest, IResponse, RequestData} from "./IRequestComponents";
 import {Request, Response} from "express";
 import {injectable} from "inversify";
 
 @injectable()
 class HttpMessageParser implements IMessageParser<Request, Response> {
 
-    parse(request: Request, response: Response): Promise<[IRequest, IResponse]> {
+    parse(request: Request, response: Response): RequestData {
         let requestParsed = {
             url: request.url,
             method: request.method,
@@ -33,7 +33,7 @@ class HttpMessageParser implements IMessageParser<Request, Response> {
             originalResponse: response
         };
 
-        return Promise.resolve([requestParsed, responseParsed]);
+        return [requestParsed, responseParsed];
     }
 
 }

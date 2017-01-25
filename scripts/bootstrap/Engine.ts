@@ -48,7 +48,7 @@ class Engine {
             logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
-            messageParser = this.container.get<IMessageParser<Request,  Response>>("HttpMessageParser");
+            messageParser = this.container.get<IMessageParser<Request,  Response>>("IMessageParser");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 

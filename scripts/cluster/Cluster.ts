@@ -1,9 +1,10 @@
 import ICluster from "./ICluster";
 import {inject, injectable, optional} from "inversify";
-import ClusterMessage from "./ClusterMessage";
 import {Observable} from "rx";
 import {EmbeddedClusterConfig} from "./ClusterConfig";
-import {Request, Response} from "express";
+import {IMessageParser, RequestData} from "../web/IRequestComponents";
+import {IncomingMessage} from "http";
+import {ServerResponse} from "http";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
@@ -11,7 +12,8 @@ const TChannel = require('tchannel');
 class Cluster implements ICluster {
     ringpop: any;
 
-    constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig()) {
+    constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
+                @inject("IMessageParser") private messageParser: IMessageParser<IncomingMessage, ServerResponse) {
 
     }
 
@@ -45,17 +47,14 @@ class Cluster implements ICluster {
         return this.ringpop.lookup(key);
     }
 
-    handleOrProxy(key: string, request: Request, response: Response): boolean {
+    handleOrProxy(key: string, request: IncomingMessage, response: ServerResponse): boolean {
         return this.ringpop.handleOrProxy(key, request, response);
     }
 
-    requests(): Observable<ClusterMessage> {
+    requests(): Observable<RequestData> {
         return Observable.create(observer => {
             this.ringpop.on('request', (request, response) => {
-                observer.onNext({
-                    request: request,
-                    response: response
-                });
+                observer.onNext(this.messageParser.parse(request, response));
             });
         });
     }

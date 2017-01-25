@@ -80,7 +80,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
-        container.bind<IMessageParser<any, any>>("HttpMessageParser").to(HttpMessageParser).inSingletonScope();
+        container.bind<IMessageParser<any, any>>("IMessageParser").to(HttpMessageParser).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

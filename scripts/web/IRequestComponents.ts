@@ -18,8 +18,9 @@ export interface IRouteResolver {
 export type IRouteContext = [IRequestHandler, any];
 
 export interface IRequest {
-    url: string,
-    method: string,
+    url: string;
+    channel: string;
+    method: string;
     headers: Dictionary<string>;
     query: Dictionary<string>;
     params: any;
@@ -35,5 +36,7 @@ export interface IResponse {
 }
 
 export interface IMessageParser<T, U> {
-    parse(request: T, response: U): Promise<[IRequest, IResponse]>;
+    parse(request: T, response: U): RequestData;
 }
+
+export type RequestData = [IRequest, IResponse];
