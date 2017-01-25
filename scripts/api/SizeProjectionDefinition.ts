@@ -62,7 +62,7 @@ class SizeProjectionDefinition implements IProjectionDefinition<any> {
                     size: humanize.filesize(size),
                     events: runner.stats.events,
                     readModels: runner.stats.readModels,
-                    dependencies: this.projectionSorter.sort(projection),
+                    dependencies: this.projectionSorter.dependencies(projection),
                     status: runner.status
                 };
                 if (runner instanceof SplitProjectionRunner) {

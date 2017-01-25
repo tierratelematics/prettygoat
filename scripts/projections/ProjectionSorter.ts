@@ -16,7 +16,23 @@ class ProjectionSorter implements IProjectionSorter {
 
     sort(projection?: IProjection<any>): string[] {
         this.graph = [];
-        return (projection) ? this.sortOf(projection) : this.globalSort();
+        return this.globalSort();
+    }
+
+    dependencies(projection: IProjection<any>): string[] {
+        return this.sortOf(projection);
+    }
+
+    dependents(projection: IProjection<any>): string[] {
+        let projections = <IProjection<any>[]>_(this.registry.getAreas())
+            .map((area: AreaRegistry) => _.map(area.entries, (entry: RegistryEntry<any>) => entry.projection))
+            .flatten()
+            .valueOf();
+
+        return _(projections)
+            .filter(proj => _.includes(_.keys(proj.definition), projection.name))
+            .map(proj => proj.name)
+            .valueOf();
     }
 
     private sortOf(projection?: IProjection<any>): string[] {
