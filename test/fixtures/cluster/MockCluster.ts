@@ -5,6 +5,7 @@ import {ServerResponse} from "http";
 import {RequestData} from "../../../scripts/web/IRequestComponents";
 
 class MockCluster implements ICluster {
+
     changes(): Observable<void> {
         return undefined;
     }
@@ -23,6 +24,10 @@ class MockCluster implements ICluster {
 
     handleOrProxy(key: string, request: IncomingMessage, response: ServerResponse): boolean {
         return false;
+    }
+
+    handleOrProxyToAll(keys: string[], request: IncomingMessage): boolean {
+        return undefined;
     }
 
     requests(): Observable<RequestData> {
