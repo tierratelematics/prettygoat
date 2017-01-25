@@ -112,10 +112,10 @@ export class AreaRegistry {
 
 export class RegistryEntry<T> {
     projection: IProjection<T>;
-    name: string;
+    exposedName: string;
     parametersKey: (parameters: any) => string;
 
-    constructor(projection: IProjection<T>, name: string, parametersKey?: (parameters: any) => string);
+    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string);
 }
 
 export function Projection(name: string);

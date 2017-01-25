@@ -18,7 +18,7 @@ class ProjectionRegistry implements IProjectionRegistry {
     private registry:AreaRegistry[] = [];
     private unregisteredEntries:{
         ctor:interfaces.Newable<IProjectionDefinition<any>>,
-        name:string,
+        exposedName:string,
         parametersKey?:(parameters:any) => string
     }[] = [];
 
@@ -41,21 +41,21 @@ class ProjectionRegistry implements IProjectionRegistry {
         let name = Reflect.getMetadata("prettygoat:projection", constructor);
         if (!name)
             throw new Error("Missing Projection decorator");
-        this.unregisteredEntries.push({ctor: constructor, name: name, parametersKey: parametersKey});
+        this.unregisteredEntries.push({ctor: constructor, exposedName: name, parametersKey: parametersKey});
         return this;
     }
 
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
-                projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.name).define(tickScheduler),
+                projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.exposedName).define(tickScheduler),
                 validationErrors = this.analyzer.analyze(projection);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
             if (projection.split && !entry.parametersKey)
                 throw new Error(`Missing parameters key function from projection ${projection.name} registration`);
             if (validationErrors.length > 0)
                 throw new Error(validationErrors[0]);
-            return new RegistryEntry(projection, entry.name, entry.parametersKey);
+            return new RegistryEntry(projection, entry.exposedName, entry.parametersKey);
         });
         let areaRegistry = new AreaRegistry(area, entries);
         this.registry.push(areaRegistry);
@@ -94,7 +94,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         if (area) {
             let areaRegistry = this.getArea(area);
             if (areaRegistry) {
-                entry = _.find(areaRegistry.entries, (entry: RegistryEntry<any>) => entry.name.toLowerCase() === id.toLowerCase());
+                entry = _.find(areaRegistry.entries, (entry: RegistryEntry<any>) => entry.exposedName.toLowerCase() === id.toLowerCase());
                 area = areaRegistry.area;
             }
         } else {

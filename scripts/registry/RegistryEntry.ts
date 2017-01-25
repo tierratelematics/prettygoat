@@ -2,7 +2,7 @@ import {IProjection} from "../projections/IProjection";
 
 class RegistryEntry<T> {
 
-    constructor(public projection:IProjection<T>, public name:string, public parametersKey?:(parameters:any) => string) {
+    constructor(public projection:IProjection<T>, public exposedName:string, public parametersKey?:(parameters:any) => string) {
     }
 }
 
