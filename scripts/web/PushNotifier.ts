@@ -34,6 +34,8 @@ class PushNotifier implements IPushNotifier {
             url += `:${this.config.port}`;
         if (this.config.path)
             url += this.config.path;
+        else
+            url += "/projections";
         url += `${endpoint}/${splitKey}`;
         return {
             url: url

@@ -30,7 +30,7 @@ describe("Given a push notifier", () => {
         it("should emit a notification on the corresponding context", () => {
             subject.notify(new PushContext("Admin", "Foo"));
             eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                url: 'http://test:80/admin/foo/'
+                url: 'http://test:80/projections/admin/foo/'
             })), TypeMoq.Times.once());
         });
 
@@ -42,7 +42,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'http://test/admin/foo/'
+                    url: 'http://test/projections/admin/foo/'
                 })), TypeMoq.Times.once());
             });
         });
@@ -52,7 +52,20 @@ describe("Given a push notifier", () => {
                 subject = new PushNotifier(eventEmitter.object, {
                     host: 'test',
                     protocol: 'http',
-                    path: '/projections'
+                    path: '/proj'
+                });
+                subject.notify(new PushContext("Admin", "Foo"));
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+                    url: 'http://test/proj/admin/foo/'
+                })), TypeMoq.Times.once());
+            });
+        });
+
+        context("and no custom path path is passed in the config", () => {
+            it("should append a default projections path", () => {
+                subject = new PushNotifier(eventEmitter.object, {
+                    host: 'test',
+                    protocol: 'http'
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
@@ -75,7 +88,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'https://test/admin/foo/'
+                    url: 'https://test/projections/admin/foo/'
                 })), TypeMoq.Times.once());
             })
         });
@@ -85,7 +98,7 @@ describe("Given a push notifier", () => {
         it("should append the split key in the notification url", () => {
             subject.notify(new PushContext("Admin", "Foo"), null, "7564");
             eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", TypeMoq.It.isValue({
-                url: 'http://test:80/admin/foo/7564'
+                url: 'http://test:80/projections/admin/foo/7564'
             })), TypeMoq.Times.once());
         });
     });
@@ -94,7 +107,7 @@ describe("Given a push notifier", () => {
         it("should send a notification only to that client", () => {
             subject.notify(new PushContext("Admin", "Foo"), "25f");
             eventEmitter.verify(e => e.emitTo('25f', 'Admin:Foo', TypeMoq.It.isValue({
-                url: 'http://test:80/admin/foo/'
+                url: 'http://test:80/projections/admin/foo/'
             })), TypeMoq.Times.once());
         });
     });

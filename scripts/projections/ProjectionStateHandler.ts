@@ -10,7 +10,7 @@ import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import SplitProjectionRunner from "./SplitProjectionRunner";
 import {STATUS_CODES} from "http";
 
-@Route("GET", "/:area/:projectionName(/:splitKey)")
+@Route("GET", "/projections/:area/:projectionName(/:splitKey)")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
