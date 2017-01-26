@@ -41,15 +41,20 @@ import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../
 import ClientRegistry from "../push/ClientRegistry";
 import SocketEventEmitter from "../push/SocketEventEmitter";
 import SocketFactory from "../push/SocketFactory";
-import {IRequestAdapter, IRouteResolver, IRequestHandler, IMessageParser} from "../web/IRequestComponents";
+import {
+    IRequestAdapter, IRouteResolver, IRequestHandler, IMessageParser,
+    IRequestTransformer
+} from "../web/IRequestComponents";
 import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
 import ProjectionStateHandler from "../projections/ProjectionStateHandler";
 import MessageParser from "../web/MessageParser";
+import CORSRequestTransformer from "../web/CORSRequestTransformer";
+import BodyRequestTransformer from "../web/BodyRequestTransformer";
 
 class PrettyGoatModule implements IModule {
 
-    modules = (container:interfaces.Container) => {
+    modules = (container: interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
@@ -81,9 +86,11 @@ class PrettyGoatModule implements IModule {
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
         container.bind<IMessageParser<any, any>>("IMessageParser").to(MessageParser).inSingletonScope();
+        container.bind<IRequestTransformer>("IRequestTransformer").to(CORSRequestTransformer).inSingletonScope();
+        container.bind<IRequestTransformer>("IRequestTransformer").to(BodyRequestTransformer).inSingletonScope();
     };
 
-    register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
+    register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
     }
 }
 
