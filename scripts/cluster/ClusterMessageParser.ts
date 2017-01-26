@@ -11,8 +11,10 @@ import * as _ from "lodash";
 class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
 
     parse(request: IncomingMessage, response: ServerResponse): RequestData {
+        let isChannel = _.startsWith(request.url, "pgoat://");
         let requestParsed = {
-            url: request.url,
+            url: !isChannel ? request.url : null,
+            channel: isChannel ? request.url.substr(8) : null, //Remove pgoat://
             method: request.method,
             headers: request.headers,
             query: qs.parse(url.parse(request.url).query),

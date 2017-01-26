@@ -10,7 +10,10 @@ class RequestAdapter implements IRequestAdapter {
     }
 
     route(request: IRequest, response: IResponse) {
-        let context = this.routeResolver.resolve(request.url, request.method);
+        let context = this.routeResolver.resolve(
+            request.url ? request.url : request.channel,
+            request.url ? request.method : null
+        );
         let requestHandler = context[0];
         let params = context[1];
 

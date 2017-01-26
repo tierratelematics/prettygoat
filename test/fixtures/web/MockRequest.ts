@@ -11,8 +11,11 @@ export default class MockRequest implements IRequest {
     originalRequest = null;
 
     constructor(url?: string, body?: any, channel?: string) {
-        this.url = url;
-        this.body = body;
-        this.channel = channel;
+        if (url)
+            this.url = url;
+        if (body)
+            this.body = body;
+        if (channel)
+            this.channel = channel;
     }
 }

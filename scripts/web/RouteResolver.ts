@@ -25,13 +25,18 @@ class RouteResolver implements IRouteResolver {
     }
 
     resolve(path: string, method: string): IRouteContext {
-        let pathname = url.parse(path).pathname;
-        return <IRouteContext>_(this.routes)
-            .filter(route => route.method === method)
-            .map(route => [route.handler, route.matcher.match(pathname)])
-            .filter(route => route[1])
-            .flatten()
-            .valueOf();
+        if (method) {
+            let pathname = url.parse(path).pathname;
+            return <IRouteContext>_(this.routes)
+                .filter(route => route.method === method)
+                .map(route => [route.handler, route.matcher.match(pathname)])
+                .filter(route => route[1])
+                .flatten()
+                .valueOf();
+        } else {
+            let route = _.find(this.routes, route => route.matcher.match(path));
+            return [route ? route.handler : null, null];
+        }
     }
 
 }
