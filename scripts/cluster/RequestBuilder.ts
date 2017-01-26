@@ -3,9 +3,9 @@ const Request = require("hammock").Request;
 
 class RequestBuilder {
 
-    static build(channel: string, payload: any): IncomingMessage {
+    static buildChannelMessage(channel: string, payload: any): IncomingMessage {
         let request = new Request({url: `pgoat://${channel}`});
-        request.end(payload);
+        request.end(JSON.stringify(payload));
         return request
     }
 }

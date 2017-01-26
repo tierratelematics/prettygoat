@@ -82,9 +82,9 @@ describe("Given a ClusteredReadModelFactory", () => {
             let notifications: Event[] = [];
             subject.from(null).subscribe(readModel => notifications.push(readModel));
             expect(notifications).to.have.length(3);
-            expect(notifications[0].payload).to.be(10);
-            expect(notifications[1].payload).to.be(20);
-            expect(notifications[2].payload).to.be(50);
+            expect(notifications[0].payload).to.be(50);
+            expect(notifications[1].payload).to.be(10);
+            expect(notifications[2].payload).to.be(20);
         });
     });
 });

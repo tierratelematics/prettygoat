@@ -11,6 +11,9 @@ import {ISocketFactory} from "../web/IPushComponents";
 import ClusteredSocketFactory from "./ClusteredSocketFactory";
 import {IMessageParser} from "../web/IRequestComponents";
 import ClusterMessageParser from "./ClusterMessageParser";
+import IReadModelFactory from "../streams/IReadModelFactory";
+import ReadModelFactory from "../streams/ReadModelFactory";
+import ClusteredReadModelFactory from "./ClusteredReadModelFactory";
 
 class ClusterModule implements IModule {
 
@@ -22,9 +25,13 @@ class ClusterModule implements IModule {
         container.unbind("ISocketFactory");
         container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
         container.bind<IMessageParser<any,any>>("IMessageParser").to(ClusterMessageParser).whenInjectedInto(Cluster).inSingletonScope();
+        container.unbind("IReadModelFactory");
+        container.bind<IReadModelFactory>("ReadModelFactory").to(ReadModelFactory).inSingletonScope();
+        container.bind<IReadModelFactory>("IReadModelFactory").to(ClusteredReadModelFactory).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
+
     }
 
 }
