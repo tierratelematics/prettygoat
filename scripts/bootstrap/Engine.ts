@@ -12,8 +12,8 @@ import {IFeatureChecker} from "bivio";
 import {server, app} from "../web/ExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
-import {IClientRegistry, IPushNotifier, ISocketFactory} from "../web/IPushComponents";
-import SocketClient from "../web/SocketClient";
+import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
+import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IMessageParser} from "../web/IRequestComponents";
 import {Request, Response} from "express";
 

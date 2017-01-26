@@ -7,7 +7,7 @@ import ProjectionEngine from "../projections/ProjectionEngine";
 import ClusteredProjectionEngine from "./ClusteredProjectionEngine";
 import ICluster from "./ICluster";
 import Cluster from "./Cluster";
-import {ISocketFactory} from "../web/IPushComponents";
+import {ISocketFactory} from "../push/IPushComponents";
 import ClusteredSocketFactory from "./ClusteredSocketFactory";
 import {IMessageParser} from "../web/IRequestComponents";
 import ClusterMessageParser from "./ClusterMessageParser";

@@ -13,7 +13,7 @@ class Cluster implements ICluster {
     ringpop: any;
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
-                @inject("IMessageParser") private messageParser: IMessageParser<IncomingMessage, ServerResponse) {
+                @inject("IMessageParser") private messageParser: IMessageParser<IncomingMessage, ServerResponse>) {
 
     }
 

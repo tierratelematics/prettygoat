@@ -1,7 +1,7 @@
 import {injectable, inject, optional} from "inversify";
 const io = require("socket.io");
 import {server} from "../web/ExpressApp";
-import {ISocketFactory} from "../web/IPushComponents";
+import {ISocketFactory} from "../push/IPushComponents";
 import IRedisConfig from "../configs/IRedisConfig";
 import * as redis from "socket.io-redis";
 

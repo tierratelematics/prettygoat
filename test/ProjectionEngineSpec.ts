@@ -25,7 +25,7 @@ import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import MockPushNotifier from "./fixtures/web/MockPushNotifier";
 import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import MockProjectionRunnerFactory from "./fixtures/MockProjectionRunnerFactory";
-import {IPushNotifier} from "../scripts/web/IPushComponents";
+import {IPushNotifier} from "../scripts/push/IPushComponents";
 
 describe("Given a ProjectionEngine", () => {
 

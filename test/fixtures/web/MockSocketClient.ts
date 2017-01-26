@@ -1,4 +1,4 @@
-import {ISocketClient} from "../../../scripts/web/IPushComponents";
+import {ISocketClient} from "../../../scripts/push/IPushComponents";
 
 export default class MockSocketClient implements ISocketClient {
 

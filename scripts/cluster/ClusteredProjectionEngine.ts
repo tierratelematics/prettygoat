@@ -1,7 +1,7 @@
 import IProjectionEngine from "../projections/IProjectionEngine";
 import {inject, injectable} from "inversify";
 import {IProjection} from "../projections/IProjection";
-import PushContext from "../web/PushContext";
+import PushContext from "../push/PushContext";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
