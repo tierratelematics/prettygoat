@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import {
     IRequestAdapter, IRouteResolver, IRequest, IResponse,
-    IRequestTransformer
+    IMiddleware
 } from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import ICluster from "../../scripts/cluster/ICluster";
@@ -12,7 +12,7 @@ import RouteResolver from "../../scripts/web/RouteResolver";
 import {MockRequestHandler, ParamRequestHandler, ChannelRequestHandler} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
-import MockRequestTransformer from "../fixtures/web/MockRequestTransformer";
+import MockMiddleware from "../fixtures/web/MockMiddleware";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
@@ -21,7 +21,6 @@ describe("Given a RequestAdapter and a new request", () => {
     let cluster: TypeMoq.Mock<ICluster>;
     let request: IRequest;
     let response: TypeMoq.Mock<IResponse>;
-
 
     beforeEach(() => {
         request = new MockRequest();
@@ -121,19 +120,19 @@ describe("Given a RequestAdapter and a new request", () => {
     });
 
     context("when a list of transforms is supplied", () => {
-        let requestTransformer: TypeMoq.Mock<IRequestTransformer>;
+        let middleware: TypeMoq.Mock<IMiddleware>;
         beforeEach(() => {
-            requestTransformer = TypeMoq.Mock.ofType(MockRequestTransformer);
-            subject = new RequestAdapter(cluster.object, routeResolver, [requestTransformer.object]);
+            middleware = TypeMoq.Mock.ofType(MockMiddleware);
+            subject = new RequestAdapter(cluster.object, routeResolver, [middleware.object]);
             cluster.setup(c => c.handleOrProxy("testkey", undefined, undefined)).returns(() => true);
-            requestTransformer.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
+            middleware.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
                 next();
             });
         });
         it("should apply them and route the request", () => {
             request.url = "/test";
             subject.route(request, response.object);
-            requestTransformer.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.once());
+            middleware.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.once());
             expect(request.params.accessed).to.be(true);
         });
     });

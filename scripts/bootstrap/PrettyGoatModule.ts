@@ -43,14 +43,14 @@ import SocketEventEmitter from "../push/SocketEventEmitter";
 import SocketFactory from "../push/SocketFactory";
 import {
     IRequestAdapter, IRouteResolver, IRequestHandler, IMessageParser,
-    IRequestTransformer
+    IMiddleware
 } from "../web/IRequestComponents";
 import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
 import ProjectionStateHandler from "../projections/ProjectionStateHandler";
 import MessageParser from "../web/MessageParser";
-import CORSRequestTransformer from "../web/CORSRequestTransformer";
-import BodyRequestTransformer from "../web/BodyRequestTransformer";
+import CORSMiddleware from "../web/CORSMiddleware";
+import BodyMiddleware from "../web/BodyMiddleware";
 
 class PrettyGoatModule implements IModule {
 
@@ -86,8 +86,8 @@ class PrettyGoatModule implements IModule {
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
         container.bind<IMessageParser<any, any>>("IMessageParser").to(MessageParser).inSingletonScope();
-        container.bind<IRequestTransformer>("IRequestTransformer").to(CORSRequestTransformer).inSingletonScope();
-        container.bind<IRequestTransformer>("IRequestTransformer").to(BodyRequestTransformer).inSingletonScope();
+        container.bind<IMiddleware>("IMiddleware").to(CORSMiddleware).inSingletonScope();
+        container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

@@ -41,6 +41,6 @@ export interface IMessageParser<T, U> {
 
 export type RequestData = [IRequest, IResponse];
 
-export interface IRequestTransformer {
+export interface IMiddleware {
     transform(request: IRequest, response: IResponse, next: Function);
 }

@@ -1,4 +1,4 @@
-import {IRequestAdapter, IRouteResolver, IRequest, IResponse, IRequestTransformer} from "./IRequestComponents";
+import {IRequestAdapter, IRouteResolver, IRequest, IResponse, IMiddleware} from "./IRequestComponents";
 import {inject, injectable, optional} from "inversify";
 import ICluster from "../cluster/ICluster";
 import {eachSeries} from "async";
@@ -8,12 +8,12 @@ class RequestAdapter implements IRequestAdapter {
 
     constructor(@inject("ICluster") @optional() private cluster: ICluster,
                 @inject("IRouteResolver") private routeResolver: IRouteResolver,
-                @inject("IRequestTransformer") @optional() private requestTransformers: IRequestTransformer[]) {
+                @inject("IMiddleware") @optional() private middlewares: IMiddleware[]) {
     }
 
     route(request: IRequest, response: IResponse) {
-        eachSeries(this.requestTransformers, (transformer, next) => {
-            transformer.transform(request, response, next);
+        eachSeries(this.middlewares, (middleware, next) => {
+            middleware.transform(request, response, next);
         }, () => {
             let context = this.routeResolver.resolve(
                 request.url ? request.url : request.channel,
