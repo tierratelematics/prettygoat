@@ -3,12 +3,12 @@ import {ServerResponse} from "http";
 import Dictionary from "../util/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
-import {IMessageParser, RequestData} from "../web/IRequestComponents";
+import {IMessageParser, RequestData} from "./IRequestComponents";
 import {injectable} from "inversify";
 import * as _ from "lodash";
 
 @injectable()
-class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
+class MessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
 
     parse(request: IncomingMessage, response: ServerResponse): RequestData {
         let isChannel = _.startsWith(request.url, "pgoat://");
@@ -50,4 +50,4 @@ class ClusterMessageParser implements IMessageParser<IncomingMessage, ServerResp
 
 }
 
-export default ClusterMessageParser
+export default MessageParser

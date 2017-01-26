@@ -45,7 +45,7 @@ import {IRequestAdapter, IRouteResolver, IRequestHandler, IMessageParser} from "
 import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
 import ProjectionStateHandler from "../projections/ProjectionStateHandler";
-import HttpMessageParser from "../web/HttpMessageParser";
+import MessageParser from "../web/MessageParser";
 
 class PrettyGoatModule implements IModule {
 
@@ -80,7 +80,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
-        container.bind<IMessageParser<any, any>>("IMessageParser").to(HttpMessageParser).inSingletonScope();
+        container.bind<IMessageParser<any, any>>("IMessageParser").to(MessageParser).inSingletonScope();
     };
 
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {

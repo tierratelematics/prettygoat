@@ -9,8 +9,6 @@ import ICluster from "./ICluster";
 import Cluster from "./Cluster";
 import {ISocketFactory} from "../push/IPushComponents";
 import ClusteredSocketFactory from "./ClusteredSocketFactory";
-import {IMessageParser} from "../web/IRequestComponents";
-import ClusterMessageParser from "./ClusterMessageParser";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
 import ClusteredReadModelFactory from "./ClusteredReadModelFactory";
@@ -24,7 +22,6 @@ class ClusterModule implements IModule {
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
         container.unbind("ISocketFactory");
         container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
-        container.bind<IMessageParser<any,any>>("IMessageParser").to(ClusterMessageParser).whenInjectedInto(Cluster).inSingletonScope();
         container.unbind("IReadModelFactory");
         container.bind<IReadModelFactory>("ReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IReadModelFactory>("IReadModelFactory").to(ClusteredReadModelFactory).inSingletonScope();
