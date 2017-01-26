@@ -1,53 +1,60 @@
-import * as express from 'express';
-import {injectable, inject} from 'inversify';
+import {inject} from 'inversify';
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import {interfaces, Controller, Post} from 'inversify-express-utils';
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import IDateRetriever from "../util/IDateRetriever";
+import Route from "../web/RouteDecorator";
+import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Controller('/api/snapshots')
-@injectable()
-class SnapshotManagerController implements interfaces.Controller {
+@Route("POST", "/api/snapshots/save")
+export class SnapshotSaveHandler implements IRequestHandler {
 
-    constructor(@inject("IProjectionRunnerHolder") private projectionsRunnerCollection: Dictionary<IProjectionRunner<any>>,
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
     }
 
-    @Post('/save')
-    saveSnapshot(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.payload.name);
+    handle(request: IRequest, response: IResponse) {
+        let projection = this.holder[request.body.payload.name];
 
         if (!projection) {
-            response.status(400).json({error: "Projection not found"});
+            response.status(404);
+            response.send({error: "Projection not found"});
             return;
         }
 
         this.snapshotRepository.saveSnapshot(request.body.payload.name, new Snapshot(projection.state, this.dateRetriever.getDate()));
-        this.writeResponse(response, request.body.payload.name, "Create Snapshot");
+        response.send({name: request.body.payload.name});
     }
 
-    @Post('/delete')
-    deleteSnapshot(request: express.Request, response: express.Response): void {
-        let projection: IProjectionRunner<any> = this.getProjectionRunner(request.body.payload.name);
+    keyFor(request: IRequest): string {
+        return request.body.payload.name;
+    }
+
+}
+
+@Route("POST", "/api/snapshots/delete")
+export class SnapshotDeleteHandler implements IRequestHandler {
+
+    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
+                @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
+    }
+
+    handle(request: IRequest, response: IResponse) {
+        let projection = this.holder[request.body.payload.name];
 
         if (!projection) {
             response.status(400).json({error: "Projection not found"});
             return;
         }
 
-        this.snapshotRepository.deleteSnapshot(request.body.payload.name);
-        this.writeResponse(response, request.body.payload.name, "Delete Snapshot");
+        this.snapshotRepository.deleteSnapshot();
+        response.send({name: request.body.payload.name});
     }
 
-    private getProjectionRunner(name: string): IProjectionRunner<any> {
-        return this.projectionsRunnerCollection[name];
+    keyFor(request: IRequest): string {
+        return request.body.payload.name;
     }
 
-    private writeResponse(response: express.Response, name: string, operation: string) {
-        response.json({name: name, operation: operation});
-    }
 }
-
-export default SnapshotManagerController;

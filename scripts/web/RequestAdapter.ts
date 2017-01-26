@@ -1,5 +1,5 @@
 import {IRequestAdapter, IRouteResolver, IRequest, IResponse, IMiddleware} from "./IRequestComponents";
-import {inject, injectable, optional} from "inversify";
+import {inject, injectable, optional, multiInject} from "inversify";
 import ICluster from "../cluster/ICluster";
 import {eachSeries} from "async";
 
@@ -8,7 +8,7 @@ class RequestAdapter implements IRequestAdapter {
 
     constructor(@inject("ICluster") @optional() private cluster: ICluster,
                 @inject("IRouteResolver") private routeResolver: IRouteResolver,
-                @inject("IMiddleware") @optional() private middlewares: IMiddleware[]) {
+                @multiInject("IMiddleware") @optional() private middlewares: IMiddleware[]) {
     }
 
     route(request: IRequest, response: IResponse) {

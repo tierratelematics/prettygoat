@@ -121,7 +121,7 @@ export class RegistryEntry<T> {
 export function Projection(name: string);
 
 export class Engine {
-    protected container:interfaces.Container;
+    protected container: interfaces.Container;
 
     register(module: IModule): boolean;
 
@@ -270,15 +270,6 @@ interface PredicatesStatic {
 }
 
 export var FeaturePredicates: PredicatesStatic;
-
-export function Route(method: Methods, path: string);
-
-export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "PATCH";
-
-export interface IRequestHandler {
-    handle(request: Request, response: Response);
-    keyFor(request: Request): string;
-}
 
 export class ClusteredEngine extends Engine {
     run(overrides?: any);

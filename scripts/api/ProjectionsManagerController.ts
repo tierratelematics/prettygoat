@@ -1,53 +1,83 @@
-import * as express from 'express';
-import {injectable, inject} from 'inversify';
+import {inject} from 'inversify';
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
-import {interfaces, Controller, Post} from 'inversify-express-utils';
 import {ISubject} from "rx";
+import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
+import Route from "../web/RouteDecorator";
 
-@Controller('/api/projections')
-@injectable()
-class ProjectionsManagerController implements interfaces.Controller {
+@Route("POST", "/api/projections/stop")
+export class ProjectionStopHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private projectionsRunners: Dictionary<IProjectionRunner<any>>,
                 @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>) {
     }
 
-    @Post('/stop')
-    stop(request: express.Request, response: express.Response): void {
+    handle(request: IRequest, response: IResponse) {
         try {
             this.projectionsRunners[request.body.payload.name].stop();
             this.projectionStatuses.onNext(null);
-            response.status(204).end();
+            response.status(204);
+            response.send();
         } catch (e) {
-            response.status(400).json({error: "Projection not found or is already stopped"});
+            response.status(404);
+            response.send({error: "Projection not found or is already stopped"});
         }
     }
 
-    @Post('/pause')
-    pause(request: express.Request, response: express.Response): void {
-        try {
-            this.projectionsRunners[request.body.payload.name].pause();
-            this.projectionStatuses.onNext(null);
-            response.status(204).end();
-        }
-        catch (e) {
-            response.status(400).json({error: "Projection not found or is not started"});
-        }
-    }
-
-    @Post('/resume')
-    resume(request: express.Request, response: express.Response): void {
-        try {
-            this.projectionsRunners[request.body.payload.name].resume();
-            this.projectionStatuses.onNext(null);
-            response.status(204).end();
-        }
-        catch (e) {
-            response.status(400).json({error: "Projection not found or is not paused"});
-        }
+    keyFor(request: IRequest): string {
+        return request.body.payload.name;
     }
 
 }
 
-export default ProjectionsManagerController;
+@Route("POST", "/api/projections/pause")
+export class ProjectionPauseHandler implements IRequestHandler {
+
+    constructor(@inject("IProjectionRunnerHolder") private projectionsRunners: Dictionary<IProjectionRunner<any>>,
+                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>) {
+    }
+
+    handle(request: IRequest, response: IResponse) {
+        try {
+            this.projectionsRunners[request.body.payload.name].pause();
+            this.projectionStatuses.onNext(null);
+            response.status(204);
+            response.send();
+        }
+        catch (e) {
+            response.status(404);
+            response.send({error: "Projection not found or is not started"});
+        }
+    }
+
+    keyFor(request: IRequest): string {
+        return request.body.payload.name;
+    }
+
+}
+
+@Route("POST", "/api/projections/resume")
+export class ProjectionResumeHandler implements IRequestHandler {
+
+    constructor(@inject("IProjectionRunnerHolder") private projectionsRunners: Dictionary<IProjectionRunner<any>>,
+                @inject("ProjectionStatuses") private projectionStatuses: ISubject<void>) {
+    }
+
+    handle(request: IRequest, response: IResponse) {
+        try {
+            this.projectionsRunners[request.body.payload.name].resume();
+            this.projectionStatuses.onNext(null);
+            response.status(204);
+            response.send();
+        }
+        catch (e) {
+            response.status(404);
+            response.send({error: "Projection not found or is not paused"});
+        }
+    }
+
+    keyFor(request: IRequest): string {
+        return request.body.payload.name;
+    }
+
+}

@@ -1,16 +1,18 @@
-import * as express from 'express';
-import {injectable} from 'inversify';
-import {interfaces, Controller, Post} from 'inversify-express-utils';
+import Route from "../web/RouteDecorator";
+import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Controller('/api/authorization')
-@injectable()
-class AuthorizationController implements interfaces.Controller {
+@Route("POST", "/api/authorization/check")
+class AuthorizationHandler implements IRequestHandler {
 
-    @Post('/check')
-    check(request: express.Request, response: express.Response): void {
-        response.json({authorization: "success", environment: process.env.NODE_ENV||"development"});
+    handle(request: IRequest, response: IResponse) {
+        response.json({authorization: "success", environment: process.env.NODE_ENV || "development"});
+    }
+
+    keyFor(request: IRequest): string {
+        return null;
     }
 
 }
 
-export default AuthorizationController;
+
+export default AuthorizationHandler;
