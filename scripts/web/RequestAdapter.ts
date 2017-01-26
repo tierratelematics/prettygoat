@@ -28,7 +28,7 @@ class RequestAdapter implements IRequestAdapter {
                 let shardKey = requestHandler.keyFor(request),
                     originalRequest = request.originalRequest,
                     originalResponse = response.originalResponse;
-                if (!this.cluster || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse))) {
+                if (!this.cluster || !shardKey || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse))) {
                     requestHandler.handle(request, response);
                 }
             } else {

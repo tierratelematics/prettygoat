@@ -9,7 +9,10 @@ import RequestAdapter from "../../scripts/web/RequestAdapter";
 import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
 import RouteResolver from "../../scripts/web/RouteResolver";
-import {MockRequestHandler, ParamRequestHandler, ChannelRequestHandler} from "../fixtures/web/MockRequestHandler";
+import {
+    MockRequestHandler, ParamRequestHandler, ChannelRequestHandler,
+    NoForwardRequestHandler
+} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
 import MockMiddleware from "../fixtures/web/MockMiddleware";
@@ -29,7 +32,8 @@ describe("Given a RequestAdapter and a new request", () => {
         response = TypeMoq.Mock.ofType(MockResponse);
         response.setup(r => r.status(anyValue)).returns(() => response.object);
         cluster = TypeMoq.Mock.ofType(MockCluster);
-        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(), new ChannelRequestHandler()]);
+        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(),
+            new ChannelRequestHandler(), new NoForwardRequestHandler()]);
         subject = new RequestAdapter(cluster.object, routeResolver, []);
     });
 
@@ -55,6 +59,15 @@ describe("Given a RequestAdapter and a new request", () => {
                     request.url = "/foo/f4587s";
                     subject.route(request, response.object);
                     expect(request.params.id).to.eql("f4587s");
+                });
+            });
+
+            context("when no sharding key is provided", () => {
+                it("should handle the request on the current node", () => {
+                    request.url = "/noforward";
+                    subject.route(request, response.object);
+                    cluster.verify(c => c.handleOrProxy(anyValue, undefined, undefined), TypeMoq.Times.never());
+                    expect(request.params.accessed).to.be(true);
                 });
             });
 
