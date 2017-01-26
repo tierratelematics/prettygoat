@@ -1,7 +1,10 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
-import {IRequestAdapter, IRouteResolver, IRequest, IResponse} from "../../scripts/web/IRequestComponents";
+import {
+    IRequestAdapter, IRouteResolver, IRequest, IResponse,
+    IRequestTransformer
+} from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
@@ -9,6 +12,7 @@ import RouteResolver from "../../scripts/web/RouteResolver";
 import {MockRequestHandler, ParamRequestHandler, ChannelRequestHandler} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
+import MockRequestTransformer from "../fixtures/web/MockRequestTransformer";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
@@ -27,7 +31,7 @@ describe("Given a RequestAdapter and a new request", () => {
         response.setup(r => r.status(anyValue)).returns(() => response.object);
         cluster = TypeMoq.Mock.ofType(MockCluster);
         routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(), new ChannelRequestHandler()]);
-        subject = new RequestAdapter(cluster.object, routeResolver);
+        subject = new RequestAdapter(cluster.object, routeResolver, []);
     });
 
     context("when the request method matches", () => {
@@ -88,7 +92,7 @@ describe("Given a RequestAdapter and a new request", () => {
 
     context("when a cluster instance is not provided", () => {
         it("should not proxy the request", () => {
-            subject = new RequestAdapter(null, routeResolver);
+            subject = new RequestAdapter(null, routeResolver, []);
             request.url = "/test";
             subject.route(request, response.object);
             expect(request.params.accessed).to.be(true);
@@ -113,6 +117,24 @@ describe("Given a RequestAdapter and a new request", () => {
                 subject.route(request, response.object);
                 expect(request.params.channel).to.be(undefined);
             });
+        });
+    });
+
+    context("when a list of transforms is supplied", () => {
+        let requestTransformer: TypeMoq.Mock<IRequestTransformer>;
+        beforeEach(() => {
+            requestTransformer = TypeMoq.Mock.ofType(MockRequestTransformer);
+            subject = new RequestAdapter(cluster.object, routeResolver, [requestTransformer.object]);
+            cluster.setup(c => c.handleOrProxy("testkey", undefined, undefined)).returns(() => true);
+            requestTransformer.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
+                next();
+            });
+        });
+        it("should apply them and route the request", () => {
+            request.url = "/test";
+            subject.route(request, response.object);
+            requestTransformer.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.once());
+            expect(request.params.accessed).to.be(true);
         });
     });
 });

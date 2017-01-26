@@ -40,3 +40,7 @@ export interface IMessageParser<T, U> {
 }
 
 export type RequestData = [IRequest, IResponse];
+
+export interface IRequestTransformer {
+    transform(request: IRequest, response: IResponse, next: Function);
+}
