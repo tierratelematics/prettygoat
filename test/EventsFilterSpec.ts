@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import EventsFilter from "../scripts/streams/EventsFilter";

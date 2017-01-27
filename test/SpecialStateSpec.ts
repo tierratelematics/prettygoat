@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";

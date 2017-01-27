@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import "bluebird";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";

@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import {Observable} from "rx";
 import expect = require("expect.js");
