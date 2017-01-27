@@ -1,4 +1,4 @@
-import {inject} from 'inversify';
+import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "../projections/IProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
@@ -37,8 +37,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
 export class SnapshotDeleteHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
-                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
-                @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository) {
     }
 
     handle(request: IRequest, response: IResponse) {

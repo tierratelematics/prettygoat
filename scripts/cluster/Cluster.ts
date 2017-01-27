@@ -17,7 +17,6 @@ class Cluster implements ICluster {
 
     }
 
-
     startup(): Observable<void> {
         return Observable.create<void>(observer => {
             let tchannel = new TChannel();

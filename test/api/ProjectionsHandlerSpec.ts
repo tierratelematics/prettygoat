@@ -5,72 +5,67 @@ import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
-import ProjectionsManagerController from "../../scripts/api/ProjectionsManagerController";
 import {ISubject, Subject} from "rx";
-import {Request, Response} from "express";
-import {createMockRequest} from "../fixtures/web/MockRequest";
-import {createMockResponse} from "../fixtures/web/MockResponse";
+import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestComponents";
+import MockRequest from "../fixtures/web/MockRequest";
+import MockResponse from "../fixtures/web/MockResponse";
+import {
+    ProjectionPauseHandler, ProjectionStopHandler,
+    ProjectionResumeHandler
+} from "../../scripts/api/ProjectionsManagerController";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
-        subjectProjectionStatus: ISubject<void>,
-        notifications: string[],
-        request: TypeMoq.Mock<Request>, //Casting due to express bundled types mismatch
-        response: TypeMoq.Mock<Response>,
-        subject: ProjectionsManagerController;
+        statusStream: ISubject<void>,
+        notifications: void[],
+        request: IRequest,
+        response: TypeMoq.Mock<IResponse>,
+        subject: IRequestHandler;
 
     beforeEach(
         () => {
             holder = {};
-            subjectProjectionStatus = new Subject<void>();
+            statusStream = new Subject<void>();
             notifications = [];
             projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
             holder["nameProjection"] = projectionRunner.object;
-            request = TypeMoq.Mock.ofInstance(createMockRequest());
-            response = TypeMoq.Mock.ofInstance(createMockResponse());
+            request = new MockRequest();
+            response = TypeMoq.Mock.ofType(MockResponse);
             response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-            subject = new ProjectionsManagerController(holder, subjectProjectionStatus);
-
-            subjectProjectionStatus.subscribe(() => {
-                notifications.push("");
-            });
+            statusStream.subscribe(data => notifications.push(data));
         }
     );
 
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            request.object.body = {payload: {name: "errorProjection"}};
+            request.body = {payload: {name: "errorProjection"}};
+            subject = new ProjectionPauseHandler(holder, statusStream);
         });
 
         it("should trigger an error", () => {
-            subject.pause(request.object, response.object);
-            subject.stop(request.object, response.object);
-            subject.resume(request.object, response.object);
-            response.verify(s => s.status(400), TypeMoq.Times.exactly(3));
-            response.verify(s => s.json(TypeMoq.It.isAny()), TypeMoq.Times.exactly(3));
+            subject.handle(request, response.object);
+            response.verify(s => s.status(404), TypeMoq.Times.exactly(1));
+            response.verify(s => s.send(TypeMoq.It.isAny()), TypeMoq.Times.exactly(1));
             projectionRunner.verify(s => s.pause(), TypeMoq.Times.never());
-            projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
-            projectionRunner.verify(s => s.resume(), TypeMoq.Times.never());
             expect(notifications).to.have.length(0);
         });
     });
 
     context("when there is a projection with that name ", () => {
-        beforeEach(() => {
-            request.object.body = {payload: {name: "nameProjection"}};
-        });
+        beforeEach(() => request.body = {payload: {name: "nameProjection"}});
 
         context("and a stop command is sent", () => {
+            beforeEach(() => subject = new ProjectionStopHandler(holder, statusStream));
             context("and the projection is already stopped", () => {
                 beforeEach(() => {
                     projectionRunner.setup(s => s.stop()).throws(new Error());
                 });
 
                 it("should trigger an error", () => {
-                    subject.stop(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.once());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(0);
                 });
@@ -78,8 +73,8 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             context("and the projection is not stopped", () => {
                 it("should stop it", () => {
-                    subject.stop(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.never());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
                 });
@@ -88,14 +83,13 @@ describe("Given a ProjectionsController and a projection name", () => {
         });
 
         context("and a resume command is sent", () => {
+            beforeEach(() => subject = new ProjectionResumeHandler(holder, statusStream));
             context("and the projection is not paused", () => {
-                beforeEach(() => {
-                    projectionRunner.setup(s => s.resume()).throws(new Error());
-                });
+                beforeEach(() => projectionRunner.setup(s => s.resume()).throws(new Error()));
 
                 it("trigger an error", () => {
-                    subject.resume(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.once());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(0);
                 });
@@ -103,8 +97,8 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             context("and the projection is paused", () => {
                 it("should resume it", () => {
-                    subject.resume(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.never());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.resume(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
                 });
@@ -114,14 +108,15 @@ describe("Given a ProjectionsController and a projection name", () => {
         });
 
         context("and a pause command is sent", () => {
+            beforeEach(() => subject = new ProjectionPauseHandler(holder, statusStream));
             context("and the projection is not started", () => {
                 beforeEach(() => {
                     projectionRunner.setup(s => s.pause()).throws(new Error());
                 });
 
                 it("trigger an error", () => {
-                    subject.pause(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.once());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.once());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(0);
                 });
@@ -129,8 +124,8 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             context("and the projection is started", () => {
                 it("should pause it", () => {
-                    subject.pause(request.object, response.object);
-                    response.verify(s => s.status(400), TypeMoq.Times.never());
+                    subject.handle(request, response.object);
+                    response.verify(s => s.status(404), TypeMoq.Times.never());
                     projectionRunner.verify(s => s.pause(), TypeMoq.Times.once());
                     expect(notifications).to.have.length(1);
                 });
