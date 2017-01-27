@@ -15,7 +15,8 @@ export class SnapshotSaveHandler implements IRequestHandler {
     }
 
     handle(request: IRequest, response: IResponse) {
-        let projection = this.holder[request.body.payload.name];
+        let name = request.body.payload.name;
+        let projection = this.holder[name];
 
         if (!projection) {
             response.status(404);
@@ -23,8 +24,8 @@ export class SnapshotSaveHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(request.body.payload.name, new Snapshot(projection.state, this.dateRetriever.getDate()));
-        response.send({name: request.body.payload.name});
+        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate()));
+        response.send({name: name});
     }
 
     keyFor(request: IRequest): string {
@@ -41,15 +42,16 @@ export class SnapshotDeleteHandler implements IRequestHandler {
     }
 
     handle(request: IRequest, response: IResponse) {
-        let projection = this.holder[request.body.payload.name];
+        let name = request.body.payload.name;
+        let projection = this.holder[name];
 
         if (!projection) {
-            response.status(400).json({error: "Projection not found"});
+            response.status(404).json({error: "Projection not found"});
             return;
         }
 
-        this.snapshotRepository.deleteSnapshot();
-        response.send({name: request.body.payload.name});
+        this.snapshotRepository.deleteSnapshot(name);
+        response.send({name: name});
     }
 
     keyFor(request: IRequest): string {

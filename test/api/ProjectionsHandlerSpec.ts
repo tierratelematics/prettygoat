@@ -12,7 +12,7 @@ import MockResponse from "../fixtures/web/MockResponse";
 import {
     ProjectionPauseHandler, ProjectionStopHandler,
     ProjectionResumeHandler
-} from "../../scripts/api/ProjectionsManagerController";
+} from "../../scripts/api/ProjectionsHandlers";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
