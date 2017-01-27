@@ -21,6 +21,13 @@ export interface IWhen<T extends Object> {
     [name: string]: (s: T, payload: Object, event?: Event) => T|SpecialState<T>;
 }
 
+export interface Event {
+    type: string;
+    payload: any;
+    timestamp: string;
+    splitKey: string;
+}
+
 declare abstract class SpecialState<T> {
     state: T;
 }
@@ -51,25 +58,6 @@ export interface Dictionary<T> {
     [index: string]: T
 }
 
-export interface ICassandraDeserializer {
-    toEvent(row): Event;
-}
-
-export interface ISnapshotRepository {
-    initialize(): Observable<void>;
-    getSnapshots(): Observable<Dictionary<Snapshot<any>>>;
-    getSnapshot<T>(streamId: string): Observable<Snapshot<T>>;
-    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void;
-    deleteSnapshot(streamId: string): void;
-}
-
-export class Snapshot<T> {
-    public static Empty: Snapshot<any>;
-
-    constructor(memento: T, lastEvent: string);
-}
-
-
 export interface ISnapshotStrategy {
     needsSnapshot(event: Event): boolean;
 }
@@ -86,14 +74,6 @@ export class CountSnapshotStrategy implements ISnapshotStrategy {
     needsSnapshot(event: Event): boolean;
 
     saveThreshold(threshold: number): void;
-}
-
-export class PushContext {
-    area: string;
-    projectionName: string;
-    parameters: any;
-
-    constructor(area: string, projectionName?: string, parameters?: any);
 }
 
 export interface IProjectionRegistry {
@@ -176,13 +156,6 @@ export interface IClusterConfig {
     nodes: string[];
     port: number;
     host: string;
-}
-
-export interface Event {
-    type: string;
-    payload: any;
-    timestamp: string;
-    splitKey: string;
 }
 
 export interface IFilterStrategy<T> {
