@@ -1,10 +1,10 @@
 import {IMiddleware, IResponse, IRequest} from "./IRequestComponents";
-const bodyParser = require("body-parser/json");
+const bodyParser = require("body-parser");
 
 class BodyMiddleware implements IMiddleware {
 
     transform(request: IRequest, response: IResponse, next: Function) {
-        bodyParser(request, response, next);
+        bodyParser.json(request, response, next);
     }
 
 }

@@ -46,7 +46,8 @@ export class SnapshotDeleteHandler implements IRequestHandler {
         let projection = this.holder[name];
 
         if (!projection) {
-            response.status(404).json({error: "Projection not found"});
+            response.status(404);
+            response.send({error: "Projection not found"});
             return;
         }
 

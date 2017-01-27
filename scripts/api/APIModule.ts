@@ -6,16 +6,11 @@ import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import AuthorizationStrategy from "./AuthorizationStrategy";
 import {ISubject, Subject} from "rx";
-import {app} from "../web/ExpressApp";
-import {NextFunction, Request, Response} from "express";
 import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
 import AuthMiddleware from "./AuthMiddleware";
-import {ProjectionStopHandler} from "./ProjectionsManagerController";
-import {ProjectionResumeHandler} from "./ProjectionsManagerController";
-import {ProjectionPauseHandler} from "./ProjectionsManagerController";
-import {SnapshotSaveHandler} from "./SnapshotManagerController";
-import {SnapshotDeleteHandler} from "./SnapshotManagerController";
-import AuthorizationHandler from "./AuthorizationController";
+import {ProjectionStopHandler, ProjectionResumeHandler, ProjectionPauseHandler} from "./ProjectionsHandlers";
+import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
+import AuthorizationHandler from "./AuthorizationHandler";
 
 class APIModule implements IModule {
 

@@ -1,10 +1,9 @@
 import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
-import {Request} from 'express';
-import * as Promise from 'bluebird';
+import {IRequest} from "../../scripts/web/IRequestComponents";
 
-class MockAuthorizationStrategy implements IAuthorizationStrategy{
+class MockAuthorizationStrategy implements IAuthorizationStrategy {
 
-    authorize(request: Request): Promise<boolean> {
+    authorize(request: IRequest): Promise<boolean> {
         return null;
     }
 

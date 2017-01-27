@@ -49,7 +49,7 @@ import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
 import ProjectionStateHandler from "../projections/ProjectionStateHandler";
 import MessageParser from "../web/MessageParser";
-import CORSMiddleware from "../web/CORSMiddleware";
+import CORSMiddleware from "../web/CORSMiddlware";
 import BodyMiddleware from "../web/BodyMiddleware";
 
 class PrettyGoatModule implements IModule {
