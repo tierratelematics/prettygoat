@@ -35,12 +35,12 @@ export interface IResponse {
     originalResponse: ServerResponse;
 }
 
-export interface IMessageParser<T, U> {
-    parse(request: T, response: U): RequestData;
-}
-
 export type RequestData = [IRequest, IResponse];
 
 export interface IMiddleware {
     transform(request: IRequest, response: IResponse, next: Function);
+}
+
+export interface IRequestParser {
+    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData>;
 }

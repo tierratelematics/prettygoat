@@ -3,16 +3,35 @@ import {ServerResponse} from "http";
 import Dictionary from "../util/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
-import {IMessageParser, RequestData} from "./IRequestComponents";
-import {injectable} from "inversify";
+import {injectable, optional, multiInject} from "inversify";
 import * as _ from "lodash";
+import {eachSeries} from "async";
+import {RequestData, IMiddleware, IRequestParser, IRequest, IResponse} from "./IRequestComponents";
 
 @injectable()
-class MessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
+class RequestParser implements IRequestParser {
 
-    parse(request: IncomingMessage, response: ServerResponse): RequestData {
+    constructor(@multiInject("IMiddleware") @optional() private middlewares: IMiddleware[]) {
+
+    }
+
+    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData> {
+        let requestParsed = this.parseRequest(request);
+        let responseParsed = this.parseResponse(response);
+
+        return new Promise((resolve, reject) => {
+            eachSeries(this.middlewares, (middleware, next) => {
+                middleware.transform(requestParsed, responseParsed, next);
+            }, (error) => {
+                if (error) reject(error);
+                else resolve([requestParsed, responseParsed]);
+            });
+        });
+    }
+
+    private parseRequest(request: IncomingMessage): IRequest {
         let isChannel = _.startsWith(request.url, "pgoat://");
-        let requestParsed = {
+        return {
             url: !isChannel ? request.url : null,
             channel: isChannel ? request.url.substr(8) : null, //Remove pgoat://
             method: request.method,
@@ -22,11 +41,13 @@ class MessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
             body: (<any>request).body,
             originalRequest: request
         };
+    }
 
-        let headers: Dictionary<string> = {};
+    private parseResponse(response: ServerResponse): IResponse {
+        let headers: Dictionary < string > = {};
         let statusCode = 200;
 
-        let responseParsed = {
+        return {
             header: (key: string, value: string) => {
                 headers[key] = value;
             },
@@ -44,10 +65,8 @@ class MessageParser implements IMessageParser<IncomingMessage, ServerResponse> {
             },
             originalResponse: response
         };
-
-        return [requestParsed, responseParsed];
     }
 
 }
 
-export default MessageParser
+export default RequestParser

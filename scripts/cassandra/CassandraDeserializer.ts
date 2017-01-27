@@ -1,5 +1,3 @@
-import "bluebird";
-import "reflect-metadata";
 import {injectable} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
 import {Event} from "../streams/Event";

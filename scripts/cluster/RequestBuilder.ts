@@ -6,7 +6,7 @@ class RequestBuilder {
     static buildChannelMessage(channel: string, payload: any): IncomingMessage {
         let request = new Request({url: `pgoat://${channel}`});
         request.end(JSON.stringify(payload));
-        return request
+        return request;
     }
 }
 

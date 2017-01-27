@@ -23,6 +23,7 @@ import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunner
 import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
 import {has} from "lodash";
+import NullLogger from "../../scripts/log/NullLogger";
 
 describe("Given a set of projections to redistribute", () => {
     let subject: IProjectionEngine,
@@ -66,7 +67,7 @@ describe("Given a set of projections to redistribute", () => {
         engine = TypeMoq.Mock.ofType(MockProjectionEngine);
         engine.setup(e => e.run(TypeMoq.It.isValue(projection1), TypeMoq.It.isAny()));
         engine.setup(e => e.run(TypeMoq.It.isValue(projection2), TypeMoq.It.isAny()));
-        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, holder, cluster.object);
+        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, holder, cluster.object, NullLogger);
     });
 
     context("when a projection is assigned to a node", () => {

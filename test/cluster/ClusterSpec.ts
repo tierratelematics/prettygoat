@@ -19,6 +19,7 @@ import Dictionary from "../../scripts/util/Dictionary";
 import MockProjectionEngine from "../fixtures/MockProjectionEngine";
 import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
+import NullLogger from "../../scripts/log/NullLogger";
 
 describe("Given a set of nodes", () => {
     let subject: IProjectionEngine,
@@ -51,7 +52,7 @@ describe("Given a set of nodes", () => {
         cluster = TypeMoq.Mock.ofType(MockCluster);
         cluster.setup(c => c.whoami()).returns(() => "my-ip");
         engine = TypeMoq.Mock.ofType(MockProjectionEngine);
-        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, {}, cluster.object);
+        subject = new ClusteredProjectionEngine(engine.object, registry.object, snapshotRepository.object, projectionSorter.object, {}, cluster.object, NullLogger );
     });
     context("when the cluster starts", () => {
         beforeEach(() => {

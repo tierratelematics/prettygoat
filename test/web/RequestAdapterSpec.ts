@@ -2,8 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import {
-    IRequestAdapter, IRouteResolver, IRequest, IResponse,
-    IMiddleware
+    IRequestAdapter, IRouteResolver, IRequest, IResponse
 } from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import ICluster from "../../scripts/cluster/ICluster";
@@ -15,7 +14,6 @@ import {
 } from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
-import MockMiddleware from "../fixtures/web/MockMiddleware";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
@@ -34,7 +32,7 @@ describe("Given a RequestAdapter and a new request", () => {
         cluster = TypeMoq.Mock.ofType(MockCluster);
         routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(),
             new ChannelRequestHandler(), new NoForwardRequestHandler()]);
-        subject = new RequestAdapter(cluster.object, routeResolver, []);
+        subject = new RequestAdapter(cluster.object, routeResolver);
     });
 
     context("when the request method matches", () => {
@@ -104,7 +102,7 @@ describe("Given a RequestAdapter and a new request", () => {
 
     context("when a cluster instance is not provided", () => {
         it("should not proxy the request", () => {
-            subject = new RequestAdapter(null, routeResolver, []);
+            subject = new RequestAdapter(null, routeResolver);
             request.url = "/test";
             subject.route(request, response.object);
             expect(request.params.accessed).to.be(true);
@@ -129,24 +127,6 @@ describe("Given a RequestAdapter and a new request", () => {
                 subject.route(request, response.object);
                 expect(request.params.channel).to.be(undefined);
             });
-        });
-    });
-
-    context("when a list of transforms is supplied", () => {
-        let middleware: TypeMoq.Mock<IMiddleware>;
-        beforeEach(() => {
-            middleware = TypeMoq.Mock.ofType(MockMiddleware);
-            subject = new RequestAdapter(cluster.object, routeResolver, [middleware.object]);
-            cluster.setup(c => c.handleOrProxy("testkey", undefined, undefined)).returns(() => true);
-            middleware.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
-                next();
-            });
-        });
-        it("should apply them and route the request", () => {
-            request.url = "/test";
-            subject.route(request, response.object);
-            middleware.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.once());
-            expect(request.params.accessed).to.be(true);
         });
     });
 });

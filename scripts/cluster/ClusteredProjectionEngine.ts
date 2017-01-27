@@ -12,6 +12,7 @@ import AreaRegistry from "../registry/AreaRegistry";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ICluster from "./ICluster";
 import {ProjectionRunnerStatus} from "../projections/ProjectionRunnerStatus";
+import ILogger from "../log/ILogger";
 
 @injectable()
 class ClusteredProjectionEngine implements IProjectionEngine {
@@ -21,7 +22,8 @@ class ClusteredProjectionEngine implements IProjectionEngine {
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("IProjectionSorter") private sorter: IProjectionSorter,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
-                @inject("ICluster") private cluster: ICluster) {
+                @inject("ICluster") private cluster: ICluster,
+                @inject("ILogger") private logger: ILogger) {
 
     }
 
@@ -40,10 +42,12 @@ class ClusteredProjectionEngine implements IProjectionEngine {
                                 runner = this.holder[projection.name];
                             if (this.cluster.lookup(projection.name) === this.cluster.whoami()) {
                                 if (!runner || (runner && runner.status !== ProjectionRunnerStatus.Run)) {
-                                    this.engine.run(projection, new PushContext(entry.exposedName, areaRegistry.area));
+                                    this.run(projection, new PushContext(entry.exposedName, areaRegistry.area));
+                                    this.logger.info(`Running projection ${projection.name}`);
                                 }
                             } else if (runner && runner.status !== ProjectionRunnerStatus.Stop) {
                                 runner.stop();
+                                this.logger.info(`Stopping projection ${projection.name}`);
                                 delete this.holder[projection.name];
                             }
                         });
