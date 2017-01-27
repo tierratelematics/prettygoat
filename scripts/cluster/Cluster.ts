@@ -11,6 +11,7 @@ const TChannel = require('tchannel');
 @injectable()
 class Cluster implements ICluster {
     ringpop: any;
+    requestSource: Observable<RequestData>;
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
                 @inject("IMessageParser") private messageParser: IMessageParser<IncomingMessage, ServerResponse>) {
@@ -58,11 +59,14 @@ class Cluster implements ICluster {
     }
 
     requests(): Observable<RequestData> {
-        return Observable.create(observer => {
-            this.ringpop.on('request', (request, response) => {
-                observer.onNext(this.messageParser.parse(request, response));
-            });
-        });
+        if (!this.requestSource) {
+            this.requestSource = Observable.create(observer => {
+                this.ringpop.on('request', (request, response) => {
+                    observer.onNext(this.messageParser.parse(request, response));
+                });
+            }).share();
+        }
+        return this.requestSource;
     }
 
     changes(): Observable<void> {
