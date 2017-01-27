@@ -51,12 +51,14 @@ import ProjectionStateHandler from "../projections/ProjectionStateHandler";
 import CORSMiddleware from "../web/CORSMiddlware";
 import BodyMiddleware from "../web/BodyMiddleware";
 import RequestParser from "../web/RequestParser";
+import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry";
 
 class PrettyGoatModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
-        container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
+        container.bind<IProjectionRegistry>("ProjectionRegistry").to(ProjectionRegistry).whenInjectedInto(MemoizingProjectionRegistry);
+        container.bind<IProjectionRegistry>("IProjectionRegistry").to(MemoizingProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
