@@ -38,3 +38,31 @@ export class Dependent2 implements IProjectionDefinition<any> {
     }
 
 }
+
+export class Dependent3 implements IProjectionDefinition<any> {
+
+    define(): IProjection<any> {
+        return {
+            name: "dependent3",
+            definition: {
+                "$any": (s, e) => e
+            }
+        }
+    }
+
+}
+
+export class Dependent4 implements IProjectionDefinition<any> {
+
+    define(): IProjection<any> {
+        return {
+            name: "dependent4",
+            definition: {
+                "ma*": (s, e) => e
+            }
+        }
+    }
+
+}
+
+

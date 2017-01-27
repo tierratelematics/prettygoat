@@ -5,6 +5,8 @@ import AreaRegistry from "../registry/AreaRegistry";
 import RegistryEntry from "../registry/RegistryEntry";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
+import {helpers} from "rx";
+import {Matcher} from "../matcher/Matcher";
 const toposort = require("toposort");
 
 @injectable()
@@ -34,7 +36,10 @@ class ProjectionSorter implements IProjectionSorter {
             .valueOf();
 
         return _(projections)
-            .filter(proj => _.includes(_.keys(proj.definition), projection.name))
+            .filter(proj => {
+                let matcher = new Matcher(proj.definition);
+                return matcher.match(projection.name) !== helpers.identity;
+            })
             .map(proj => proj.name)
             .valueOf();
     }

@@ -13,7 +13,10 @@ import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import {IProjection} from "../scripts/projections/IProjection";
-import {MainProjection, Dependent1, Dependent2} from "./fixtures/definitions/DependentsDefinitions";
+import {
+    MainProjection, Dependent1, Dependent2, Dependent3,
+    Dependent4
+} from "./fixtures/definitions/DependentsDefinitions";
 
 describe("ProjectionSorterSpec, given a projection sorter", () => {
 
@@ -87,10 +90,11 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
     });
 
     context("when the dependents of a projection are needed", () => {
+        let mainEntry, dependent1Entry, dependent2Entry;
         beforeEach(() => {
-            let mainEntry = new RegistryEntry(new MainProjection().define(), null);
-            let dependent1Entry = new RegistryEntry(new Dependent1().define(), null);
-            let dependent2Entry = new RegistryEntry(new Dependent2().define(), null);
+            mainEntry = new RegistryEntry(new MainProjection().define(), null);
+            dependent1Entry = new RegistryEntry(new Dependent1().define(), null);
+            dependent2Entry = new RegistryEntry(new Dependent2().define(), null);
             registry.setup(r => r.getEntry("main", null)).returns(() => {
                 return {area: "Admin", data: mainEntry};
             });
@@ -100,13 +104,47 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
             registry.setup(r => r.getEntry("dependent2", null)).returns(() => {
                 return {area: "Admin", data: dependent2Entry};
             });
-            registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [mainEntry, dependent1Entry, dependent2Entry])]);
         });
 
-        it("should list them", () => {
-            expect(subject.dependents(new MainProjection().define())).to.eql([
-                "dependent1", "dependent2"
-            ]);
+        context("and no special matchers are used", () => {
+            beforeEach(() => {
+                registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [mainEntry, dependent1Entry, dependent2Entry])]);
+            });
+            it("should list the projections", () => {
+                expect(subject.dependents(new MainProjection().define())).to.eql([
+                    "dependent1", "dependent2"
+                ]);
+            });
+        });
+
+        context("and an $any matcher is used", () => {
+            beforeEach(() => {
+                let dependent3Entry = new RegistryEntry(new Dependent3().define(), null);
+                registry.setup(r => r.getEntry("dependent3", null)).returns(() => {
+                    return {area: "Admin", data: dependent3Entry};
+                });
+                registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [mainEntry, dependent1Entry, dependent2Entry, dependent3Entry])]);
+            });
+            it("should list the projections", () => {
+                expect(subject.dependents(new MainProjection().define())).to.eql([
+                    "dependent1", "dependent2", "dependent3"
+                ]);
+            });
+        });
+
+        context("and a wildcard matcher is used", () => {
+            beforeEach(() => {
+                let dependent4Entry = new RegistryEntry(new Dependent4().define(), null);
+                registry.setup(r => r.getEntry("dependent4", null)).returns(() => {
+                    return {area: "Admin", data: dependent4Entry};
+                });
+                registry.setup(r => r.getAreas()).returns(a => [new AreaRegistry("Admin", [mainEntry, dependent1Entry, dependent2Entry, dependent4Entry])]);
+            });
+            it("should list the projections", () => {
+                expect(subject.dependents(new MainProjection().define())).to.eql([
+                    "dependent1", "dependent2", "dependent4"
+                ]);
+            });
         });
     });
 
