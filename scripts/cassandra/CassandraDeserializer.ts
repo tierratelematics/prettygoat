@@ -4,6 +4,7 @@ import {Event} from "../streams/Event";
 
 @injectable()
 class CassandraDeserializer implements ICassandraDeserializer {
+
     toEvent(row):Event {
         let parsedEvent = JSON.parse(row.event);
 

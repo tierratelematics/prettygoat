@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import expect = require("expect.js");
 import CassandraDeserializer from "../scripts/cassandra/CassandraDeserializer";
 import {MockTimeStamp} from './fixtures/MockTimeStamp';

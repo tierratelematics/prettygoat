@@ -2,7 +2,7 @@ import ICluster from "./ICluster";
 import {inject, injectable, optional} from "inversify";
 import {Observable} from "rx";
 import {EmbeddedClusterConfig} from "./ClusterConfig";
-import {IMessageParser, RequestData} from "../web/IRequestComponents";
+import {IRequestParser, RequestData} from "../web/IRequestComponents";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 const Ringpop = require('ringpop');
@@ -14,7 +14,7 @@ class Cluster implements ICluster {
     requestSource: Observable<RequestData>;
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
-                @inject("IMessageParser") private messageParser: IMessageParser<IncomingMessage, ServerResponse>) {
+                @inject("IRequestParser") private requestParser: IRequestParser) {
 
     }
 
@@ -62,7 +62,7 @@ class Cluster implements ICluster {
         if (!this.requestSource) {
             this.requestSource = Observable.create(observer => {
                 this.ringpop.on('request', (request, response) => {
-                    observer.onNext(this.messageParser.parse(request, response));
+                    this.requestParser.parse(request, response).then(requestData => observer.onNext(requestData));
                 });
             }).share();
         }
