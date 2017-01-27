@@ -23,7 +23,7 @@ describe("Given a MemoizingProjectionRegistry", () => {
     });
 
     context("when an entry is request", () => {
-        context("and a cached one does not exists", () => {
+        context("and a cached one does not exist", () => {
             it("should retrieve it from the registry", () => {
                 let cached = subject.getEntry("Foo", "Admin");
                 expect(cached).to.eql({

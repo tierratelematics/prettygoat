@@ -52,6 +52,7 @@ import CORSMiddleware from "../web/CORSMiddlware";
 import BodyMiddleware from "../web/BodyMiddleware";
 import RequestParser from "../web/RequestParser";
 import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry";
+import MemoizingProjectionSorter from "../projections/MemoizingProjectionSorter";
 
 class PrettyGoatModule implements IModule {
 
@@ -73,7 +74,8 @@ class PrettyGoatModule implements IModule {
         container.bind<ISocketFactory>("ISocketFactory").to(SocketFactory).inSingletonScope();
         container.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
-        container.bind<IProjectionSorter>("IProjectionSorter").to(ProjectionSorter).inSingletonScope();
+        container.bind<IProjectionSorter>("IProjectionSorter").to(MemoizingProjectionSorter).inSingletonScope();
+        container.bind<IProjectionSorter>("ProjectionSorter").to(ProjectionSorter).whenInjectedInto(MemoizingProjectionSorter);
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
