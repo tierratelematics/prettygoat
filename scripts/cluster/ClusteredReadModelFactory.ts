@@ -1,6 +1,6 @@
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {IWhen} from "../projections/IProjection";
-import {inject} from "inversify";
+import {inject, injectable} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import ICluster from "./ICluster";
 import IProjectionSorter from "../projections/IProjectionSorter";
@@ -8,6 +8,7 @@ import {Event} from "../streams/Event";
 import {Observable} from "rx";
 import RequestBuilder from "./RequestBuilder";
 
+@injectable()
 class ClusteredReadModelFactory implements IReadModelFactory {
 
     constructor(@inject("ReadModelFactory") private readModelFactory: IReadModelFactory,

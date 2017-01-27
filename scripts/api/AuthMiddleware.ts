@@ -1,8 +1,9 @@
 import {IMiddleware, IRequest, IResponse} from "../web/IRequestComponents";
 import {startsWith} from "lodash";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
-import {inject} from "inversify";
+import {inject, injectable} from "inversify";
 
+@injectable()
 class AuthMiddleware implements IMiddleware {
 
     constructor(@inject("IAuthorizationStrategy") private authStrategy: IAuthorizationStrategy) {
@@ -10,7 +11,7 @@ class AuthMiddleware implements IMiddleware {
     }
 
     transform(request: IRequest, response: IResponse, next: Function) {
-        if (startsWith(request.url, "/api"))
+        if (startsWith(request.url, "/api")) {
             this.authStrategy.authorize(request).then(authorized => {
                 if (!authorized) {
                     response.status(401);
@@ -19,7 +20,7 @@ class AuthMiddleware implements IMiddleware {
                     next();
                 }
             });
-        else {
+        } else {
             next();
         }
     }
