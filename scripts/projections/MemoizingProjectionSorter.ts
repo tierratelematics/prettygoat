@@ -1,8 +1,9 @@
 import IProjectionSorter from "./IProjectionSorter";
-import {inject} from "inversify";
+import {inject, injectable} from "inversify";
 import {IProjection} from "./IProjection";
 import Dictionary from "../util/Dictionary";
 
+@injectable()
 class MemoizingProjectionSorter implements IProjectionSorter {
 
     private cache:Dictionary<string[]> = {};

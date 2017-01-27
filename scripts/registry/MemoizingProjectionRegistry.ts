@@ -1,10 +1,11 @@
 import IProjectionRegistry from "./IProjectionRegistry";
-import {inject, interfaces} from "inversify";
+import {inject, interfaces, injectable} from "inversify";
 import IProjectionDefinition from "./IProjectionDefinition";
 import AreaRegistry from "./AreaRegistry";
 import RegistryEntry from "./RegistryEntry";
 import Dictionary from "../util/Dictionary";
 
+@injectable()
 class MemoizingProjectionRegistry implements IProjectionRegistry {
 
     private cache: Dictionary<{area: string; data: RegistryEntry<any>}> = {};
