@@ -1,12 +1,10 @@
-import {IRequestAdapter, IRouteResolver, IRequest, IResponse} from "./IRequestComponents";
-import {inject, injectable, optional} from "inversify";
-import ICluster from "../cluster/ICluster";
+import {IRequestAdapter, IRouteResolver, IRequest, IResponse, IRequestHandler} from "./IRequestComponents";
+import {inject, injectable} from "inversify";
 
 @injectable()
 class RequestAdapter implements IRequestAdapter {
 
-    constructor(@inject("ICluster") @optional() private cluster: ICluster,
-                @inject("IRouteResolver") private routeResolver: IRouteResolver) {
+    constructor(@inject("IRouteResolver") private routeResolver: IRouteResolver) {
     }
 
     route(request: IRequest, response: IResponse) {
@@ -20,17 +18,17 @@ class RequestAdapter implements IRequestAdapter {
         if (params)
             request.params = params;
         if (requestHandler) {
-            let shardKey = requestHandler.keyFor(request),
-                originalRequest = request.originalRequest,
-                originalResponse = response.originalResponse;
-            if (!this.cluster || !shardKey || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse))) {
+            if (this.canHandleRequest(requestHandler, request, response)) {
                 requestHandler.handle(request, response);
             }
         } else {
             response.status(404);
             response.send();
         }
+    }
 
+    protected canHandleRequest(requestHandler: IRequestHandler, request: IRequest, response: IResponse): boolean {
+        return true;
     }
 
 }

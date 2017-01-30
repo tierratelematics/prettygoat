@@ -17,6 +17,8 @@ import ClusteredReplicationManager from "./ClusteredReplicationManager";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ProcessLogger from "./ProcessLogger";
+import {IRequestAdapter} from "../web/IRequestComponents";
+import ClusteredRequestAdapter from "./ClusteredRequestAdapter";
 
 class ClusterModule implements IModule {
 
@@ -35,6 +37,8 @@ class ClusterModule implements IModule {
         container.unbind("ILogger");
         container.bind<ILogger>("Logger").to(ConsoleLogger).whenInjectedInto(ProcessLogger);
         container.bind<ILogger>("ILogger").to(ProcessLogger).inSingletonScope();
+        container.unbind("IRequestAdapter");
+        container.bind<IRequestAdapter>("IRequestAdapter").to(ClusteredRequestAdapter).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
