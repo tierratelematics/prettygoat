@@ -19,4 +19,3 @@ class ClusteredRequestAdapter extends RequestAdapter {
 }
 
 export default ClusteredRequestAdapter
-

@@ -10,19 +10,19 @@ class ProcessLogger implements ILogger {
     }
 
     debug(message: string) {
-        this.logger.debug(`Worker ${process.pid}: ${message}`);
+        this.logger.debug(`Process ${process.pid}: ${message}`);
     }
 
     info(message: string) {
-        this.logger.info(`Worker ${process.pid}: ${message}`);
+        this.logger.info(`Process ${process.pid}: ${message}`);
     }
 
     warning(message: string) {
-        this.logger.warning(`Worker ${process.pid}: ${message}`);
+        this.logger.warning(`Process ${process.pid}: ${message}`);
     }
 
     error(error: string|Error) {
-        this.logger.error(`Worker ${process.pid} error`);
+        this.logger.error(`Process ${process.pid} error`);
         this.logger.error(error);
     }
 

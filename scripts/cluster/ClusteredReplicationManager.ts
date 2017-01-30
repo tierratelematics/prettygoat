@@ -17,8 +17,11 @@ class ClusteredReplicationManager implements IReplicationManager {
     }
 
     replicate() {
+        //Spawn children after every second (required to correctly bind to free tcp ports)
         for (let i = 0; i < this.config.forks; i++) {
-            cluster.fork();
+            setTimeout(() => {
+                cluster.fork();
+            }, i * 1000);
         }
         cluster.on('exit', (worker) => {
             this.logger.warning(`Worker ${worker.process.pid} died`);

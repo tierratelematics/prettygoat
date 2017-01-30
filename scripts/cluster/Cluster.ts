@@ -5,6 +5,8 @@ import {EmbeddedClusterConfig} from "./ClusterConfig";
 import {IRequestParser, RequestData} from "../web/IRequestComponents";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
+const portUsed = require("tcp-port-used");
+import ILogger from "../log/ILogger";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
@@ -14,28 +16,41 @@ class Cluster implements ICluster {
     requestSource: Observable<RequestData>;
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
-                @inject("IRequestParser") private requestParser: IRequestParser) {
+                @inject("IRequestParser") private requestParser: IRequestParser,
+                @inject("ILogger") private logger: ILogger) {
 
     }
 
     startup(): Observable<void> {
         return Observable.create<void>(observer => {
-            let tchannel = new TChannel();
-            this.ringpop = new Ringpop({
-                app: "ringpop",
-                hostPort: `${this.clusterConfig.host}:${this.clusterConfig.port}`,
-                channel: tchannel.makeSubChannel({
-                    serviceName: 'ringpop',
-                    trace: false
-                })
-            });
-            this.ringpop.setupChannel();
-            tchannel.listen(this.clusterConfig.port, this.clusterConfig.host, () => {
-                this.ringpop.bootstrap(this.clusterConfig.nodes, () => {
-                    observer.onNext(null);
-                    observer.onCompleted();
+            this.getFreeTCPPort(this.clusterConfig.port, this.clusterConfig.host).then(port => {
+                let tchannel = new TChannel();
+                this.ringpop = new Ringpop({
+                    app: "ringpop",
+                    hostPort: `${this.clusterConfig.host}:${port}`,
+                    channel: tchannel.makeSubChannel({
+                        serviceName: 'ringpop',
+                        trace: false
+                    })
+                });
+                this.ringpop.setupChannel();
+                tchannel.listen(port, this.clusterConfig.host, () => {
+                    this.logger.info(`TChannel listening on ${port}`);
+                    this.ringpop.bootstrap(this.clusterConfig.nodes, () => {
+                        observer.onNext(null);
+                        observer.onCompleted();
+                    });
                 });
             });
+        });
+    }
+
+    private getFreeTCPPort(initialPort: number, host: string): Promise<number> {
+        return portUsed.check({
+            port: initialPort,
+            host: host
+        }).then(used => {
+            return used ? this.getFreeTCPPort(initialPort + 1, host) : initialPort;
         });
     }
 

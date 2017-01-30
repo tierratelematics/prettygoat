@@ -71,8 +71,12 @@ class Engine {
             if (error) {
                 logger.error(error);
             } else {
-                server.listen(port);
-                logger.info(`Server listening on ${port}`);
+                server.listen(port, error => {
+                    if (error)
+                        logger.error(error);
+                    else
+                        logger.info(`Server listening on ${port}`);
+                });
             }
         });
 

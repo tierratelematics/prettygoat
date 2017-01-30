@@ -40,6 +40,7 @@
     "socket.io": "~1.4.6",
     "socket.io-redis": "~3.1.0",
     "tchannel": "~3.9.0",
+    "tcp-port-used": "~0.1.2",
     "toposort": "~1.0.0",
     "url-pattern": "~1.0.3",
     "wildcard2": "0.0.2"

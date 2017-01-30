@@ -26,9 +26,9 @@ class ClusteredEngine extends Engine {
             projectionEngine.run();
             cluster.requests().subscribe(message => {
                 requestAdapter.route(message[0], message[1]);
-            })
+            });
+            cluster.changes().subscribe(() => projectionEngine.run());
         });
-        cluster.changes().subscribe(() => projectionEngine.run());
     }
 }
 
