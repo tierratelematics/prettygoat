@@ -29,9 +29,12 @@ export interface IRequest {
 }
 
 export interface IResponse {
+    statusCode: number;
     header(key: string, value: string);
+    setHeader(key: string, value: string);
     status(code: number);
     send(data?: any);
+    end();
     originalResponse: ServerResponse;
 }
 

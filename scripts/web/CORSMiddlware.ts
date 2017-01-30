@@ -1,6 +1,6 @@
 import {IMiddleware, IResponse, IRequest} from "./IRequestComponents";
 import {injectable} from "inversify";
-const cors = require("cors");
+const cors = require("cors")();
 
 @injectable()
 class CORSMiddleware implements IMiddleware {

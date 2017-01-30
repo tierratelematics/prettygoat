@@ -64,7 +64,7 @@ class Engine {
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
         app.all("*", (request, response) => {
-            requestParser.parse(request, response).then(requestData => requestAdapter.route(context[0], context[1]));
+            requestParser.parse(request, response).then(requestData => requestAdapter.route(requestData[0], requestData[1]));
         });
 
         PortDiscovery.freePort(config.port).then(port => {

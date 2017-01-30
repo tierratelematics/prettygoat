@@ -16,8 +16,8 @@ class RequestParser implements IRequestParser {
     }
 
     parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData> {
-        let requestParsed = this.parseRequest(request);
-        let responseParsed = this.parseResponse(response);
+        let requestParsed = new Request(request);
+        let responseParsed = new Response(response);
 
         return new Promise((resolve, reject) => {
             eachSeries(this.middlewares, (middleware, next) => {
@@ -28,43 +28,59 @@ class RequestParser implements IRequestParser {
             });
         });
     }
+}
 
-    private parseRequest(request: IncomingMessage): IRequest {
-        let isChannel = _.startsWith(request.url, "pgoat://");
-        return {
-            url: !isChannel ? request.url : null,
-            channel: isChannel ? request.url.substr(8) : null, //Remove pgoat://
-            method: request.method,
-            headers: request.headers,
-            query: qs.parse(url.parse(request.url).query),
-            params: null,
-            body: (<any>request).body,
-            originalRequest: request
-        };
+class Request implements IRequest {
+    url: string;
+    channel: string;
+    method: string;
+    headers: Dictionary<string>;
+    query: Dictionary<string>;
+    params: any;
+    body: any;
+
+    constructor(public originalRequest: IncomingMessage) {
+        let isChannel = _.startsWith(originalRequest.url, "pgoat://");
+        this.url = !isChannel ? originalRequest.url : null;
+        this.channel = isChannel ? originalRequest.url.substr(8) : null; //Remove pgoat://
+        this.method = originalRequest.method;
+        this.headers = originalRequest.headers;
+        this.query = qs.parse(url.parse(originalRequest.url).query);
+        this.params = null;
+        this.body = (<any>originalRequest).body;
+    }
+}
+
+class Response implements IResponse {
+    private headers: Dictionary < string > = {};
+    statusCode = 200;
+
+    constructor(public originalResponse: ServerResponse) {
+
     }
 
-    private parseResponse(response: ServerResponse): IResponse {
-        let headers: Dictionary < string > = {};
-        let statusCode = 200;
+    header(key: string, value: string) {
+        this.headers[key] = value;
+    }
 
-        return {
-            header: (key: string, value: string) => {
-                headers[key] = value;
-            },
+    setHeader(key: string, value: string) {
+        this.header(key, value);
+    }
 
-            status: (code: number) => {
-                statusCode = code;
-            },
-            send: (data?: any) => {
-                response.writeHead(statusCode, _.assign(headers, {
-                    "Content-Type": "application/json; charset=utf-8"
-                }));
-                if (data)
-                    response.write(JSON.stringify(data));
-                response.end();
-            },
-            originalResponse: response
-        };
+    status(code: number) {
+        this.statusCode = code;
+    }
+
+    send(data?: any) {
+        this.originalResponse.writeHead(this.statusCode, _.assign(this.headers, {
+            "content-type": "application/json; charset=utf-8"
+        }));
+        if (data) this.originalResponse.write(JSON.stringify(data));
+        this.end();
+    }
+
+    end() {
+        this.originalResponse.end();
     }
 
 }

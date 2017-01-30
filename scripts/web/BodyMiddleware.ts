@@ -1,12 +1,12 @@
 import {IMiddleware, IResponse, IRequest} from "./IRequestComponents";
 import {injectable} from "inversify";
-const bodyParser = require("body-parser");
+const bodyParser = require("body-parser").json();
 
 @injectable()
 class BodyMiddleware implements IMiddleware {
 
     transform(request: IRequest, response: IResponse, next: Function) {
-        bodyParser.json(request, response, next);
+        bodyParser(request, response, next);
     }
 
 }
