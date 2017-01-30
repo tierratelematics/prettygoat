@@ -3,6 +3,7 @@ import ClusterModule from "./ClusterModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ICluster from "./ICluster";
 import {IRequestAdapter} from "../web/IRequestComponents";
+import {IReplicationManager} from "../bootstrap/ReplicationManager";
 
 class ClusteredEngine extends Engine {
 
@@ -13,6 +14,10 @@ class ClusteredEngine extends Engine {
 
     run(overrides?: any) {
         this.boot(overrides);
+        let replicationManager = this.container.get<IReplicationManager>("IReplicationManager");
+        if (replicationManager.isMaster())
+            return;
+
         let projectionEngine = this.container.get<IProjectionEngine>("IProjectionEngine"),
             cluster = this.container.get<ICluster>("ICluster"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter");

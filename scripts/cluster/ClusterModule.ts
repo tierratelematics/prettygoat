@@ -12,6 +12,8 @@ import ClusteredSocketFactory from "./ClusteredSocketFactory";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
 import ClusteredReadModelFactory from "./ClusteredReadModelFactory";
+import {IReplicationManager} from "../bootstrap/ReplicationManager";
+import ClusteredReplicationManager from "./ClusteredReplicationManager";
 
 class ClusterModule implements IModule {
 
@@ -25,6 +27,8 @@ class ClusterModule implements IModule {
         container.unbind("IReadModelFactory");
         container.bind<IReadModelFactory>("ReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IReadModelFactory>("IReadModelFactory").to(ClusteredReadModelFactory).inSingletonScope();
+        container.unbind("IReplicationManager");
+        container.bind<IReplicationManager>("IReplicationManager").to(ClusteredReplicationManager).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

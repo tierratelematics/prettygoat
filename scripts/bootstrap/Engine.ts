@@ -16,6 +16,7 @@ import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushCompo
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
 import {getPort} from "portfinder";
+import {IReplicationManager} from "./ReplicationManager";
 
 class Engine {
 
@@ -40,6 +41,16 @@ class Engine {
     }
 
     boot(overrides?: any) {
+        let replicationManager = this.container.get<IReplicationManager>("IReplicationManager");
+
+        if (!replicationManager.canReplicate() || !replicationManager.isMaster()) {
+            this.exposeServices();
+        } else {
+            replicationManager.replicate();
+        }
+    }
+
+    private exposeServices() {
         let registry = this.container.get<IProjectionRegistry>("IProjectionRegistry"),
             clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
@@ -81,7 +92,9 @@ class Engine {
 
     run(overrides?: any) {
         this.boot(overrides);
-        this.container.get<IProjectionEngine>("IProjectionEngine").run();
+        let replicationManager = this.container.get<IReplicationManager>("IReplicationManager");
+        if (!replicationManager.canReplicate() || !replicationManager.isMaster())
+            this.container.get<IProjectionEngine>("IProjectionEngine").run();
     }
 }
 

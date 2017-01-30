@@ -53,6 +53,7 @@ import BodyMiddleware from "../web/BodyMiddleware";
 import RequestParser from "../web/RequestParser";
 import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry";
 import MemoizingProjectionSorter from "../projections/MemoizingProjectionSorter";
+import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
 
 class PrettyGoatModule implements IModule {
 
@@ -92,6 +93,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IRequestParser>("IRequestParser").to(RequestParser).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(CORSMiddleware).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();
+        container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

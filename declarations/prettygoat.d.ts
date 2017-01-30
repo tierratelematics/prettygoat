@@ -156,6 +156,7 @@ export interface IClusterConfig {
     nodes: string[];
     port: number;
     host: string;
+    forks: number;
 }
 
 export interface IFilterStrategy<T> {
@@ -246,4 +247,10 @@ export var FeaturePredicates: PredicatesStatic;
 
 export class ClusteredEngine extends Engine {
     run(overrides?: any);
+}
+
+export interface IReplicationManager {
+    canReplicate(): boolean;
+    replicate();
+    isMaster(): boolean;
 }
