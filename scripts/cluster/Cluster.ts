@@ -5,8 +5,8 @@ import {EmbeddedClusterConfig} from "./ClusterConfig";
 import {IRequestParser, RequestData} from "../web/IRequestComponents";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-const portUsed = require("tcp-port-used");
 import ILogger from "../log/ILogger";
+import PortDiscovery from "../util/PortDiscovery";
 const Ringpop = require('ringpop');
 const TChannel = require('tchannel');
 
@@ -23,7 +23,7 @@ class Cluster implements ICluster {
 
     startup(): Observable<void> {
         return Observable.create<void>(observer => {
-            this.getFreeTCPPort(this.clusterConfig.port, this.clusterConfig.host).then(port => {
+            PortDiscovery.freePort(this.clusterConfig.port, this.clusterConfig.host).then(port => {
                 let tchannel = new TChannel();
                 this.ringpop = new Ringpop({
                     app: "ringpop",
@@ -42,15 +42,6 @@ class Cluster implements ICluster {
                     });
                 });
             });
-        });
-    }
-
-    private getFreeTCPPort(initialPort: number, host: string): Promise<number> {
-        return portUsed.check({
-            port: initialPort,
-            host: host
-        }).then(used => {
-            return used ? this.getFreeTCPPort(initialPort + 1, host) : initialPort;
         });
     }
 

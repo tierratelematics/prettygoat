@@ -15,8 +15,8 @@ import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
-import {getPort} from "portfinder";
 import {IReplicationManager} from "./ReplicationManager";
+import PortDiscovery from "../util/PortDiscovery";
 
 class Engine {
 
@@ -67,17 +67,13 @@ class Engine {
             requestParser.parse(request, response).then(requestData => requestAdapter.route(context[0], context[1]));
         });
 
-        getPort({port: config.port || 80}, (error, port) => {
-            if (error) {
-                logger.error(error);
-            } else {
-                server.listen(port, error => {
-                    if (error)
-                        logger.error(error);
-                    else
-                        logger.info(`Server listening on ${port}`);
-                });
-            }
+        PortDiscovery.freePort(config.port).then(port => {
+            server.listen(port, error => {
+                if (error)
+                    logger.error(error);
+                else
+                    logger.info(`Server listening on ${port}`);
+            });
         });
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
