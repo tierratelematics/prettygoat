@@ -1,9 +1,10 @@
 import {IReplicationManager} from "../bootstrap/ReplicationManager";
-import {inject, optional} from "inversify";
+import {inject, optional, injectable} from "inversify";
 import ILogger from "../log/ILogger";
 import {IClusterConfig, EmbeddedClusterConfig} from "./ClusterConfig";
 import * as cluster from "cluster";
 
+@injectable()
 class ClusteredReplicationManager implements IReplicationManager {
 
     constructor(@inject("ILogger") private logger: ILogger,

@@ -14,6 +14,9 @@ import ReadModelFactory from "../streams/ReadModelFactory";
 import ClusteredReadModelFactory from "./ClusteredReadModelFactory";
 import {IReplicationManager} from "../bootstrap/ReplicationManager";
 import ClusteredReplicationManager from "./ClusteredReplicationManager";
+import ILogger from "../log/ILogger";
+import ConsoleLogger from "../log/ConsoleLogger";
+import ProcessLogger from "./ProcessLogger";
 
 class ClusterModule implements IModule {
 
@@ -29,6 +32,9 @@ class ClusterModule implements IModule {
         container.bind<IReadModelFactory>("IReadModelFactory").to(ClusteredReadModelFactory).inSingletonScope();
         container.unbind("IReplicationManager");
         container.bind<IReplicationManager>("IReplicationManager").to(ClusteredReplicationManager).inSingletonScope();
+        container.unbind("ILogger");
+        container.bind<ILogger>("Logger").to(ConsoleLogger).whenInjectedInto(ProcessLogger);
+        container.bind<ILogger>("ILogger").to(ProcessLogger).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
