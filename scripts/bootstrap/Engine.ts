@@ -15,6 +15,7 @@ import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
+import {getPort} from "portfinder";
 
 class Engine {
 
@@ -54,9 +55,15 @@ class Engine {
         app.all("*", (request, response) => {
             requestParser.parse(request, response).then(requestData => requestAdapter.route(context[0], context[1]));
         });
-        server.listen(config.port || 80);
 
-        logger.info(`Server listening on ${config.port || 80}`);
+        getPort({port: config.port || 80}, (error, port) => {
+            if (error) {
+                logger.error(error);
+            } else {
+                server.listen(port);
+                logger.info(`Server listening on ${port}`);
+            }
+        });
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
             let wrappedClient = new SocketClient(client);
