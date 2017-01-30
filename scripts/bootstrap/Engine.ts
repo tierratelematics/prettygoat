@@ -44,13 +44,13 @@ class Engine {
         let replicationManager = this.container.get<IReplicationManager>("IReplicationManager");
 
         if (!replicationManager.canReplicate() || !replicationManager.isMaster()) {
-            this.exposeServices();
+            this.exposeServices(overrides);
         } else {
             replicationManager.replicate();
         }
     }
 
-    private exposeServices() {
+    private exposeServices(overrides?: any) {
         let registry = this.container.get<IProjectionRegistry>("IProjectionRegistry"),
             clientRegistry = this.container.get<IClientRegistry>("IClientRegistry"),
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
