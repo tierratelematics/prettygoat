@@ -40,6 +40,14 @@ describe("ClientRegistry, given a client", () => {
                 client.verify(c => c.join("/admin/foo/25"), TypeMoq.Times.once());
             });
         });
+
+        context("when empty parameters are passed", () => {
+           it("should register to that client with no parameters", () => {
+               let context = new PushContext("Admin", "Foo", {});
+               subject.add(client.object, context);
+               client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+           });
+        });
     });
 
     context("when push notifications are no longer needed for a viewmodel", () => {

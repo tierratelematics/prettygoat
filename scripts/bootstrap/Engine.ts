@@ -17,6 +17,7 @@ import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";
 import PortDiscovery from "../util/PortDiscovery";
+import PushContext from "../push/PushContext";
 
 class Engine {
 
@@ -78,14 +79,16 @@ class Engine {
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
             let wrappedClient = new SocketClient(client);
-            client.on('subscribe', context => {
+            client.on('subscribe', message => {
+                let context = new PushContext(message.area, message.viewmodelId, message.parameters);
                 clientRegistry.add(wrappedClient, context);
                 pushNotifier.notify(context, client.id);
-                logger.info(`New client subscribed on ${context} with id ${client.id}`);
+                logger.info(`Client subscribed on ${context} with id ${client.id}`);
             });
-            client.on('unsubscribe', context => {
-                clientRegistry.add(wrappedClient, context);
-                logger.info(`New client unsubscribed from ${context} with id ${client.id}`);
+            client.on('unsubscribe', message => {
+                let context = new PushContext(message.area, message.viewmodelId, message.parameters);
+                clientRegistry.remove(wrappedClient, context);
+                logger.info(`Client unsubscribed from ${context} with id ${client.id}`);
             });
         });
     }
