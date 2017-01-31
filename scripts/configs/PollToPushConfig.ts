@@ -3,5 +3,5 @@ export interface IPollToPushConfig {
 }
 
 export class DefaultPollToPushConfig implements IPollToPushConfig {
-    interval = 30000
+    interval = 10000
 }
