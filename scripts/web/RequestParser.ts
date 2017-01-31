@@ -53,7 +53,7 @@ class Request implements IRequest {
 
 class Response implements IResponse {
     private headers: Dictionary < string > = {};
-    statusCode = 200;
+    private statusCode = 200;
 
     constructor(public originalResponse: ServerResponse) {
 
