@@ -2,15 +2,17 @@ import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
-import SizeProjectionDefinition from "./SizeProjectionDefinition";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import AuthorizationStrategy from "./AuthorizationStrategy";
-import {ISubject, Subject} from "rx";
 import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
 import AuthMiddleware from "./AuthMiddleware";
-import {ProjectionStopHandler, ProjectionResumeHandler, ProjectionPauseHandler} from "./ProjectionsHandlers";
+import {
+    ProjectionStopHandler, ProjectionResumeHandler, ProjectionPauseHandler,
+    ProjectionStatsHandler
+} from "./ProjectionsHandlers";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
 import AuthorizationHandler from "./AuthorizationHandler";
+import SystemProjection from "./SystemProjection";
 
 class APIModule implements IModule {
 
@@ -23,11 +25,11 @@ class APIModule implements IModule {
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotSaveHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotDeleteHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(AuthorizationHandler).inSingletonScope();
-        container.bind<ISubject<void>>("ProjectionStatuses").toConstantValue(new Subject<void>());
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStatsHandler).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
-        registry.add(SizeProjectionDefinition).forArea("__diagnostic");
+        registry.add(SystemProjection).forArea("__diagnostic");
     }
 }
 
