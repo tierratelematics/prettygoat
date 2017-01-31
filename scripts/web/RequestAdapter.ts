@@ -8,6 +8,8 @@ class RequestAdapter implements IRequestAdapter {
     }
 
     route(request: IRequest, response: IResponse) {
+        if (request.url)
+            request.url = request.url.replace(/\/+$/, ""); //Remove trailing slash
         let context = this.routeResolver.resolve(
             request.url ? request.url : request.channel,
             request.url ? request.method : null

@@ -61,6 +61,14 @@ describe("Given a RequestAdapter and a new request", () => {
         });
     });
 
+    context("when the request has a trailing slash", () => {
+        it("should still handle the request", () => {
+            request.url = "/test/";
+            subject.route(request, response.object);
+            expect(request.params.accessed).to.be(true);
+        });
+    });
+
     context("when the request method does not match", () => {
         it("should drop the connection with an error code", () => {
             request.url = "/test";
