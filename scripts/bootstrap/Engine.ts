@@ -81,15 +81,25 @@ class Engine {
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
             let wrappedClient = new SocketClient(client);
             client.on('subscribe', message => {
-                let context = new PushContext(message.area, message.viewmodelId, message.parameters);
-                clientRegistry.add(wrappedClient, context);
-                pushNotifier.notify(context, client.id);
-                logger.info(`Client subscribed on ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                try {
+                    let context = new PushContext(message.area, message.viewmodelId, message.parameters),
+                        entry = registry.getEntry(context.projectionName, context.area).data,
+                        splitKey = entry.parametersKey ? entry.parametersKey(context.parameters) : null;
+                    clientRegistry.add(wrappedClient, context);
+                    pushNotifier.notify(context, client.id, splitKey);
+                    logger.info(`Client subscribed on ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                } catch (error) {
+                    logger.info(`Client ${client.id} subscribed with wrong channel`);
+                }
             });
             client.on('unsubscribe', message => {
-                let context = new PushContext(message.area, message.viewmodelId, message.parameters);
-                clientRegistry.remove(wrappedClient, context);
-                logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                try {
+                    let context = new PushContext(message.area, message.viewmodelId, message.parameters);
+                    clientRegistry.remove(wrappedClient, context);
+                    logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                } catch (error) {
+                    logger.info(`Client ${client.id} subscribed with wrong channel`);
+                }
             });
         });
     }

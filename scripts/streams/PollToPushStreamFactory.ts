@@ -25,7 +25,7 @@ class PollToPushStreamFactory implements IStreamFactory {
             }))
             .concat(
                 Observable
-                    .interval(this.config.interval || 30000)
+                    .interval(this.config.interval)
                     .flatMap(_ => this.streamFactory.from(lastEvent, completions, definition)))
             .do(event => {
                 if (event.timestamp)
