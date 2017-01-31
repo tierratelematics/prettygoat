@@ -18,6 +18,7 @@ import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";
 import PortDiscovery from "../util/PortDiscovery";
 import PushContext from "../push/PushContext";
+import ContextOperations from "../push/ContextOperations";
 
 class Engine {
 
@@ -83,12 +84,12 @@ class Engine {
                 let context = new PushContext(message.area, message.viewmodelId, message.parameters);
                 clientRegistry.add(wrappedClient, context);
                 pushNotifier.notify(context, client.id);
-                logger.info(`Client subscribed on ${context} with id ${client.id}`);
+                logger.info(`Client subscribed on ${ContextOperations.getChannel(context)} with id ${client.id}`);
             });
             client.on('unsubscribe', message => {
                 let context = new PushContext(message.area, message.viewmodelId, message.parameters);
                 clientRegistry.remove(wrappedClient, context);
-                logger.info(`Client unsubscribed from ${context} with id ${client.id}`);
+                logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
             });
         });
     }
