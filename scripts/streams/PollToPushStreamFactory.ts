@@ -1,16 +1,16 @@
 import {IStreamFactory} from "./IStreamFactory";
-import {injectable, inject} from "inversify";
-import IPollToPushConfig from "../configs/IPollToPushConfig";
-import {Scheduler, Observable} from "rx";
+import {injectable, inject, optional} from "inversify";
+import {Observable} from "rx";
 import {Event} from "./Event";
 import {IWhen} from "../projections/IProjection";
 import ReservedEvents from "../streams/ReservedEvents";
+import {DefaultPollToPushConfig, IPollToPushConfig} from "../configs/PollToPushConfig";
 
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
 
     constructor(@inject("StreamFactory") private streamFactory:IStreamFactory,
-                @inject("IPollToPushConfig") private config:IPollToPushConfig) {
+                @inject("IPollToPushConfig") @optional() private config:IPollToPushConfig = new DefaultPollToPushConfig()) {
 
     }
 
