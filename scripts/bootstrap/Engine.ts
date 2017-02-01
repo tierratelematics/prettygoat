@@ -87,7 +87,7 @@ class Engine {
                         splitKey = entry.parametersKey ? entry.parametersKey(context.parameters) : null;
                     clientRegistry.add(wrappedClient, context);
                     pushNotifier.notify(context, client.id, splitKey);
-                    logger.info(`Client subscribed on ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, splitKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }

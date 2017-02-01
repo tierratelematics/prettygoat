@@ -27,16 +27,17 @@ class PushNotifier implements IPushNotifier {
         }
     }
 
-    private buildNotification(context: PushContext, splitKey: string = ""): PushNotification {
-        let endpoint = `/${context.area}/${context.projectionName}`.toLowerCase(),
-            url = `${this.config.protocol}://${this.config.host}`;
+    private buildNotification(context: PushContext, splitKey: string): PushNotification {
+        let url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
             url += `:${this.config.port}`;
         if (this.config.path)
             url += this.config.path;
         else
             url += "/projections";
-        url += `${endpoint}/${splitKey}`;
+        url += `/${context.area}/${context.projectionName}`.toLowerCase();
+        if (splitKey)
+            url += `/${splitKey}`;
         return {
             url: url
         };
