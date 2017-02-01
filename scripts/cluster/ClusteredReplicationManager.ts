@@ -23,8 +23,8 @@ class ClusteredReplicationManager implements IReplicationManager {
                 cluster.fork();
             }, i * 500);
         }
-        cluster.on('exit', (worker) => {
-            this.logger.warning(`Worker ${worker.process.pid} died`);
+        cluster.on('exit', () => {
+            this.logger.error("Worker has died");
         });
     }
 
