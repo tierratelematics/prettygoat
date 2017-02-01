@@ -26,8 +26,8 @@ class MockCluster implements ICluster {
         return false;
     }
 
-    handleOrProxyToAll(keys: string[], request: IncomingMessage): boolean {
-        return undefined;
+    handleOrProxyToAll(keys: string[], request: IncomingMessage) {
+
     }
 
     requests(): Observable<RequestData> {

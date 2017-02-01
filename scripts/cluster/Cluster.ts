@@ -57,8 +57,8 @@ class Cluster implements ICluster {
         return this.ringpop.handleOrProxy(key, request, response);
     }
 
-    handleOrProxyToAll(keys: string[], request: IncomingMessage): boolean {
-        return this.ringpop.handleOrProxyAll({
+    handleOrProxyToAll(keys: string[], request: IncomingMessage) {
+        this.ringpop.handleOrProxyAll({
             keys: keys,
             req: request
         });
