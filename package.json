@@ -22,7 +22,6 @@
     "async": "~2.1.4",
     "bivio": "~0.2.0",
     "body": "~5.1.0",
-    "body-parser": "~1.15.2",
     "cassandra-driver": "~3.1.1",
     "cors": "~2.7.1",
     "express": "~4.14.0",

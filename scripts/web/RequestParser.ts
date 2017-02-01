@@ -47,7 +47,6 @@ class Request implements IRequest {
         this.headers = originalRequest.headers;
         this.query = qs.parse(url.parse(originalRequest.url).query);
         this.params = null;
-        this.body = (<any>originalRequest).body;
     }
 }
 
