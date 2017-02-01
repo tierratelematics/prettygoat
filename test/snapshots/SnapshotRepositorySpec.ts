@@ -81,10 +81,10 @@ describe("Snapshot repository, given all the streams", () => {
         });
 
         it("should handle correctly undefined values", () => {
-            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+            cassandraClient.setup(c => c.execute("select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
                 rows: [
                     {
-                        'system.blobastext(memento)': 'undefined',
+                        memento: 'undefined',
                         streamid: 'Asset:Detail',
                         lastevent: 7393898,
                         split: '6654'

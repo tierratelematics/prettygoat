@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import IAuthorizationStrategy from "../../scripts/api/IAuthorizationStrategy";
-import AuthorizationStrategy from "../../scripts/api/AuthorizationStrategy";
 import IAuthorizationConfig from "../../scripts/configs/IApiKeyConfig";
 import {IRequest} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
+import ApiKeyAuthorizationStrategy from "../../scripts/api/ApiKeyAuthorizationStrategy";
 
 describe("Given an Authorization Strategy", () => {
 
@@ -15,7 +15,7 @@ describe("Given an Authorization Strategy", () => {
     beforeEach(() => {
         tokenCollection = ["6RSL11DR1OCFJ7P", "7toYUi5wtVFgrsr"];
         request = new MockRequest();
-        subject = new AuthorizationStrategy(tokenCollection);
+        subject = new ApiKeyAuthorizationStrategy(tokenCollection);
     });
 
     context("when the api key isn't matched", () => {
