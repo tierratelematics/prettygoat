@@ -1,5 +1,5 @@
 import expect = require("expect.js");
-import TimePartitioner from "../scripts/util/TimePartitioner";
+import TimePartitioner from "../scripts/cassandra/TimePartitioner";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("TimePartitioner, given a date", () => {

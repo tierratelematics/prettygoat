@@ -1,6 +1,6 @@
 import {IStreamFactory} from "./IStreamFactory";
 import {Event} from "./Event";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 
 interface IReadModelFactory extends IStreamFactory {
     asList():any[];

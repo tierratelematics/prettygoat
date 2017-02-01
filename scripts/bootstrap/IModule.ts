@@ -1,5 +1,5 @@
 import {interfaces} from "inversify";
-import IServiceLocator from "./IServiceLocator";
+import IServiceLocator from "../ioc/IServiceLocator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 
 interface IModule {

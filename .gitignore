@@ -6,3 +6,4 @@ dist
 tmp
 coverage
 views/export.js
+npm-debug.log

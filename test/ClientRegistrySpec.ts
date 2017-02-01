@@ -1,50 +1,63 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import PushContext from "../scripts/push/PushContext";
+import * as TypeMoq from "typemoq";
+import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
+import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
+import RegistryEntry from "../scripts/registry/RegistryEntry";
+import MockSocketClient from "./fixtures/web/MockSocketClient";
+import {IClientRegistry, ISocketClient} from "../scripts/push/IPushComponents";
 import ClientRegistry from "../scripts/push/ClientRegistry";
-import IClientRegistry from "../scripts/push/IClientRegistry";
 
 describe("ClientRegistry, given a client", () => {
 
-    let subject:IClientRegistry,
-        clientId = "288287sh";
+    let subject: IClientRegistry;
+    let client: TypeMoq.Mock<ISocketClient>;
+    let registry: TypeMoq.Mock<IProjectionRegistry>;
 
     beforeEach(() => {
-        subject = new ClientRegistry();
+        client = TypeMoq.Mock.ofType(MockSocketClient);
+        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        subject = new ClientRegistry(registry.object);
     });
 
     context("when push notifications are needed for a viewmodel", () => {
         it("should register that client to the right notifications", () => {
             let context = new PushContext("Admin", "Foo");
-            subject.add(clientId, context);
-            expect(subject.clientsFor(context)).to.have.length(1);
-            expect(subject.clientsFor(context)[0]).to.eql({id: clientId, parameters: undefined});
+            subject.add(client.object, context);
+            client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
         });
 
         context("and custom parameters are passed during the registration", () => {
+            beforeEach(() => {
+                registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
+                    return {area: "Admin", data: new RegistryEntry(null, null, (p) => p.id)};
+                });
+            });
             it("should subscribe that client using also those parameters", () => {
                 let context = new PushContext("Admin", "Foo", {id: 25});
-                subject.add(clientId, context);
-                expect(subject.clientsFor(context)).to.have.length(1);
-                expect(subject.clientsFor(context)[0]).to.eql({id: clientId, parameters: {id: 25}});
+                subject.add(client.object, context);
+                client.verify(c => c.join("/admin/foo/25"), TypeMoq.Times.once());
             });
         });
 
-        context("but a client id is not provided", () => {
-            it("should trigger an error", () => {
-                let context = new PushContext("Admin", "Foo", {id: 25});
-                expect(() => subject.add(null, context)).to.throwError();
-            });
+        context("when empty parameters are passed", () => {
+           it("should register to that client with no parameters", () => {
+               let context = new PushContext("Admin", "Foo", {});
+               subject.add(client.object, context);
+               client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+           });
         });
     });
 
     context("when push notifications are no longer needed for a viewmodel", () => {
+        beforeEach(() => {
+            let context = new PushContext("Admin", "Foo");
+            subject.add(client.object, context);
+            subject.remove(client.object, context);
+        });
         it("should unregister that client from the notifications", () => {
-            let context = new PushContext("Admin", "Foo", {id: 25});
-            subject.add(clientId, context);
-            subject.remove(clientId, context);
-            expect(subject.clientsFor(context)).to.have.length(0);
+            client.verify(c => c.leave("/admin/foo"), TypeMoq.Times.once());
         });
     });
 });

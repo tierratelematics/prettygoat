@@ -1,4 +1,4 @@
-import IObjectContainer from "../../scripts/bootstrap/IObjectContainer";
+import IObjectContainer from "../../scripts/ioc/IObjectContainer";
 import {interfaces} from "inversify";
 
 export default class MockObjectContainer implements IObjectContainer {

@@ -8,7 +8,7 @@ import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";

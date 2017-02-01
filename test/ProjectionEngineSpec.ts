@@ -1,17 +1,11 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
-import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
-import PushNotifier from "../scripts/push/PushNotifier";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import IPushNotifier from "../scripts/push/IPushNotifier";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
-import MockStatePublisher from "./fixtures/MockStatePublisher";
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
@@ -21,13 +15,17 @@ import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
 import CountSnapshotStrategy from "../scripts/snapshots/CountSnapshotStrategy";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import {IProjection} from "../scripts/projections/IProjection";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
+import MockPushNotifier from "./fixtures/web/MockPushNotifier";
+import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
+import MockProjectionRunnerFactory from "./fixtures/MockProjectionRunnerFactory";
+import {IPushNotifier} from "../scripts/push/IPushComponents";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -50,11 +48,11 @@ describe("Given a ProjectionEngine", () => {
         dataSubject = new Subject<Event>();
         runner = TypeMoq.Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
-        pushNotifier = TypeMoq.Mock.ofType(PushNotifier);
+        pushNotifier = TypeMoq.Mock.ofType(MockPushNotifier);
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
-        runnerFactory = TypeMoq.Mock.ofType(ProjectionRunnerFactory);
+        runnerFactory = TypeMoq.Mock.ofType(MockProjectionRunnerFactory);
         runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner.object);
-        registry = TypeMoq.Mock.ofType(ProjectionRegistry);
+        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         registry.setup(r => r.getAreas()).returns(a => {
             return [
                 new AreaRegistry("Admin", [
@@ -67,7 +65,7 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
         snapshotRepository.setup(s => s.saveSnapshot("test", TypeMoq.It.isValue(new Snapshot(66, new Date(5000))))).returns(a => null);
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
-        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, new MockStatePublisher(), snapshotRepository.object, NullLogger, projectionSorter.object);
+        subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object, NullLogger, projectionSorter.object);
     });
 
     afterEach(() => clock.uninstall());
@@ -99,7 +97,7 @@ describe("Given a ProjectionEngine", () => {
 
     context("when a snapshot is not present", () => {
         beforeEach(() => {
-            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
             runner.setup(r => r.run(undefined));
             subject.run();
         });
@@ -110,7 +108,7 @@ describe("Given a ProjectionEngine", () => {
 
     context("when the engine starts up", () => {
         beforeEach(() => {
-            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
         });
         it("should check for circular dependencies between projections", () => {
             subject.run();
@@ -120,7 +118,7 @@ describe("Given a ProjectionEngine", () => {
 
     context("when a projections triggers a new state", () => {
         beforeEach(() => {
-            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}).observeOn(Scheduler.immediate));
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
         });
         context("and a snapshot is needed", () => {
             beforeEach(() => {

@@ -1,13 +1,12 @@
 import "reflect-metadata";
-import "bluebird";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
 import MockEventsFilter from "./fixtures/MockEventsFilter";
-import TimePartitioner from "../scripts/util/TimePartitioner";
-import MockCassandraDeserializer from "./fixtures/MockCassandraDeserializer";
+import TimePartitioner from "../scripts/cassandra/TimePartitioner";
+import MockCassandraDeserializer from "./fixtures/cassandra/MockCassandraDeserializer";
 import ICassandraClient from "../scripts/cassandra/ICassandraClient";
-import MockCassandraClient from "./fixtures/MockCassandraClient";
+import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
 
@@ -71,7 +70,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
     });
 
     function setupClient(client: TypeMoq.Mock<ICassandraClient>, date: Date) {
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150001'", date), 'Event1', TypeMoq.It.isAny()))
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150001'", date), 'Event1', TypeMoq.It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -88,12 +87,12 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150002'", date), 'Event1', TypeMoq.It.isAny()))
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150002'", date), 'Event1', TypeMoq.It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event), timestamp from event_by_manifest where timebucket = '20150003'", date), 'Event1', TypeMoq.It.isAny()))
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150003'", date), 'Event1', TypeMoq.It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",

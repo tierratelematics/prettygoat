@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import * as TypeMoq from "typemoq";
 import expect = require("expect.js");

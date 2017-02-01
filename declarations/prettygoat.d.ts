@@ -1,5 +1,6 @@
 import {interfaces} from "inversify";
-import {IObservable, IDisposable, Observable} from "rx";
+import {Observable} from "rx";
+import {Request, Response} from "express";
 
 export interface IProjection<T> {
     name: string;
@@ -18,6 +19,13 @@ export interface IWhen<T extends Object> {
     $init?: () => T;
     $any?: (s: T, payload: Object, event?: Event) => T;
     [name: string]: (s: T, payload: Object, event?: Event) => T|SpecialState<T>;
+}
+
+export interface Event {
+    type: string;
+    payload: any;
+    timestamp: string;
+    splitKey: string;
 }
 
 declare abstract class SpecialState<T> {
@@ -42,81 +50,30 @@ declare class DeleteSplitState extends SpecialState<any> {
     constructor();
 }
 
-export interface IProjectionRunner<T> extends IDisposable {
-    state: T|Dictionary<T>;
-    stats: ProjectionStats;
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
-    stop(): void;
-    pause(): void;
-    resume(): void;
-    notifications: Observable<Event>;
-}
-
-export class ProjectionStats {
-    events: number;
-    readModels: number;
-}
-
-export interface IProjectionRunnerFactory {
-    create<T>(projection: IProjection<T>): IProjectionRunner<T>
-}
-
 export interface IProjectionDefinition<T> {
     define(tickScheduler?: ITickScheduler): IProjection<T>;
-}
-
-export interface IMatcher {
-    match(name: string): Function;
 }
 
 export interface Dictionary<T> {
     [index: string]: T
 }
 
-export interface ISnapshotRepository {
-    initialize(): Observable<void>;
-    getSnapshots(): Observable<Dictionary<Snapshot<any>>>;
-    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void;
-    deleteSnapshot(streamId: string): void;
+export interface ISnapshotStrategy {
+    needsSnapshot(event: Event): boolean;
 }
 
-export interface IStreamFactory {
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
+export class TimeSnapshotStrategy implements ISnapshotStrategy {
+
+    needsSnapshot(event: Event): boolean;
+
+    saveThreshold(ms: number);
 }
 
-export interface ICassandraDeserializer {
-    toEvent(row): Event;
-}
+export class CountSnapshotStrategy implements ISnapshotStrategy {
 
-export class Snapshot<T> {
-    public static Empty: Snapshot<any>;
+    needsSnapshot(event: Event): boolean;
 
-    constructor(memento: T, lastEvent: string);
-}
-
-export interface IEventEmitter {
-    emitTo(clientId: string, event: string, parameters: any): void;
-}
-
-export class PushContext {
-    area: string;
-    viewmodelId: string;
-    parameters: any;
-
-    constructor(area: string, viewmodelId?: string, parameters?: any);
-}
-
-export interface IClientRegistry {
-    add(clientId: string, context: PushContext): void;
-    clientsFor(context: PushContext): ClientEntry[];
-    remove(clientId: string, context: PushContext): void;
-}
-
-export class ClientEntry {
-    id: string;
-    parameters: any;
-
-    constructor(id: string, parameters?: any);
+    saveThreshold(threshold: number): void;
 }
 
 export interface IProjectionRegistry {
@@ -135,17 +92,20 @@ export class AreaRegistry {
 
 export class RegistryEntry<T> {
     projection: IProjection<T>;
-    name: string;
+    exposedName: string;
     parametersKey: (parameters: any) => string;
 
-    constructor(projection: IProjection<T>, name: string, parametersKey?: (parameters: any) => string);
+    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string);
 }
 
 export function Projection(name: string);
 
 export class Engine {
+    protected container: interfaces.Container;
 
     register(module: IModule): boolean;
+
+    boot(overrides?: any);
 
     run(overrides?: any);
 }
@@ -192,29 +152,11 @@ export interface ISocketConfig {
     path: string;
 }
 
-export interface Event {
-    type: string;
-    payload: any;
-    timestamp: string;
-    splitKey: string;
-}
-
-export interface ISnapshotStrategy {
-    needsSnapshot(event: Event): boolean;
-}
-
-export class TimeSnapshotStrategy implements ISnapshotStrategy {
-
-    needsSnapshot(event: Event): boolean;
-
-    saveThreshold(ms: number);
-}
-
-export class CountSnapshotStrategy implements ISnapshotStrategy {
-
-    needsSnapshot(event: Event): boolean;
-
-    saveThreshold(threshold: number): void;
+export interface IClusterConfig {
+    nodes: string[];
+    port: number;
+    host: string;
+    forks: number;
 }
 
 export interface IFilterStrategy<T> {
@@ -302,3 +244,13 @@ interface PredicatesStatic {
 }
 
 export var FeaturePredicates: PredicatesStatic;
+
+export class ClusteredEngine extends Engine {
+    run(overrides?: any);
+}
+
+export interface IReplicationManager {
+    canReplicate(): boolean;
+    replicate();
+    isMaster(): boolean;
+}

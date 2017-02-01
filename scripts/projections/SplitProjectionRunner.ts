@@ -5,7 +5,7 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";

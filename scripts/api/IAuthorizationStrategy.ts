@@ -1,8 +1,7 @@
-import {Request} from 'express';
-import * as Promise from 'bluebird';
+import {IRequest} from "../web/IRequestComponents";
 
 interface IAuthorizationStrategy {
-    authorize(request: Request): Promise<boolean>;
+    authorize(request: IRequest): Promise<boolean>;
 }
 
 export default IAuthorizationStrategy

@@ -1,13 +1,12 @@
-import "bluebird";
-import "reflect-metadata";
 import {injectable} from "inversify";
 import ICassandraDeserializer from "./ICassandraDeserializer";
 import {Event} from "../streams/Event";
 
 @injectable()
 class CassandraDeserializer implements ICassandraDeserializer {
+
     toEvent(row):Event {
-        let parsedEvent = JSON.parse(row["system.blobastext(event)"]);
+        let parsedEvent = JSON.parse(row.event);
 
         if (this.isNewEventType(parsedEvent)) {
             return {

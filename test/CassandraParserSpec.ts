@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import expect = require("expect.js");
 import CassandraDeserializer from "../scripts/cassandra/CassandraDeserializer";
 import {MockTimeStamp} from './fixtures/MockTimeStamp';
@@ -7,10 +8,10 @@ describe("CassandraDeserializer, given an event", () => {
 
     beforeEach(() => subject = new CassandraDeserializer());
 
-    context("when the event is a valid one of OLD type", () => {
+    context("when the event is a valid one of old type", () => {
         it("should handle it and return the converted object", () => {
             let eventRow = {
-                "system.blobastext(event)": JSON.stringify({
+                event: JSON.stringify({
                     "type": "iot.eventType",
                     "id": "id",
                     "createdTimestamp": "2016-07-11T14:17:01.359Z",
@@ -22,7 +23,7 @@ describe("CassandraDeserializer, given an event", () => {
                         "causationId": "metadata.causationId"
                     }
                 }),
-                "timestamp": new MockTimeStamp("2016-07-11T14:17:01.359Z")
+                timestamp: new MockTimeStamp("2016-07-11T14:17:01.359Z")
             };
 
             expect(subject.toEvent(eventRow)).to.be.eql({

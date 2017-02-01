@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapshotRepository";
@@ -6,7 +5,7 @@ import * as TypeMoq from "typemoq";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../../scripts/registry/ProjectionRegistry";
-import MockCassandraClient from "../fixtures/MockCassandraClient";
+import MockCassandraClient from "../fixtures/cassandra/MockCassandraClient";
 import ICassandraClient from "../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
@@ -27,22 +26,22 @@ describe("Snapshot repository, given all the streams", () => {
 
     context("when the snapshots associated needs to be retrieved", () => {
         it("should return the list of available snapshots", () => {
-            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+            cassandraClient.setup(c => c.execute("select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
                 rows: [
                     {
-                        "system.blobastext(memento)": 56,
+                        "memento": 56,
                         "lastevent": 7393898,
                         "split": "",
                         "streamid": "list"
                     },
                     {
-                        "system.blobastext(memento)": 7800,
+                        "memento": 7800,
                         "lastevent": 77472487,
                         "split": "first-key",
                         "streamid": "detail"
                     },
                     {
-                        "system.blobastext(memento)": 6000,
+                        "memento": 6000,
                         "lastevent": 77472487,
                         "split": "second-key",
                         "streamid": "detail"
@@ -62,10 +61,10 @@ describe("Snapshot repository, given all the streams", () => {
             });
         });
         it("should handle correctly escaped strings", () => {
-            cassandraClient.setup(c => c.execute("select blobAsText(memento), streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
+            cassandraClient.setup(c => c.execute("select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots")).returns(a => Rx.Observable.just({
                 rows: [
                     {
-                        "system.blobastext(memento)": '"\'\'"',
+                        "memento": '"\'\'"',
                         "lastevent": 7393898,
                         "split": "",
                         "streamid": "list"

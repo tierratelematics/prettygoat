@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import { IProjection } from "../scripts/projections/IProjection";
 import { ProjectionAnalyzer, ProjectionErrors } from "../scripts/projections/ProjectionAnalyzer";

@@ -1,31 +1,36 @@
-import IClientRegistry from "./IClientRegistry";
 import PushContext from "./PushContext";
-import ClientEntry from "./ClientEntry";
-import Dictionary from "../Dictionary";
-import * as _ from "lodash";
 import ContextOperations from "./ContextOperations";
-import {injectable} from "inversify";
+import {injectable, inject} from "inversify";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
+import {IClientRegistry, ISocketClient} from "./IPushComponents";
+import {isEmpty} from "lodash";
 
 @injectable()
 class ClientRegistry implements IClientRegistry {
 
-    private registry:Dictionary<ClientEntry[]> = {};
-
-    add(clientId:string, context:PushContext):void {
-        if (!clientId)
-            throw new Error("Client id is invalid");
-        let key = ContextOperations.getChannel(context);
-        if (!this.registry[key])
-            this.registry[key] = [];
-        this.registry[key].push(new ClientEntry(clientId, context.parameters));
+    constructor(@inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
-    clientsFor(context:PushContext):ClientEntry[] {
-        return this.registry[ContextOperations.getChannel(context)];
+    add(client: ISocketClient, context: PushContext) {
+        if (!this.parametersDefined(context.parameters)) {
+            client.join(ContextOperations.getRoom(context));
+        } else {
+            let entry = this.registry.getEntry(context.projectionName, context.area);
+            client.join(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
+        }
     }
 
-    remove(clientId:string, context:PushContext):void {
-        _.remove<ClientEntry>(this.registry[ContextOperations.getChannel(context)], entry => entry.id === clientId);
+    private parametersDefined(parameters:any):boolean {
+        return parameters && !isEmpty(parameters);
+    }
+
+    remove(client: ISocketClient, context: PushContext) {
+        if (!this.parametersDefined(context.parameters)) {
+            client.leave(ContextOperations.getRoom(context));
+        } else {
+            let entry = this.registry.getEntry(context.projectionName, context.area);
+            client.leave(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import {Observable} from "rx";
-import Dictionary from "../../scripts/Dictionary";
+import Dictionary from "../../scripts/util/Dictionary";
 
 class MockSnapshotRepository implements ISnapshotRepository {
 
@@ -9,6 +9,10 @@ class MockSnapshotRepository implements ISnapshotRepository {
     }
 
     getSnapshots():Observable<Dictionary<Snapshot<any>>> {
+        return undefined;
+    }
+
+    getSnapshot<T>(streamId: string): Rx.Observable<Snapshot<T>> {
         return undefined;
     }
 
