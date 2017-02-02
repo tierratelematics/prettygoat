@@ -80,8 +80,6 @@ describe("Given a SnapshotController and a projection name", () => {
                 snapshotRepository.verify(s => s.deleteSnapshot("namePrj"), TypeMoq.Times.once());
             });
         });
-
-
     });
 
 });
