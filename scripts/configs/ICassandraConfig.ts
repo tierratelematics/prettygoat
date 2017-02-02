@@ -1,7 +1,6 @@
 interface ICassandraConfig {
     hosts:string[];
     keyspace:string;
-    readTimeout?: number;
     fetchSize?:number;
 }
 

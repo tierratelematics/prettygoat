@@ -12,12 +12,9 @@ class CassandraClient implements ICassandraClient {
     private wrappedEachRow: any;
 
     constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
-        this.client = new Client({
+        this.client = new Client(<any>{
             contactPoints: config.hosts,
-            keyspace: config.keyspace,
-            socketOptions: {
-                readTimeout: config.readTimeout || 12000
-            }
+            keyspace: config.keyspace
         });
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
         this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
