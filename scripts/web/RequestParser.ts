@@ -72,7 +72,7 @@ class Response implements IResponse {
 
     send(data?: any) {
         this.originalResponse.writeHead(this.statusCode, _.assign(this.headers, {
-            "content-type": "application/json; charset=utf-8"
+            "Content-Type": "application/json; charset=utf-8"
         }));
         if (data) this.originalResponse.write(JSON.stringify(data));
         this.end();

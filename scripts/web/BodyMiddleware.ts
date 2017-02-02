@@ -7,13 +7,9 @@ class BodyMiddleware implements IMiddleware {
 
     transform(request: IRequest, response: IResponse, next: Function) {
         bodyParser(request.originalRequest, response, (err, body) => {
-            if (err) {
-                next(err);
-            }
-            else {
+            if (!err)
                 request.body = body;
-                next();
-            }
+            next();
         });
     }
 

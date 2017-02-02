@@ -71,7 +71,7 @@ class ProjectionStateHandler implements IRequestHandler {
         let projectionName = request.params.projectionName,
             area = request.params.area;
         let entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        return !entry ? "" : entry.projection.name;
+        return !entry ? null : entry.projection.name;
     }
 
 }

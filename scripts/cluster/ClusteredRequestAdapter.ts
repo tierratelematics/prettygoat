@@ -2,6 +2,7 @@ import RequestAdapter from "../web/RequestAdapter";
 import {inject} from "inversify";
 import ICluster from "./ICluster";
 import {IRouteResolver, IResponse, IRequest, IRequestHandler} from "../web/IRequestComponents";
+import RequestBuilder from "./RequestBuilder";
 
 class ClusteredRequestAdapter extends RequestAdapter {
 
@@ -11,10 +12,14 @@ class ClusteredRequestAdapter extends RequestAdapter {
     }
 
     protected canHandleRequest(requestHandler: IRequestHandler, request: IRequest, response: IResponse): boolean {
-        let shardKey = requestHandler.keyFor(request),
-            originalRequest = request.originalRequest,
-            originalResponse = response.originalResponse;
-        return !this.cluster || !shardKey || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse));
+        try {
+            let shardKey = requestHandler.keyFor(request),
+                originalRequest = request.originalRequest,
+                originalResponse = response.originalResponse;
+            return !this.cluster || !shardKey || (this.cluster && this.cluster.handleOrProxy(shardKey, originalRequest, originalResponse));
+        } catch (error) {
+            return false;
+        }
     }
 }
 
