@@ -10,7 +10,7 @@ import {RequestData, IRequestParser, IRequest, IResponse} from "./IRequestCompon
 @injectable()
 class RequestParser implements IRequestParser {
 
-    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData> {
+    parse(request: IncomingMessage, response: ServerResponse): RequestData {
         return [new Request(request), new Response(response)];
     }
 }
@@ -26,7 +26,7 @@ class Request implements IRequest {
 
     constructor(public originalRequest: IncomingMessage) {
         let isChannel = _.startsWith(originalRequest.url, "pgoat://");
-        this.url = !isChannel ? originalRequest.url : null;
+        this.url = !isChannel ? originalRequest.url.replace(/\/+$/, "") : null; //Remove trailing slash
         this.channel = isChannel ? originalRequest.url.substr(8) : null; //Remove pgoat://
         this.method = originalRequest.method;
         this.headers = originalRequest.headers;

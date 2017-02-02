@@ -4,7 +4,8 @@ import * as TypeMoq from "typemoq";
 import {IMiddleware, IMiddlewareTransformer} from "../../scripts/web/IRequestComponents";
 import MockMiddleware from "../fixtures/web/MockMiddleware";
 import MiddlewareTransformer from "../../scripts/web/MiddlewareTransformer";
-const hammock = require("hammock");
+import MockResponse from "../fixtures/web/MockResponse";
+import MockRequest from "../fixtures/web/MockRequest";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestTransformer", () => {
@@ -22,8 +23,10 @@ describe("Given a RequestTransformer", () => {
 
     context("when a list of middlewares is given", () => {
         it("should apply them", () => {
-            return subject.transform(new hammock.Request({}), new hammock.Response()).then(() => {
-                middleware.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.exactly(2));
+            let request = new MockRequest();
+            let response = new MockResponse();
+            return subject.transform(request, response).then(() => {
+                middleware.verify(r => r.transform(TypeMoq.It.isValue(request), TypeMoq.It.isValue(response), anyValue), TypeMoq.Times.exactly(2));
             });
         });
     });
