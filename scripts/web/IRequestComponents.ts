@@ -44,5 +44,9 @@ export interface IMiddleware {
 }
 
 export interface IRequestParser {
-    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData>;
+    parse(request: IncomingMessage, response: ServerResponse): RequestData;
+}
+
+export interface IMiddlewareTransformer {
+    transform(request: IRequest, response: IResponse): Promise<RequestData>;
 }
