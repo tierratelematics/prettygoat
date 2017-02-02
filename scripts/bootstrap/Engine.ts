@@ -14,7 +14,7 @@ import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
 import SocketClient from "../push/SocketClient";
-import {IRequestAdapter, IRequestParser} from "../web/IRequestComponents";
+import {IRequestAdapter, IRequestParser, IMiddlewareTransformer} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";
 import PortDiscovery from "../util/PortDiscovery";
 import PushContext from "../push/PushContext";
@@ -61,12 +61,18 @@ class Engine {
             logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
-            requestParser = this.container.get<IRequestParser>("IRequestParser");
+            requestParser = this.container.get<IRequestParser>("IRequestParser"),
+            middlewareTransformer = this.container.get<IMiddlewareTransformer>("IMiddlewareTransformer");
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 
         app.all("*", (request, response) => {
-            requestParser.parse(request, response).then(requestData => requestAdapter.route(requestData[0], requestData[1]));
+            let requestData = requestParser.parse(request, response);
+            if (requestAdapter.canHandle(requestData[0], requestData[1])) {
+                middlewareTransformer.transform(requestData[0], requestData[1]).then(data => {
+                    requestAdapter.route(data[0], data[1]);
+                });
+            }
         });
 
         PortDiscovery.freePort(config.port).then(port => {

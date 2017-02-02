@@ -4,6 +4,7 @@ import Dictionary from "../util/Dictionary";
 
 export interface IRequestAdapter {
     route(request: IRequest, response: IResponse);
+    canHandle(request: IRequest, response: IResponse): boolean;
 }
 
 export interface IRequestHandler {

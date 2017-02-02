@@ -2,7 +2,7 @@ import ICluster from "./ICluster";
 import {inject, injectable, optional} from "inversify";
 import {Observable} from "rx";
 import {EmbeddedClusterConfig} from "./ClusterConfig";
-import {IRequestParser, RequestData} from "../web/IRequestComponents";
+import {IRequestParser, RequestData, IMiddlewareTransformer} from "../web/IRequestComponents";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import ILogger from "../log/ILogger";
@@ -17,6 +17,7 @@ class Cluster implements ICluster {
 
     constructor(@inject("IClusterConfig") @optional() private clusterConfig = new EmbeddedClusterConfig(),
                 @inject("IRequestParser") private requestParser: IRequestParser,
+                @inject("IMiddlewareTransformer") private middlewareTransformer: IMiddlewareTransformer,
                 @inject("ILogger") private logger: ILogger) {
 
     }
@@ -68,7 +69,10 @@ class Cluster implements ICluster {
         if (!this.requestSource) {
             this.requestSource = Observable.create(observer => {
                 this.ringpop.on('request', (request, response) => {
-                    this.requestParser.parse(request, response).then(requestData => observer.onNext(requestData));
+                    let requestData = this.requestParser.parse(request, response);
+                    this.middlewareTransformer.transform(requestData[0], requestData[1]).then(data => {
+                        observer.onNext(data)
+                    });
                 });
             }).share();
         }

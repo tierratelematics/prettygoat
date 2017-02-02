@@ -1,7 +1,8 @@
 import {IMiddlewareTransformer, IMiddleware, IRequest, IResponse, RequestData} from "./IRequestComponents";
 import {eachSeries} from "async";
-import {multiInject, optional} from "inversify";
+import {multiInject, optional, injectable} from "inversify";
 
+@injectable()
 class MiddlewareTransformer implements IMiddlewareTransformer {
 
     constructor(@multiInject("IMiddleware") @optional() private middlewares: IMiddleware[]) {

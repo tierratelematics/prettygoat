@@ -11,8 +11,21 @@ class ClusteredRequestAdapter extends RequestAdapter {
         super(routeResolver);
     }
 
-    protected canHandleRequest(requestHandler: IRequestHandler, request: IRequest, response: IResponse): boolean {
+    canHandle(request: IRequest, response: IResponse): boolean {
         try {
+            let context = this.routeResolver.resolve(
+                request.url ? request.url : request.channel,
+                request.url ? request.method : null
+            );
+            let requestHandler = context[0];
+            let params = context[1];
+
+            if (params)
+                request.params = params;
+
+            if (!requestHandler) //Since the request has no registered handlers it can still be handled via 404 error code
+                return true;     //and must not be forwarded, thus the return of true
+
             let shardKey = requestHandler.keyFor(request),
                 originalRequest = request.originalRequest,
                 originalResponse = response.originalResponse;
