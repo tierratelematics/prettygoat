@@ -16,7 +16,7 @@ abstract class BaseProjectionHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
         try {
-            let runner = this.holder[request.body.payload.name];
+            let runner = this.holder[request.params.projectionName];
             this.doAction(runner);
             response.status(204);
             response.send();
@@ -30,11 +30,11 @@ abstract class BaseProjectionHandler implements IRequestHandler {
     abstract doAction(runner: IProjectionRunner<any>);
 
     keyFor(request: IRequest): string {
-        return request.body.payload.name;
+        return request.params.projectionName;
     }
 }
 
-@Route("POST", "/api/projections/stop")
+@Route("POST", "/api/projections/stop/:projectionName")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
@@ -46,7 +46,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
     }
 
 }
-@Route("POST", "/api/projections/pause")
+@Route("POST", "/api/projections/pause/:projectionName")
 export class ProjectionPauseHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
@@ -59,7 +59,7 @@ export class ProjectionPauseHandler extends BaseProjectionHandler {
 
 }
 
-@Route("POST", "/api/projections/resume")
+@Route("POST", "/api/projections/resume/:projectionName")
 export class ProjectionResumeHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
@@ -81,9 +81,9 @@ export class ProjectionStatsHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
         try {
-            let runner = this.holders[request.body.payload.name];
+            let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
-            let data:any = {
+            let data: any = {
                 size: size,
                 humanizedSize: humanize.filesize(size),
                 events: runner.stats.events,
@@ -102,6 +102,6 @@ export class ProjectionStatsHandler implements IRequestHandler {
     }
 
     keyFor(request: IRequest): string {
-        return request.body.payload.name;
+        return request.params.projectionName;
     }
 }

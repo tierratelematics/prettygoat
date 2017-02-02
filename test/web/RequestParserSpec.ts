@@ -1,29 +1,42 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
-import {IRequestParser, IMiddleware} from "../../scripts/web/IRequestComponents";
 import RequestParser from "../../scripts/web/RequestParser";
-import MockMiddleware from "../fixtures/web/MockMiddleware";
+import {IRequestParser} from "../../scripts/web/IRequestComponents";
 const hammock = require("hammock");
-const anyValue = TypeMoq.It.isAny();
 
-describe("Given a request", () => {
+describe("Given a RequestParser", () => {
 
     let subject: IRequestParser;
-    let middleware: TypeMoq.Mock<IMiddleware>;
 
     beforeEach(() => {
-        middleware = TypeMoq.Mock.ofType(MockMiddleware);
-        middleware.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
-            next();
-        });
-        subject = new RequestParser([middleware.object, middleware.object]);
+        subject = new RequestParser();
     });
 
-    context("when a list of middlewares is given", () => {
-        it("should apply them", () => {
-            return subject.parse(new hammock.Request({}), new hammock.Response()).then(() => {
-                middleware.verify(r => r.transform(anyValue, anyValue, anyValue), TypeMoq.Times.exactly(2));
+    context("when parsing a new request", () => {
+        context("and the request is coming from a channel", () => {
+            it("should populate the channel", () => {
+                let data = subject.parse(new hammock.Request({
+                    url: "pgoat://readModels"
+                }), new hammock.Response());
+                expect(data[0].url).to.be(null);
+                expect(data[0].channel).to.be("readModels");
+            });
+        });
+
+        context("and the request is not coming from a channel", () => {
+            it("should populate the url", () => {
+                let data = subject.parse(new hammock.Request({
+                    url: "/test/projection"
+                }), new hammock.Response());
+                expect(data[0].url).to.be("/test/projection");
+                expect(data[0].method).to.be("GET");
+            });
+
+            it("should trim the trailing slash", () => {
+                let data = subject.parse(new hammock.Request({
+                    url: "/test/projection/"
+                }), new hammock.Response());
+                expect(data[0].url).to.be("/test/projection");
             });
         });
     });

@@ -29,7 +29,7 @@ describe("Given a push notifier", () => {
         it("should emit a notification on the corresponding context", () => {
             subject.notify(new PushContext("Admin", "Foo"));
             eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                url: 'http://test:80/projections/admin/foo/'
+                url: 'http://test:80/projections/admin/foo'
             })), TypeMoq.Times.once());
         });
 
@@ -41,7 +41,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'http://test/projections/admin/foo/'
+                    url: 'http://test/projections/admin/foo'
                 })), TypeMoq.Times.once());
             });
         });
@@ -55,7 +55,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'http://test/proj/admin/foo/'
+                    url: 'http://test/proj/admin/foo'
                 })), TypeMoq.Times.once());
             });
         });
@@ -68,7 +68,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'http://test/projections/admin/foo/'
+                    url: 'http://test/projections/admin/foo'
                 })), TypeMoq.Times.once());
             });
         });
@@ -87,7 +87,7 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
-                    url: 'https://test/projections/admin/foo/'
+                    url: 'https://test/projections/admin/foo'
                 })), TypeMoq.Times.once());
             })
         });
@@ -106,7 +106,7 @@ describe("Given a push notifier", () => {
         it("should send a notification only to that client", () => {
             subject.notify(new PushContext("Admin", "Foo"), "25f");
             eventEmitter.verify(e => e.emitTo('25f', 'Admin:Foo', TypeMoq.It.isValue({
-                url: 'http://test:80/projections/admin/foo/'
+                url: 'http://test:80/projections/admin/foo'
             })), TypeMoq.Times.once());
         });
     });

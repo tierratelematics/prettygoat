@@ -14,3 +14,4 @@ export {Predicates as FeaturePredicates} from "bivio";
 export {SpecialStates} from "./projections/SpecialState";
 export {default as Route} from "./web/RouteDecorator";
 export {default as ClusteredEngine} from "./cluster/ClusteredEngine";
+export {default as Channel} from "./cluster/ChannelDecorator";

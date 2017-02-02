@@ -206,6 +206,10 @@ export class ConsoleLogger implements ILogger {
     setLogLevel(level: LogLevel);
 }
 
+export interface IStreamFactory {
+    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event>;
+}
+
 export interface ITickScheduler extends IStreamFactory {
     schedule(dueTime: number | Date, state?: string, splitKey?: string);
 }

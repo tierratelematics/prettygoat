@@ -3,30 +3,15 @@ import {ServerResponse} from "http";
 import Dictionary from "../util/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
-import {injectable, optional, multiInject} from "inversify";
+import {injectable} from "inversify";
 import * as _ from "lodash";
-import {eachSeries} from "async";
-import {RequestData, IMiddleware, IRequestParser, IRequest, IResponse} from "./IRequestComponents";
+import {RequestData, IRequestParser, IRequest, IResponse} from "./IRequestComponents";
 
 @injectable()
 class RequestParser implements IRequestParser {
 
-    constructor(@multiInject("IMiddleware") @optional() private middlewares: IMiddleware[]) {
-
-    }
-
-    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData> {
-        let requestParsed = new Request(request);
-        let responseParsed = new Response(response);
-
-        return new Promise((resolve, reject) => {
-            eachSeries(this.middlewares, (middleware, next) => {
-                middleware.transform(requestParsed, responseParsed, next);
-            }, (error) => {
-                if (error) reject(error);
-                else resolve([requestParsed, responseParsed]);
-            });
-        });
+    parse(request: IncomingMessage, response: ServerResponse): RequestData {
+        return [new Request(request), new Response(response)];
     }
 }
 
@@ -41,13 +26,12 @@ class Request implements IRequest {
 
     constructor(public originalRequest: IncomingMessage) {
         let isChannel = _.startsWith(originalRequest.url, "pgoat://");
-        this.url = !isChannel ? originalRequest.url : null;
+        this.url = !isChannel ? originalRequest.url.replace(/\/+$/, "") : null; //Remove trailing slash
         this.channel = isChannel ? originalRequest.url.substr(8) : null; //Remove pgoat://
         this.method = originalRequest.method;
         this.headers = originalRequest.headers;
         this.query = qs.parse(url.parse(originalRequest.url).query);
         this.params = null;
-        this.body = (<any>originalRequest).body;
     }
 }
 
@@ -73,7 +57,7 @@ class Response implements IResponse {
 
     send(data?: any) {
         this.originalResponse.writeHead(this.statusCode, _.assign(this.headers, {
-            "content-type": "application/json; charset=utf-8"
+            "Content-Type": "application/json; charset=utf-8"
         }));
         if (data) this.originalResponse.write(JSON.stringify(data));
         this.end();

@@ -4,6 +4,7 @@ import Dictionary from "../util/Dictionary";
 
 export interface IRequestAdapter {
     route(request: IRequest, response: IResponse);
+    canHandle(request: IRequest, response: IResponse): boolean;
 }
 
 export interface IRequestHandler {
@@ -44,5 +45,9 @@ export interface IMiddleware {
 }
 
 export interface IRequestParser {
-    parse(request: IncomingMessage, response: ServerResponse): Promise<RequestData>;
+    parse(request: IncomingMessage, response: ServerResponse): RequestData;
+}
+
+export interface IMiddlewareTransformer {
+    transform(request: IRequest, response: IResponse): Promise<RequestData>;
 }

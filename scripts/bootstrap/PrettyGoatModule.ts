@@ -43,7 +43,7 @@ import SocketEventEmitter from "../push/SocketEventEmitter";
 import SocketFactory from "../push/SocketFactory";
 import {
     IRequestAdapter, IRouteResolver, IRequestHandler,
-    IMiddleware, IRequestParser
+    IMiddleware, IRequestParser, IMiddlewareTransformer
 } from "../web/IRequestComponents";
 import RequestAdapter from "../web/RequestAdapter";
 import RouteResolver from "../web/RouteResolver";
@@ -54,6 +54,7 @@ import RequestParser from "../web/RequestParser";
 import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry";
 import MemoizingProjectionSorter from "../projections/MemoizingProjectionSorter";
 import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
+import MiddlewareTransformer from "../web/MiddlewareTransformer";
 
 class PrettyGoatModule implements IModule {
 
@@ -88,6 +89,7 @@ class PrettyGoatModule implements IModule {
         container.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
         container.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
+        container.bind<IMiddlewareTransformer>("IMiddlewareTransformer").to(MiddlewareTransformer).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
         container.bind<IRequestParser>("IRequestParser").to(RequestParser).inSingletonScope();
