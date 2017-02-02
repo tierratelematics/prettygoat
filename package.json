@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@types/async": "~2.0.38",
+    "@types/cassandra-driver": "~0.8.9",
     "@types/express": "~4.0.35",
     "@types/express-serve-static-core": "~4.0.40",
     "@types/mime": "0.0.29",

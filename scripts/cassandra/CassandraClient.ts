@@ -2,7 +2,7 @@ import ICassandraClient from "./ICassandraClient";
 import {Observable, Disposable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
-const cassandra = require("cassandra-driver");
+import {Client} from "cassandra-driver";
 import ReservedEvents from "../streams/ReservedEvents";
 
 @injectable()
@@ -12,7 +12,7 @@ class CassandraClient implements ICassandraClient {
     private wrappedEachRow: any;
 
     constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
-        this.client = new cassandra.Client({
+        this.client = new Client({
             contactPoints: config.hosts,
             keyspace: config.keyspace,
             socketOptions: {
@@ -26,7 +26,6 @@ class CassandraClient implements ICassandraClient {
     execute(query: string): Observable<any> {
         return this.wrappedExecute(query, null, {prepare: true});
     }
-
 
     paginate(query: string, event: string, completions: Observable<string>): Observable<any> {
         let resultPage = null;
