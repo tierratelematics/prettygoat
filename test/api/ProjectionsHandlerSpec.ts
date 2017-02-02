@@ -34,7 +34,7 @@ describe("Given a ProjectionsController and a projection name", () => {
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            request.body = {payload: {name: "errorProjection"}};
+            beforeEach(() => request.params = {projectionName: "errorProjection"});
             subject = new ProjectionPauseHandler(holder);
         });
 
@@ -47,7 +47,7 @@ describe("Given a ProjectionsController and a projection name", () => {
     });
 
     context("when there is a projection with that name ", () => {
-        beforeEach(() => request.body = {payload: {name: "nameProjection"}});
+        beforeEach(() => request.params = {projectionName: "nameProjection"});
 
         context("and a stop command is sent", () => {
             beforeEach(() => subject = new ProjectionStopHandler(holder));

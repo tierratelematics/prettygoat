@@ -39,7 +39,7 @@ describe("Given a SnapshotController and a projection name", () => {
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
             subject = new SnapshotSaveHandler(holder, snapshotRepository.object, dateRetriever.object);
-            request.body = {payload: {name: "errorProjection"}};
+            request.params = {projectionName: "errorProjection"};
         });
 
         it("should trigger an error", () => {
@@ -52,7 +52,7 @@ describe("Given a SnapshotController and a projection name", () => {
 
     context("when there is a projection with that name ", () => {
         beforeEach(() => {
-            request.body = {payload: {name: "namePrj"}};
+            request.params = {projectionName: "namePrj"};
         });
 
         context("and a create snapshot command is sent", () => {
