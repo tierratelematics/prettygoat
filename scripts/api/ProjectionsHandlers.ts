@@ -81,7 +81,7 @@ export class ProjectionStatsHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
         try {
-            let runner = this.holders[request.body.payload.name];
+            let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
             let data:any = {
                 size: size,
@@ -102,6 +102,6 @@ export class ProjectionStatsHandler implements IRequestHandler {
     }
 
     keyFor(request: IRequest): string {
-        return request.body.payload.name;
+        return request.params.projectionName;
     }
 }
