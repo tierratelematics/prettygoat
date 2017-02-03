@@ -4,12 +4,10 @@ import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import Dictionary from "../../scripts/util/Dictionary";
-import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
     state:T;
     stats:ProjectionStats;
-    status:ProjectionRunnerStatus;
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {

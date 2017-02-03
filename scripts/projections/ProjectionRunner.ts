@@ -13,25 +13,21 @@ import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
-import {ProjectionRunnerStatus} from "./ProjectionRunnerStatus";
 import ReservedEvents from "../streams/ReservedEvents";
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     public state: T|Dictionary<T>;
     public stats = new ProjectionStats();
-    public status: ProjectionRunnerStatus;
     protected streamId: string;
     protected subject: Subject<Event>;
     protected subscription: Rx.IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
-    protected pauser = new Subject<boolean>();
 
     constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher, protected readModelFactory: IReadModelFactory,
                 protected tickScheduler: IStreamFactory, protected dateRetriever: IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
-        this.status = ProjectionRunnerStatus.Pause;
     }
 
     notifications() {
@@ -51,31 +47,27 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         let combinedStream = new Rx.Subject<Event>();
         let completions = new Rx.Subject<string>();
 
-        this.subscription = combinedStream
-            .pausableBuffered(this.pauser)
-            .subscribe(event => {
-                try {
-                    let matchFunction = this.matcher.match(event.type);
-                    if (matchFunction !== Rx.helpers.identity) {
-                        let newState = matchFunction(this.state, event.payload, event);
-                        if (newState instanceof SpecialState)
-                            this.state = (<SpecialState<T>>newState).state;
-                        else
-                            this.state = newState;
-                        if (!(newState instanceof StopSignallingState))
-                            this.notifyStateChange(event.timestamp);
-                        this.updateStats(event);
-                    }
-                    if (event.type === ReservedEvents.FETCH_EVENTS)
-                        completions.onNext(event.payload);
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
+        this.subscription = combinedStream.subscribe(event => {
+            try {
+                let matchFunction = this.matcher.match(event.type);
+                if (matchFunction !== Rx.helpers.identity) {
+                    let newState = matchFunction(this.state, event.payload, event);
+                    if (newState instanceof SpecialState)
+                        this.state = (<SpecialState<T>>newState).state;
+                    else
+                        this.state = newState;
+                    if (!(newState instanceof StopSignallingState))
+                        this.notifyStateChange(event.timestamp);
+                    this.updateStats(event);
                 }
-            });
-
-        this.resume();
+                if (event.type === ReservedEvents.FETCH_EVENTS)
+                    completions.onNext(event.payload);
+            } catch (error) {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
+            }
+        });
 
         combineStreams(
             combinedStream,
@@ -105,33 +97,16 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     stop(): void {
-        if (this.status == ProjectionRunnerStatus.Stop)
+        if (this.isDisposed)
             throw Error("Projection already stopped");
 
         this.isDisposed = true;
+        this.stats.running = false;
 
         if (this.subscription)
             this.subscription.dispose();
         if (!this.isFailed)
             this.subject.onCompleted();
-
-        this.status = ProjectionRunnerStatus.Stop;
-    }
-
-    pause(): void {
-        if (this.status != ProjectionRunnerStatus.Run)
-            throw Error("Projection is not started");
-
-        this.status = ProjectionRunnerStatus.Pause;
-        this.pauser.onNext(false);
-    }
-
-    resume(): void {
-        if (this.status != ProjectionRunnerStatus.Pause)
-            throw Error("Projection is not paused");
-
-        this.status = ProjectionRunnerStatus.Run;
-        this.pauser.onNext(true);
     }
 
     dispose(): void {

@@ -1,4 +1,5 @@
 export default class ProjectionStats {
-    events:number = 0;
-    readModels:number = 0;
+    running = false;
+    events = 0;
+    readModels = 0;
 }
