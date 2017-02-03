@@ -12,7 +12,7 @@ describe("Given a push notifier", () => {
 
     let subject: IPushNotifier,
         dataSubject: Subject<Event>,
-        eventEmitter: TypeMoq.Mock<IEventEmitter>;
+        eventEmitter: TypeMoq.IMock<IEventEmitter>;
 
     beforeEach(() => {
         dataSubject = new Subject<Event>();

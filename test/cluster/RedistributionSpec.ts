@@ -27,15 +27,15 @@ import NullLogger from "../../scripts/log/NullLogger";
 
 describe("Given a set of projections to redistribute", () => {
     let subject: IProjectionEngine,
-        registry: TypeMoq.Mock<IProjectionRegistry>,
-        snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        registry: TypeMoq.IMock<IProjectionRegistry>,
+        snapshotRepository: TypeMoq.IMock<ISnapshotRepository>,
         projection1: IProjection<any>,
         projection2: IProjection<any>,
-        runner1: TypeMoq.Mock<IProjectionRunner<any>>,
-        runner2: TypeMoq.Mock<IProjectionRunner<any>>,
-        cluster: TypeMoq.Mock<ICluster>,
-        projectionSorter: TypeMoq.Mock<IProjectionSorter>,
-        engine: TypeMoq.Mock<IProjectionEngine>,
+        runner1: TypeMoq.IMock<IProjectionRunner<any>>,
+        runner2: TypeMoq.IMock<IProjectionRunner<any>>,
+        cluster: TypeMoq.IMock<ICluster>,
+        projectionSorter: TypeMoq.IMock<IProjectionSorter>,
+        engine: TypeMoq.IMock<IProjectionEngine>,
         holder: Dictionary<IProjectionRunner<any>>;
 
     beforeEach(() => {

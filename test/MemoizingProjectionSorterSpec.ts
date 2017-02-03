@@ -9,7 +9,7 @@ import MemoizingProjectionSorter from "../scripts/projections/MemoizingProjectio
 describe("Given a MemoizingProjectionSorter", () => {
 
     let subject: IProjectionSorter;
-    let sorter: TypeMoq.Mock<IProjectionSorter>;
+    let sorter: TypeMoq.IMock<IProjectionSorter>;
     let projection = new DynamicNameProjection("projection").define();
 
     beforeEach(() => {

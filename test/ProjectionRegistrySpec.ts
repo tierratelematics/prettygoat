@@ -22,7 +22,7 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject: IProjectionRegistry,
-        objectContainer: TypeMoq.Mock<IObjectContainer>,
+        objectContainer: TypeMoq.IMock<IObjectContainer>,
         tickScheduler: ITickScheduler,
         holder: Dictionary<ITickScheduler>;
 
@@ -57,10 +57,10 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(holder["test"]).to.be(tickScheduler);
         });
 
-        function setUpTickScheduler(): TypeMoq.Mock<IProjectionDefinition<number>> {
+        function setUpTickScheduler(): TypeMoq.IMock<IProjectionDefinition<number>> {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
-            let projectionDefinition: TypeMoq.Mock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
+            let projectionDefinition: TypeMoq.IMock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
             objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
             projectionDefinition.setup(p => p.define(TypeMoq.It.isValue(tickScheduler))).returns(a => {
                 return {name: "test", definition: {}};

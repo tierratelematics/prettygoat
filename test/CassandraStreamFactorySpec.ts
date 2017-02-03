@@ -15,11 +15,11 @@ const anyValue = TypeMoq.It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {
 
-    let client: TypeMoq.Mock<ICassandraClient>;
+    let client: TypeMoq.IMock<ICassandraClient>;
     let subject: CassandraStreamFactory;
-    let timePartitioner: TypeMoq.Mock<TimePartitioner>;
+    let timePartitioner: TypeMoq.IMock<TimePartitioner>;
     let events: Event[];
-    let dateRetriever: TypeMoq.Mock<IDateRetriever>;
+    let dateRetriever: TypeMoq.IMock<IDateRetriever>;
     let endDate = new Date(600);
 
     beforeEach(() => {
@@ -94,7 +94,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
     });
 
-    function setupClient(client: TypeMoq.Mock<ICassandraClient>, startDate: Date, endDate: Date) {
+    function setupClient(client: TypeMoq.IMock<ICassandraClient>, startDate: Date, endDate: Date) {
         client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp " +
             "from event_by_manifest where timebucket = '20150001'", startDate, endDate), 'Event1', anyValue))
             .returns(a => Rx.Observable.create(observer => {

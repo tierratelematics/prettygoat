@@ -20,7 +20,7 @@ import {
 
 describe("ProjectionSorterSpec, given a projection sorter", () => {
 
-    let registry: TypeMoq.Mock<IProjectionRegistry>,
+    let registry: TypeMoq.IMock<IProjectionRegistry>,
         subject: IProjectionSorter,
         circularBProjection: IProjection<number>;
 

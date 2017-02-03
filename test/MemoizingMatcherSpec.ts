@@ -7,7 +7,7 @@ import {MockMatcher} from "./fixtures/MockMatcher";
 
 describe("Given a MemoizingMatcher", () => {
     let subject:IMatcher,
-        baseMatcher: TypeMoq.Mock<IMatcher>,
+        baseMatcher: TypeMoq.IMock<IMatcher>,
         testFn = (s, e) => s;
 
     describe("when matching an event", () => {

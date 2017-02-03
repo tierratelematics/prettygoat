@@ -30,13 +30,13 @@ import {IPushNotifier} from "../scripts/push/IPushComponents";
 describe("Given a ProjectionEngine", () => {
 
     let subject: IProjectionEngine,
-        registry: TypeMoq.Mock<IProjectionRegistry>,
-        pushNotifier: TypeMoq.Mock<IPushNotifier>,
-        snapshotStrategy: TypeMoq.Mock<ISnapshotStrategy>,
-        runner: TypeMoq.Mock<IProjectionRunner<number>>,
-        runnerFactory: TypeMoq.Mock<IProjectionRunnerFactory>,
-        projectionSorter: TypeMoq.Mock<IProjectionSorter>,
-        snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        registry: TypeMoq.IMock<IProjectionRegistry>,
+        pushNotifier: TypeMoq.IMock<IPushNotifier>,
+        snapshotStrategy: TypeMoq.IMock<ISnapshotStrategy>,
+        runner: TypeMoq.IMock<IProjectionRunner<number>>,
+        runnerFactory: TypeMoq.IMock<IProjectionRunnerFactory>,
+        projectionSorter: TypeMoq.IMock<IProjectionSorter>,
+        snapshotRepository: TypeMoq.IMock<ISnapshotRepository>,
         dataSubject: Subject<Event>,
         projection: IProjection<number>,
         clock:lolex.Clock;

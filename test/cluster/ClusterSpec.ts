@@ -23,13 +23,13 @@ import NullLogger from "../../scripts/log/NullLogger";
 
 describe("Given a set of nodes", () => {
     let subject: IProjectionEngine,
-        registry: TypeMoq.Mock<IProjectionRegistry>,
-        snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        registry: TypeMoq.IMock<IProjectionRegistry>,
+        snapshotRepository: TypeMoq.IMock<ISnapshotRepository>,
         projection1: IProjection<any>,
         projection2: IProjection<any>,
-        cluster: TypeMoq.Mock<ICluster>,
-        engine: TypeMoq.Mock<IProjectionEngine>,
-        projectionSorter: TypeMoq.Mock<IProjectionSorter>;
+        cluster: TypeMoq.IMock<ICluster>,
+        engine: TypeMoq.IMock<IProjectionEngine>,
+        projectionSorter: TypeMoq.IMock<IProjectionSorter>;
 
     beforeEach(() => {
         projection1 = new DynamicNameProjection("projection1").define();

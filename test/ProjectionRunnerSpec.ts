@@ -20,14 +20,14 @@ import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import * as lolex from "lolex";
 
 describe("Given a ProjectionRunner", () => {
-    let stream: TypeMoq.Mock<IStreamFactory>;
+    let stream: TypeMoq.IMock<IStreamFactory>;
     let subject: ProjectionRunner<number>;
-    let matcher: TypeMoq.Mock<IMatcher>;
+    let matcher: TypeMoq.IMock<IMatcher>;
     let notifications: number[];
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: TypeMoq.Mock<IReadModelFactory>;
+    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
     let projection:IProjection<number>;
     let clock:lolex.Clock;
 
