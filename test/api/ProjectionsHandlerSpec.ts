@@ -33,7 +33,6 @@ describe("Given a ProjectionsController and a projection name", () => {
         holder["projection"] = projectionRunner.object;
         request = new MockRequest();
         response = TypeMoq.Mock.ofType(MockResponse);
-        response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
     });
 
     context("when there isn't a projection with that name", () => {
