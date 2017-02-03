@@ -19,7 +19,6 @@ import Dictionary from "../../scripts/util/Dictionary";
 import MockProjectionEngine from "../fixtures/MockProjectionEngine";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
-import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
 import IProjectionSorter from "../../scripts/projections/IProjectionSorter";
 import MockProjectionSorter from "../fixtures/definitions/MockProjectionSorter";
 import {has} from "lodash";
@@ -77,7 +76,7 @@ describe("Given a set of projections to redistribute", () => {
         });
         context("and it was already running", () => {
             beforeEach(() => {
-                holder["projection2"].status = ProjectionRunnerStatus.Run;
+                holder["projection2"].stats.running = true;
             });
             it("should keep it like that", () => {
                 subject.run();
@@ -86,7 +85,7 @@ describe("Given a set of projections to redistribute", () => {
         });
         context("and it was not running", () => {
             beforeEach(() => {
-                holder["projection2"].status = null;
+                holder["projection2"].stats.running = false;
             });
             it("should run that projection", () => {
                 subject.run();
@@ -94,10 +93,12 @@ describe("Given a set of projections to redistribute", () => {
             });
         });
     });
+
     context("when a projection is not assigned anymore to a certain node", () => {
         beforeEach(() => {
             cluster.setup(c => c.lookup("projection1")).returns(() => "not-my-ip");
             cluster.setup(c => c.lookup("projection2")).returns(() => "my-ip");
+            runner1.object.stats.running = true;
             subject.run();
         });
         it("should be shut down", () => {

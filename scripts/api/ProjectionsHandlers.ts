@@ -7,27 +7,18 @@ const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
+import Base = Mocha.reporters.Base;
+import IProjectionEngine from "../projections/IProjectionEngine";
+import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
+import IProjectionRegistry from "../registry/IProjectionRegistry";
+import PushContext from "../push/PushContext";
 
 @injectable()
 abstract class BaseProjectionHandler implements IRequestHandler {
 
-    constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
-    }
-
     handle(request: IRequest, response: IResponse) {
-        try {
-            let runner = this.holder[request.params.projectionName];
-            this.doAction(runner);
-            response.status(204);
-            response.send();
-        } catch (e) {
-            console.error(e);
-            response.status(404);
-            response.send({error: "Projection not found or already in this state"});
-        }
-    }
 
-    abstract doAction(runner: IProjectionRunner<any>);
+    }
 
     keyFor(request: IRequest): string {
         return request.params.projectionName;
@@ -37,46 +28,66 @@ abstract class BaseProjectionHandler implements IRequestHandler {
 @Route("POST", "/api/projections/stop/:projectionName")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
-    constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
-        super(holders);
+    constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
+        super();
     }
 
-    doAction(runner: IProjectionRunner<any>) {
-        runner.stop();
-    }
-
-}
-@Route("POST", "/api/projections/pause/:projectionName")
-export class ProjectionPauseHandler extends BaseProjectionHandler {
-
-    constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
-        super(holders);
-    }
-
-    doAction(runner: IProjectionRunner<any>) {
-        runner.pause();
+    handle(request: IRequest, response: IResponse) {
+        try {
+            let runner = this.holders[request.params.projectionName];
+            runner.stop();
+            response.status(204);
+            response.send();
+        } catch (error) {
+            response.status(404);
+            response.send({error: "Projection not found or already stopped"});
+        }
     }
 
 }
 
-@Route("POST", "/api/projections/resume/:projectionName")
-export class ProjectionResumeHandler extends BaseProjectionHandler {
+@Route("POST", "/api/projections/restart/:projectionName")
+export class ProjectionRestartHandler extends BaseProjectionHandler {
 
-    constructor(@inject("IProjectionRunnerHolder") holders: Dictionary<IProjectionRunner<any>>) {
-        super(holders);
+    constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry,
+                @inject("IProjectionEngine") private projectionEngine: IProjectionEngine,
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository) {
+        super();
     }
 
-    doAction(runner: IProjectionRunner<any>) {
-        runner.resume();
+    handle(request: IRequest, response: IResponse) {
+        try {
+            let projectionName = request.params.projectionName,
+                entry = this.registry.getEntry(projectionName),
+                runner = this.holders[projectionName];
+
+            if (runner.stats.running)
+                runner.stop();
+
+            this.snapshotRepository.deleteSnapshot(projectionName).subscribe(() => {
+                this.projectionEngine.run(entry.data.projection, new PushContext(entry.area, entry.data.exposedName));
+                response.status(204);
+                response.send();
+            }, () => this.writeError(response));
+        } catch (error) {
+            console.log(error);
+            this.writeError(response);
+        }
+    }
+
+    private writeError(response: IResponse) {
+        response.status(404);
+        response.send({error: "Projection not found"});
     }
 
 }
 
 @Route("GET", "/api/projections/stats/:projectionName")
-export class ProjectionStatsHandler implements IRequestHandler {
+export class ProjectionStatsHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
-
+        super();
     }
 
     handle(request: IRequest, response: IResponse) {
@@ -88,7 +99,7 @@ export class ProjectionStatsHandler implements IRequestHandler {
                 humanizedSize: humanize.filesize(size),
                 events: runner.stats.events,
                 readModels: runner.stats.readModels,
-                status: runner.status
+                running: runner.stats.running
             };
             if (runner instanceof SplitProjectionRunner) {
                 data.splits = _.keys(runner.state).length;
@@ -99,9 +110,5 @@ export class ProjectionStatsHandler implements IRequestHandler {
             response.status(404);
             response.send({error: "Projection not found or already in this state"});
         }
-    }
-
-    keyFor(request: IRequest): string {
-        return request.params.projectionName;
     }
 }
