@@ -25,7 +25,7 @@ class ProjectionStateHandler implements IRequestHandler {
         if (!entry) {
             this.sendNotFound(response);
         } else {
-            let filterStrategy = entry.projection.filterStrategy,
+            let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
                 projectionRunner = this.holder[entry.projection.name],
                 state;
             if (projectionRunner instanceof SplitProjectionRunner) {
@@ -46,7 +46,7 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     private sendResponse<T>(request: IRequest, response: IResponse, state: T,
-                            filterStrategy: IFilterStrategy<T> = new IdentityFilterStrategy<T>()): void {
+                            filterStrategy: IFilterStrategy<T>): void {
         let filterContext = {headers: request.headers, params: request.query};
         let filteredProjection = filterStrategy.filter(state, filterContext);
         switch (filteredProjection.type) {
