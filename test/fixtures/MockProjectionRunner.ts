@@ -7,7 +7,7 @@ import Dictionary from "../../scripts/util/Dictionary";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
     state:T;
-    stats:ProjectionStats;
+    stats = new ProjectionStats();
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {
