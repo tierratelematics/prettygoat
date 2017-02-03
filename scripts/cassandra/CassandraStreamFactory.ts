@@ -9,18 +9,23 @@ import ICassandraClient from "./ICassandraClient";
 import {Observable} from "rx";
 import IEventsFilter from "../streams/IEventsFilter";
 import {mergeSort} from "../projections/ProjectionStream";
+import IDateRetriever from "../util/IDateRetriever";
+import ICassandraConfig from "../configs/ICassandraConfig";
+import * as moment from "moment";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
-    constructor(@inject("ICassandraClient") private client:ICassandraClient,
-                @inject("TimePartitioner") private timePartitioner:TimePartitioner,
-                @inject("ICassandraDeserializer") private deserializer:ICassandraDeserializer,
-                @inject("IEventsFilter") private eventsFilter:IEventsFilter) {
+    constructor(@inject("ICassandraClient") private client: ICassandraClient,
+                @inject("TimePartitioner") private timePartitioner: TimePartitioner,
+                @inject("ICassandraDeserializer") private deserializer: ICassandraDeserializer,
+                @inject("IEventsFilter") private eventsFilter: IEventsFilter,
+                @inject("IDateRetriever") private dateRetriever: IDateRetriever,
+                @inject("ICassandraConfig") private config: ICassandraConfig) {
     }
 
-    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event> {
-        let eventsList:string[] = [];
+    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
+        let eventsList: string[] = [];
         return this.getEvents()
             .map(events => this.eventsFilter.setEventsList(events))
             .do(() => eventsList = this.eventsFilter.filter(definition))
@@ -37,24 +42,26 @@ class CassandraStreamFactory implements IStreamFactory {
             .concatAll();
     }
 
-    private getEvents():Observable<string[]> {
+    private getEvents(): Observable<string[]> {
         return this.client.execute("select distinct ser_manifest from event_types")
             .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row:any) => row.ser_manifest));
+            .map(rows => _.map(rows, (row: any) => row.ser_manifest));
     }
 
-    private getBuckets(date:Date):Observable<string[]> {
+    private getBuckets(date: Date): Observable<string[]> {
         if (date)
             return Observable.just(this.timePartitioner.bucketsFrom(date));
         return this.client.execute("select distinct timebucket from event_by_timestamp")
             .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row:any) => row.timebucket).sort());
+            .map(rows => _.map(rows, (row: any) => row.timebucket).sort());
     }
 
-    private buildQuery(lastEvent:Date, bucket:string):string {
+    private buildQuery(lastEvent: Date, bucket: string): string {
         let query = `select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '${bucket}'`;
+        let delayedDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate();
         if (lastEvent)
             query += ` and timestamp > maxTimeUuid('${lastEvent.toISOString()}')`;
+        query += ` and timestamp < minTimeUuid('${delayedDate.toISOString()}')`;
         return query;
     }
 }
