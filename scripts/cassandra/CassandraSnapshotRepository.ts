@@ -70,8 +70,8 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         return text ? text.replace(/'/g, "''"): null;
     }
 
-    deleteSnapshot(streamId:string):void {
-        this.client.execute(`delete from projections_snapshots where streamid = '${streamId}'`);
+    deleteSnapshot(streamId:string):Observable<void> {
+        return this.client.execute(`delete from projections_snapshots where streamid = '${streamId}'`);
     }
 }
 
