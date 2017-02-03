@@ -15,9 +15,9 @@ import {
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
-        projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
+        projectionRunner: TypeMoq.IMock<IProjectionRunner<any>>,
         request: IRequest,
-        response: TypeMoq.Mock<IResponse>,
+        response: TypeMoq.IMock<IResponse>,
         subject: IRequestHandler;
 
     beforeEach(

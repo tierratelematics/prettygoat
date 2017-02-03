@@ -20,10 +20,10 @@ import * as lolex from "lolex";
 import * as _ from "lodash";
 
 describe("Given a projection runner", () => {
-    let stream:TypeMoq.Mock<IStreamFactory>;
-    let readModel:TypeMoq.Mock<IReadModelFactory>;
+    let stream:TypeMoq.IMock<IStreamFactory>;
+    let readModel:TypeMoq.IMock<IReadModelFactory>;
     let subject:IProjectionRunner<number>;
-    let matcher:TypeMoq.Mock<IMatcher>;
+    let matcher:TypeMoq.IMock<IMatcher>;
     let notifications:number[];
     let stopped:boolean;
     let failed:boolean;
@@ -76,7 +76,7 @@ describe("Given a projection runner", () => {
     });
 
     context("when it's a split projection", () => {
-        let splitMatcher:TypeMoq.Mock<IMatcher>;
+        let splitMatcher:TypeMoq.IMock<IMatcher>;
         let readModelData:Subject<Event>;
         beforeEach(() => {
             readModelData = new Subject<Event>();

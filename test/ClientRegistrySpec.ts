@@ -12,8 +12,8 @@ import ClientRegistry from "../scripts/push/ClientRegistry";
 describe("ClientRegistry, given a client", () => {
 
     let subject: IClientRegistry;
-    let client: TypeMoq.Mock<ISocketClient>;
-    let registry: TypeMoq.Mock<IProjectionRegistry>;
+    let client: TypeMoq.IMock<ISocketClient>;
+    let registry: TypeMoq.IMock<IProjectionRegistry>;
 
     beforeEach(() => {
         client = TypeMoq.Mock.ofType(MockSocketClient);

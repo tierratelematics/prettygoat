@@ -10,7 +10,7 @@ import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 describe("Given a MemoizingProjectionRegistry", () => {
 
     let subject: IProjectionRegistry;
-    let registry: TypeMoq.Mock<IProjectionRegistry>;
+    let registry: TypeMoq.IMock<IProjectionRegistry>;
     let entry: RegistryEntry<any>;
 
     beforeEach(() => {

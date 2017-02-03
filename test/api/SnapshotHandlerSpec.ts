@@ -15,11 +15,11 @@ import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/Snap
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
-        projectionRunner: TypeMoq.Mock<IProjectionRunner<any>>,
-        dateRetriever: TypeMoq.Mock<IDateRetriever>,
+        projectionRunner: TypeMoq.IMock<IProjectionRunner<any>>,
+        dateRetriever: TypeMoq.IMock<IDateRetriever>,
         request: IRequest,
-        response: TypeMoq.Mock<IResponse>,
-        snapshotRepository: TypeMoq.Mock<ISnapshotRepository>,
+        response: TypeMoq.IMock<IResponse>,
+        snapshotRepository: TypeMoq.IMock<ISnapshotRepository>,
         snapshot: Snapshot<any>,
         subject: IRequestHandler;
 

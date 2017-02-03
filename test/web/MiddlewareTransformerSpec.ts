@@ -11,7 +11,7 @@ const anyValue = TypeMoq.It.isAny();
 describe("Given a RequestTransformer", () => {
 
     let subject: IMiddlewareTransformer;
-    let middleware: TypeMoq.Mock<IMiddleware>;
+    let middleware: TypeMoq.IMock<IMiddleware>;
 
     beforeEach(() => {
         middleware = TypeMoq.Mock.ofType(MockMiddleware);

@@ -17,12 +17,12 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 describe("Split projection, given a projection with a split definition", () => {
 
     let subject:SplitProjectionRunner<number>;
-    let stream:TypeMoq.Mock<IStreamFactory>;
+    let stream:TypeMoq.IMock<IStreamFactory>;
     let notifications:Event[];
     let stopped:boolean;
     let failed:boolean;
     let subscription:IDisposable;
-    let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
+    let readModelFactory:TypeMoq.IMock<IReadModelFactory>;
     let streamData:Subject<Event>;
     let readModelData:Subject<Event>;
     let projection = new SplitProjectionDefinition().define();

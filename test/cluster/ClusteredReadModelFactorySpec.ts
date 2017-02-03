@@ -20,11 +20,11 @@ import MockResponse from "../fixtures/web/MockResponse";
 
 describe("Given a ClusteredReadModelFactory", () => {
 
-    let readModelFactory: TypeMoq.Mock<IReadModelFactory>;
+    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
     let subject: IReadModelFactory;
-    let cluster: TypeMoq.Mock<ICluster>;
-    let sorter: TypeMoq.Mock<IProjectionSorter>;
-    let registry: TypeMoq.Mock<IProjectionRegistry>;
+    let cluster: TypeMoq.IMock<ICluster>;
+    let sorter: TypeMoq.IMock<IProjectionSorter>;
+    let registry: TypeMoq.IMock<IProjectionRegistry>;
 
     beforeEach(() => {
         cluster = TypeMoq.Mock.ofType(MockCluster);

@@ -9,16 +9,22 @@ import ICassandraClient from "../scripts/cassandra/ICassandraClient";
 import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
+import IDateRetriever from "../scripts/util/IDateRetriever";
+import MockDateRetriever from "./fixtures/MockDateRetriever";
+const anyValue = TypeMoq.It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {
 
-    let client:TypeMoq.Mock<ICassandraClient>;
-    let subject:CassandraStreamFactory;
-    let timePartitioner:TypeMoq.Mock<TimePartitioner>;
-    let events:Event[];
+    let client: TypeMoq.IMock<ICassandraClient>;
+    let subject: CassandraStreamFactory;
+    let timePartitioner: TypeMoq.IMock<TimePartitioner>;
+    let events: Event[];
+    let dateRetriever: TypeMoq.IMock<IDateRetriever>;
+    let endDate = new Date(600);
 
     beforeEach(() => {
         events = [];
+        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
         let eventsFilter = TypeMoq.Mock.ofType(MockEventsFilter);
         timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
         let cassandraDeserializer = new MockCassandraDeserializer();
@@ -36,13 +42,19 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 {"timebucket": "20150002"}
             ]
         }));
+        dateRetriever.setup(d => d.getDate()).returns(() => new Date(1000));
         eventsFilter.setup(e => e.filter(TypeMoq.It.isAny())).returns(a => ["Event1"]);
-        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer, eventsFilter.object);
+        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer,
+            eventsFilter.object, dateRetriever.object, {
+                hosts: [],
+                keyspace: "",
+                readDelay: 400
+            });
     });
 
     context("when all the events needs to be fetched", () => {
         beforeEach(() => {
-            setupClient(client, null);
+            setupClient(client, null, endDate);
         });
 
         it("should retrieve the events from the beginning", () => {
@@ -54,12 +66,25 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
     });
 
+    context("when starting the stream from any point", () => {
+        beforeEach(() => {
+            setupClient(client, null, endDate);
+        });
+
+        it("should read the events with a configured delay", () => {
+            subject.from(null, Rx.Observable.empty<string>(), {}).subscribe(() => null);
+            client.verify(c => c.paginate("select blobAsText(event) as event, timestamp " +
+                "from event_by_manifest where timebucket = '20150001' " +
+                "and timestamp < minTimeUuid('" + endDate.toISOString() + "')", "Event1", anyValue), TypeMoq.Times.once());
+        });
+    });
+
     context("when starting the stream from a certain point", () => {
         beforeEach(() => {
             timePartitioner.setup(t => t.bucketsFrom(TypeMoq.It.isValue(new Date(1420160400000)))).returns(a => [
                 "20150002", "20150003"
             ]);
-            setupClient(client, new Date(1420160400000));
+            setupClient(client, new Date(1420160400000), endDate);
         });
 
         it("should retrieve the events in all the buckets greater than that point", () => {
@@ -69,8 +94,9 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
     });
 
-    function setupClient(client: TypeMoq.Mock<ICassandraClient>, date: Date) {
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150001'", date), 'Event1', TypeMoq.It.isAny()))
+    function setupClient(client: TypeMoq.IMock<ICassandraClient>, startDate: Date, endDate: Date) {
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp " +
+            "from event_by_manifest where timebucket = '20150001'", startDate, endDate), 'Event1', anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -87,12 +113,14 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150002'", date), 'Event1', TypeMoq.It.isAny()))
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp" +
+            " from event_by_manifest where timebucket = '20150002'", startDate, endDate), 'Event1', anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '20150003'", date), 'Event1', TypeMoq.It.isAny()))
+        client.setup(c => c.paginate(filterByTimestamp("select blobAsText(event) as event, timestamp" +
+            " from event_by_manifest where timebucket = '20150003'", startDate, endDate), 'Event1', anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -105,9 +133,11 @@ describe("Cassandra stream factory, given a stream factory", () => {
             }));
     }
 
-    function filterByTimestamp(query: string, timestamp: Date): string {
-        if (timestamp)
-            query += ` and timestamp > maxTimeUuid('${timestamp.toISOString()}')`;
+    function filterByTimestamp(query: string, startDate: Date, endDate: Date): string {
+        if (startDate)
+            query += ` and timestamp > maxTimeUuid('${startDate.toISOString()}')`;
+        if (endDate)
+            query += ` and timestamp < minTimeUuid('${endDate.toISOString()}')`;
         return query;
     }
 });

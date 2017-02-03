@@ -15,8 +15,8 @@ import SplitProjectionDefinition from "../fixtures/definitions/SplitProjectionDe
 describe("Snapshot repository, given all the streams", () => {
 
     let subject: CassandraSnapshotRepository,
-        registry: TypeMoq.Mock<IProjectionRegistry>,
-        cassandraClient: TypeMoq.Mock<ICassandraClient>;
+        registry: TypeMoq.IMock<IProjectionRegistry>,
+        cassandraClient: TypeMoq.IMock<ICassandraClient>;
 
     beforeEach(() => {
         cassandraClient = TypeMoq.Mock.ofType(MockCassandraClient);

@@ -18,7 +18,7 @@ describe("Given a RequestAdapter and a new request", () => {
     let subject: IRequestAdapter;
     let routeResolver: IRouteResolver;
     let request: IRequest;
-    let response: TypeMoq.Mock<IResponse>;
+    let response: TypeMoq.IMock<IResponse>;
 
     beforeEach(() => {
         request = new MockRequest();

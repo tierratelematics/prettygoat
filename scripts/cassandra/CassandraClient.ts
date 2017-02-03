@@ -12,7 +12,7 @@ class CassandraClient implements ICassandraClient {
     private wrappedEachRow: any;
 
     constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
-        this.client = new Client(<any>{
+        this.client = new Client({
             contactPoints: config.hosts,
             keyspace: config.keyspace
         });
