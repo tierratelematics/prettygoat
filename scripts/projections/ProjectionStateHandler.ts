@@ -7,7 +7,6 @@ import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
-import SplitProjectionRunner from "./SplitProjectionRunner";
 import {STATUS_CODES} from "http";
 
 @Route("GET", "/projections/:area/:projectionName(/:splitKey)")
@@ -28,7 +27,7 @@ class ProjectionStateHandler implements IRequestHandler {
             let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
                 projectionRunner = this.holder[entry.projection.name],
                 state;
-            if (projectionRunner instanceof SplitProjectionRunner) {
+            if (entry.projection.split) {
                 state = projectionRunner.state[splitKey];
             } else {
                 state = projectionRunner.state;

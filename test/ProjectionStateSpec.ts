@@ -1,47 +1,119 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
-import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestComponents";
-import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
-import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
-import {IProjection} from "../../scripts/projections/IProjection";
-import {ProjectionStopHandler, ProjectionRestartHandler} from "../../scripts/api/ProjectionsHandlers";
+import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandler";
+import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import MockProjectionRunner from "./fixtures/MockProjectionRunner";
+import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
+import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
+import {IRequest, IResponse, IRequestHandler} from "../scripts/web/IRequestComponents";
+import MockRequest from "./fixtures/web/MockRequest";
+import MockResponse from "./fixtures/web/MockResponse";
+import Dictionary from "../scripts/util/Dictionary";
+import RegistryEntry from "../scripts/registry/RegistryEntry";
+import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
+import {
+    ContentFilterStrategy, UnauthorizedFilterStrategy,
+    ForbiddenFilterStrategy
+} from "./fixtures/MockFilterStrategies";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import {IProjection} from "../scripts/projections/IProjection";
 
 describe("Given a ProjectionStateHandler", () => {
     let request: IRequest,
-        response: TypeMoq.IMock<IResponse>;
+        response: TypeMoq.IMock<IResponse>,
+        subject: IRequestHandler,
+        holder: Dictionary<IProjectionRunner<any>>,
+        projectionRunner: IProjectionRunner<any>,
+        registry: TypeMoq.IMock<IProjectionRegistry>;
 
     beforeEach(() => {
+        holder = {};
+        projectionRunner = new MockProjectionRunner();
+        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         request = new MockRequest();
         response = TypeMoq.Mock.ofType(MockResponse);
+        subject = new ProjectionStateHandler(registry.object, holder);
     });
 
     context("when the state of a projection is needed", () => {
+        let projection:IProjection<any>;
+
+        beforeEach(() => {
+            projection = new MockProjectionDefinition().define();
+            registry.setup(r => r.getEntry("Mock", "Admin")).returns(() => {
+                return {area: "Admin", data: new RegistryEntry(projection, "Mock")};
+            });
+            holder["test"] = projectionRunner;
+            projectionRunner.state = 42;
+            request.params = {
+                area: "Admin",
+                projectionName: "Mock"
+            };
+        });
         context("and a filter strategy is applied", () => {
             context("when a content filter is returned", () => {
-                it("should send the filtered state");
+                beforeEach(() => projection.filterStrategy = new ContentFilterStrategy());
+                it("should send the filtered state", () => {
+                    subject.handle(request, response.object);
+                    response.verify(r => r.status(200), TypeMoq.Times.once());
+                    response.verify(r => r.send(42), TypeMoq.Times.once());
+                });
             });
             context("when an authorized filter is returned", () => {
-                it("should return a 401 error code");
+                beforeEach(() => projection.filterStrategy = new UnauthorizedFilterStrategy());
+                it("should return a 401 error code", () => {
+                    subject.handle(request, response.object);
+                    response.verify(r => r.status(401), TypeMoq.Times.once());
+                });
             });
             context("when a forbidden filter is returned", () => {
-                it("should return a 403 error code");
+                beforeEach(() => projection.filterStrategy = new ForbiddenFilterStrategy());
+                it("should return a 403 error code", () => {
+                    subject.handle(request, response.object);
+                    response.verify(r => r.status(403), TypeMoq.Times.once());
+                });
             });
         });
 
         context("and a filter strategy is not applied", () => {
-            it("should respond with the full state");
+            it("should respond with the full state", () => {
+                subject.handle(request, response.object);
+                response.verify(r => r.status(200), TypeMoq.Times.once());
+                response.verify(r => r.send(42), TypeMoq.Times.once());
+            });
         });
     });
 
     context("when the state of a split projection is needed", () => {
+        beforeEach(() => {
+            registry.setup(r => r.getEntry("Split", "Admin")).returns(() => {
+                return {area: "Admin", data: new RegistryEntry(new SplitProjectionDefinition().define(), "Split")};
+            });
+            holder["split"] = projectionRunner;
+            projectionRunner.state = {
+                "foo": 10
+            };
+            request.params = {
+                area: "Admin",
+                projectionName: "Split"
+            };
+        });
         context("and a specific key exists", () => {
-            it("should return it");
+            beforeEach(() => request.params.splitKey = "foo");
+            it("should return it", () => {
+                subject.handle(request, response.object);
+                response.verify(r => r.status(200), TypeMoq.Times.once());
+                response.verify(r => r.send(10), TypeMoq.Times.once());
+            });
         });
 
         context("and a specific key does not exist", () => {
-            it("should send a 404");
+            it("should send a 404", () => {
+                subject.handle(request, response.object);
+                response.verify(r => r.status(404), TypeMoq.Times.once());
+                response.verify(r => r.send(10), TypeMoq.Times.never());
+            });
         });
     });
 });
