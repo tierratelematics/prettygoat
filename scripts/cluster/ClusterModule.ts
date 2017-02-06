@@ -26,7 +26,7 @@ class ClusterModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
-        
+
         container.unbind("IProjectionEngine");
         container.bind<IProjectionEngine>("ProjectionEngine").to(ProjectionEngine).inSingletonScope().whenInjectedInto(ClusteredProjectionEngine);
         container.bind<IProjectionEngine>("IProjectionEngine").to(ClusteredProjectionEngine).inSingletonScope();
