@@ -16,9 +16,12 @@ class ClusteredSocketFactory implements ISocketFactory {
 
     socketForPath(path?: string): SocketIO.Server {
         if (!this.socket) {
-            this.socket = io(server, {path: path || "socket.io"});
-            if (this.redisConfig)
+            this.socket = io(server, {
+                path: path || "socket.io"
+            });
+            if (this.redisConfig) {
                 this.socket.adapter(redis({host: this.redisConfig.host, port: this.redisConfig.port}))
+            }
         }
 
         return this.socket;

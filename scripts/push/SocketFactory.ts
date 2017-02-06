@@ -10,7 +10,9 @@ class SocketFactory implements ISocketFactory {
 
     socketForPath(path?: string): SocketIO.Server {
         if (!this.socket) {
-            this.socket = io(server, {path: path || "socket.io"});
+            this.socket = io(server, {
+                path: path || "socket.io"
+            });
         }
 
         return this.socket;
