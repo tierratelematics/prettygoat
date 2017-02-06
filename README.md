@@ -14,6 +14,29 @@ The not so baaaaaaad Event Sourcing Projection Engine.
 Prettygoat aims at being an event sourcing projection engine. This means that it will allow you to create projections based on your events.
 This project is heavily under construction, so don't get disappointed if little or nothing at all can suit you for the time being.
 
+##Load balancing
+
+To load balance HTTP and Websockets, use [loadbalancer](https://www.npmjs.com/package/loadbalancer).
+
+Example configuration:
+
+```json
+{
+  "sourcePort": 8000,
+  "stickiness": false,
+  "targets": [
+    {
+      "host": "127.0.0.1",
+      "port": 3000
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 3001
+    }
+  ]
+}
+```
+
 ## License
 
 Copyright 2016 Tierra SpA

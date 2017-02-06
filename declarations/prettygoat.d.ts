@@ -158,6 +158,11 @@ export interface IClusterConfig {
     forks: number;
 }
 
+export interface IRedisConfig {
+    host: string;
+    port: number;
+}
+
 export interface IFilterStrategy<T> {
     filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
 }
