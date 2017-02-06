@@ -1,7 +1,8 @@
 import {IRouteResolver, IRequestHandler, IRouteContext, IRequest} from "../web/IRequestComponents";
-import {inject, optional, multiInject} from "inversify";
+import {inject, optional, multiInject, injectable} from "inversify";
 import * as _ from "lodash";
 
+@injectable()
 class ClusteredRouteResolver implements IRouteResolver {
 
     private routes: Route[] = [];
@@ -25,7 +26,7 @@ class ClusteredRouteResolver implements IRouteResolver {
             let route = _.find(this.routes, route => route.channel === request.channel);
             return [route ? route.handler : null, null];
         } else {
-            this.resolver.resolve(request);
+            return this.resolver.resolve(request);
         }
     }
 
