@@ -13,10 +13,7 @@ class ClusteredRequestAdapter extends RequestAdapter {
 
     canHandle(request: IRequest, response: IResponse): boolean {
         try {
-            let context = this.routeResolver.resolve(
-                request.url ? request.url : request.channel,
-                request.url ? request.method : null
-            );
+            let context = this.routeResolver.resolve(request);
             let requestHandler = context[0];
             let params = context[1];
 

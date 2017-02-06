@@ -1,4 +1,4 @@
-import {IRouteResolver, IRequestHandler, IRouteContext} from "./IRequestComponents";
+import {IRouteResolver, IRequestHandler, IRouteContext, IRequest} from "./IRequestComponents";
 import {multiInject, injectable, optional} from "inversify";
 import * as _ from "lodash";
 import Methods from "./Methods";
@@ -16,27 +16,27 @@ class RouteResolver implements IRouteResolver {
 
     private mapRoutes(requestHandlers: IRequestHandler[]): Route[] {
         return _.map<IRequestHandler, Route>(requestHandlers, requestHandler => {
-            return {
-                matcher: new UrlPattern(Reflect.getMetadata("prettygoat:path", requestHandler.constructor)),
-                method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
-                handler: requestHandler
-            };
+            let path = Reflect.getMetadata("prettygoat:path", requestHandler.constructor),
+                route: Route = {
+                    method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
+                    handler: requestHandler
+                };
+            if (path)
+                route.matcher = new UrlPattern(path);
+
+            return route;
         });
     }
 
-    resolve(path: string, method: string): IRouteContext {
-        if (method) {
-            let pathname = url.parse(path).pathname;
-            return <IRouteContext>_(this.routes)
-                .filter(route => route.method === method)
-                .map(route => [route.handler, route.matcher.match(pathname)])
-                .filter(route => route[1])
-                .flatten()
-                .valueOf();
-        } else {
-            let route = _.find(this.routes, route => route.matcher.match(path));
-            return [route ? route.handler : null, null];
-        }
+    resolve(request: IRequest): IRouteContext {
+        let pathname = url.parse(request.url).pathname;
+        let context = <IRouteContext>_(this.routes)
+            .filter(route => route.method === request.method)
+            .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : false])
+            .filter(route => route[1])
+            .flatten()
+            .valueOf();
+        return !context[0] ? [null, null] : context;
     }
 
 }
@@ -44,7 +44,7 @@ class RouteResolver implements IRouteResolver {
 interface Route {
     handler: IRequestHandler;
     method: Methods;
-    matcher: UrlPattern;
+    matcher?: UrlPattern;
 }
 
 export default RouteResolver
