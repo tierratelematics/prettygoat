@@ -1,4 +1,4 @@
-import {IRouteResolver, IRequestHandler, IRouteContext} from "./IRequestComponents";
+import {IRouteResolver, IRequestHandler, IRouteContext, IRequest} from "./IRequestComponents";
 import {multiInject, injectable, optional} from "inversify";
 import * as _ from "lodash";
 import Methods from "./Methods";
@@ -24,19 +24,14 @@ class RouteResolver implements IRouteResolver {
         });
     }
 
-    resolve(path: string, method: string): IRouteContext {
-        if (method) {
-            let pathname = url.parse(path).pathname;
-            return <IRouteContext>_(this.routes)
-                .filter(route => route.method === method)
-                .map(route => [route.handler, route.matcher.match(pathname)])
-                .filter(route => route[1])
-                .flatten()
-                .valueOf();
-        } else {
-            let route = _.find(this.routes, route => route.matcher.match(path));
-            return [route ? route.handler : null, null];
-        }
+    resolve(request: IRequest): IRouteContext {
+        let pathname = url.parse(request.url).pathname;
+        return <IRouteContext>_(this.routes)
+            .filter(route => route.method === request.method)
+            .map(route => [route.handler, route.matcher.match(pathname)])
+            .filter(route => route[1])
+            .flatten()
+            .valueOf();
     }
 
 }

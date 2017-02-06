@@ -13,7 +13,7 @@ export interface IRequestHandler {
 }
 
 export interface IRouteResolver {
-    resolve(path: string, method: string): IRouteContext;
+    resolve(request:IRequest): IRouteContext;
 }
 
 export type IRouteContext = [IRequestHandler, any];

@@ -8,12 +8,13 @@ import ICluster from "../../scripts/cluster/ICluster";
 import MockCluster from "../fixtures/cluster/MockCluster";
 import RouteResolver from "../../scripts/web/RouteResolver";
 import {
-    MockRequestHandler, ParamRequestHandler, ChannelRequestHandler,
+    MockRequestHandler, ParamRequestHandler,
     NoForwardRequestHandler
 } from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
 import ClusteredRequestAdapter from "../../scripts/cluster/ClusteredRequestAdapter";
+import ChannelRequestHandler from "../fixtures/cluster/MockChannelHandler";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a ClusteredRequestAdapter and a new request", () => {
@@ -76,6 +77,25 @@ describe("Given a ClusteredRequestAdapter and a new request", () => {
             subject.route(request, response.object);
             expect(request.params.accessed).to.be(undefined);
             cluster.verify(c => c.handleOrProxy("testkey", undefined, undefined), TypeMoq.Times.once());
+        });
+    });
+
+
+    context("when the request is coming from a channel", () => {
+        context("and a registered handler can receive the request", () => {
+            it("should route it", () => {
+                request.channel = "test";
+                subject.route(request, response.object);
+                expect(request.params.channel).to.be(true);
+            });
+        });
+
+        context("and no registered handlers can receive the request", () => {
+            it("should drop it", () => {
+                request.channel = "badChannel";
+                subject.route(request, response.object);
+                expect(request.params.channel).to.be(undefined);
+            });
         });
     });
 });

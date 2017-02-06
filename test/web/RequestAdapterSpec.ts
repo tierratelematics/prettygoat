@@ -7,7 +7,7 @@ import {
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import RouteResolver from "../../scripts/web/RouteResolver";
 import {
-    MockRequestHandler, ParamRequestHandler, ChannelRequestHandler,
+    MockRequestHandler, ParamRequestHandler,
     NoForwardRequestHandler
 } from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
@@ -26,8 +26,7 @@ describe("Given a RequestAdapter and a new request", () => {
         request.originalRequest = undefined;
         response = TypeMoq.Mock.ofType(MockResponse);
         response.setup(r => r.status(anyValue)).returns(() => response.object);
-        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(),
-            new ChannelRequestHandler(), new NoForwardRequestHandler()]);
+        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(), new NoForwardRequestHandler()]);
         subject = new RequestAdapter(routeResolver);
     });
 
@@ -67,24 +66,6 @@ describe("Given a RequestAdapter and a new request", () => {
             request.method = "POST";
             subject.route(request, response.object);
             response.verify(r => r.status(404), TypeMoq.Times.once());
-        });
-    });
-
-    context("when the request is coming from a channel", () => {
-        context("and a registered handler can receive the request", () => {
-            it("should route it", () => {
-                request.channel = "test";
-                subject.route(request, response.object);
-                expect(request.params.channel).to.be(true);
-            });
-        });
-
-        context("and no registered handlers can receive the request", () => {
-            it("should drop it", () => {
-                request.channel = "badChannel";
-                subject.route(request, response.object);
-                expect(request.params.channel).to.be(undefined);
-            });
         });
     });
 });
