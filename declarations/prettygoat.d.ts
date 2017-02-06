@@ -151,13 +151,6 @@ export interface ISocketConfig {
     path: string;
 }
 
-export interface IClusterConfig {
-    nodes: string[];
-    port: number;
-    host: string;
-    forks: number;
-}
-
 export interface IRedisConfig {
     host: string;
     port: number;
@@ -252,10 +245,6 @@ interface PredicatesStatic {
 }
 
 export var FeaturePredicates: PredicatesStatic;
-
-export class ClusteredEngine extends Engine {
-    run(overrides?: any);
-}
 
 export interface IReplicationManager {
     canReplicate(): boolean;
