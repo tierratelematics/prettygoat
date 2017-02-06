@@ -17,7 +17,7 @@ class RouteResolver implements IRouteResolver {
     private mapRoutes(requestHandlers: IRequestHandler[]): Route[] {
         return _.map<IRequestHandler, Route>(requestHandlers, requestHandler => {
             let path = Reflect.getMetadata("prettygoat:path", requestHandler.constructor),
-                route:Route = {
+                route: Route = {
                     method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
                     handler: requestHandler
                 };
@@ -30,12 +30,13 @@ class RouteResolver implements IRouteResolver {
 
     resolve(request: IRequest): IRouteContext {
         let pathname = url.parse(request.url).pathname;
-        return <IRouteContext>_(this.routes)
+        let context = <IRouteContext>_(this.routes)
             .filter(route => route.method === request.method)
             .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : false])
             .filter(route => route[1])
             .flatten()
             .valueOf();
+        return !context[0] ? [null, null] : context;
     }
 
 }

@@ -52,7 +52,7 @@ describe("Given a RouteResolver and a new request", () => {
             it("should not return an handler", () => {
                 request.url = "/notfound";
                 let data = subject.resolve(request);
-                expect(data[0]).to.be(undefined);
+                expect(data[0]).to.be(null);
             });
         });
     });
@@ -62,7 +62,7 @@ describe("Given a RouteResolver and a new request", () => {
             request.url = "/test";
             request.method = "POST";
             let data = subject.resolve(request);
-            expect(data[0]).to.be(undefined);
+            expect(data[0]).to.be(null);
         });
     });
 
@@ -71,7 +71,7 @@ describe("Given a RouteResolver and a new request", () => {
             subject = new RouteResolver([new NoUrlRequestHandler()]);
             request.url = "/notfound";
             let data = subject.resolve(request);
-            expect(data[0]).to.be(undefined);
+            expect(data[0]).to.be(null);
         })
     });
 });

@@ -17,28 +17,40 @@ import ClusteredReplicationManager from "./ClusteredReplicationManager";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ProcessLogger from "./ProcessLogger";
-import {IRequestAdapter} from "../web/IRequestComponents";
+import {IRequestAdapter, IRouteResolver} from "../web/IRequestComponents";
 import ClusteredRequestAdapter from "./ClusteredRequestAdapter";
+import ClusteredRouteResolver from "./ClusteredRouteResolver";
+import RouteResolver from "../web/RouteResolver";
 
 class ClusterModule implements IModule {
 
     modules = (container: interfaces.Container) => {
+        container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
+        
         container.unbind("IProjectionEngine");
         container.bind<IProjectionEngine>("ProjectionEngine").to(ProjectionEngine).inSingletonScope().whenInjectedInto(ClusteredProjectionEngine);
         container.bind<IProjectionEngine>("IProjectionEngine").to(ClusteredProjectionEngine).inSingletonScope();
-        container.bind<ICluster>("ICluster").to(Cluster).inSingletonScope();
+
         container.unbind("ISocketFactory");
         container.bind<ISocketFactory>("ISocketFactory").to(ClusteredSocketFactory).inSingletonScope();
+
         container.unbind("IReadModelFactory");
         container.bind<IReadModelFactory>("ReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IReadModelFactory>("IReadModelFactory").to(ClusteredReadModelFactory).inSingletonScope();
+
         container.unbind("IReplicationManager");
         container.bind<IReplicationManager>("IReplicationManager").to(ClusteredReplicationManager).inSingletonScope();
+
         container.unbind("ILogger");
         container.bind<ILogger>("Logger").to(ConsoleLogger).whenInjectedInto(ProcessLogger);
         container.bind<ILogger>("ILogger").to(ProcessLogger).inSingletonScope();
+
         container.unbind("IRequestAdapter");
         container.bind<IRequestAdapter>("IRequestAdapter").to(ClusteredRequestAdapter).inSingletonScope();
+
+        container.unbind("IRouteResolver");
+        container.bind<IRouteResolver>("IRouteResolver").to(ClusteredRouteResolver).inSingletonScope();
+        container.bind<IRouteResolver>("RouteResolver").to(RouteResolver).inSingletonScope().whenInjectedInto(ClusteredRouteResolver);
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

@@ -79,23 +79,4 @@ describe("Given a ClusteredRequestAdapter and a new request", () => {
             cluster.verify(c => c.handleOrProxy("testkey", undefined, undefined), TypeMoq.Times.once());
         });
     });
-
-
-    context("when the request is coming from a channel", () => {
-        context("and a registered handler can receive the request", () => {
-            it("should route it", () => {
-                request.channel = "test";
-                subject.route(request, response.object);
-                expect(request.params.channel).to.be(true);
-            });
-        });
-
-        context("and no registered handlers can receive the request", () => {
-            it("should drop it", () => {
-                request.channel = "badChannel";
-                subject.route(request, response.object);
-                expect(request.params.channel).to.be(undefined);
-            });
-        });
-    });
 });
