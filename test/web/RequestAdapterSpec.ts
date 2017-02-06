@@ -2,70 +2,68 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import {
-    IRequestAdapter, IRouteResolver, IRequest, IResponse
+    IRequestAdapter, IRouteResolver, IRequest, IResponse, IRequestHandler
 } from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
-import RouteResolver from "../../scripts/web/RouteResolver";
-import {
-    MockRequestHandler, ParamRequestHandler,
-    NoForwardRequestHandler
-} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
+import {MockRequestHandler} from "../fixtures/web/MockRequestHandler";
+import MockRouteResolver from "../fixtures/web/MockRouteResolver";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
     let subject: IRequestAdapter;
-    let routeResolver: IRouteResolver;
+    let routeResolver: TypeMoq.IMock<IRouteResolver>;
     let request: IRequest;
     let response: TypeMoq.IMock<IResponse>;
+    let requestHandler: TypeMoq.IMock<IRequestHandler>;
 
     beforeEach(() => {
+        requestHandler = TypeMoq.Mock.ofType(MockRequestHandler);
+        routeResolver = TypeMoq.Mock.ofType(MockRouteResolver);
         request = new MockRequest();
         request.method = "GET";
         request.originalRequest = undefined;
         response = TypeMoq.Mock.ofType(MockResponse);
         response.setup(r => r.status(anyValue)).returns(() => response.object);
-        routeResolver = new RouteResolver([new MockRequestHandler(), new ParamRequestHandler(), new NoForwardRequestHandler()]);
-        subject = new RequestAdapter(routeResolver);
+        subject = new RequestAdapter(routeResolver.object);
     });
 
-    context("when the request method matches", () => {
-        context("and a specific handler exists for the request", () => {
-            it("should route the message to the specific handler", () => {
+    context("when a specific handler exists for the request", () => {
+        beforeEach(() => {
+            routeResolver.setup(r => r.resolve(anyValue)).returns(() => [requestHandler.object, {id: 20}]);
+        });
+        it("should route the message to the specific handler", () => {
+            request.url = "/test";
+            subject.route(request, response.object);
+            requestHandler.verify(r => r.handle(TypeMoq.It.isValue(request), TypeMoq.It.isValue(response.object)), TypeMoq.Times.once());
+        });
+
+        context("and the request had no params", () => {
+            it("should set the parsed params", () => {
                 request.url = "/test";
                 subject.route(request, response.object);
-                expect(request.params.accessed).to.be(true);
-            });
-
-            it("should handle correctly query strings on the request path", () => {
-                request.url = "/test?foo=bar";
-                subject.route(request, response.object);
-                expect(request.params.accessed).to.be(true);
-            });
-
-            it("should correctly deserialize url params", () => {
-                request.url = "/foo/f4587s";
-                subject.route(request, response.object);
-                expect(request.params.id).to.eql("f4587s");
+                expect(request.params).to.eql({id: 20});
             });
         });
 
-        context("and a specific handler does not exists for the request", () => {
-            it("should drop the connection with a not found", () => {
-                request.url = "/notfound";
+        context("and the request had some params", () => {
+            it("should merge the parsed params", () => {
+                request.url = "/test";
+                request.params = {
+                    foo: "asd"
+                };
                 subject.route(request, response.object);
-                response.verify(r => r.status(404), TypeMoq.Times.once());
+                expect(request.params).to.eql({id: 20, foo: "asd"});
             });
         });
     });
 
-    context("when the request method does not match", () => {
-        it("should drop the connection with an error code", () => {
-            request.url = "/test";
-            request.method = "POST";
+    context("when a specific handler does not exists for the request", () => {
+        it("should drop the connection with a not found", () => {
+            request.url = "/notfound";
             subject.route(request, response.object);
-            response.verify(r => r.status(404), TypeMoq.Times.once());
+            requestHandler.verify(r => r.handle(TypeMoq.It.isValue(request), TypeMoq.It.isValue(response.object)), TypeMoq.Times.never());
         });
     });
 });
