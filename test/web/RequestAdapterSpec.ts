@@ -60,6 +60,9 @@ describe("Given a RequestAdapter and a new request", () => {
     });
 
     context("when a specific handler does not exists for the request", () => {
+        beforeEach(() => {
+            routeResolver.setup(r => r.resolve(anyValue)).returns(() => [null, null]);
+        });
         it("should drop the connection with a not found", () => {
             request.url = "/notfound";
             subject.route(request, response.object);
