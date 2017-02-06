@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IRouteResolver, IRequest, IRequestHandler} from "../../scripts/web/IRequestComponents";
-import {MockRequestHandler, ParamRequestHandler} from "../fixtures/web/MockRequestHandler";
+import {MockRequestHandler, ParamRequestHandler, NoUrlRequestHandler} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import RouteResolver from "../../scripts/web/RouteResolver";
 
@@ -64,5 +64,14 @@ describe("Given a RouteResolver and a new request", () => {
             let data = subject.resolve(request);
             expect(data[0]).to.be(undefined);
         });
+    });
+
+    context("when an handler has no url", () => {
+        it("should return no handler", () => {
+            subject = new RouteResolver([new NoUrlRequestHandler()]);
+            request.url = "/notfound";
+            let data = subject.resolve(request);
+            expect(data[0]).to.be(undefined);
+        })
     });
 });

@@ -24,3 +24,16 @@ export class ParamRequestHandler implements IRequestHandler {
     }
 
 }
+
+@Route("GET", undefined)
+export class NoUrlRequestHandler implements IRequestHandler {
+
+    handle(request: IRequest, response: IResponse) {
+    }
+
+    keyFor(request: IRequest): string {
+        return null;
+    }
+
+}
+

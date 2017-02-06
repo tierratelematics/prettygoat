@@ -16,11 +16,15 @@ class RouteResolver implements IRouteResolver {
 
     private mapRoutes(requestHandlers: IRequestHandler[]): Route[] {
         return _.map<IRequestHandler, Route>(requestHandlers, requestHandler => {
-            return {
-                matcher: new UrlPattern(Reflect.getMetadata("prettygoat:path", requestHandler.constructor)),
-                method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
-                handler: requestHandler
-            };
+            let path = Reflect.getMetadata("prettygoat:path", requestHandler.constructor),
+                route:Route = {
+                    method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
+                    handler: requestHandler
+                };
+            if (path)
+                route.matcher = new UrlPattern(path);
+
+            return route;
         });
     }
 
@@ -28,7 +32,7 @@ class RouteResolver implements IRouteResolver {
         let pathname = url.parse(request.url).pathname;
         return <IRouteContext>_(this.routes)
             .filter(route => route.method === request.method)
-            .map(route => [route.handler, route.matcher.match(pathname)])
+            .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : false])
             .filter(route => route[1])
             .flatten()
             .valueOf();
@@ -39,7 +43,7 @@ class RouteResolver implements IRouteResolver {
 interface Route {
     handler: IRequestHandler;
     method: Methods;
-    matcher: UrlPattern;
+    matcher?: UrlPattern;
 }
 
 export default RouteResolver
