@@ -18,7 +18,7 @@ import RegistryEntry from "../scripts/registry/RegistryEntry";
 import Dictionary from "../scripts/util/Dictionary";
 import {IProjection} from "../scripts/projections/IProjection";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
-import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
+import MockProjectionSorter from "./fixtures/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";

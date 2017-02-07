@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
-import MockProjectionSorter from "./fixtures/definitions/MockProjectionSorter";
+import MockProjectionSorter from "./fixtures/MockProjectionSorter";
 import DynamicNameProjection from "./fixtures/definitions/DynamicNameProjection";
 import MemoizingProjectionSorter from "../scripts/projections/MemoizingProjectionSorter";
 
