@@ -1,6 +1,5 @@
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
-import * as _ from "lodash";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents";
@@ -12,7 +11,7 @@ class PushNotifier implements IPushNotifier {
 
     constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
                 @inject("IEndpointConfig") config: IEndpointConfig) {
-        this.config = <IEndpointConfig>_.assign({}, config, config ? config.notifications : {});
+        this.config = {...config, ...(config ? config.notifications : {})};
     }
 
     notify(context: PushContext, clientId?: string, splitKey?: string): void {

@@ -1,6 +1,5 @@
 import {IRequestAdapter, IRouteResolver, IRequest, IResponse, IRequestHandler} from "./IRequestComponents";
 import {inject, injectable} from "inversify";
-import {assign} from "lodash";
 
 @injectable()
 class RequestAdapter implements IRequestAdapter {
@@ -14,7 +13,7 @@ class RequestAdapter implements IRequestAdapter {
         let params = context[1];
 
         if (params)
-            assign(request.params, params);
+            request.params = {...request.params, ...params};
         if (requestHandler) {
             if (this.canHandle(request, response)) {
                 requestHandler.handle(request, response);
