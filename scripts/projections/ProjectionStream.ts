@@ -17,7 +17,6 @@ export function combineStreams(combined:Subject<Event>, events:Observable<Event>
                 if (!realtime)
                     scheduler.advanceTo(Number.MAX_VALUE); //Flush events buffer since there are no more events
                 realtime = true;
-                return;
             }
             if (realtime || !event.timestamp) {
                 combined.onNext(event);

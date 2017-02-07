@@ -1,6 +1,42 @@
 import {interfaces} from "inversify";
-import {Observable} from "rx";
-import {Request, Response} from "express";
+import {Observable, IDisposable} from "rx";
+import {IncomingMessage} from "http";
+import {ServerResponse, Server} from "http";
+
+export class Engine {
+    protected container: interfaces.Container;
+
+    register(module: IModule): boolean;
+
+    boot(overrides?: any);
+
+    run(overrides?: any);
+}
+
+export interface IModule {
+    modules?: (container: interfaces.Container) => void;
+    register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void;
+}
+
+export  interface IServiceLocator {
+    get<T>(key: string, name?: string): T;
+}
+
+export interface IProjectionEngine {
+    run(projection?: IProjection<any>, context?: PushContext);
+}
+
+export class ProjectionEngine implements IProjectionEngine {
+    run(projection?: IProjection<any>, context?: PushContext);
+}
+
+export class PushContext {
+    area: string;
+    projectionName: string;
+    parameters: any;
+
+    constructor(area: string, projectionName: string, parameters?: any);
+}
 
 export interface IProjection<T> {
     name: string;
@@ -26,6 +62,20 @@ export interface Event {
     payload: any;
     timestamp: string;
     splitKey: string;
+}
+
+export interface IProjectionRunner<T> extends IDisposable {
+    state: T|Dictionary<T>;
+    stats: ProjectionStats;
+    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
+    stop(): void;
+    notifications(): Observable<Event>;
+}
+
+export class ProjectionStats {
+    running: boolean;
+    events: number;
+    readModels: number;
 }
 
 declare abstract class SpecialState<T> {
@@ -54,8 +104,48 @@ export interface IProjectionDefinition<T> {
     define(tickScheduler?: ITickScheduler): IProjection<T>;
 }
 
-export interface Dictionary<T> {
-    [index: string]: T
+export interface IProjectionRegistry {
+    master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
+    index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
+    add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry;
+    forArea(area: string): AreaRegistry;
+    getAreas(): AreaRegistry[];
+    getArea(areaId: string): AreaRegistry;
+    getEntry<T>(id: string, area?: string): {area: string, data: RegistryEntry<T>};
+}
+
+export class AreaRegistry {
+    area: string;
+    entries: RegistryEntry<any>[];
+
+    constructor(area: string, entries: RegistryEntry<any>[]);
+}
+
+export class RegistryEntry<T> {
+    projection: IProjection<T>;
+    exposedName: string;
+    parametersKey: (parameters: any) => string;
+
+    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string);
+}
+
+export function Projection(name: string);
+
+export interface ISnapshotRepository {
+    initialize(): Observable<void>;
+    getSnapshots(): Observable<Dictionary<Snapshot<any>>>;
+    getSnapshot<T>(streamId: string): Observable<Snapshot<T>>;
+    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void;
+    deleteSnapshot(streamId: string): Observable<void>;
+}
+
+export class Snapshot<T> {
+    static Empty: Snapshot<any>;
+
+    memento: T;
+    lastEvent: Date;
+
+    constructor(memento: T, lastEvent: Date);
 }
 
 export interface ISnapshotStrategy {
@@ -74,49 +164,6 @@ export class CountSnapshotStrategy implements ISnapshotStrategy {
     needsSnapshot(event: Event): boolean;
 
     saveThreshold(threshold: number): void;
-}
-
-export interface IProjectionRegistry {
-    master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
-    index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
-    add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry;
-    forArea(area: string): AreaRegistry;
-    getAreas(): AreaRegistry[];
-    getArea(areaId: string): AreaRegistry;
-    getEntry<T>(id: string, area?: string): {area: string, data: RegistryEntry<T>};
-}
-
-export class AreaRegistry {
-    constructor(area: string, entries: RegistryEntry<any>[]);
-}
-
-export class RegistryEntry<T> {
-    projection: IProjection<T>;
-    exposedName: string;
-    parametersKey: (parameters: any) => string;
-
-    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string);
-}
-
-export function Projection(name: string);
-
-export class Engine {
-    protected container: interfaces.Container;
-
-    register(module: IModule): boolean;
-
-    boot(overrides?: any);
-
-    run(overrides?: any);
-}
-
-export interface IModule {
-    modules?: (container: interfaces.Container) => void;
-    register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void;
-}
-
-export  interface IServiceLocator {
-    get<T>(key: string, name?: string): T;
 }
 
 export interface IEndpointConfig {
@@ -151,17 +198,15 @@ export interface ISocketConfig {
     path: string;
 }
 
-export interface IClusterConfig {
-    nodes: string[];
-    port: number;
-    host: string;
-    forks: number;
-}
-
 export interface IRedisConfig {
     host: string;
     port: number;
 }
+
+export interface Dictionary<T> {
+    [index: string]: T
+}
+
 
 export interface IFilterStrategy<T> {
     filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
@@ -210,8 +255,10 @@ export class ConsoleLogger implements ILogger {
     setLogLevel(level: LogLevel);
 }
 
+export var NullLogger: ILogger;
+
 export interface IStreamFactory {
-    from(lastEvent:Date, completions?:Observable<string>, definition?:IWhen<any>):Observable<Event>;
+    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
 }
 
 export interface ITickScheduler extends IStreamFactory {
@@ -253,12 +300,109 @@ interface PredicatesStatic {
 
 export var FeaturePredicates: PredicatesStatic;
 
-export class ClusteredEngine extends Engine {
-    run(overrides?: any);
-}
-
 export interface IReplicationManager {
     canReplicate(): boolean;
     replicate();
     isMaster(): boolean;
 }
+
+export interface IRequestAdapter {
+    route(request: IRequest, response: IResponse);
+    canHandle(request: IRequest, response: IResponse): boolean;
+}
+
+export class RequestAdapter implements IRequestAdapter {
+    protected routeResolver: IRouteResolver;
+
+    constructor(routeResolver: IRouteResolver);
+
+    route(request: IRequest, response: IResponse);
+
+    canHandle(request: IRequest, response: IResponse);
+
+}
+
+export interface IRequestHandler {
+    handle(request: IRequest, response: IResponse);
+    keyFor(request: IRequest): string;
+}
+
+export interface IRouteResolver {
+    resolve(request: IRequest): IRouteContext;
+}
+
+export type IRouteContext = [IRequestHandler, any];
+
+export interface IRequest {
+    url: string;
+    channel: string;
+    method: string;
+    headers: Dictionary<string>;
+    query: Dictionary<string>;
+    params: any;
+    body: any;
+    originalRequest: IncomingMessage;
+}
+
+export interface IResponse {
+    header(key: string, value: string);
+    setHeader(key: string, value: string);
+    status(code: number);
+    send(data?: any);
+    end();
+    originalResponse: ServerResponse;
+}
+
+export interface IMiddleware {
+    transform(request: IRequest, response: IResponse, next: Function);
+}
+
+export interface IRequestParser {
+    parse(request: IncomingMessage, response: ServerResponse): RequestData;
+}
+
+export interface IMiddlewareTransformer {
+    transform(request: IRequest, response: IResponse): Promise<RequestData>;
+}
+
+export function Route(method: Methods, path: string);
+
+export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "PATCH";
+
+export type RequestData = [IRequest, IResponse];
+
+export class RouteResolver implements IRouteResolver {
+    constructor(requestHandlers: IRequestHandler[]);
+
+    resolve(request: IRequest): IRouteContext;
+}
+
+export interface ISocketFactory {
+    socketForPath(path?: string): SocketIO.Server;
+}
+
+export interface IReadModelFactory extends IStreamFactory {
+    asList(): any[];
+    publish(event: Event): void;
+}
+
+export class ReadModelFactory implements IReadModelFactory {
+
+    publish(event: Event): void;
+
+    asList(): any[];
+
+    from(lastEvent: Date): Observable<Event>;
+}
+
+export interface IProjectionSorter {
+    sort(): string[];
+    dependencies(projection: IProjection<any>): string[];
+    dependents(projection: IProjection<any>): string[];
+}
+
+export class PortDiscovery {
+    static freePort(initialPort: number, host?: string): Promise<number>;
+}
+
+export var server: any;

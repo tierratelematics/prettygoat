@@ -15,9 +15,9 @@ import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
-import MockProjectionRunnerDefinition from "./fixtures/definitions/MockProjectionRunnerDefinition";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import * as lolex from "lolex";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
 describe("Given a ProjectionRunner", () => {
     let stream: TypeMoq.IMock<IStreamFactory>;
@@ -33,7 +33,7 @@ describe("Given a ProjectionRunner", () => {
 
     beforeEach(() => {
         clock = lolex.install();
-        projection = new MockProjectionRunnerDefinition().define();
+        projection = new MockProjectionDefinition().define();
         notifications = [];
         stopped = false;
         failed = false;
@@ -231,6 +231,7 @@ describe("Given a ProjectionRunner", () => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
+            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Rx.helpers.identity);
             stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
