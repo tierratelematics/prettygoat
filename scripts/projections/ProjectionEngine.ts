@@ -62,7 +62,7 @@ class ProjectionEngine implements IProjectionEngine {
 
         let subscription = sequence.subscribe(state => {
             this.pushNotifier.notify(context, null, state.splitKey);
-            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} with key ${state.splitKey}`);
+            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${state.splitKey ? "with key " + state.splitKey : ""}`);
         }, error => {
             subscription.dispose();
             this.logger.error(error);
