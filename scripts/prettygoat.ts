@@ -15,7 +15,6 @@ export {default as Route} from "./web/RouteDecorator";
 export {default as RequestAdapter} from "./web/RequestAdapter";
 export {default as RouteResolver} from "./web/RouteResolver";
 export {default as ProjectionEngine} from "./projections/ProjectionEngine";
-export {default as ReadModelFactory} from "./streams/ReadModelFactory";
 export {default as PushContext} from "./push/PushContext";
 export {Snapshot} from "./snapshots/ISnapshotRepository";
 export {server} from "./web/ExpressApp";

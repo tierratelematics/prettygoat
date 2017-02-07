@@ -386,15 +386,6 @@ export interface IReadModelFactory extends IStreamFactory {
     publish(event: Event): void;
 }
 
-export class ReadModelFactory implements IReadModelFactory {
-
-    publish(event: Event): void;
-
-    asList(): any[];
-
-    from(lastEvent: Date): Observable<Event>;
-}
-
 export interface IProjectionSorter {
     sort(): string[];
     dependencies(projection: IProjection<any>): string[];
