@@ -28,7 +28,7 @@
     "express": "~4.14.0",
     "hammock": "~2.0.1",
     "humanize": "0.0.9",
-    "inversify": "~3.0.0",
+    "inversify": "~3.1.0",
     "lodash": "~4.13.1",
     "moment": "2.13.0",
     "object-sizeof": "~1.1.1",
