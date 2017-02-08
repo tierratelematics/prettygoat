@@ -80,8 +80,8 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionSorter>("ProjectionSorter").to(ProjectionSorter).whenInjectedInto(MemoizingProjectionSorter);
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(CassandraSnapshotRepository).inSingletonScope();
-        container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy).inSingletonScope();
-        container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy).inSingletonScope();
+        container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
+        container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
         container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
         container.bind<Dictionary<ITickScheduler>>("ITickSchedulerHolder").toConstantValue({});
         container.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
