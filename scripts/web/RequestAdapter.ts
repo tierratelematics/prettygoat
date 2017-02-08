@@ -20,7 +20,7 @@ class RequestAdapter implements IRequestAdapter {
             }
         } else {
             response.status(404);
-            response.send();
+            response.send({error: "Not Found"});
         }
     }
 
