@@ -36,30 +36,28 @@ class Request implements IRequest {
 }
 
 class Response implements IResponse {
-    private headers: Dictionary < string > = {};
-    private statusCode = 200;
 
     constructor(public originalResponse: ServerResponse) {
 
     }
 
     header(key: string, value: string) {
-        this.headers[key] = value;
+        this.setHeader(key, value);
     }
 
     setHeader(key: string, value: string) {
-        this.header(key, value);
+        this.originalResponse.setHeader(key, value);
     }
 
     status(code: number) {
-        this.statusCode = code;
+        this.originalResponse.statusCode = code;
     }
 
     send(data?: any) {
-        this.originalResponse.writeHead(this.statusCode, _.assign(this.headers, {
-            "Content-Type": "application/json; charset=utf-8"
-        }));
-        if (data) this.originalResponse.write(JSON.stringify(data));
+        if (data) {
+            this.setHeader("Content-Type", "application/json; charset=utf-8");
+            this.originalResponse.write(JSON.stringify(data));
+        }
         this.end();
     }
 
