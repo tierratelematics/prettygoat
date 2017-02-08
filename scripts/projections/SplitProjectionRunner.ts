@@ -30,6 +30,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
+        this.stats.running = true;
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
         let combinedStream = new Rx.Subject<Event>();
         let completions = new Rx.Subject<string>();
