@@ -7,7 +7,6 @@ import TickProjectionDefinition from "./fixtures/definitions/TickProjectionDefin
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import {Event} from "../scripts/streams/Event";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import {Matcher} from "../scripts/matcher/Matcher";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";

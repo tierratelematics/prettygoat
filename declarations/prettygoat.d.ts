@@ -22,6 +22,19 @@ export  interface IServiceLocator {
     get<T>(key: string, name?: string): T;
 }
 
+export interface IObjectContainer extends IServiceLocator {
+    set<T>(key: string, object: interfaces.Newable<T>|T, parent?: string);
+    contains(key: string): boolean;
+    remove(key: string): void;
+}
+
+export class PrettyGoatModule implements IModule {
+
+    modules?: (container: interfaces.Container) => void;
+
+    register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void;
+}
+
 export interface IProjectionEngine {
     run(projection?: IProjection<any>, context?: PushContext);
 }
@@ -60,7 +73,7 @@ export interface IWhen<T extends Object> {
 export interface Event {
     type: string;
     payload: any;
-    timestamp: string;
+    timestamp: Date;
     splitKey: string;
 }
 
@@ -70,6 +83,49 @@ export interface IProjectionRunner<T> extends IDisposable {
     run(snapshot?: Snapshot<T|Dictionary<T>>): void;
     stop(): void;
     notifications(): Observable<Event>;
+}
+
+export interface IProjectionRunnerFactory {
+    create<T>(projection: IProjection<T>): IProjectionRunner<T>;
+}
+
+export interface IMatcher {
+    match(name: string): Function;
+}
+
+export class Matcher implements IMatcher {
+
+    constructor(definition: any);
+
+    match(name: string): Function;
+}
+
+export class ProjectionRunner<T> implements IProjectionRunner<T> {
+    state: T|Dictionary<T>;
+    stats: ProjectionStats;
+
+    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher, readModelFactory: IReadModelFactory,
+                tickScheduler: IStreamFactory, dateRetriever: IDateRetriever);
+
+    notifications();
+
+    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
+
+    protected subscribeToStateChanges();
+
+    stop(): void;
+
+    dispose(): void;
+}
+
+export class SplitProjectionRunner<T> extends ProjectionRunner<T> {
+    state: Dictionary<T>;
+
+    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
+                splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
+                dateRetriever: IDateRetriever);
+
+    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
 }
 
 export class ProjectionStats {
@@ -130,6 +186,10 @@ export class RegistryEntry<T> {
 }
 
 export function Projection(name: string);
+
+export interface ICassandraDeserializer {
+    toEvent(row): Event;
+}
 
 export interface ISnapshotRepository {
     initialize(): Observable<void>;
@@ -397,3 +457,7 @@ export class PortDiscovery {
 }
 
 export var server: any;
+
+export interface IDateRetriever {
+    getDate(): Date;
+}

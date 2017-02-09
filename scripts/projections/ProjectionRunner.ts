@@ -15,9 +15,9 @@ import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
 
-export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    public state: T|Dictionary<T>;
-    public stats = new ProjectionStats();
+class ProjectionRunner<T> implements IProjectionRunner<T> {
+    state: T|Dictionary<T>;
+    stats = new ProjectionStats();
     protected streamId: string;
     protected subject: Subject<Event>;
     protected subscription: Rx.IDisposable;
@@ -122,3 +122,4 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 }
 
+export default ProjectionRunner

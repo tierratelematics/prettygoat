@@ -1,4 +1,4 @@
-import {ProjectionRunner} from "../../scripts/projections/ProjectionRunner";
+import ProjectionRunner from "../../scripts/projections/ProjectionRunner";
 import IDateRetriever from "../../scripts/util/IDateRetriever";
 import {IStreamFactory} from "../../scripts/streams/IStreamFactory";
 import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
@@ -17,4 +17,3 @@ export default class PublishProjectionRunner<T> extends ProjectionRunner<T> {
 
     }
 }
-

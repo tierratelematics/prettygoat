@@ -37,9 +37,4 @@ class MockProjectionRunner<T> implements IProjectionRunner<T> {
 
 }
 
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is IObserver<Event> {
-    return (<IObserver<Event>>observerOrOnNext).onNext !== undefined;
-}
-
-
 export default MockProjectionRunner

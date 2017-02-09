@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";

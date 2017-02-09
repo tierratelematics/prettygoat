@@ -1,6 +1,6 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import IProjectionRunner from "./IProjectionRunner";
-import {ProjectionRunner} from "./ProjectionRunner";
+import ProjectionRunner from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
 import {IStreamFactory} from "../streams/IStreamFactory";

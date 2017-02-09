@@ -51,3 +51,7 @@ export interface IRequestParser {
 export interface IMiddlewareTransformer {
     transform(request: IRequest, response: IResponse): Promise<RequestData>;
 }
+
+export interface IDateRetriever {
+    getDate():Date;
+}

@@ -11,11 +11,11 @@ import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
-import {ProjectionRunner} from "./ProjectionRunner";
+import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
-    public state: Dictionary<T> = {};
+    state: Dictionary<T> = {};
 
     constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
                 private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
@@ -107,4 +107,5 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             });
     }
 }
+
 export default SplitProjectionRunner
