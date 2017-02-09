@@ -9,12 +9,12 @@ import ICassandraClient from "./ICassandraClient";
 @injectable()
 class CassandraSnapshotRepository implements ISnapshotRepository {
 
-    constructor(@inject("ICassandraClient") private client:ICassandraClient,
-                @inject("IProjectionRegistry") private registry:IProjectionRegistry) {
+    constructor(@inject("ICassandraClient") private client: ICassandraClient,
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry) {
 
     }
 
-    initialize():Observable<void> {
+    initialize(): Observable<void> {
         return this.client.execute('create table if not exists projections_snapshots (\
             streamId text,\
             lastEvent text,\
@@ -24,7 +24,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         )');
     }
 
-    getSnapshots():Observable<Dictionary<Snapshot<any>>> {
+    getSnapshots(): Observable<Dictionary<Snapshot<any>>> {
         return this.client.execute('select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots')
             .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
                 .groupBy(snapshot => snapshot.streamid)
@@ -32,7 +32,7 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                     if (snapshots[0].split) {
                         let memento = _(snapshots)
                             .keyBy(snapshot => snapshot.split)
-                            .mapValues((snapshot:CassandraSnapshot) => JSON.parse(this.replaceQuotes(snapshot.memento)))
+                            .mapValues((snapshot: CassandraSnapshot) => JSON.parse(this.replaceQuotes(snapshot.memento)))
                             .valueOf();
                         return new Snapshot(memento, new Date(snapshots[0].lastevent));
                     } else {
@@ -47,12 +47,12 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         return this.getSnapshots().map(snapshots => snapshots[streamId]);
     }
 
-    private replaceQuotes(text:string):string {
+    private replaceQuotes(text: string): string {
         if (!_.isString(text)) return text;
-        return text && text !== 'undefined' ? text.replace(/''/g, "'"): null;
+        return text && text !== 'undefined' ? text.replace(/''/g, "'") : null;
     }
 
-    saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
+    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void {
         let queries = [];
         let entry = this.registry.getEntry(streamId);
         if (entry.data.projection.split)
@@ -66,20 +66,20 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         _.map(queries, query => this.client.execute(query).subscribe(() => null));
     }
 
-    private escapeQuotes(text:string):string {
-        return text ? text.replace(/'/g, "''"): null;
+    private escapeQuotes(text: string): string {
+        return text ? text.replace(/'/g, "''") : null;
     }
 
-    deleteSnapshot(streamId:string):Observable<void> {
+    deleteSnapshot(streamId: string): Observable<void> {
         return this.client.execute(`delete from projections_snapshots where streamid = '${streamId}'`);
     }
 }
 
 interface CassandraSnapshot {
-    memento:string;
-    lastevent:string;
-    split:string;
-    streamid:string;
+    memento: string;
+    lastevent: string;
+    split: string;
+    streamid: string;
 }
 
 export default CassandraSnapshotRepository
