@@ -5,4 +5,4 @@ export interface ICassandraClient {
     paginate(query: IQuery, completions: Observable<string>): Observable<any>;
 }
 
-export type IQuery = [string, Object]
+export type IQuery = [string, any]

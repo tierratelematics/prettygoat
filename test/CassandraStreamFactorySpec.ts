@@ -145,7 +145,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
             query += " and timestamp > maxTimeUuid(:startDate)";
             params.startDate = startDate.toISOString();
         }
-        
+
         return [query, params];
     }
 });

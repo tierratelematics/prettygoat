@@ -68,7 +68,6 @@ class CassandraStreamFactory implements IStreamFactory {
             query += " and timestamp > maxTimeUuid(:startDate)";
             params.startDate = startDate.toISOString();
         }
-
         params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().toISOString();
 
         return [query, params];
