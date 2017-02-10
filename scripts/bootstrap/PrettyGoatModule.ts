@@ -55,6 +55,8 @@ import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry
 import MemoizingProjectionSorter from "../projections/MemoizingProjectionSorter";
 import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
 import MiddlewareTransformer from "../web/MiddlewareTransformer";
+import DebouncePublisher from "../util/DebouncePublisher";
+import IAsyncPublisher from "../util/IAsyncPublisher";
 
 class PrettyGoatModule implements IModule {
 
@@ -96,6 +98,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IMiddleware>("IMiddleware").to(CORSMiddleware).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
+        container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

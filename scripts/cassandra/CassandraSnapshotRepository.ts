@@ -63,11 +63,12 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
                     `'${split}', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(memento))}'))`);
                 } else {
                     queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',` +
-                    `'', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(snapshot.memento))}'))`]
+                    `'', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(snapshot.memento))}'))`];
                 }
                 return Observable.from(queries);
             })
-            .flatMap(query => this.client.execute(query));
+            .flatMap(query => this.client.execute(query))
+            .takeLast(1);
     }
 
     private escapeQuotes(text: string): string {
