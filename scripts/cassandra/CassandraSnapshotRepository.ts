@@ -4,7 +4,7 @@ import {Observable} from "rx";
 import Dictionary from "../util/Dictionary";
 import * as _ from "lodash";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import ICassandraClient from "./ICassandraClient";
+import {ICassandraClient} from "./ICassandraClient";
 
 @injectable()
 class CassandraSnapshotRepository implements ISnapshotRepository {

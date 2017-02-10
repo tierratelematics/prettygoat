@@ -6,7 +6,7 @@ import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../../scripts/registry/ProjectionRegistry";
 import MockCassandraClient from "../fixtures/cassandra/MockCassandraClient";
-import ICassandraClient from "../../scripts/cassandra/ICassandraClient";
+import {ICassandraClient} from "../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
