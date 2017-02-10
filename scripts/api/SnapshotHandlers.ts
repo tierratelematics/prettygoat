@@ -24,7 +24,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate())).subscribe(() => {});
+        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate())).subscribeOnCompleted(() => {});
         response.send({name: name});
     }
 

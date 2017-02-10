@@ -17,6 +17,7 @@ class MockSnapshotRepository implements ISnapshotRepository {
     }
 
     saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): Observable<void> {
+        return undefined;
     }
 
     deleteSnapshot(streamId: string): Observable<void> {

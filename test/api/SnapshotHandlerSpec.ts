@@ -12,6 +12,7 @@ import {IRequestHandler, IRequest, IResponse} from "../../scripts/web/IRequestCo
 import MockRequest from "../fixtures/web/MockRequest";
 import MockResponse from "../fixtures/web/MockResponse";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/SnapshotHandlers";
+import {Observable} from "rx";
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
@@ -23,18 +24,18 @@ describe("Given a SnapshotController and a projection name", () => {
         snapshot: Snapshot<any>,
         subject: IRequestHandler;
 
-    beforeEach(
-        () => {
-            projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
-            dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
-            holder = {};
-            holder["projection"] = projectionRunner.object;
-            request = new MockRequest();
-            response = TypeMoq.Mock.ofType(MockResponse);
-            response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-            snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
-        }
-    );
+    beforeEach(() => {
+        projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
+        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
+        holder = {};
+        holder["projection"] = projectionRunner.object;
+        request = new MockRequest();
+        response = TypeMoq.Mock.ofType(MockResponse);
+        response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
+        snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
+        snapshotRepository.setup(s => s.saveSnapshot(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
+        snapshotRepository.setup(s => s.deleteSnapshot(TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
+    });
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
