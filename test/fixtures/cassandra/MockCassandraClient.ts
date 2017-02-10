@@ -1,14 +1,14 @@
-import ICassandraClient from "../../../scripts/cassandra/ICassandraClient";
-import * as Rx from "rx";
+import {ICassandraClient, IQuery} from "../../../scripts/cassandra/ICassandraClient";
+import {Observable} from "rx";
 
 export default class MockCassandraClient implements ICassandraClient {
 
-    execute(query:string):Rx.Observable<any> {
-        return Rx.Observable.empty();
+    execute(query: IQuery): Rx.Observable<any> {
+        return Observable.empty();
     }
 
-    paginate(query:string, event:string, completions:Rx.Observable<string>):Rx.Observable<any> {
-        return Rx.Observable.empty();
+    paginate(query: IQuery, completions: Rx.Observable<string>): Observable<any> {
+        return Observable.empty();
     }
 
 }

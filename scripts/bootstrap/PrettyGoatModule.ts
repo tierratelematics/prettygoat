@@ -32,7 +32,7 @@ import ITickScheduler from "../ticks/ITickScheduler";
 import TickScheduler from "../ticks/TickScheduler";
 import EventsFilter from "../streams/EventsFilter";
 import IEventsFilter from "../streams/IEventsFilter";
-import ICassandraClient from "../cassandra/ICassandraClient";
+import {ICassandraClient} from "../cassandra/ICassandraClient";
 import CassandraClient from "../cassandra/CassandraClient";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import ProjectionSorter from "../projections/ProjectionSorter";

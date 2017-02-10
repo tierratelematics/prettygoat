@@ -5,7 +5,7 @@ import TimePartitioner from "./TimePartitioner";
 import {Event} from "../streams/Event";
 import {IWhen} from "../projections/IProjection";
 import * as _ from "lodash";
-import ICassandraClient from "./ICassandraClient";
+import {ICassandraClient, IQuery} from "./ICassandraClient";
 import {Observable} from "rx";
 import IEventsFilter from "../streams/IEventsFilter";
 import {mergeSort} from "../projections/ProjectionStream";
@@ -34,7 +34,7 @@ class CassandraStreamFactory implements IStreamFactory {
                 return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
                     return mergeSort(_.map(eventsList, event => {
                         return this.client
-                            .paginate(this.buildQuery(lastEvent, bucket), event, completions)
+                            .paginate(this.buildQuery(lastEvent, bucket, event), completions)
                             .map(row => this.deserializer.toEvent(row));
                     }));
                 });
@@ -43,7 +43,7 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     private getEvents(): Observable<string[]> {
-        return this.client.execute("select distinct ser_manifest from event_types")
+        return this.client.execute(["select distinct ser_manifest from event_types", null])
             .map(buckets => buckets.rows)
             .map(rows => _.map(rows, (row: any) => row.ser_manifest));
     }
@@ -51,18 +51,26 @@ class CassandraStreamFactory implements IStreamFactory {
     private getBuckets(date: Date): Observable<string[]> {
         if (date)
             return Observable.just(this.timePartitioner.bucketsFrom(date));
-        return this.client.execute("select distinct timebucket from event_by_timestamp")
+        return this.client.execute(["select distinct timebucket from event_by_timestamp", null])
             .map(buckets => buckets.rows)
             .map(rows => _.map(rows, (row: any) => row.timebucket).sort());
     }
 
-    private buildQuery(lastEvent: Date, bucket: string): string {
-        let query = `select blobAsText(event) as event, timestamp from event_by_manifest where timebucket = '${bucket}'`;
-        let delayedDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate();
-        if (lastEvent)
-            query += ` and timestamp > maxTimeUuid('${lastEvent.toISOString()}')`;
-        query += ` and timestamp < minTimeUuid('${delayedDate.toISOString()}')`;
-        return query;
+    private buildQuery(startDate: Date, bucket: string, event: string): IQuery {
+        let query = "select blobAsText(event) as event, timestamp from event_by_manifest " +
+                "where timebucket = :bucket and ser_manifest = :event and timestamp < minTimeUuid(:endDate)",
+            params:any = {
+                bucket: bucket,
+                event: event
+            };
+
+        if (startDate) {
+            query += " and timestamp > maxTimeUuid(:startDate)";
+            params.startDate = startDate.toISOString();
+        }
+        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().toISOString();
+
+        return [query, params];
     }
 }
 
