@@ -71,7 +71,6 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
                 response.send();
             }, () => this.writeError(response));
         } catch (error) {
-            console.log(error);
             this.writeError(response);
         }
     }
