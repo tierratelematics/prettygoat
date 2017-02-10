@@ -1,6 +1,6 @@
 import {ISnapshotStrategy} from "./ISnapshotStrategy";
 import {Event} from "../streams/Event";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 
 class CountSnapshotStrategy implements ISnapshotStrategy {
 

@@ -1,5 +1,5 @@
 import {IMatcher} from "./IMatcher";
-import Dictionary from "../Dictionary";
+import Dictionary from "../util/Dictionary";
 
 export class MemoizingMatcher implements IMatcher {
     private cache:Dictionary<Function> = {};

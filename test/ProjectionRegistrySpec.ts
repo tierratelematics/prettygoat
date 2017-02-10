@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
@@ -9,20 +8,21 @@ import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectio
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import MockObjectContainer from "./fixtures/MockObjectContainer";
-import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
+import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
+import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject: IProjectionRegistry,
-        objectContainer: TypeMoq.Mock<IObjectContainer>,
+        objectContainer: TypeMoq.IMock<IObjectContainer>,
         tickScheduler: ITickScheduler,
         holder: Dictionary<ITickScheduler>;
 
@@ -57,10 +57,10 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(holder["test"]).to.be(tickScheduler);
         });
 
-        function setUpTickScheduler(): TypeMoq.Mock<IProjectionDefinition<number>> {
+        function setUpTickScheduler(): TypeMoq.IMock<IProjectionDefinition<number>> {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
-            let projectionDefinition: TypeMoq.Mock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
+            let projectionDefinition: TypeMoq.IMock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
             objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
             projectionDefinition.setup(p => p.define(TypeMoq.It.isValue(tickScheduler))).returns(a => {
                 return {name: "test", definition: {}};
@@ -179,6 +179,26 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
                 expect(entry.data.projection.name).to.be("test");
             });
+        });
+
+        context("and I supply an inexistent area name", () => {
+            it("should return no data", () => {
+                let entry = subject.getEntry("Mock", "AdminBad");
+
+                expect(entry.data).to.be(null);
+            });
+        });
+    });
+
+    context("when a split projection is registered without a parameters key", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:Split";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new SplitProjectionDefinition());
+        });
+
+        it("should throw an error", () => {
+            expect(() => subject.add(SplitProjectionDefinition).forArea("Admin")).to.throwError();
         });
     });
 });

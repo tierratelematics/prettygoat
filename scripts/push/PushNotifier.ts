@@ -1,54 +1,50 @@
-import IPushNotifier from "./IPushNotifier";
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
-import IEventEmitter from "./IEventEmitter";
-import IClientRegistry from "./IClientRegistry";
-import * as _ from "lodash";
-import ClientEntry from "./ClientEntry";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
+import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
 
-    private config:IEndpointConfig;
+    private config: IEndpointConfig;
 
-    constructor(@inject("IEventEmitter") private eventEmitter:IEventEmitter,
-                @inject("IClientRegistry") private clientRegistry:IClientRegistry,
-                @inject("IEndpointConfig") config:IEndpointConfig,
-                @inject("IProjectionRegistry") private projectionRegistry:IProjectionRegistry) {
-        this.config = <IEndpointConfig>_.assign({}, config, config ? config.notifications : {});
+    constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
+                @inject("IEndpointConfig") config: IEndpointConfig) {
+        this.config = {...config, ...(config ? config.notifications : {})};
     }
 
-    notify(context:PushContext, clientId?:string, splitKey?:string):void {
-        let clients = this.clientRegistry.clientsFor(context),
-            entry = this.projectionRegistry.getEntry(context.viewmodelId, context.area),
-            parametersKey = entry.data.parametersKey,
-            isSplit = entry.data.projection.split;
+    notify(context: PushContext, clientId?: string, splitKey?: string): void {
         if (clientId) {
-            if (isSplit) {
-                this.emitToClient(clientId, context, parametersKey(context.parameters));
-            } else {
-                this.emitToClient(clientId, context);
-            }
+            this.emitToSingleClient(clientId, context, splitKey);
         } else {
-            _.forEach<ClientEntry>(clients, client => {
-                if (!isSplit || (isSplit && parametersKey(client.parameters) === splitKey))
-                    this.emitToClient(client.id, context, splitKey || "");
-            });
+            this.eventEmitter.broadcastTo(
+                ContextOperations.getRoom(context, splitKey),
+                ContextOperations.getChannel(context),
+                this.buildNotification(context, splitKey)
+            );
         }
     }
 
-    private emitToClient(clientId:string, context:PushContext, splitKey:string = ""):void {
-        let endpoint = ContextOperations.getEndpoint(context),
-            url = `${this.config.protocol}://${this.config.host}`;
+    private buildNotification(context: PushContext, splitKey: string): PushNotification {
+        let url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
             url += `:${this.config.port}`;
         if (this.config.path)
             url += this.config.path;
-        url += `${endpoint}/${splitKey}`;
-        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), {url: url});
+        else
+            url += "/projections";
+        url += `/${context.area}/${context.projectionName}`.toLowerCase();
+        if (splitKey)
+            url += `/${splitKey}`;
+        return {
+            url: url
+        };
+    }
+
+    private emitToSingleClient(clientId: string, context: PushContext, splitKey: string = ""): void {
+        let notification = this.buildNotification(context, splitKey);
+        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 }
 

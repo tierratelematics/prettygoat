@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import * as TypeMoq from "typemoq";
 import expect = require("expect.js");
@@ -8,7 +7,7 @@ import {MockMatcher} from "./fixtures/MockMatcher";
 
 describe("Given a MemoizingMatcher", () => {
     let subject:IMatcher,
-        baseMatcher: TypeMoq.Mock<IMatcher>,
+        baseMatcher: TypeMoq.IMock<IMatcher>,
         testFn = (s, e) => s;
 
     describe("when matching an event", () => {

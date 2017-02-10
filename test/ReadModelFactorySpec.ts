@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import ReadModelFactory from "../scripts/streams/ReadModelFactory";

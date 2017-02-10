@@ -1,6 +1,5 @@
-import "bluebird";
 import "reflect-metadata";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
@@ -18,12 +17,13 @@ import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import * as lolex from "lolex";
+import * as _ from "lodash";
 
 describe("Given a projection runner", () => {
-    let stream:TypeMoq.Mock<IStreamFactory>;
-    let readModel:TypeMoq.Mock<IReadModelFactory>;
+    let stream:TypeMoq.IMock<IStreamFactory>;
+    let readModel:TypeMoq.IMock<IReadModelFactory>;
     let subject:IProjectionRunner<number>;
-    let matcher:TypeMoq.Mock<IMatcher>;
+    let matcher:TypeMoq.IMock<IMatcher>;
     let notifications:number[];
     let stopped:boolean;
     let failed:boolean;
@@ -76,7 +76,7 @@ describe("Given a projection runner", () => {
     });
 
     context("when it's a split projection", () => {
-        let splitMatcher:TypeMoq.Mock<IMatcher>;
+        let splitMatcher:TypeMoq.IMock<IMatcher>;
         let readModelData:Subject<Event>;
         beforeEach(() => {
             readModelData = new Subject<Event>();
@@ -120,6 +120,10 @@ describe("Given a projection runner", () => {
                 expect(subject.state["1"]).to.be(undefined);
                 expect(subject.state["2"]).to.be(undefined);
                 expect(subject.state["3"]).to.be(392);
+            });
+
+            it("should also remove the key itself", () => {
+                expect(_.has(subject.state, "2")).to.be(false);
             });
 
             it("should not receive readmodels anymore", () => {

@@ -3,13 +3,11 @@ import {Subject, IObserver} from "rx";
 import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../../scripts/Dictionary";
-import {ProjectionRunnerStatus} from "../../scripts/projections/ProjectionRunnerStatus";
+import Dictionary from "../../scripts/util/Dictionary";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
     state:T;
-    stats:ProjectionStats;
-    status:ProjectionRunnerStatus;
+    stats = new ProjectionStats();
     private subject:Subject<Event>;
 
     constructor(data?:Subject<Event>) {
@@ -38,10 +36,5 @@ class MockProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
 }
-
-function isObserver<T>(observerOrOnNext:(Rx.IObserver<Event>) | ((value:Event) => void)):observerOrOnNext is IObserver<Event> {
-    return (<IObserver<Event>>observerOrOnNext).onNext !== undefined;
-}
-
 
 export default MockProjectionRunner

@@ -1,3 +1,13 @@
+#1.0.0-rc1
+
+*breaking* projections exposed under /projections
+inversify 3.1.0
+complete rewrite of routing stack
+use prepared statements
+optimize snapshots save
+use socket.io rooms
+many other little things
+
 #0.20.0
 
 check for projections with same name

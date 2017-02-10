@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
@@ -8,7 +7,7 @@ import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectio
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 

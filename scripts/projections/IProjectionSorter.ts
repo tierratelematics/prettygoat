@@ -1,7 +1,9 @@
 import {IProjection} from "./IProjection";
 
 interface IProjectionSorter {
-    sort(projection?: IProjection<any>):string[]
+    sort(): string[];
+    dependencies(projection: IProjection<any>): string[];
+    dependents(projection: IProjection<any>): string[];
 }
 
 export default IProjectionSorter

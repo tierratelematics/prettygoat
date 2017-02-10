@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
@@ -12,18 +11,18 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 import {Matcher} from "../scripts/matcher/Matcher";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../scripts/Dictionary";
+import Dictionary from "../scripts/util/Dictionary";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("Split projection, given a projection with a split definition", () => {
 
     let subject:SplitProjectionRunner<number>;
-    let stream:TypeMoq.Mock<IStreamFactory>;
+    let stream:TypeMoq.IMock<IStreamFactory>;
     let notifications:Event[];
     let stopped:boolean;
     let failed:boolean;
     let subscription:IDisposable;
-    let readModelFactory:TypeMoq.Mock<IReadModelFactory>;
+    let readModelFactory:TypeMoq.IMock<IReadModelFactory>;
     let streamData:Subject<Event>;
     let readModelData:Subject<Event>;
     let projection = new SplitProjectionDefinition().define();

@@ -1,28 +1,30 @@
 import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import IServiceLocator from "../bootstrap/IServiceLocator";
-import {interfaces as expressInterfaces, TYPE} from 'inversify-express-utils';
-import SizeProjectionDefinition from "./SizeProjectionDefinition";
-import SnapshotManagerController from "./SnapshotManagerController";
-import ProjectionsManagerController from "./ProjectionsManagerController";
+import IServiceLocator from "../ioc/IServiceLocator";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
+import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
+import AuthMiddleware from "./AuthMiddleware";
+import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
+import AuthorizationHandler from "./AuthorizationHandler";
+import SystemProjection from "./SystemProjection";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
-import AuthorizationController from "./AuthorizationController";
-import {ISubject,Subject} from "rx";
+import {ProjectionStopHandler, ProjectionStatsHandler} from "./ProjectionsHandlers";
 
 class APIModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<IAuthorizationStrategy>("IAuthorizationStrategy").to(ApiKeyAuthorizationStrategy).inSingletonScope();
-        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(ProjectionsManagerController).whenTargetNamed('ProjectionsManagerController');
-        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(SnapshotManagerController).whenTargetNamed('SnapshotManagerController');
-        container.bind<expressInterfaces.Controller>(TYPE.Controller).to(AuthorizationController).whenTargetNamed('AuthorizationController');
-        container.bind<ISubject<void>>("ProjectionStatuses").toConstantValue(new Subject<void>());
+        container.bind<IMiddleware>("IMiddleware").to(AuthMiddleware).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStopHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(SnapshotSaveHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(SnapshotDeleteHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(AuthorizationHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStatsHandler).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
-        registry.add(SizeProjectionDefinition).forArea("__diagnostic");
+        registry.add(SystemProjection).forArea("__diagnostic");
     }
 }
 

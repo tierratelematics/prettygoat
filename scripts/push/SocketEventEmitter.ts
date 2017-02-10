@@ -1,26 +1,30 @@
-import IEventEmitter from "./IEventEmitter";
 import {injectable, inject} from "inversify";
-import SocketFactory from "./SocketFactory";
+import {IEventEmitter, ISocketFactory} from "./IPushComponents";
+import ISocketConfig from "../configs/ISocketConfig";
 
 @injectable()
 class SocketEventEmitter implements IEventEmitter {
 
-    private socket:SocketIO.Server = null;
+    private socket: SocketIO.Server = null;
 
-    constructor(@inject("SocketFactory") private socketFactory:SocketFactory) {
+    constructor(@inject("ISocketConfig") private config: ISocketConfig,
+                @inject("ISocketFactory") private factory: ISocketFactory) {
     }
 
-    emitTo(clientId:string, event:string, parameters:any):void {
-        this.initialize();
-        this.socket.to(clientId).emit(event, parameters);
+    private initializeSocket() {
+        if (!this.socket)
+            this.socket = this.factory.socketForPath(this.config.path);
     }
 
-    private initialize(){
-        if(!this.socket){
-            this.socket = this.socketFactory.socketForPath();
-        }
+    broadcastTo(room: string, event: string, data: any) {
+        this.initializeSocket();
+        this.socket.to(room).emit(event, data);
     }
 
+    emitTo(clientId: string, event: string, data: any): void {
+        this.initializeSocket();
+        this.socket.to(clientId).emit(event, data);
+    }
 }
 
 export default SocketEventEmitter

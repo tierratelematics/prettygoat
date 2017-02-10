@@ -1,6 +1,5 @@
-import "bluebird";
 import "reflect-metadata";
-import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
@@ -16,25 +15,25 @@ import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
-import MockProjectionRunnerDefinition from "./fixtures/definitions/MockProjectionRunnerDefinition";
 import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import * as lolex from "lolex";
+import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
 describe("Given a ProjectionRunner", () => {
-    let stream: TypeMoq.Mock<IStreamFactory>;
+    let stream: TypeMoq.IMock<IStreamFactory>;
     let subject: ProjectionRunner<number>;
-    let matcher: TypeMoq.Mock<IMatcher>;
+    let matcher: TypeMoq.IMock<IMatcher>;
     let notifications: number[];
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: TypeMoq.Mock<IReadModelFactory>;
+    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
     let projection:IProjection<number>;
     let clock:lolex.Clock;
 
     beforeEach(() => {
         clock = lolex.install();
-        projection = new MockProjectionRunnerDefinition().define();
+        projection = new MockProjectionDefinition().define();
         notifications = [];
         stopped = false;
         failed = false;
@@ -232,6 +231,7 @@ describe("Given a ProjectionRunner", () => {
             readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
+            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Rx.helpers.identity);
             stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
 
             subject.run();
@@ -269,64 +269,4 @@ describe("Given a ProjectionRunner", () => {
         });
 
     });
-
-    context("when pausing a projection", () => {
-        let streamSubject = new Subject<any>();
-        beforeEach(() => {
-            readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
-
-            subject.run();
-            streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});
-            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(501)});
-            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(502)});
-            subject.pause();
-            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(503)});
-        });
-        it("should not process events anymore", () => {
-            expect(notifications).to.eql([
-                42,
-                42 + 1,
-                42 + 1 + 2
-            ]);
-        });
-
-        context("and the projection is resumed", () => {
-            it("should start from the last state", () => {
-                subject.resume();
-                streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(504)});
-                expect(notifications).to.eql([
-                    42,
-                    42 + 1,
-                    42 + 1 + 2,
-                    42 + 1 + 2 + 3,
-                    42 + 1 + 2 + +3 + 4
-                ]);
-                expect(subject.state).to.be(42 + 1 + 2 + 3 + 4);
-            });
-        });
-
-        context("and the projection is not runned", () => {
-            it("should throw an error", () => {
-                expect(() => subject.pause()).to.throwError();
-            });
-        });
-
-    });
-
-    context("when resuming a projection", () => {
-        beforeEach( () => {
-            subject.resume();
-        });
-
-        context("and the projection is not paused", () => {
-            it("should throw an error", () => {
-                expect(() => subject.resume()).to.throwError();
-            });
-        });
-
-    });
-
 });

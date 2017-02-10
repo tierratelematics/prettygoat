@@ -1,4 +1,3 @@
-import "bluebird";
 import "reflect-metadata";
 import { Matcher } from "../scripts/matcher/Matcher";
 import { SpecialNames } from "../scripts/matcher/SpecialNames";

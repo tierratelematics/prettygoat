@@ -1,8 +1,8 @@
 interface ICassandraConfig {
     hosts:string[];
     keyspace:string;
-    readTimeout?: number;
     fetchSize?:number;
+    readDelay?:number;
 }
 
 export default ICassandraConfig
