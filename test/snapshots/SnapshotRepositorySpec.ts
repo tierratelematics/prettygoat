@@ -103,11 +103,12 @@ describe("Snapshot repository, given all the streams", () => {
 
     context("when a snapshot needs to be saved", () => {
         beforeEach(() => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.empty());
+            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.just(null));
         });
+
         context("and the associated projection is not a split", () => {
             beforeEach(() => {
-                registry.setup(r => r.getEntry("test")).returns(a => {
+                registry.setup(r => r.getEntry("test")).returns(() => {
                     return {
                         area: null,
                         data: new RegistryEntry(new MockProjectionDefinition().define(), null)
@@ -116,22 +117,30 @@ describe("Snapshot repository, given all the streams", () => {
             });
             it("should save the snapshot correctly", () => {
                 let snapshot = new Snapshot({a: 25}, new Date(500));
-                subject.saveSnapshot("test", snapshot);
+                subject.saveSnapshot("test", snapshot).subscribe(() => {});
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
                     `'', '${snapshot.lastEvent}', textAsBlob('{"a":25}'))`), TypeMoq.Times.once());
             });
             it("should escape single quotes correctly", () => {
                 let snapshot = new Snapshot({a: "''"}, new Date(500));
-                subject.saveSnapshot("test", snapshot);
+                subject.saveSnapshot("test", snapshot).subscribe(() => {});
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
                     `'', '${snapshot.lastEvent}', textAsBlob('{"a":"''''"}'))`), TypeMoq.Times.once());
             });
             it("should handle correctly a snapshot with an undefined value", () => {
                 let snapshotUndefined = new Snapshot(undefined, new Date(500));
-                subject.saveSnapshot("test", snapshotUndefined);
+                subject.saveSnapshot("test", snapshotUndefined).subscribe(() => {});
 
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
                     `'', '${snapshotUndefined.lastEvent}', textAsBlob('null'))`), TypeMoq.Times.once());
+            });
+
+            it("should delete the current snapshot before saving the new one", () => {
+                let snapshot = new Snapshot({a: 25}, new Date(500));
+                subject.saveSnapshot("test", snapshot).subscribe(() => {});
+                cassandraClient.verify(c => c.execute("delete from projections_snapshots where streamid = 'test'"), TypeMoq.Times.once());
+                cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('test',` +
+                    `'', '${snapshot.lastEvent}', textAsBlob('{"a":25}'))`), TypeMoq.Times.once());
             });
         });
 
@@ -147,7 +156,7 @@ describe("Snapshot repository, given all the streams", () => {
             it("should save every entry in a different row", () => {
                 let snapshot = new Snapshot({a: 25, b: 30}, new Date(500));
                 let streamId = "split";
-                subject.saveSnapshot(streamId, snapshot);
+                subject.saveSnapshot(streamId, snapshot).subscribe(() => {});
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('split',` +
                     `'a', '${snapshot.lastEvent}', textAsBlob('${JSON.stringify(25)}'))`), TypeMoq.Times.once());
                 cassandraClient.verify(c => c.execute(`insert into projections_snapshots (streamid, split, lastevent, memento) values ('split',` +
@@ -158,7 +167,7 @@ describe("Snapshot repository, given all the streams", () => {
 
     context("when a snapshot needs to be deleted", () => {
         beforeEach(() => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.empty());
+            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.just(null));
         });
         it("should remove it correctly", () => {
             subject.deleteSnapshot("test");

@@ -52,18 +52,22 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
         return text && text !== 'undefined' ? text.replace(/''/g, "'") : null;
     }
 
-    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): void {
-        let queries = [];
-        let entry = this.registry.getEntry(streamId);
-        if (entry.data.projection.split)
-            queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => "insert into projections_snapshots " +
-            `(streamid, split, lastevent, memento) values ('${streamId}',` +
-            `'${split}', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(memento))}'))`);
-        else {
-            queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',` +
-            `'', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(snapshot.memento))}'))`]
-        }
-        _.map(queries, query => this.client.execute(query).subscribe(() => null));
+    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): Observable<void> {
+        return this.deleteSnapshot(streamId)
+            .flatMap(() => {
+                let queries = [];
+                let entry = this.registry.getEntry(streamId);
+                if (entry.data.projection.split) {
+                    queries = _.map(<Dictionary<any>>snapshot.memento, (memento, split) => "insert into projections_snapshots " +
+                    `(streamid, split, lastevent, memento) values ('${streamId}',` +
+                    `'${split}', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(memento))}'))`);
+                } else {
+                    queries = [`insert into projections_snapshots (streamid, split, lastevent, memento) values ('${streamId}',` +
+                    `'', '${snapshot.lastEvent}', textAsBlob('${this.escapeQuotes(JSON.stringify(snapshot.memento))}'))`]
+                }
+                return Observable.from(queries);
+            })
+            .flatMap(query => this.client.execute(query));
     }
 
     private escapeQuotes(text: string): string {

@@ -4,11 +4,11 @@ import Dictionary from "../../scripts/util/Dictionary";
 
 class MockSnapshotRepository implements ISnapshotRepository {
 
-    initialize():Rx.Observable<void> {
+    initialize(): Rx.Observable<void> {
         return Observable.just(null);
     }
 
-    getSnapshots():Observable<Dictionary<Snapshot<any>>> {
+    getSnapshots(): Observable<Dictionary<Snapshot<any>>> {
         return undefined;
     }
 
@@ -16,10 +16,10 @@ class MockSnapshotRepository implements ISnapshotRepository {
         return undefined;
     }
 
-    saveSnapshot<T>(streamId:string, snapshot:Snapshot<T>):void {
+    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): Observable<void> {
     }
 
-    deleteSnapshot(streamId:string): Observable<void> {
+    deleteSnapshot(streamId: string): Observable<void> {
         return undefined;
     }
 

@@ -54,8 +54,9 @@ class ProjectionEngine implements IProjectionEngine {
             .do(state => {
                 let snapshotStrategy = projection.snapshotStrategy;
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp));
-                    this.logger.info(`Saving snapshot for ${state.type} at time ${state.timestamp.toISOString()}`);
+                    this.snapshotRepository.saveSnapshot(state.type, new Snapshot(runner.state, state.timestamp)).subscribe(() => {
+                        this.logger.info(`Snapshot saved for ${state.type} at time ${state.timestamp.toISOString()}`);
+                    });
                 }
             })
             .sample(200);
