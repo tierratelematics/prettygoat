@@ -25,7 +25,8 @@ class CassandraClient implements ICassandraClient {
     }
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
-        let resultPage = null;
+        let resultPage = null,
+            event = query[1].event;
         let subscription = completions
             .filter(completion => completion === event)
             .filter(completion => resultPage && resultPage.nextPage)
@@ -40,7 +41,7 @@ class CassandraClient implements ICassandraClient {
                         observer.onNext({
                             event: JSON.stringify({
                                 type: ReservedEvents.FETCH_EVENTS,
-                                payload: query[1].event
+                                payload: event
                             }),
                             timestamp: {
                                 getDate: () => null
