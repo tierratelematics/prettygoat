@@ -1,6 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import * as Rx from "rx";
+import {helpers, Subject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -32,16 +32,16 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.stats.running = true;
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
-        let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<string>();
+        let combinedStream = new Subject<Event>();
+        let completions = new Subject<string>();
 
         this.subscription = combinedStream.subscribe(event => {
             try {
                 let splitFn = this.splitMatcher.match(event.type),
                     splitKey = splitFn(event.payload, event),
                     matchFn = this.matcher.match(event.type);
-                if (matchFn !== Rx.helpers.identity) {
-                    if (splitFn !== Rx.helpers.identity) {
+                if (matchFn !== helpers.identity) {
+                    if (splitFn !== helpers.identity) {
                         event.splitKey = splitKey;
                         let childState = this.state[splitKey];
                         if (_.isUndefined(childState))
@@ -76,7 +76,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         this.state[splitKey] = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
         _.forEach(this.readModelFactory.asList(), readModel => {
             let matchFn = this.matcher.match(readModel.type);
-            if (matchFn !== Rx.helpers.identity) {
+            if (matchFn !== helpers.identity) {
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
                 this.notifyStateChange(event.timestamp, splitKey);
             }

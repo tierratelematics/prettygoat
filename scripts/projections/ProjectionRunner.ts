@@ -1,10 +1,9 @@
-import {Subject} from "rx";
+import {Subject, helpers, IDisposable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
-import * as Rx from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
@@ -20,7 +19,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     stats = new ProjectionStats();
     protected streamId: string;
     protected subject: Subject<Event>;
-    protected subscription: Rx.IDisposable;
+    protected subscription: IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
@@ -45,13 +44,13 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
-        let combinedStream = new Rx.Subject<Event>();
-        let completions = new Rx.Subject<string>();
+        let combinedStream = new Subject<Event>();
+        let completions = new Subject<string>();
 
         this.subscription = combinedStream.subscribe(event => {
             try {
                 let matchFunction = this.matcher.match(event.type);
-                if (matchFunction !== Rx.helpers.identity) {
+                if (matchFunction !== helpers.identity) {
                     let newState = matchFunction(this.state, event.payload, event);
                     if (newState instanceof SpecialState)
                         this.state = (<SpecialState<T>>newState).state;
