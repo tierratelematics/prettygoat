@@ -1,3 +1,7 @@
+#1.0.0-rc2
+
+fix notifications sampling for split projections
+
 #1.0.0-rc1
 
 * *breaking* projections exposed under /projections
