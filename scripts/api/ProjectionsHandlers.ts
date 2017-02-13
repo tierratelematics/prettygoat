@@ -95,6 +95,7 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
             let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
             let data: any = {
+                name: request.params.projectionName,
                 size: size,
                 humanizedSize: humanize.filesize(size),
                 events: runner.stats.events,
