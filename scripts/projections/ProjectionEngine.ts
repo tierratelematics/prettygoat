@@ -69,8 +69,12 @@ class ProjectionEngine implements IProjectionEngine {
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
                     this.publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
                 }
-            })
-            .sample(200);
+            });
+
+        if (!projection.split)
+            sequence = sequence.sample(200);
+        else
+            sequence = sequence.groupBy(state => state.splitKey).flatMap(states => states.sample(200));
 
         let subscription = sequence.subscribe(state => {
             this.pushNotifier.notify(context, null, state.splitKey);
