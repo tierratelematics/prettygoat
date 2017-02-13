@@ -12,7 +12,6 @@ import IProjectionEngine from "../projections/IProjectionEngine";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import PushContext from "../push/PushContext";
-import {ISubject} from "rx";
 
 @injectable()
 abstract class BaseProjectionHandler implements IRequestHandler {
@@ -29,8 +28,7 @@ abstract class BaseProjectionHandler implements IRequestHandler {
 @Route("POST", "/api/projections/stop/:projectionName")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
-    constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
-                @inject("ProjectionStatus") private projectionStatus: ISubject<void>) {
+    constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
         super();
     }
 
@@ -38,7 +36,6 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
         try {
             let runner = this.holders[request.params.projectionName];
             runner.stop();
-            this.projectionStatus.onNext(null);
             response.status(204);
             response.send();
         } catch (error) {
@@ -55,8 +52,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
                 @inject("IProjectionEngine") private projectionEngine: IProjectionEngine,
-                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
-                @inject("ProjectionStatus") private projectionStatus: ISubject<void>) {
+                @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository) {
         super();
     }
 
@@ -71,7 +67,6 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
 
             this.snapshotRepository.deleteSnapshot(projectionName).subscribe(() => {
                 this.projectionEngine.run(entry.data.projection, new PushContext(entry.area, entry.data.exposedName));
-                this.projectionStatus.onNext(null);
                 response.status(204);
                 response.send();
             }, () => this.writeError(response));

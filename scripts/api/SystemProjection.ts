@@ -8,7 +8,6 @@ import * as _ from "lodash";
 import TickScheduler from "../ticks/TickScheduler";
 import IProjectionSorter from "../projections/IProjectionSorter";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {ISubject} from "rx";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 
@@ -17,16 +16,10 @@ class SystemProjection implements IProjectionDefinition<any> {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
                 @inject("IProjectionSorter") private projectionSorter: IProjectionSorter,
-                @inject("IProjectionRegistry") private registry: IProjectionRegistry,
-                @inject("ProjectionStatus") private projectionStatus: ISubject<void>) {
+                @inject("IProjectionRegistry") private registry: IProjectionRegistry) {
     }
 
     define(tickScheduler: TickScheduler): IProjection<any> {
-
-        this.projectionStatus.subscribe(t => {
-            tickScheduler.schedule(1);
-        });
-
         let eventsCounter = 0;
         return {
             name: "__diagnostic:System",
@@ -39,7 +32,7 @@ class SystemProjection implements IProjectionDefinition<any> {
                 },
                 $any: (state) => {
                     eventsCounter++;
-                    if (eventsCounter % 200 === 0 || state.type=='Tick')
+                    if (eventsCounter % 200 === 0)
                         return {
                             events: eventsCounter,
                             projections: this.getProjectionsList()
