@@ -9,7 +9,7 @@ import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
 import AuthorizationHandler from "./AuthorizationHandler";
 import SystemProjection from "./SystemProjection";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
-import {ProjectionStopHandler, ProjectionStatsHandler} from "./ProjectionsHandlers";
+import {ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler} from "./ProjectionsHandlers";
 
 class APIModule implements IModule {
 
@@ -17,6 +17,7 @@ class APIModule implements IModule {
         container.bind<IAuthorizationStrategy>("IAuthorizationStrategy").to(ApiKeyAuthorizationStrategy).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(AuthMiddleware).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStopHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionRestartHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotSaveHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotDeleteHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(AuthorizationHandler).inSingletonScope();
