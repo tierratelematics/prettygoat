@@ -19,6 +19,9 @@ describe("ClientRegistry, given a client", () => {
         client = TypeMoq.Mock.ofType(MockSocketClient);
         registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
         subject = new ClientRegistry(registry.object);
+        registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
+            return {area: "Admin", data: new RegistryEntry(null, null, null)};
+        });
     });
 
     context("when push notifications are needed for a viewmodel", () => {
@@ -29,24 +32,34 @@ describe("ClientRegistry, given a client", () => {
         });
 
         context("and custom parameters are passed during the registration", () => {
-            beforeEach(() => {
-                registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
-                    return {area: "Admin", data: new RegistryEntry(null, null, (p) => p.id)};
+            context("and there's a paremeters key defined", () => {
+                beforeEach(() => {
+                    registry.reset();
+                    registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
+                        return {area: "Admin", data: new RegistryEntry(null, null, (p) => p.id)};
+                    });
+                });
+                it("should subscribe that client using also those parameters", () => {
+                    let context = new PushContext("Admin", "Foo", {id: 25});
+                    subject.add(client.object, context);
+                    client.verify(c => c.join("/admin/foo/25"), TypeMoq.Times.once());
                 });
             });
-            it("should subscribe that client using also those parameters", () => {
-                let context = new PushContext("Admin", "Foo", {id: 25});
-                subject.add(client.object, context);
-                client.verify(c => c.join("/admin/foo/25"), TypeMoq.Times.once());
+            context("but there's no parameters key defined", () => {
+                it("should subscribe to the channel without parameters", () => {
+                    let context = new PushContext("Admin", "Foo", {id: 25});
+                    subject.add(client.object, context);
+                    client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+                });
             });
         });
 
         context("when empty parameters are passed", () => {
-           it("should register to that client with no parameters", () => {
-               let context = new PushContext("Admin", "Foo", {});
-               subject.add(client.object, context);
-               client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
-           });
+            it("should register to that client with no parameters", () => {
+                let context = new PushContext("Admin", "Foo", {});
+                subject.add(client.object, context);
+                client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+            });
         });
     });
 

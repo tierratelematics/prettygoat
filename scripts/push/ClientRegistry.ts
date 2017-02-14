@@ -12,23 +12,19 @@ class ClientRegistry implements IClientRegistry {
     }
 
     add(client: ISocketClient, context: PushContext) {
-        if (!this.parametersDefined(context.parameters)) {
+        let entry = this.registry.getEntry(context.projectionName, context.area);
+        if (!entry.data.parametersKey) {
             client.join(ContextOperations.getRoom(context));
         } else {
-            let entry = this.registry.getEntry(context.projectionName, context.area);
             client.join(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
         }
     }
 
-    private parametersDefined(parameters:any):boolean {
-        return parameters && !isEmpty(parameters);
-    }
-
     remove(client: ISocketClient, context: PushContext) {
-        if (!this.parametersDefined(context.parameters)) {
+        let entry = this.registry.getEntry(context.projectionName, context.area);
+        if (!entry.data.parametersKey) {
             client.leave(ContextOperations.getRoom(context));
         } else {
-            let entry = this.registry.getEntry(context.projectionName, context.area);
             client.leave(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
         }
     }
