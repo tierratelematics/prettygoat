@@ -55,7 +55,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                     this.updateStats(event);
                 }
                 if (event.type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(event.payload);
+                    completions.onNext(event.payload.event);
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);

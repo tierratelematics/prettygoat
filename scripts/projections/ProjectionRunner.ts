@@ -61,7 +61,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.updateStats(event);
                 }
                 if (event.type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(event.payload);
+                    completions.onNext(event.payload.event);
             } catch (error) {
                 this.isFailed = true;
                 this.subject.onError(error);
