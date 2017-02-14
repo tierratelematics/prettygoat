@@ -30,8 +30,9 @@ class SystemProjection implements IProjectionDefinition<any> {
                         projections: this.getProjectionsList()
                     };
                 },
-                $any: (state) => {
-                    eventsCounter++;
+                $any: (state, payload, event) => {
+                    if (event.timestamp)
+                        eventsCounter++;
                     if (eventsCounter % 200 === 0)
                         return {
                             events: eventsCounter,
