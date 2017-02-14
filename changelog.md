@@ -1,8 +1,8 @@
 #1.0.0-rc2
 
-fix notifications sampling for split projections
-projection restart
-handle query strings on clients subscribe
+* fix notifications sampling for split projections
+* projection restart
+* handle query strings on clients subscribe
 
 #1.0.0-rc1
 
