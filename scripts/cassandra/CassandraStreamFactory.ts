@@ -1,6 +1,5 @@
 import {IStreamFactory} from "../streams/IStreamFactory";
 import {injectable, inject} from "inversify";
-import ICassandraDeserializer from "./ICassandraDeserializer";
 import TimePartitioner from "./TimePartitioner";
 import {Event} from "../streams/Event";
 import {IWhen} from "../projections/IProjection";
@@ -12,13 +11,14 @@ import {mergeSort} from "../projections/ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import * as moment from "moment";
+import IEventDeserializer from "../streams/IEventDeserializer";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
     constructor(@inject("ICassandraClient") private client: ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner: TimePartitioner,
-                @inject("ICassandraDeserializer") private deserializer: ICassandraDeserializer,
+                @inject("IEventDeserializer") private deserializer: IEventDeserializer,
                 @inject("IEventsFilter") private eventsFilter: IEventsFilter,
                 @inject("IDateRetriever") private dateRetriever: IDateRetriever,
                 @inject("ICassandraConfig") private config: ICassandraConfig) {

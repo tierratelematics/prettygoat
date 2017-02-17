@@ -40,8 +40,10 @@ class CassandraClient implements ICassandraClient {
                         resultPage = result;
                         observer.onNext({
                             event: JSON.stringify({
-                                type: ReservedEvents.FETCH_EVENTS,
-                                payload: event
+                                payload: {
+                                    $manifest: ReservedEvents.FETCH_EVENTS,
+                                    event: event
+                                }
                             }),
                             timestamp: {
                                 getDate: () => null

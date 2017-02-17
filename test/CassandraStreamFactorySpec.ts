@@ -4,13 +4,13 @@ import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
 import MockEventsFilter from "./fixtures/MockEventsFilter";
 import TimePartitioner from "../scripts/cassandra/TimePartitioner";
-import MockCassandraDeserializer from "./fixtures/cassandra/MockCassandraDeserializer";
 import {ICassandraClient, IQuery} from "../scripts/cassandra/ICassandraClient";
 import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
 import IDateRetriever from "../scripts/util/IDateRetriever";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
+import MockEventDeserializer from "./fixtures/MockEventDeserializer";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {
@@ -27,7 +27,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
         let eventsFilter = TypeMoq.Mock.ofType(MockEventsFilter);
         timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
-        let cassandraDeserializer = new MockCassandraDeserializer();
+        let cassandraDeserializer = new MockEventDeserializer();
         client = TypeMoq.Mock.ofType(MockCassandraClient);
         client.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select distinct ser_manifest from event_types", null]))).returns(a => Rx.Observable.just({
             rows: [

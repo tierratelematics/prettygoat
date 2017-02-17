@@ -1,32 +1,19 @@
 import {injectable} from "inversify";
-import ICassandraDeserializer from "./ICassandraDeserializer";
 import {Event} from "../streams/Event";
+import IEventDeserializer from "../streams/IEventDeserializer";
 
 @injectable()
-class CassandraDeserializer implements ICassandraDeserializer {
+class CassandraDeserializer implements IEventDeserializer {
 
-    toEvent(row):Event {
+    toEvent(row): Event {
         let parsedEvent = JSON.parse(row.event);
 
-        if (this.isNewEventType(parsedEvent)) {
-            return {
-                type: parsedEvent.payload.$manifest,
-                payload: parsedEvent.payload,
-                timestamp: row.timestamp.getDate(),
-                splitKey: null
-            };
-        }
-
         return {
-            type: parsedEvent.type,
+            type: parsedEvent.payload.$manifest,
             payload: parsedEvent.payload,
             timestamp: row.timestamp.getDate(),
             splitKey: null
         };
-    }
-
-    private isNewEventType(event):boolean {
-        return (event.payload && event.payload.$manifest);
     }
 }
 

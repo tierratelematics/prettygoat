@@ -10,7 +10,6 @@ import IObjectContainer from "../ioc/IObjectContainer";
 import ObjectContainer from "../ioc/ObjectContainer";
 import CassandraStreamFactory from "../cassandra/CassandraStreamFactory";
 import CassandraDeserializer from "../cassandra/CassandraDeserializer";
-import ICassandraDeserializer from "../cassandra/ICassandraDeserializer";
 import {IStreamFactory} from "../streams/IStreamFactory";
 import PollToPushStreamFactory from "../streams/PollToPushStreamFactory";
 import ReadModelFactory from "../streams/ReadModelFactory";
@@ -57,6 +56,7 @@ import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
 import MiddlewareTransformer from "../web/MiddlewareTransformer";
 import DebouncePublisher from "../util/DebouncePublisher";
 import IAsyncPublisher from "../util/IAsyncPublisher";
+import IEventDeserializer from "../streams/IEventDeserializer";
 
 class PrettyGoatModule implements IModule {
 
@@ -72,7 +72,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         container.bind<IStreamFactory>("StreamFactory").to(CassandraStreamFactory).inSingletonScope().whenInjectedInto(PollToPushStreamFactory);
-        container.bind<ICassandraDeserializer>("ICassandraDeserializer").to(CassandraDeserializer).inSingletonScope();
+        container.bind<IEventDeserializer>("IEventDeserializer").to(CassandraDeserializer).inSingletonScope();
         container.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         container.bind<ISocketFactory>("ISocketFactory").to(SocketFactory).inSingletonScope();

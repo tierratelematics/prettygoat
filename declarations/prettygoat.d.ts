@@ -187,7 +187,7 @@ export class RegistryEntry<T> {
 
 export function Projection(name: string);
 
-export interface ICassandraDeserializer {
+export interface IEventDeserializer {
     toEvent(row): Event;
 }
 
