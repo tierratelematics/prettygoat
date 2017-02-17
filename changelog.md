@@ -1,3 +1,8 @@
+#1.0.0-rc3
+
+* remove old cassandra type parser
+* rename CassandraDeserializer to EventDeserializer
+
 #1.0.0-rc2
 
 * fix notifications sampling for split projections
