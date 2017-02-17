@@ -2,7 +2,7 @@ import {ICassandraClient, IQuery} from "./ICassandraClient";
 import {Observable, Disposable} from "rx";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
-import {Client} from "cassandra-driver";
+import {Client, auth} from "cassandra-driver";
 import ReservedEvents from "../streams/ReservedEvents";
 
 @injectable()
@@ -12,9 +12,14 @@ class CassandraClient implements ICassandraClient {
     private wrappedEachRow: any;
 
     constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
+        let authProvider: auth.AuthProvider;
+        if (config.username && config.password) {
+            authProvider = new auth.PlainTextAuthProvider(config.username, config.password);
+        }
         this.client = new Client({
             contactPoints: config.hosts,
-            keyspace: config.keyspace
+            keyspace: config.keyspace,
+            authProvider: authProvider
         });
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
         this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
