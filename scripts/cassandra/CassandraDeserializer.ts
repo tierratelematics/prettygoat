@@ -1,9 +1,9 @@
 import {injectable} from "inversify";
-import ICassandraDeserializer from "./ICassandraDeserializer";
 import {Event} from "../streams/Event";
+import IEventDeserializer from "../streams/IEventDeserializer";
 
 @injectable()
-class CassandraDeserializer implements ICassandraDeserializer {
+class CassandraDeserializer implements IEventDeserializer {
 
     toEvent(row): Event {
         let parsedEvent = JSON.parse(row.event);
