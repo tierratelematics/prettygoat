@@ -57,6 +57,8 @@ import MiddlewareTransformer from "../web/MiddlewareTransformer";
 import DebouncePublisher from "../util/DebouncePublisher";
 import IAsyncPublisher from "../util/IAsyncPublisher";
 import IEventDeserializer from "../streams/IEventDeserializer";
+import IServerProvider from "../web/IServerProvider";
+import ServerProvider from "../web/ServerProvider";
 
 class PrettyGoatModule implements IModule {
 
@@ -99,6 +101,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
+        container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

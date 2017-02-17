@@ -9,7 +9,6 @@ import IEndpointConfig from "../configs/IEndpointConfig";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import {server, app} from "../web/ExpressApp";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
@@ -19,6 +18,7 @@ import {IReplicationManager} from "./ReplicationManager";
 import PortDiscovery from "../util/PortDiscovery";
 import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
+import IServerProvider from "../web/IServerProvider";
 
 class Engine {
 
@@ -62,7 +62,11 @@ class Engine {
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
             requestParser = this.container.get<IRequestParser>("IRequestParser"),
-            middlewareTransformer = this.container.get<IMiddlewareTransformer>("IMiddlewareTransformer");
+            middlewareTransformer = this.container.get<IMiddlewareTransformer>("IMiddlewareTransformer"),
+            serverProvider = this.container.get<IServerProvider>("IServerProvider");
+
+        let app = serverProvider.provideApplication(),
+            server = serverProvider.provideServer();
 
         _.forEach(this.modules, (module: IModule) => module.register(registry, this.container, overrides));
 

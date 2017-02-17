@@ -1,7 +1,9 @@
 import {interfaces} from "inversify";
 import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
-import {ServerResponse, Server} from "http";
+import {ServerResponse} from "http";
+import {Application} from "express";
+import {Server} from "net";
 
 export class Engine {
     protected container: interfaces.Container;
@@ -440,6 +442,11 @@ export class RouteResolver implements IRouteResolver {
     resolve(request: IRequest): IRouteContext;
 }
 
+export interface IServerProvider {
+    provideServer(): Server;
+    provideApplication(): Application;
+}
+
 export interface ISocketFactory {
     socketForPath(path?: string): SocketIO.Server;
 }
@@ -458,8 +465,6 @@ export interface IProjectionSorter {
 export class PortDiscovery {
     static freePort(initialPort: number, host?: string): Promise<number>;
 }
-
-export var server: any;
 
 export interface IDateRetriever {
     getDate(): Date;
