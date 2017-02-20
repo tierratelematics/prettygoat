@@ -229,16 +229,14 @@ export class CountSnapshotStrategy implements ISnapshotStrategy {
 }
 
 export interface IEndpointConfig {
+    port: number;
+}
+
+export interface INotificationConfig {
+    protocol: string;
     host: string;
     port?: number;
-    protocol: string;
     path?: string;
-    notifications?: {
-        host: string;
-        port?: number;
-        protocol: string;
-        path?: string;
-    }
 }
 
 export interface IApiKeyConfig {
