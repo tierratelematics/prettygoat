@@ -19,9 +19,10 @@ describe("Given a push notifier", () => {
         eventEmitter = TypeMoq.Mock.ofType(MockEventEmitter);
         eventEmitter.setup(e => e.emitTo(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         subject = new PushNotifier(eventEmitter.object, {
+            port: 80
+        }, {
             host: 'test',
             protocol: 'http',
-            port: 80
         });
     });
 
@@ -35,7 +36,7 @@ describe("Given a push notifier", () => {
 
         context("and no port is passed in the config", () => {
             it("should not append the port in the notification url", () => {
-                subject = new PushNotifier(eventEmitter.object, {
+                subject = new PushNotifier(eventEmitter.object, null, {
                     host: 'test',
                     protocol: 'http'
                 });
@@ -48,10 +49,11 @@ describe("Given a push notifier", () => {
 
         context("and a custom path is passed in the config", () => {
             it("should prepend this path to the endpoint", () => {
-                subject = new PushNotifier(eventEmitter.object, {
+                subject = new PushNotifier(eventEmitter.object, null, {
                     host: 'test',
                     protocol: 'http',
-                    path: '/proj'
+                    path: '/proj',
+                    port: null
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
@@ -62,9 +64,10 @@ describe("Given a push notifier", () => {
 
         context("and no custom path path is passed in the config", () => {
             it("should append a default projections path", () => {
-                subject = new PushNotifier(eventEmitter.object, {
+                subject = new PushNotifier(eventEmitter.object, null, {
                     host: 'test',
-                    protocol: 'http'
+                    protocol: 'http',
+                    port: null
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
@@ -73,17 +76,14 @@ describe("Given a push notifier", () => {
             });
         });
 
-        context("and the client has a custom config for notifications", () => {
+        context("and a custom port is used for notifications", () => {
             it("should use these settings to construct the notification url", () => {
                 subject = new PushNotifier(eventEmitter.object, {
-                    host: 'test',
-                    port: 80,
-                    protocol: 'http',
-                    notifications: {
-                        host: "test",
-                        port: null,
-                        protocol: 'https'
-                    }
+                    port: 80
+                }, {
+                    host: "test",
+                    port: null,
+                    protocol: "https"
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({

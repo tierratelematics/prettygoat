@@ -3,15 +3,18 @@ import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
 import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents";
+import INotificationConfig from "../configs/INotificationConfig";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
 
-    private config: IEndpointConfig;
+    private config: INotificationConfig;
 
     constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
-                @inject("IEndpointConfig") config: IEndpointConfig) {
-        this.config = {...config, ...(config ? config.notifications : {})};
+                @inject("IEndpointConfig") endpointConfig: IEndpointConfig,
+                @inject("INotificationConfig") notificationConfig: INotificationConfig) {
+        let defaultPath = {path: "/projections"};
+        this.config = {...endpointConfig, ...defaultPath, ...notificationConfig};
     }
 
     notify(context: PushContext, clientId?: string, splitKey?: string): void {
@@ -30,11 +33,7 @@ class PushNotifier implements IPushNotifier {
         let url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
             url += `:${this.config.port}`;
-        if (this.config.path)
-            url += this.config.path;
-        else
-            url += "/projections";
-        url += `/${context.area}/${context.projectionName}`.toLowerCase();
+        url += `${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase();
         if (splitKey)
             url += `/${splitKey}`;
         return {

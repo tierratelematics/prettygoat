@@ -1,7 +1,9 @@
 import {interfaces} from "inversify";
 import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
-import {ServerResponse, Server} from "http";
+import {ServerResponse} from "http";
+import {Application} from "express";
+import {Server} from "net";
 
 export class Engine {
     protected container: interfaces.Container;
@@ -227,16 +229,14 @@ export class CountSnapshotStrategy implements ISnapshotStrategy {
 }
 
 export interface IEndpointConfig {
+    port: number;
+}
+
+export interface INotificationConfig {
+    protocol: string;
     host: string;
     port?: number;
-    protocol: string;
     path?: string;
-    notifications?: {
-        host: string;
-        port?: number;
-        protocol: string;
-        path?: string;
-    }
 }
 
 export interface IApiKeyConfig {
@@ -247,7 +247,10 @@ export interface IApiKeyConfig {
 export interface ICassandraConfig {
     hosts: string[];
     keyspace: string;
+    username?: string;
+    password?: string;
     fetchSize?: number;
+    readDelay?: number;
 }
 
 export interface IPollToPushConfig {
@@ -437,6 +440,11 @@ export class RouteResolver implements IRouteResolver {
     resolve(request: IRequest): IRouteContext;
 }
 
+export interface IServerProvider {
+    provideServer(): Server;
+    provideApplication(): Application;
+}
+
 export interface ISocketFactory {
     socketForPath(path?: string): SocketIO.Server;
 }
@@ -455,8 +463,6 @@ export interface IProjectionSorter {
 export class PortDiscovery {
     static freePort(initialPort: number, host?: string): Promise<number>;
 }
-
-export var server: any;
 
 export interface IDateRetriever {
     getDate(): Date;
