@@ -1,3 +1,8 @@
+#1.0.0
+
+* split IEndpointConfig to INotificationConfig
+* add cassandra secure credentials
+
 #1.0.0-rc3
 
 * remove old cassandra type parser
