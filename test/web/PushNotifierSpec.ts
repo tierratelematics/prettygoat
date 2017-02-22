@@ -95,7 +95,7 @@ describe("Given a push notifier", () => {
 
     context("when a split projection emits a new state", () => {
         it("should append the split key in the notification url", () => {
-            subject.notify(new PushContext("Admin", "Foo"), null, "7564");
+            subject.notify(new PushContext("Admin", "Foo"), "7564");
             eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", TypeMoq.It.isValue({
                 url: 'http://test:80/projections/admin/foo/7564'
             })), TypeMoq.Times.once());
@@ -104,7 +104,7 @@ describe("Given a push notifier", () => {
 
     context("when a single client needs to be notified", () => {
         it("should send a notification only to that client", () => {
-            subject.notify(new PushContext("Admin", "Foo"), "25f");
+            subject.notify(new PushContext("Admin", "Foo"), null, "25f");
             eventEmitter.verify(e => e.emitTo('25f', 'Admin:Foo', TypeMoq.It.isValue({
                 url: 'http://test:80/projections/admin/foo'
             })), TypeMoq.Times.once());
