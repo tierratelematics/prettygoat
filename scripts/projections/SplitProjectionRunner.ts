@@ -35,13 +35,23 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
-        this.subscription = combinedStream.subscribe(event => {
-            try {
-                let splitFn = this.splitMatcher.match(event.type),
-                    splitKey = splitFn(event.payload, event),
-                    matchFn = this.matcher.match(event.type);
-                if (matchFn !== helpers.identity) {
+        this.subscription = combinedStream
+            .map<[Event, Function, Function]>(event => [
+                event,
+                this.matcher.match(event.type),
+                this.splitMatcher.match(event.type)
+            ])
+            .do(data => {
+                if (data[0].type === ReservedEvents.FETCH_EVENTS)
+                    completions.onNext(data[0].payload.event);
+            })
+            .filter(data => data[1] !== helpers.identity)
+            .do(data => this.updateStats(data[0]))
+            .subscribe(data => {
+                let [event, matchFn, splitFn] = data;
+                try {
                     if (splitFn !== helpers.identity) {
+                        let splitKey = splitFn(event.payload, event);
                         event.splitKey = splitKey;
                         let childState = this.state[splitKey];
                         if (_.isUndefined(childState))
@@ -52,16 +62,12 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                     } else {
                         this.dispatchEventToAll(matchFn, event);
                     }
-                    this.updateStats(event);
+                } catch (error) {
+                    this.isFailed = true;
+                    this.subject.onError(error);
+                    this.stop();
                 }
-                if (event.type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(event.payload.event);
-            } catch (error) {
-                this.isFailed = true;
-                this.subject.onError(error);
-                this.stop();
-            }
-        });
+            });
 
         combineStreams(
             combinedStream,
@@ -84,7 +90,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     private dispatchEventToAll(matchFn: Function, event) {
-        _.mapValues(this.state, (state, key) => {
+        _.forEach(this.state, (state, key) => {
             if (this.state[key]) {
                 this.state[key] = matchFn(state, event.payload, event);
                 this.notifyStateChange(event.timestamp, key);
