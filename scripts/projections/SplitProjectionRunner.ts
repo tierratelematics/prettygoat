@@ -79,7 +79,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     private initSplit(matchFn: Function, event, splitKey: string) {
-        this.state[splitKey] = matchFn(this.matcher.match(SpecialNames.Init)(), event.payload, event);
+        this.state[splitKey] = this.matcher.match(SpecialNames.Init)();
         _.forEach(this.readModelFactory.asList(), readModel => {
             let matchFn = this.matcher.match(readModel.type);
             if (matchFn !== helpers.identity) {
@@ -87,6 +87,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 this.notifyStateChange(event.timestamp, splitKey);
             }
         });
+        this.state[splitKey] = matchFn(this.state[splitKey], event.payload, event);
     }
 
     private dispatchEventToAll(matchFn: Function, event) {
