@@ -17,7 +17,7 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...defaultPath, ...notificationConfig};
     }
 
-    notify(context: PushContext, clientId?: string, splitKey?: string): void {
+    notify(context: PushContext, splitKey?: string, clientId?: string): void {
         if (clientId) {
             this.emitToSingleClient(clientId, context, splitKey);
         } else {

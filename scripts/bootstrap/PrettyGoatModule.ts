@@ -59,6 +59,7 @@ import IAsyncPublisher from "../util/IAsyncPublisher";
 import IEventDeserializer from "../streams/IEventDeserializer";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
+import HealthCheckHandler from "../web/HealthCheckHandler";
 
 class PrettyGoatModule implements IModule {
 
@@ -96,6 +97,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IMiddlewareTransformer>("IMiddlewareTransformer").to(MiddlewareTransformer).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(HealthCheckHandler).inSingletonScope();
         container.bind<IRequestParser>("IRequestParser").to(RequestParser).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(CORSMiddleware).inSingletonScope();
         container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();

@@ -106,7 +106,6 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
             }
             response.send(data);
         } catch (e) {
-            console.error(e);
             response.status(404);
             response.send({error: "Projection not found or already in this state"});
         }

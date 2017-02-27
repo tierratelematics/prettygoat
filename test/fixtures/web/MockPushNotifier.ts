@@ -3,7 +3,7 @@ import PushContext from "../../../scripts/push/PushContext";
 
 class MockPushNotifier implements IPushNotifier {
 
-    notify(context:PushContext, clientId?:string, splitKey?:string):void {
+    notify(context: PushContext, splitKey?: string, clientId?: string): void {
     }
 
 }

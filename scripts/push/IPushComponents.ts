@@ -1,7 +1,7 @@
 import PushContext from "./PushContext";
 
 export interface IPushNotifier {
-    notify(context:PushContext, clientId?:string, splitKey?:string):void;
+    notify(context: PushContext, splitKey?: string, clientId?: string): void;
 }
 
 export interface ISocketClient {
@@ -10,7 +10,7 @@ export interface ISocketClient {
 }
 
 export interface ISocketFactory {
-    socketForPath(path?:string):SocketIO.Server;
+    socketForPath(path?: string): SocketIO.Server;
 }
 
 export interface PushNotification {
@@ -23,6 +23,6 @@ export interface IClientRegistry {
 }
 
 export interface IEventEmitter {
-    broadcastTo(room: string, event:string, data:any);
+    broadcastTo(room: string, event: string, data: any);
     emitTo(clientId: string, event: string, data: any);
 }

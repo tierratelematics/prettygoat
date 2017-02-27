@@ -77,7 +77,7 @@ class ProjectionEngine implements IProjectionEngine {
             sequence = sequence.groupBy(state => state.splitKey).flatMap(states => states.sample(200));
 
         let subscription = sequence.subscribe(state => {
-            this.pushNotifier.notify(context, null, state.splitKey);
+            this.pushNotifier.notify(context, state.splitKey);
             this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${state.splitKey ? "with key " + state.splitKey : ""}`);
         }, error => {
             subscription.dispose();
