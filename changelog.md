@@ -1,3 +1,8 @@
+#1.1.0
+
+* add health check endpoint
+* change split init sequence
+
 #1.0.0
 
 * split IEndpointConfig to INotificationConfig
