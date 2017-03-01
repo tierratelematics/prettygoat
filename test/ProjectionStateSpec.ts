@@ -5,10 +5,8 @@ import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandle
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import {IRequest, IResponse, IRequestHandler} from "../scripts/web/IRequestComponents";
 import MockRequest from "./fixtures/web/MockRequest";
-import MockResponse from "./fixtures/web/MockResponse";
 import Dictionary from "../scripts/util/Dictionary";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
@@ -30,9 +28,9 @@ describe("Given a ProjectionStateHandler", () => {
     beforeEach(() => {
         holder = {};
         projectionRunner = new MockProjectionRunner();
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
         request = new MockRequest();
-        response = TypeMoq.Mock.ofType(MockResponse);
+        response = TypeMoq.Mock.ofType<IResponse>();
         subject = new ProjectionStateHandler(registry.object, holder);
     });
 

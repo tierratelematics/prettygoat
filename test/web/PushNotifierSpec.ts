@@ -3,7 +3,6 @@ import expect = require('expect.js');
 import * as TypeMoq from "typemoq";
 import PushContext from "../../scripts/push/PushContext";
 import {Subject} from "rx";
-import MockEventEmitter from "../fixtures/web/MockEventEmitter";
 import {Event} from "../../scripts/streams/Event";
 import {IPushNotifier, IEventEmitter} from "../../scripts/push/IPushComponents";
 import PushNotifier from "../../scripts/push/PushNotifier";
@@ -16,7 +15,7 @@ describe("Given a push notifier", () => {
 
     beforeEach(() => {
         dataSubject = new Subject<Event>();
-        eventEmitter = TypeMoq.Mock.ofType(MockEventEmitter);
+        eventEmitter = TypeMoq.Mock.ofType<IEventEmitter>();
         eventEmitter.setup(e => e.emitTo(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
         subject = new PushNotifier(eventEmitter.object, {
             port: 80

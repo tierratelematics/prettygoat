@@ -3,8 +3,6 @@ import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
-import {MockMatcher} from "./fixtures/MockMatcher";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
 import {Observable, Subject, IDisposable, Scheduler} from "rx";
 import * as TypeMoq from "typemoq";
 import expect = require("expect.js");
@@ -15,7 +13,6 @@ import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
-import MockReadModelFactory from "./fixtures/MockReadModelFactory";
 import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
@@ -28,8 +25,8 @@ describe("Given a ProjectionRunner", () => {
     let failed: boolean;
     let subscription: IDisposable;
     let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
-    let projection:IProjection<number>;
-    let clock:lolex.Clock;
+    let projection: IProjection<number>;
+    let clock: lolex.Clock;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -37,10 +34,12 @@ describe("Given a ProjectionRunner", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
-        matcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(MockReadModelFactory);
-        subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
+        stream = TypeMoq.Mock.ofType<IStreamFactory>();
+        matcher = TypeMoq.Mock.ofType<IMatcher>();
+        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>();
+        let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+        tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
+        subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });

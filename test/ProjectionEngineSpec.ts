@@ -9,25 +9,18 @@ import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFa
 import {Event} from "../scripts/streams/Event";
 import * as TypeMoq from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import MockSnapshotRepository from "./fixtures/MockSnapshotRepository";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
-import CountSnapshotStrategy from "../scripts/snapshots/CountSnapshotStrategy";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import Dictionary from "../scripts/util/Dictionary";
 import {IProjection} from "../scripts/projections/IProjection";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
-import MockProjectionSorter from "./fixtures/MockProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
-import MockPushNotifier from "./fixtures/web/MockPushNotifier";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
-import MockProjectionRunnerFactory from "./fixtures/MockProjectionRunnerFactory";
 import {IPushNotifier} from "../scripts/push/IPushComponents";
 import IAsyncPublisher from "../scripts/util/IAsyncPublisher";
-import MockAsyncPublisher from "./fixtures/MockAsyncPublisher";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -46,18 +39,18 @@ describe("Given a ProjectionEngine", () => {
 
     beforeEach(() => {
         clock = lolex.install();
-        asyncPublisher = TypeMoq.Mock.ofType(MockAsyncPublisher);
+        asyncPublisher = TypeMoq.Mock.ofType<IAsyncPublisher<any>>();
         asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
-        snapshotStrategy = TypeMoq.Mock.ofType(CountSnapshotStrategy);
+        snapshotStrategy = TypeMoq.Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new Subject<Event>();
         runner = TypeMoq.Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
-        pushNotifier = TypeMoq.Mock.ofType(MockPushNotifier);
+        pushNotifier = TypeMoq.Mock.ofType<IPushNotifier>();
         pushNotifier.setup(p => p.notify(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
-        runnerFactory = TypeMoq.Mock.ofType(MockProjectionRunnerFactory);
+        runnerFactory = TypeMoq.Mock.ofType<IProjectionRunnerFactory>();
         runnerFactory.setup(r => r.create(TypeMoq.It.isAny())).returns(a => runner.object);
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
         registry.setup(r => r.getAreas()).returns(() => {
             return [
                 new AreaRegistry("Admin", [
@@ -65,9 +58,9 @@ describe("Given a ProjectionEngine", () => {
                 ])
             ]
         });
-        projectionSorter = TypeMoq.Mock.ofType(MockProjectionSorter);
+        projectionSorter = TypeMoq.Mock.ofType<IProjectionSorter>();
         projectionSorter.setup(s => s.sort()).returns(a => []);
-        snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
+        snapshotRepository = TypeMoq.Mock.ofType<ISnapshotRepository>();
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
             NullLogger, projectionSorter.object, asyncPublisher.object);

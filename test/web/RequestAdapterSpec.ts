@@ -6,9 +6,6 @@ import {
 } from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
-import {MockRequestHandler} from "../fixtures/web/MockRequestHandler";
-import MockRouteResolver from "../fixtures/web/MockRouteResolver";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
@@ -19,12 +16,12 @@ describe("Given a RequestAdapter and a new request", () => {
     let requestHandler: TypeMoq.IMock<IRequestHandler>;
 
     beforeEach(() => {
-        requestHandler = TypeMoq.Mock.ofType(MockRequestHandler);
-        routeResolver = TypeMoq.Mock.ofType(MockRouteResolver);
+        requestHandler = TypeMoq.Mock.ofType<IRequestHandler>();
+        routeResolver = TypeMoq.Mock.ofType<IRouteResolver>();
         request = new MockRequest();
         request.method = "GET";
         request.originalRequest = undefined;
-        response = TypeMoq.Mock.ofType(MockResponse);
+        response = TypeMoq.Mock.ofType<IResponse>();
         response.setup(r => r.status(anyValue)).returns(() => response.object);
         subject = new RequestAdapter(routeResolver.object);
     });

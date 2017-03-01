@@ -7,7 +7,6 @@ import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefin
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
 import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
-import MockObjectContainer from "./fixtures/MockObjectContainer";
 import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
@@ -28,7 +27,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     beforeEach(() => {
         let analyzer = new ProjectionAnalyzer();
-        objectContainer = TypeMoq.Mock.ofType(MockObjectContainer);
+        objectContainer = TypeMoq.Mock.ofType<IObjectContainer>();
         tickScheduler = new TickScheduler(null);
         holder = {};
         subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);

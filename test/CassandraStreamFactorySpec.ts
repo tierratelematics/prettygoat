@@ -2,15 +2,13 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
-import MockEventsFilter from "./fixtures/MockEventsFilter";
 import TimePartitioner from "../scripts/cassandra/TimePartitioner";
 import {ICassandraClient, IQuery} from "../scripts/cassandra/ICassandraClient";
-import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
 import IDateRetriever from "../scripts/util/IDateRetriever";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
-import MockEventDeserializer from "./fixtures/MockEventDeserializer";
+import IEventsFilter from "../scripts/streams/IEventsFilter";
+import IEventDeserializer from "../scripts/streams/IEventDeserializer";
 const anyValue = TypeMoq.It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {
@@ -24,11 +22,11 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
     beforeEach(() => {
         events = [];
-        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
-        let eventsFilter = TypeMoq.Mock.ofType(MockEventsFilter);
+        dateRetriever = TypeMoq.Mock.ofType<IDateRetriever>();
+        let eventsFilter = TypeMoq.Mock.ofType<IEventsFilter>();
         timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
-        let cassandraDeserializer = new MockEventDeserializer();
-        client = TypeMoq.Mock.ofType(MockCassandraClient);
+        let deserializer = TypeMoq.Mock.ofType<IEventDeserializer>();
+        client = TypeMoq.Mock.ofType<ICassandraClient>();
         client.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select distinct ser_manifest from event_types", null]))).returns(a => Rx.Observable.just({
             rows: [
                 {"ser_manifest": "Event1"},
@@ -44,7 +42,8 @@ describe("Cassandra stream factory, given a stream factory", () => {
         }));
         dateRetriever.setup(d => d.getDate()).returns(() => new Date(1000));
         eventsFilter.setup(e => e.filter(TypeMoq.It.isAny())).returns(a => ["Event1"]);
-        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer,
+        deserializer.setup(d => d.toEvent(anyValue)).returns(row => row);
+        subject = new CassandraStreamFactory(client.object, timePartitioner.object, deserializer.object,
             eventsFilter.object, dateRetriever.object, {
                 hosts: [],
                 keyspace: "",

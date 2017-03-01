@@ -5,7 +5,6 @@ import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import MemoizingProjectionRegistry from "../scripts/registry/MemoizingProjectionRegistry";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 
 describe("Given a MemoizingProjectionRegistry", () => {
 
@@ -15,7 +14,7 @@ describe("Given a MemoizingProjectionRegistry", () => {
 
     beforeEach(() => {
         entry = new RegistryEntry(new MockProjectionDefinition().define(), null);
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
         registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
             return {area: "Admin", data: entry};
         });

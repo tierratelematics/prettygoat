@@ -4,8 +4,6 @@ import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapsh
 import * as TypeMoq from "typemoq";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
-import ProjectionRegistry from "../../scripts/registry/ProjectionRegistry";
-import MockCassandraClient from "../fixtures/cassandra/MockCassandraClient";
 import {ICassandraClient, IQuery} from "../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
@@ -19,8 +17,8 @@ describe("Snapshot repository, given all the streams", () => {
         cassandraClient: TypeMoq.IMock<ICassandraClient>;
 
     beforeEach(() => {
-        cassandraClient = TypeMoq.Mock.ofType(MockCassandraClient);
-        registry = TypeMoq.Mock.ofType(ProjectionRegistry);
+        cassandraClient = TypeMoq.Mock.ofType<ICassandraClient>();
+        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
         subject = new CassandraSnapshotRepository(cassandraClient.object, registry.object);
     });
 

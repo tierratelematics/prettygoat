@@ -3,7 +3,6 @@ import * as TypeMoq from "typemoq";
 import expect = require("expect.js");
 import {MemoizingMatcher} from "../scripts/matcher/MemoizingMatcher";
 import {IMatcher} from "../scripts/matcher/IMatcher";
-import {MockMatcher} from "./fixtures/MockMatcher";
 
 describe("Given a MemoizingMatcher", () => {
     let subject:IMatcher,
@@ -12,7 +11,7 @@ describe("Given a MemoizingMatcher", () => {
 
     describe("when matching an event", () => {
         beforeEach(() => {
-            baseMatcher = TypeMoq.Mock.ofType<IMatcher>(MockMatcher);
+            baseMatcher = TypeMoq.Mock.ofType<IMatcher>();
             baseMatcher.setup(m => m.match("test")).returns(a => testFn);
             subject = new MemoizingMatcher(baseMatcher.object);
         });

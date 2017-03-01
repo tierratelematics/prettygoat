@@ -2,7 +2,6 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
-import MockProjectionSorter from "./fixtures/MockProjectionSorter";
 import DynamicNameProjection from "./fixtures/definitions/DynamicNameProjection";
 import MemoizingProjectionSorter from "../scripts/projections/MemoizingProjectionSorter";
 
@@ -13,7 +12,7 @@ describe("Given a MemoizingProjectionSorter", () => {
     let projection = new DynamicNameProjection("projection").define();
 
     beforeEach(() => {
-        sorter = TypeMoq.Mock.ofType(MockProjectionSorter);
+        sorter = TypeMoq.Mock.ofType<IProjectionSorter>();
         sorter.setup(s => s.dependents(TypeMoq.It.isValue(projection))).returns(() => ["test"]);
         subject = new MemoizingProjectionSorter(sorter.object);
     });

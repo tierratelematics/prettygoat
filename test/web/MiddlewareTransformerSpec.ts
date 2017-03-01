@@ -2,7 +2,6 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import * as TypeMoq from "typemoq";
 import {IMiddleware, IMiddlewareTransformer} from "../../scripts/web/IRequestComponents";
-import MockMiddleware from "../fixtures/web/MockMiddleware";
 import MiddlewareTransformer from "../../scripts/web/MiddlewareTransformer";
 import MockResponse from "../fixtures/web/MockResponse";
 import MockRequest from "../fixtures/web/MockRequest";
@@ -14,7 +13,7 @@ describe("Given a RequestTransformer", () => {
     let middleware: TypeMoq.IMock<IMiddleware>;
 
     beforeEach(() => {
-        middleware = TypeMoq.Mock.ofType(MockMiddleware);
+        middleware = TypeMoq.Mock.ofType<IMiddleware>();
         middleware.setup(r => r.transform(anyValue, anyValue, anyValue)).returns((request, response, next) => {
             next();
         });

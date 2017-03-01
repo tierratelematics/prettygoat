@@ -6,14 +6,10 @@ import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
 import IProjectionEngine from "../../scripts/projections/IProjectionEngine";
 import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
-import MockProjectionEngine from "../fixtures/MockProjectionEngine";
-import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import {Observable} from "rx";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
-import MockProjectionRegistry from "../fixtures/MockProjectionRegistry";
 import {IProjection} from "../../scripts/projections/IProjection";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
 import RegistryEntry from "../../scripts/registry/RegistryEntry";
@@ -32,7 +28,7 @@ describe("Given a ProjectionsController and a projection name", () => {
         projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
         holder["projection"] = projectionRunner.object;
         request = new MockRequest();
-        response = TypeMoq.Mock.ofType(MockResponse);
+        response = TypeMoq.Mock.ofType<IResponse>();
     });
 
     context("when there isn't a projection with that name", () => {
@@ -83,9 +79,9 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             beforeEach(() => {
                 projection = new MockProjectionDefinition().define();
-                registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
-                projectionEngine = TypeMoq.Mock.ofType(MockProjectionEngine);
-                snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
+                registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
+                projectionEngine = TypeMoq.Mock.ofType<IProjectionEngine>();
+                snapshotRepository = TypeMoq.Mock.ofType<ISnapshotRepository>();
                 registry.setup(r => r.getEntry("projection")).returns(() => {
                     return {area: "Admin", data: new RegistryEntry(projection, "Mock")};
                 });

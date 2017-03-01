@@ -5,12 +5,9 @@ import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import * as TypeMoq from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import IDateRetriever from "../../scripts/util/IDateRetriever";
-import MockDateRetriever from "../fixtures/MockDateRetriever";
 import {IRequestHandler, IRequest, IResponse} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/SnapshotHandlers";
 import {Observable} from "rx";
 
@@ -26,13 +23,13 @@ describe("Given a SnapshotController and a projection name", () => {
 
     beforeEach(() => {
         projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
-        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
+        dateRetriever = TypeMoq.Mock.ofType<IDateRetriever>();
         holder = {};
         holder["projection"] = projectionRunner.object;
         request = new MockRequest();
-        response = TypeMoq.Mock.ofType(MockResponse);
+        response = TypeMoq.Mock.ofType<IResponse>();
         response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-        snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
+        snapshotRepository = TypeMoq.Mock.ofType<ISnapshotRepository>();
         snapshotRepository.setup(s => s.saveSnapshot(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
         snapshotRepository.setup(s => s.deleteSnapshot(TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
     });

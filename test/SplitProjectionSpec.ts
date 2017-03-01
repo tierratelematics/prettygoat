@@ -5,8 +5,6 @@ import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner"
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import {MockStreamFactory} from "./fixtures/MockStreamFactory";
-import ReadModelFactory from "../scripts/streams/ReadModelFactory";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {Matcher} from "../scripts/matcher/Matcher";
 import {Event} from "../scripts/streams/Event";
@@ -16,15 +14,15 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 
 describe("Split projection, given a projection with a split definition", () => {
 
-    let subject:SplitProjectionRunner<number>;
-    let stream:TypeMoq.IMock<IStreamFactory>;
-    let notifications:Event[];
-    let stopped:boolean;
-    let failed:boolean;
-    let subscription:IDisposable;
-    let readModelFactory:TypeMoq.IMock<IReadModelFactory>;
-    let streamData:Subject<Event>;
-    let readModelData:Subject<Event>;
+    let subject: SplitProjectionRunner<number>;
+    let stream: TypeMoq.IMock<IStreamFactory>;
+    let notifications: Event[];
+    let stopped: boolean;
+    let failed: boolean;
+    let subscription: IDisposable;
+    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
+    let streamData: Subject<Event>;
+    let readModelData: Subject<Event>;
     let projection = new SplitProjectionDefinition().define();
 
     beforeEach(() => {
@@ -33,10 +31,12 @@ describe("Split projection, given a projection with a split definition", () => {
         failed = false;
         streamData = new ReplaySubject<Event>();
         readModelData = new ReplaySubject<Event>();
-        stream = TypeMoq.Mock.ofType<IStreamFactory>(MockStreamFactory);
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>(ReadModelFactory);
+        stream = TypeMoq.Mock.ofType<IStreamFactory>();
+        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>();
+        let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+        tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
-            new Matcher(projection.split), readModelFactory.object, new MockStreamFactory(Observable.empty<Event>()),
+            new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });

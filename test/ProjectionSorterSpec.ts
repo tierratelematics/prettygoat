@@ -9,7 +9,6 @@ import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import {IProjection} from "../scripts/projections/IProjection";
@@ -25,7 +24,7 @@ describe("ProjectionSorterSpec, given a projection sorter", () => {
         circularBProjection: IProjection<number>;
 
     beforeEach(() => {
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
         subject = new ProjectionSorter(registry.object);
         registry.setup(r => r.getEntry("$init", null)).returns(() => {
             return {area: "Admin", data: null};
