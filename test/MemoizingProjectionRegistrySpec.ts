@@ -21,7 +21,7 @@ describe("Given a MemoizingProjectionRegistry", () => {
         subject = new MemoizingProjectionRegistry(registry.object);
     });
 
-    context("when an entry is request", () => {
+    context("when an entry is requested", () => {
         context("and a cached one does not exist", () => {
             it("should retrieve it from the registry", () => {
                 let cached = subject.getEntry("Foo", "Admin");
