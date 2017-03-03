@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapshotRepository";
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 import {ICassandraClient, IQuery} from "../../scripts/cassandra/ICassandraClient";
@@ -13,18 +13,18 @@ import SplitProjectionDefinition from "../fixtures/definitions/SplitProjectionDe
 describe("Snapshot repository, given all the streams", () => {
 
     let subject: CassandraSnapshotRepository,
-        registry: TypeMoq.IMock<IProjectionRegistry>,
-        cassandraClient: TypeMoq.IMock<ICassandraClient>;
+        registry: IMock<IProjectionRegistry>,
+        cassandraClient: IMock<ICassandraClient>;
 
     beforeEach(() => {
-        cassandraClient = TypeMoq.Mock.ofType<ICassandraClient>();
-        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
+        cassandraClient = Mock.ofType<ICassandraClient>();
+        registry = Mock.ofType<IProjectionRegistry>();
         subject = new CassandraSnapshotRepository(cassandraClient.object, registry.object);
     });
 
     context("when the snapshots associated needs to be retrieved", () => {
         it("should return the list of available snapshots", () => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
+            cassandraClient.setup(c => c.execute(It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
             " lastEvent, split from projections_snapshots", null]))).returns(a => Rx.Observable.just({
                 rows: [
                     {
@@ -60,7 +60,7 @@ describe("Snapshot repository, given all the streams", () => {
             });
         });
         it("should handle correctly escaped strings", () => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
+            cassandraClient.setup(c => c.execute(It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
             " lastEvent, split from projections_snapshots", null]))).returns(a => Rx.Observable.just({
                 rows: [
                     {
@@ -81,7 +81,7 @@ describe("Snapshot repository, given all the streams", () => {
         });
 
         it("should handle correctly undefined values", () => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
+            cassandraClient.setup(c => c.execute(It.isValue<IQuery>(["select blobAsText(memento) as memento, streamid," +
             " lastEvent, split from projections_snapshots", null]))).returns(a => Rx.Observable.just({
                 rows: [
                     {
@@ -104,7 +104,7 @@ describe("Snapshot repository, given all the streams", () => {
 
     context("when a snapshot needs to be saved", () => {
         beforeEach(() => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.just(null));
+            cassandraClient.setup(c => c.execute(It.isAny())).returns(a => Rx.Observable.just(null));
         });
 
         context("and the associated projection is not a split", () => {
@@ -120,38 +120,38 @@ describe("Snapshot repository, given all the streams", () => {
                 let snapshot = new Snapshot({a: 25}, new Date(500));
                 subject.saveSnapshot("test", snapshot).subscribe(() => {
                 });
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: '{"a":25}',
                     lastEvent: snapshot.lastEvent.toISOString(),
                     streamId: 'test',
                     splitKey: ""
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
             });
             it("should escape single quotes correctly", () => {
                 let snapshot = new Snapshot({a: "''"}, new Date(500));
                 subject.saveSnapshot("test", snapshot).subscribe(() => {
                 });
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: '{"a":"\'\'\'\'"}',
                     lastEvent: snapshot.lastEvent.toISOString(),
                     streamId: 'test',
                     splitKey: ""
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
             });
             it("should handle correctly a snapshot with an undefined value", () => {
                 let snapshotUndefined = new Snapshot(undefined, new Date(500));
                 subject.saveSnapshot("test", snapshotUndefined).subscribe(() => {
                 });
 
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: null,
                     lastEvent: snapshotUndefined.lastEvent.toISOString(),
                     streamId: "test",
                     splitKey: ""
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
             });
 
             it("should delete the current snapshot before saving the new one", () => {
@@ -159,16 +159,16 @@ describe("Snapshot repository, given all the streams", () => {
                 subject.saveSnapshot("test", snapshot).subscribe(() => {
                 });
 
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["delete from projections_snapshots where streamid = :streamId", {
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["delete from projections_snapshots where streamid = :streamId", {
                     streamId: "test"
-                }])), TypeMoq.Times.once());
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                }])), Times.once());
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: '{"a":25}',
                     lastEvent: snapshot.lastEvent.toISOString(),
                     streamId: 'test',
                     splitKey: ""
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
             });
         });
 
@@ -186,34 +186,34 @@ describe("Snapshot repository, given all the streams", () => {
                 let streamId = "split";
                 subject.saveSnapshot(streamId, snapshot).subscribe(() => {
                 });
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: "25",
                     lastEvent: snapshot.lastEvent.toISOString(),
                     streamId: "split",
                     splitKey: "a"
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
 
-                cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
+                cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["insert into projections_snapshots (streamid, split, lastevent, memento) values (:streamId," +
                 ":splitKey, :lastEvent, textAsBlob(:memento))", {
                     memento: "30",
                     lastEvent: snapshot.lastEvent.toISOString(),
                     streamId: "split",
                     splitKey: "b"
-                }])), TypeMoq.Times.once());
+                }])), Times.once());
             });
         });
     });
 
     context("when a snapshot needs to be deleted", () => {
         beforeEach(() => {
-            cassandraClient.setup(c => c.execute(TypeMoq.It.isAny())).returns(a => Rx.Observable.just(null));
+            cassandraClient.setup(c => c.execute(It.isAny())).returns(a => Rx.Observable.just(null));
         });
         it("should remove it correctly", () => {
             subject.deleteSnapshot("test");
-            cassandraClient.verify(c => c.execute(TypeMoq.It.isValue<IQuery>(["delete from projections_snapshots where streamid = :streamId", {
+            cassandraClient.verify(c => c.execute(It.isValue<IQuery>(["delete from projections_snapshots where streamid = :streamId", {
                 streamId: "test"
-            }])), TypeMoq.Times.once());
+            }])), Times.once());
         });
     });
 });

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import {Observable, Subject} from "rx";
 import {IProjection} from "../scripts/projections/IProjection";
 import TickProjectionDefinition from "./fixtures/definitions/TickProjectionDefinition";
@@ -25,8 +25,8 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     let streamData: Subject<Event>;
     let notifications: Tick[];
     let dateRetriever: MockDateRetriever;
-    let stream: TypeMoq.IMock<IStreamFactory>;
-    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
+    let stream: IMock<IStreamFactory>;
+    let readModelFactory: IMock<IReadModelFactory>;
 
     beforeEach(() => {
         notifications = [];
@@ -34,9 +34,9 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         tickScheduler = new TickScheduler(new MockDateRetriever(new Date(0)));
         projection = new TickProjectionDefinition().define(tickScheduler);
         streamData = new Subject<Event>();
-        stream = TypeMoq.Mock.ofType<IStreamFactory>();
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>();
-        stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => streamData);
+        stream = Mock.ofType<IStreamFactory>();
+        readModelFactory = Mock.ofType<IReadModelFactory>();
+        stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(() => streamData);
         readModelFactory.setup(r => r.from(null)).returns(() => Observable.empty<Event>());
     });
 

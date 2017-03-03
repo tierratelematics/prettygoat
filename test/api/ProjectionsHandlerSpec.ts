@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
@@ -18,17 +18,17 @@ import {ProjectionStopHandler, ProjectionRestartHandler} from "../../scripts/api
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
-        projectionRunner: TypeMoq.IMock<IProjectionRunner<any>>,
+        projectionRunner: IMock<IProjectionRunner<any>>,
         request: IRequest,
-        response: TypeMoq.IMock<IResponse>,
+        response: IMock<IResponse>,
         subject: IRequestHandler;
 
     beforeEach(() => {
         holder = {};
-        projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
+        projectionRunner = Mock.ofType(MockProjectionRunner);
         holder["projection"] = projectionRunner.object;
         request = new MockRequest();
-        response = TypeMoq.Mock.ofType<IResponse>();
+        response = Mock.ofType<IResponse>();
     });
 
     context("when there isn't a projection with that name", () => {
@@ -39,9 +39,9 @@ describe("Given a ProjectionsController and a projection name", () => {
 
         it("should trigger an error", () => {
             subject.handle(request, response.object);
-            response.verify(s => s.status(404), TypeMoq.Times.exactly(1));
-            response.verify(s => s.send(TypeMoq.It.isAny()), TypeMoq.Times.exactly(1));
-            projectionRunner.verify(s => s.stop(), TypeMoq.Times.never());
+            response.verify(s => s.status(404), Times.exactly(1));
+            response.verify(s => s.send(It.isAny()), Times.exactly(1));
+            projectionRunner.verify(s => s.stop(), Times.never());
         });
     });
 
@@ -57,31 +57,31 @@ describe("Given a ProjectionsController and a projection name", () => {
 
                 it("should trigger an error", () => {
                     subject.handle(request, response.object);
-                    response.verify(s => s.status(404), TypeMoq.Times.once());
-                    projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    response.verify(s => s.status(404), Times.once());
+                    projectionRunner.verify(s => s.stop(), Times.once());
                 });
             });
 
             context("and the projection is not stopped", () => {
                 it("should stop it", () => {
                     subject.handle(request, response.object);
-                    response.verify(s => s.status(404), TypeMoq.Times.never());
-                    projectionRunner.verify(s => s.stop(), TypeMoq.Times.once());
+                    response.verify(s => s.status(404), Times.never());
+                    projectionRunner.verify(s => s.stop(), Times.once());
                 });
             });
         });
 
         context("and a restart command is sent", () => {
-            let projectionEngine: TypeMoq.IMock<IProjectionEngine>;
-            let snapshotRepository: TypeMoq.IMock<ISnapshotRepository>;
-            let registry: TypeMoq.IMock<IProjectionRegistry>;
+            let projectionEngine: IMock<IProjectionEngine>;
+            let snapshotRepository: IMock<ISnapshotRepository>;
+            let registry: IMock<IProjectionRegistry>;
             let projection: IProjection<any>;
 
             beforeEach(() => {
                 projection = new MockProjectionDefinition().define();
-                registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
-                projectionEngine = TypeMoq.Mock.ofType<IProjectionEngine>();
-                snapshotRepository = TypeMoq.Mock.ofType<ISnapshotRepository>();
+                registry = Mock.ofType<IProjectionRegistry>();
+                projectionEngine = Mock.ofType<IProjectionEngine>();
+                snapshotRepository = Mock.ofType<ISnapshotRepository>();
                 registry.setup(r => r.getEntry("projection")).returns(() => {
                     return {area: "Admin", data: new RegistryEntry(projection, "Mock")};
                 });
@@ -91,8 +91,8 @@ describe("Given a ProjectionsController and a projection name", () => {
             context("when the projection is already stopped", () => {
                 it("should simply restart the projection", () => {
                     subject.handle(request, response.object);
-                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), TypeMoq.Times.once());
-                    projectionEngine.verify(p => p.run(TypeMoq.It.isValue(projection), TypeMoq.It.isValue(new PushContext("Admin", "Mock"))), TypeMoq.Times.once());
+                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
                 });
             });
 
@@ -100,9 +100,9 @@ describe("Given a ProjectionsController and a projection name", () => {
                 beforeEach(() => holder["projection"].stats.running = true);
                 it("should stop and restart the projection", () => {
                     subject.handle(request, response.object);
-                    projectionRunner.verify(p => p.stop(), TypeMoq.Times.once());
-                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), TypeMoq.Times.once());
-                    projectionEngine.verify(p => p.run(TypeMoq.It.isValue(projection), TypeMoq.It.isValue(new PushContext("Admin", "Mock"))), TypeMoq.Times.once());
+                    projectionRunner.verify(p => p.stop(), Times.once());
+                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
                 });
             });
         });

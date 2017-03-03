@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
@@ -9,12 +9,12 @@ import MemoizingProjectionRegistry from "../scripts/registry/MemoizingProjection
 describe("Given a MemoizingProjectionRegistry", () => {
 
     let subject: IProjectionRegistry;
-    let registry: TypeMoq.IMock<IProjectionRegistry>;
+    let registry: IMock<IProjectionRegistry>;
     let entry: RegistryEntry<any>;
 
     beforeEach(() => {
         entry = new RegistryEntry(new MockProjectionDefinition().define(), null);
-        registry = TypeMoq.Mock.ofType<IProjectionRegistry>();
+        registry = Mock.ofType<IProjectionRegistry>();
         registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
             return {area: "Admin", data: entry};
         });
@@ -28,7 +28,7 @@ describe("Given a MemoizingProjectionRegistry", () => {
                 expect(cached).to.eql({
                     area: "Admin", data: entry
                 });
-                registry.verify(r => r.getEntry("Foo", "Admin"), TypeMoq.Times.once());
+                registry.verify(r => r.getEntry("Foo", "Admin"), Times.once());
             });
         });
 
@@ -39,7 +39,7 @@ describe("Given a MemoizingProjectionRegistry", () => {
                 expect(cached).to.eql({
                     area: "Admin", data: entry
                 });
-                registry.verify(r => r.getEntry("Foo", "Admin"), TypeMoq.Times.once());
+                registry.verify(r => r.getEntry("Foo", "Admin"), Times.once());
             });
         });
     });

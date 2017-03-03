@@ -4,7 +4,7 @@ import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {Observable, Subject, IDisposable, Scheduler, helpers} from "rx";
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import {Event} from "../scripts/streams/Event";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
@@ -17,10 +17,10 @@ import * as lolex from "lolex";
 import * as _ from "lodash";
 
 describe("Given a projection runner", () => {
-    let stream: TypeMoq.IMock<IStreamFactory>;
-    let readModel: TypeMoq.IMock<IReadModelFactory>;
+    let stream: IMock<IStreamFactory>;
+    let readModel: IMock<IReadModelFactory>;
     let subject: IProjectionRunner<number>;
-    let matcher: TypeMoq.IMock<IMatcher>;
+    let matcher: IMock<IMatcher>;
     let notifications: number[];
     let stopped: boolean;
     let failed: boolean;
@@ -32,11 +32,11 @@ describe("Given a projection runner", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        stream = TypeMoq.Mock.ofType<IStreamFactory>();
-        readModel = TypeMoq.Mock.ofType<IReadModelFactory>();
-        matcher = TypeMoq.Mock.ofType<IMatcher>();
+        stream = Mock.ofType<IStreamFactory>();
+        readModel = Mock.ofType<IReadModelFactory>();
+        matcher = Mock.ofType<IMatcher>();
         let date = new Date();
-        stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
+        stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
             return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
         }).observeOn(Scheduler.immediate));
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
@@ -50,7 +50,7 @@ describe("Given a projection runner", () => {
     context("when it's not a split projection", () => {
         beforeEach(() => {
             readModel.setup(r => r.from(null)).returns(a => Observable.empty<Event>());
-            let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+            let tickScheduler = Mock.ofType<IStreamFactory>();
             tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
             subject = new ProjectionRunner<number>({
                 name: "test",
@@ -74,13 +74,13 @@ describe("Given a projection runner", () => {
     });
 
     context("when it's a split projection", () => {
-        let splitMatcher: TypeMoq.IMock<IMatcher>;
+        let splitMatcher: IMock<IMatcher>;
         let readModelData: Subject<Event>;
         beforeEach(() => {
             readModelData = new Subject<Event>();
             readModel.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
-            splitMatcher = TypeMoq.Mock.ofType<IMatcher>();
-            let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+            splitMatcher = Mock.ofType<IMatcher>();
+            let tickScheduler = Mock.ofType<IStreamFactory>();
             tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
             subject = new SplitProjectionRunner<number>({
                 name: "test",

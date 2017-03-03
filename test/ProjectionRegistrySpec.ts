@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
@@ -21,13 +21,13 @@ import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDef
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject: IProjectionRegistry,
-        objectContainer: TypeMoq.IMock<IObjectContainer>,
+        objectContainer: IMock<IObjectContainer>,
         tickScheduler: ITickScheduler,
         holder: Dictionary<ITickScheduler>;
 
     beforeEach(() => {
         let analyzer = new ProjectionAnalyzer();
-        objectContainer = TypeMoq.Mock.ofType<IObjectContainer>();
+        objectContainer = Mock.ofType<IObjectContainer>();
         tickScheduler = new TickScheduler(null);
         holder = {};
         subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);
@@ -48,7 +48,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         it("should pass a tick scheduler to the definition", () => {
             let projectionDefinition = setUpTickScheduler();
-            projectionDefinition.verify(p => p.define(TypeMoq.It.isValue(tickScheduler)), TypeMoq.Times.once());
+            projectionDefinition.verify(p => p.define(It.isValue(tickScheduler)), Times.once());
         });
 
         it("should cache the tick scheduler passed to the definition", () => {
@@ -56,12 +56,12 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(holder["test"]).to.be(tickScheduler);
         });
 
-        function setUpTickScheduler(): TypeMoq.IMock<IProjectionDefinition<number>> {
+        function setUpTickScheduler(): IMock<IProjectionDefinition<number>> {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
-            let projectionDefinition: TypeMoq.IMock<IProjectionDefinition<number>> = TypeMoq.Mock.ofType(MockProjectionDefinition);
+            let projectionDefinition: IMock<IProjectionDefinition<number>> = Mock.ofType(MockProjectionDefinition);
             objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
-            projectionDefinition.setup(p => p.define(TypeMoq.It.isValue(tickScheduler))).returns(a => {
+            projectionDefinition.setup(p => p.define(It.isValue(tickScheduler))).returns(a => {
                 return {name: "test", definition: {}};
             });
             subject.add(MockProjectionDefinition).forArea("Admin");

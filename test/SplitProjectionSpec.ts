@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import {Observable, Scheduler, ReplaySubject, IDisposable, Subject} from "rx";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
@@ -15,12 +15,12 @@ import MockDateRetriever from "./fixtures/MockDateRetriever";
 describe("Split projection, given a projection with a split definition", () => {
 
     let subject: SplitProjectionRunner<number>;
-    let stream: TypeMoq.IMock<IStreamFactory>;
+    let stream: IMock<IStreamFactory>;
     let notifications: Event[];
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
+    let readModelFactory: IMock<IReadModelFactory>;
     let streamData: Subject<Event>;
     let readModelData: Subject<Event>;
     let projection = new SplitProjectionDefinition().define();
@@ -31,9 +31,9 @@ describe("Split projection, given a projection with a split definition", () => {
         failed = false;
         streamData = new ReplaySubject<Event>();
         readModelData = new ReplaySubject<Event>();
-        stream = TypeMoq.Mock.ofType<IStreamFactory>();
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>();
-        let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+        stream = Mock.ofType<IStreamFactory>();
+        readModelFactory = Mock.ofType<IReadModelFactory>();
+        let tickScheduler = Mock.ofType<IStreamFactory>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
@@ -44,7 +44,7 @@ describe("Split projection, given a projection with a split definition", () => {
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
             beforeEach(() => {
-                stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
+                stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
@@ -63,14 +63,14 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["25b"]).to.be(7600);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition)), TypeMoq.Times.once());
+                stream.verify(s => s.from(It.isValue(new Date(5000)), It.isAny(), It.isValue(projection.definition)), Times.once());
             });
         });
     });
 
     context("when a new event is received", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
+            stream.setup(s => s.from(null, It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
         });
 
         context("and the event is not defined", () => {

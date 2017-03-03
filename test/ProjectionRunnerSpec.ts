@@ -4,7 +4,7 @@ import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {Observable, Subject, IDisposable, Scheduler} from "rx";
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
@@ -17,14 +17,14 @@ import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 
 describe("Given a ProjectionRunner", () => {
-    let stream: TypeMoq.IMock<IStreamFactory>;
+    let stream: IMock<IStreamFactory>;
     let subject: ProjectionRunner<number>;
-    let matcher: TypeMoq.IMock<IMatcher>;
+    let matcher: IMock<IMatcher>;
     let notifications: number[];
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: TypeMoq.IMock<IReadModelFactory>;
+    let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
     let clock: lolex.Clock;
 
@@ -34,10 +34,10 @@ describe("Given a ProjectionRunner", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        stream = TypeMoq.Mock.ofType<IStreamFactory>();
-        matcher = TypeMoq.Mock.ofType<IMatcher>();
-        readModelFactory = TypeMoq.Mock.ofType<IReadModelFactory>();
-        let tickScheduler = TypeMoq.Mock.ofType<IStreamFactory>();
+        stream = Mock.ofType<IStreamFactory>();
+        matcher = Mock.ofType<IMatcher>();
+        readModelFactory = Mock.ofType<IReadModelFactory>();
+        let tickScheduler = Mock.ofType<IStreamFactory>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
@@ -51,9 +51,9 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.empty<Event>());
+            stream.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
+            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
         });
 
         context("if a snapshot is present", () => {
@@ -65,7 +65,7 @@ describe("Given a ProjectionRunner", () => {
                 expect(subject.state).to.be(56);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(TypeMoq.It.isValue(new Date(5000)), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                stream.verify(s => s.from(It.isValue(new Date(5000)), It.isAny(), It.isAny()), Times.once());
             });
         });
 
@@ -75,14 +75,14 @@ describe("Given a ProjectionRunner", () => {
             });
 
             it("should create an initial state based on the projection definition", () => {
-                matcher.verify(m => m.match(SpecialNames.Init), TypeMoq.Times.once());
+                matcher.verify(m => m.match(SpecialNames.Init), Times.once());
             });
             it("should subscribe to the event stream starting from the stream's beginning", () => {
-                stream.verify(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                stream.verify(s => s.from(null, It.isAny(), It.isAny()), Times.once());
             });
 
             it("should subscribe to the aggregates stream to build linked projections", () => {
-                readModelFactory.verify(a => a.from(null), TypeMoq.Times.once());
+                readModelFactory.verify(a => a.from(null), Times.once());
             });
 
             context("should behave regularly", behavesRegularly);
@@ -101,12 +101,12 @@ describe("Given a ProjectionRunner", () => {
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
+            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
         });
 
         it("it should filter out diagnostic events", () => {
             matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.just({
+            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
                 type: "__diagnostic:Size",
                 payload: 1,
                 timestamp: new Date(),
@@ -120,14 +120,14 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 let date = new Date();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
                 subject.run();
             });
 
             it("should match the event with the projection definition", () => {
-                matcher.verify(m => m.match("increment"), TypeMoq.Times.exactly(5));
+                matcher.verify(m => m.match("increment"), Times.exactly(5));
             });
             it("should consider the returned state as the projection state", () => {
                 expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
@@ -149,12 +149,12 @@ describe("Given a ProjectionRunner", () => {
 
             it("should publish on the event stream the new aggregate state", () => {
                 clock.tick(100);
-                readModelFactory.verify(a => a.publish(TypeMoq.It.isValue({
+                readModelFactory.verify(a => a.publish(It.isValue({
                     type: "test",
                     payload: 42 + 1 + 2 + 3 + 4 + 5,
                     timestamp: null,
                     splitKey: null
-                })), TypeMoq.Times.atLeastOnce());
+                })), Times.atLeastOnce());
             });
 
         });
@@ -162,7 +162,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no match is found for this event", () => {
             beforeEach(() => {
                 let date = new Date();
-                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
@@ -188,7 +188,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });
-                stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
             });
@@ -204,7 +204,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject.observeOn(Scheduler.immediate));
-            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => Observable.empty<Event>());
+            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
             subject.run();
         });
         context("of the same projection", () => {
@@ -227,11 +227,11 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(() => {
-            readModelFactory.setup(r => r.from(TypeMoq.It.isAny())).returns(_ => Rx.Observable.empty<Event>());
+            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Rx.helpers.identity);
-            stream.setup(s => s.from(null, TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(_ => streamSubject);
+            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();
             streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});

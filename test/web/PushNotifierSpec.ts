@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require('expect.js');
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import PushContext from "../../scripts/push/PushContext";
 import {Subject} from "rx";
 import {Event} from "../../scripts/streams/Event";
@@ -11,12 +11,12 @@ describe("Given a push notifier", () => {
 
     let subject: IPushNotifier,
         dataSubject: Subject<Event>,
-        eventEmitter: TypeMoq.IMock<IEventEmitter>;
+        eventEmitter: IMock<IEventEmitter>;
 
     beforeEach(() => {
         dataSubject = new Subject<Event>();
-        eventEmitter = TypeMoq.Mock.ofType<IEventEmitter>();
-        eventEmitter.setup(e => e.emitTo(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(a => null);
+        eventEmitter = Mock.ofType<IEventEmitter>();
+        eventEmitter.setup(e => e.emitTo(It.isAny(), It.isAny(), It.isAny())).returns(a => null);
         subject = new PushNotifier(eventEmitter.object, {
             port: 80
         }, {
@@ -28,9 +28,9 @@ describe("Given a push notifier", () => {
     context("when a normal projection emits a new state", () => {
         it("should emit a notification on the corresponding context", () => {
             subject.notify(new PushContext("Admin", "Foo"));
-            eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+            eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                 url: 'http://test:80/projections/admin/foo'
-            })), TypeMoq.Times.once());
+            })), Times.once());
         });
 
         context("and no port is passed in the config", () => {
@@ -40,9 +40,9 @@ describe("Given a push notifier", () => {
                     protocol: 'http'
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: 'http://test/projections/admin/foo'
-                })), TypeMoq.Times.once());
+                })), Times.once());
             });
         });
 
@@ -55,9 +55,9 @@ describe("Given a push notifier", () => {
                     port: null
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: 'http://test/proj/admin/foo'
-                })), TypeMoq.Times.once());
+                })), Times.once());
             });
         });
 
@@ -69,9 +69,9 @@ describe("Given a push notifier", () => {
                     port: null
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: 'http://test/projections/admin/foo'
-                })), TypeMoq.Times.once());
+                })), Times.once());
             });
         });
 
@@ -85,9 +85,9 @@ describe("Given a push notifier", () => {
                     protocol: "https"
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", TypeMoq.It.isValue({
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: 'https://test/projections/admin/foo'
-                })), TypeMoq.Times.once());
+                })), Times.once());
             })
         });
     });
@@ -95,18 +95,18 @@ describe("Given a push notifier", () => {
     context("when a split projection emits a new state", () => {
         it("should append the split key in the notification url", () => {
             subject.notify(new PushContext("Admin", "Foo"), "7564");
-            eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", TypeMoq.It.isValue({
+            eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", It.isValue({
                 url: 'http://test:80/projections/admin/foo/7564'
-            })), TypeMoq.Times.once());
+            })), Times.once());
         });
     });
 
     context("when a single client needs to be notified", () => {
         it("should send a notification only to that client", () => {
             subject.notify(new PushContext("Admin", "Foo"), null, "25f");
-            eventEmitter.verify(e => e.emitTo('25f', 'Admin:Foo', TypeMoq.It.isValue({
+            eventEmitter.verify(e => e.emitTo('25f', 'Admin:Foo', It.isValue({
                 url: 'http://test:80/projections/admin/foo'
-            })), TypeMoq.Times.once());
+            })), Times.once());
         });
     });
 });
