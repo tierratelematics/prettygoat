@@ -55,21 +55,24 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             })
             .filter(data => data[1] !== helpers.identity)
             .do(data => this.updateStats(data[0]))
-            .subscribe(data => {
+            .scan<[T|Dictionary<T>, Date]>((accumulator, data) => {
                 let [event, matchFn] = data;
                 try {
-                    let newState = matchFn(this.state, event.payload, event);
-                    if (newState instanceof SpecialState)
-                        this.state = (<SpecialState<T>>newState).state;
-                    else
-                        this.state = newState;
-                    if (!(newState instanceof StopSignallingState))
-                        this.notifyStateChange(event.timestamp);
+                    return [matchFn(accumulator[0], event.payload, event), event.timestamp];
                 } catch (error) {
                     this.isFailed = true;
                     this.subject.onError(error);
                     this.stop();
                 }
+            }, [this.state, null])
+            .subscribe(data => {
+                let [newState, timestamp] = data;
+                if (newState instanceof SpecialState)
+                    this.state = (<SpecialState<T>>newState).state;
+                else
+                    this.state = newState;
+                if (!(newState instanceof StopSignallingState))
+                    this.notifyStateChange(timestamp);
             });
 
         combineStreams(
