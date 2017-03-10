@@ -1,3 +1,7 @@
+#1.2.0
+
+* add driver options to cassandra config
+
 #1.1.0
 
 * add health check endpoint
