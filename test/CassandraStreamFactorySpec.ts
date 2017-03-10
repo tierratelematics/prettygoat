@@ -1,41 +1,39 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
-import MockEventsFilter from "./fixtures/MockEventsFilter";
 import TimePartitioner from "../scripts/cassandra/TimePartitioner";
 import {ICassandraClient, IQuery} from "../scripts/cassandra/ICassandraClient";
-import MockCassandraClient from "./fixtures/cassandra/MockCassandraClient";
 import * as Rx from "rx";
 import {Event} from "../scripts/streams/Event";
 import IDateRetriever from "../scripts/util/IDateRetriever";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
-import MockEventDeserializer from "./fixtures/MockEventDeserializer";
-const anyValue = TypeMoq.It.isAny();
+import IEventsFilter from "../scripts/streams/IEventsFilter";
+import IEventDeserializer from "../scripts/streams/IEventDeserializer";
+const anyValue = It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {
 
-    let client: TypeMoq.IMock<ICassandraClient>;
+    let client: IMock<ICassandraClient>;
     let subject: CassandraStreamFactory;
-    let timePartitioner: TypeMoq.IMock<TimePartitioner>;
+    let timePartitioner: IMock<TimePartitioner>;
     let events: Event[];
-    let dateRetriever: TypeMoq.IMock<IDateRetriever>;
+    let dateRetriever: IMock<IDateRetriever>;
     let endDate = new Date(600);
 
     beforeEach(() => {
         events = [];
-        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
-        let eventsFilter = TypeMoq.Mock.ofType(MockEventsFilter);
-        timePartitioner = TypeMoq.Mock.ofType(TimePartitioner);
-        let cassandraDeserializer = new MockEventDeserializer();
-        client = TypeMoq.Mock.ofType(MockCassandraClient);
-        client.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select distinct ser_manifest from event_types", null]))).returns(a => Rx.Observable.just({
+        dateRetriever = Mock.ofType<IDateRetriever>();
+        let eventsFilter = Mock.ofType<IEventsFilter>();
+        timePartitioner = Mock.ofType(TimePartitioner);
+        let deserializer = Mock.ofType<IEventDeserializer>();
+        client = Mock.ofType<ICassandraClient>();
+        client.setup(c => c.execute(It.isValue<IQuery>(["select distinct ser_manifest from event_types", null]))).returns(a => Rx.Observable.just({
             rows: [
                 {"ser_manifest": "Event1"},
                 {"ser_manifest": "Event2"}
             ]
         }));
-        client.setup(c => c.execute(TypeMoq.It.isValue<IQuery>(["select distinct timebucket from event_by_timestamp", null]))).returns(a => Rx.Observable.just({
+        client.setup(c => c.execute(It.isValue<IQuery>(["select distinct timebucket from event_by_timestamp", null]))).returns(a => Rx.Observable.just({
             rows: [
                 {"timebucket": "20150003"},
                 {"timebucket": "20150001"},
@@ -43,8 +41,9 @@ describe("Cassandra stream factory, given a stream factory", () => {
             ]
         }));
         dateRetriever.setup(d => d.getDate()).returns(() => new Date(1000));
-        eventsFilter.setup(e => e.filter(TypeMoq.It.isAny())).returns(a => ["Event1"]);
-        subject = new CassandraStreamFactory(client.object, timePartitioner.object, cassandraDeserializer,
+        eventsFilter.setup(e => e.filter(It.isAny())).returns(a => ["Event1"]);
+        deserializer.setup(d => d.toEvent(anyValue)).returns(row => row);
+        subject = new CassandraStreamFactory(client.object, timePartitioner.object, deserializer.object,
             eventsFilter.object, dateRetriever.object, {
                 hosts: [],
                 keyspace: "",
@@ -73,18 +72,18 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
         it("should read the events with a configured delay", () => {
             subject.from(null, Rx.Observable.empty<string>(), {}).subscribe(() => null);
-            client.verify(c => c.paginate(TypeMoq.It.isValue<IQuery>(["select blobAsText(event) as event, timestamp from event_by_manifest " +
+            client.verify(c => c.paginate(It.isValue<IQuery>(["select blobAsText(event) as event, timestamp from event_by_manifest " +
             "where timebucket = :bucket and ser_manifest = :event and timestamp < minTimeUuid(:endDate)", {
                 bucket: "20150001",
                 event: "Event1",
                 endDate: endDate.toISOString()
-            }]), anyValue), TypeMoq.Times.once());
+            }]), anyValue), Times.once());
         });
     });
 
     context("when starting the stream from a certain point", () => {
         beforeEach(() => {
-            timePartitioner.setup(t => t.bucketsFrom(TypeMoq.It.isValue(new Date(1420160400000)))).returns(a => [
+            timePartitioner.setup(t => t.bucketsFrom(It.isValue(new Date(1420160400000)))).returns(a => [
                 "20150002", "20150003"
             ]);
             setupClient(client, new Date(1420160400000), endDate);
@@ -97,8 +96,8 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
     });
 
-    function setupClient(client: TypeMoq.IMock<ICassandraClient>, startDate: Date, endDate: Date) {
-        client.setup(c => c.paginate(TypeMoq.It.isValue<IQuery>(buildQuery("20150001", startDate, endDate)), anyValue))
+    function setupClient(client: IMock<ICassandraClient>, startDate: Date, endDate: Date) {
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150001", startDate, endDate)), anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -115,12 +114,12 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(TypeMoq.It.isValue<IQuery>(buildQuery("20150002", startDate, endDate)), anyValue))
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150002", startDate, endDate)), anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(TypeMoq.It.isValue<IQuery>(buildQuery("20150003", startDate, endDate)), anyValue))
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150003", startDate, endDate)), anyValue))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",

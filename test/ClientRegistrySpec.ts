@@ -1,23 +1,21 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import PushContext from "../scripts/push/PushContext";
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
-import MockSocketClient from "./fixtures/web/MockSocketClient";
 import {IClientRegistry, ISocketClient} from "../scripts/push/IPushComponents";
 import ClientRegistry from "../scripts/push/ClientRegistry";
 
 describe("ClientRegistry, given a client", () => {
 
     let subject: IClientRegistry;
-    let client: TypeMoq.IMock<ISocketClient>;
-    let registry: TypeMoq.IMock<IProjectionRegistry>;
+    let client: IMock<ISocketClient>;
+    let registry: IMock<IProjectionRegistry>;
 
     beforeEach(() => {
-        client = TypeMoq.Mock.ofType(MockSocketClient);
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        client = Mock.ofType<ISocketClient>();
+        registry = Mock.ofType<IProjectionRegistry>();
         subject = new ClientRegistry(registry.object);
         registry.setup(r => r.getEntry("Foo", "Admin")).returns(() => {
             return {area: "Admin", data: new RegistryEntry(null, null, null)};
@@ -28,7 +26,7 @@ describe("ClientRegistry, given a client", () => {
         it("should register that client to the right notifications", () => {
             let context = new PushContext("Admin", "Foo");
             subject.add(client.object, context);
-            client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+            client.verify(c => c.join("/admin/foo"), Times.once());
         });
 
         context("and custom parameters are passed during the registration", () => {
@@ -42,14 +40,14 @@ describe("ClientRegistry, given a client", () => {
                 it("should subscribe that client using also those parameters", () => {
                     let context = new PushContext("Admin", "Foo", {id: 25});
                     subject.add(client.object, context);
-                    client.verify(c => c.join("/admin/foo/25"), TypeMoq.Times.once());
+                    client.verify(c => c.join("/admin/foo/25"), Times.once());
                 });
             });
             context("but there's no parameters key defined", () => {
                 it("should subscribe to the channel without parameters", () => {
                     let context = new PushContext("Admin", "Foo", {id: 25});
                     subject.add(client.object, context);
-                    client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+                    client.verify(c => c.join("/admin/foo"), Times.once());
                 });
             });
         });
@@ -58,7 +56,7 @@ describe("ClientRegistry, given a client", () => {
             it("should register to that client with no parameters", () => {
                 let context = new PushContext("Admin", "Foo", {});
                 subject.add(client.object, context);
-                client.verify(c => c.join("/admin/foo"), TypeMoq.Times.once());
+                client.verify(c => c.join("/admin/foo"), Times.once());
             });
         });
     });
@@ -70,7 +68,7 @@ describe("ClientRegistry, given a client", () => {
             subject.remove(client.object, context);
         });
         it("should unregister that client from the notifications", () => {
-            client.verify(c => c.leave("/admin/foo"), TypeMoq.Times.once());
+            client.verify(c => c.leave("/admin/foo"), Times.once());
         });
     });
 });

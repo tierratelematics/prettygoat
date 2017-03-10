@@ -1,30 +1,27 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import {
     IRequestAdapter, IRouteResolver, IRequest, IResponse, IRequestHandler
 } from "../../scripts/web/IRequestComponents";
 import RequestAdapter from "../../scripts/web/RequestAdapter";
 import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
-import {MockRequestHandler} from "../fixtures/web/MockRequestHandler";
-import MockRouteResolver from "../fixtures/web/MockRouteResolver";
-const anyValue = TypeMoq.It.isAny();
+const anyValue = It.isAny();
 
 describe("Given a RequestAdapter and a new request", () => {
     let subject: IRequestAdapter;
-    let routeResolver: TypeMoq.IMock<IRouteResolver>;
+    let routeResolver: IMock<IRouteResolver>;
     let request: IRequest;
-    let response: TypeMoq.IMock<IResponse>;
-    let requestHandler: TypeMoq.IMock<IRequestHandler>;
+    let response: IMock<IResponse>;
+    let requestHandler: IMock<IRequestHandler>;
 
     beforeEach(() => {
-        requestHandler = TypeMoq.Mock.ofType(MockRequestHandler);
-        routeResolver = TypeMoq.Mock.ofType(MockRouteResolver);
+        requestHandler = Mock.ofType<IRequestHandler>();
+        routeResolver = Mock.ofType<IRouteResolver>();
         request = new MockRequest();
         request.method = "GET";
         request.originalRequest = undefined;
-        response = TypeMoq.Mock.ofType(MockResponse);
+        response = Mock.ofType<IResponse>();
         response.setup(r => r.status(anyValue)).returns(() => response.object);
         subject = new RequestAdapter(routeResolver.object);
     });
@@ -36,7 +33,7 @@ describe("Given a RequestAdapter and a new request", () => {
         it("should route the message to the specific handler", () => {
             request.url = "/test";
             subject.route(request, response.object);
-            requestHandler.verify(r => r.handle(TypeMoq.It.isValue(request), TypeMoq.It.isValue(response.object)), TypeMoq.Times.once());
+            requestHandler.verify(r => r.handle(It.isValue(request), It.isValue(response.object)), Times.once());
         });
 
         context("and the request had no params", () => {
@@ -66,7 +63,7 @@ describe("Given a RequestAdapter and a new request", () => {
         it("should drop the connection with a not found", () => {
             request.url = "/notfound";
             subject.route(request, response.object);
-            requestHandler.verify(r => r.handle(TypeMoq.It.isValue(request), TypeMoq.It.isValue(response.object)), TypeMoq.Times.never());
+            requestHandler.verify(r => r.handle(It.isValue(request), It.isValue(response.object)), Times.never());
         });
     });
 });

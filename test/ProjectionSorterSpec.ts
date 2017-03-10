@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import ProjectionSorter from "../scripts/projections/ProjectionSorter";
@@ -9,7 +9,6 @@ import {
     MockProjectionCircularADefinition,
     MockProjectionCircularBDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
-import MockProjectionRegistry from "./fixtures/MockProjectionRegistry";
 import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import {IProjection} from "../scripts/projections/IProjection";
@@ -20,12 +19,12 @@ import {
 
 describe("ProjectionSorterSpec, given a projection sorter", () => {
 
-    let registry: TypeMoq.IMock<IProjectionRegistry>,
+    let registry: IMock<IProjectionRegistry>,
         subject: IProjectionSorter,
         circularBProjection: IProjection<number>;
 
     beforeEach(() => {
-        registry = TypeMoq.Mock.ofType(MockProjectionRegistry);
+        registry = Mock.ofType<IProjectionRegistry>();
         subject = new ProjectionSorter(registry.object);
         registry.setup(r => r.getEntry("$init", null)).returns(() => {
             return {area: "Admin", data: null};

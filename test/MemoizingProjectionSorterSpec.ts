@@ -1,20 +1,19 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import * as TypeMoq from "typemoq";
+import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionSorter from "../scripts/projections/IProjectionSorter";
-import MockProjectionSorter from "./fixtures/MockProjectionSorter";
 import DynamicNameProjection from "./fixtures/definitions/DynamicNameProjection";
 import MemoizingProjectionSorter from "../scripts/projections/MemoizingProjectionSorter";
 
 describe("Given a MemoizingProjectionSorter", () => {
 
     let subject: IProjectionSorter;
-    let sorter: TypeMoq.IMock<IProjectionSorter>;
+    let sorter: IMock<IProjectionSorter>;
     let projection = new DynamicNameProjection("projection").define();
 
     beforeEach(() => {
-        sorter = TypeMoq.Mock.ofType(MockProjectionSorter);
-        sorter.setup(s => s.dependents(TypeMoq.It.isValue(projection))).returns(() => ["test"]);
+        sorter = Mock.ofType<IProjectionSorter>();
+        sorter.setup(s => s.dependents(It.isValue(projection))).returns(() => ["test"]);
         subject = new MemoizingProjectionSorter(sorter.object);
     });
 
@@ -23,7 +22,7 @@ describe("Given a MemoizingProjectionSorter", () => {
             it("should request it from the sorter", () => {
                 let dependents = subject.dependents(projection);
                 expect(dependents).to.eql(["test"]);
-                sorter.verify(s => s.dependents(TypeMoq.It.isValue(projection)), TypeMoq.Times.once());
+                sorter.verify(s => s.dependents(It.isValue(projection)), Times.once());
             });
         });
 
@@ -32,7 +31,7 @@ describe("Given a MemoizingProjectionSorter", () => {
             it("should serve it from cache", () => {
                 let dependents = subject.dependents(projection);
                 expect(dependents).to.eql(["test"]);
-                sorter.verify(s => s.dependents(TypeMoq.It.isValue(projection)), TypeMoq.Times.once());
+                sorter.verify(s => s.dependents(It.isValue(projection)), Times.once());
             });
         });
     });

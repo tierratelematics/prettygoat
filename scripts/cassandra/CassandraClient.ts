@@ -4,6 +4,7 @@ import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
 import {Client, auth} from "cassandra-driver";
 import ReservedEvents from "../streams/ReservedEvents";
+import {assign} from "lodash";
 
 @injectable()
 class CassandraClient implements ICassandraClient {
@@ -16,11 +17,12 @@ class CassandraClient implements ICassandraClient {
         if (config.username && config.password) {
             authProvider = new auth.PlainTextAuthProvider(config.username, config.password);
         }
-        this.client = new Client({
+        this.client = new Client(assign({
             contactPoints: config.hosts,
             keyspace: config.keyspace,
             authProvider: authProvider
-        });
+        }, config.driverOptions || {}));
+
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
         this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
     }

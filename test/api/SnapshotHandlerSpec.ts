@@ -2,39 +2,36 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import Dictionary from "../../scripts/util/Dictionary";
 import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import * as TypeMoq from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import MockSnapshotRepository from "../fixtures/MockSnapshotRepository";
 import IDateRetriever from "../../scripts/util/IDateRetriever";
-import MockDateRetriever from "../fixtures/MockDateRetriever";
 import {IRequestHandler, IRequest, IResponse} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
-import MockResponse from "../fixtures/web/MockResponse";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/SnapshotHandlers";
 import {Observable} from "rx";
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
-        projectionRunner: TypeMoq.IMock<IProjectionRunner<any>>,
-        dateRetriever: TypeMoq.IMock<IDateRetriever>,
+        projectionRunner: IMock<IProjectionRunner<any>>,
+        dateRetriever: IMock<IDateRetriever>,
         request: IRequest,
-        response: TypeMoq.IMock<IResponse>,
-        snapshotRepository: TypeMoq.IMock<ISnapshotRepository>,
+        response: IMock<IResponse>,
+        snapshotRepository: IMock<ISnapshotRepository>,
         snapshot: Snapshot<any>,
         subject: IRequestHandler;
 
     beforeEach(() => {
-        projectionRunner = TypeMoq.Mock.ofType(MockProjectionRunner);
-        dateRetriever = TypeMoq.Mock.ofType(MockDateRetriever);
+        projectionRunner = Mock.ofType(MockProjectionRunner);
+        dateRetriever = Mock.ofType<IDateRetriever>();
         holder = {};
         holder["projection"] = projectionRunner.object;
         request = new MockRequest();
-        response = TypeMoq.Mock.ofType(MockResponse);
-        response.setup(s => s.status(TypeMoq.It.isAny())).returns(a => response.object);
-        snapshotRepository = TypeMoq.Mock.ofType(MockSnapshotRepository);
-        snapshotRepository.setup(s => s.saveSnapshot(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
-        snapshotRepository.setup(s => s.deleteSnapshot(TypeMoq.It.isAny())).returns(() => Observable.empty<void>());
+        response = Mock.ofType<IResponse>();
+        response.setup(s => s.status(It.isAny())).returns(a => response.object);
+        snapshotRepository = Mock.ofType<ISnapshotRepository>();
+        snapshotRepository.setup(s => s.saveSnapshot(It.isAny(), It.isAny())).returns(() => Observable.empty<void>());
+        snapshotRepository.setup(s => s.deleteSnapshot(It.isAny())).returns(() => Observable.empty<void>());
     });
 
     context("when there isn't a projection with that name", () => {
@@ -45,9 +42,9 @@ describe("Given a SnapshotController and a projection name", () => {
 
         it("should trigger an error", () => {
             subject.handle(request, response.object);
-            response.verify(s => s.status(404), TypeMoq.Times.once());
-            response.verify(s => s.send(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            snapshotRepository.verify(s => s.saveSnapshot(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+            response.verify(s => s.status(404), Times.once());
+            response.verify(s => s.send(It.isAny()), Times.once());
+            snapshotRepository.verify(s => s.saveSnapshot(It.isAny(), It.isAny()), Times.never());
         });
     });
 
@@ -66,8 +63,8 @@ describe("Given a SnapshotController and a projection name", () => {
 
             it("should save it", () => {
                 subject.handle(request, response.object);
-                response.verify(s => s.status(404), TypeMoq.Times.never());
-                snapshotRepository.verify(s => s.saveSnapshot("projection", TypeMoq.It.isValue(snapshot)), TypeMoq.Times.once());
+                response.verify(s => s.status(404), Times.never());
+                snapshotRepository.verify(s => s.saveSnapshot("projection", It.isValue(snapshot)), Times.once());
             });
         });
 
@@ -77,8 +74,8 @@ describe("Given a SnapshotController and a projection name", () => {
             });
             it("should remove it", () => {
                 subject.handle(request, response.object);
-                response.verify(s => s.status(404), TypeMoq.Times.never());
-                snapshotRepository.verify(s => s.deleteSnapshot("projection"), TypeMoq.Times.once());
+                response.verify(s => s.status(404), Times.never());
+                snapshotRepository.verify(s => s.deleteSnapshot("projection"), Times.once());
             });
         });
     });
