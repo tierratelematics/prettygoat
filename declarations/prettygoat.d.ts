@@ -4,6 +4,7 @@ import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
 import {Server} from "net";
+import {ClientOptions} from "cassandra-driver";
 
 export class Engine {
     protected container: interfaces.Container;
@@ -251,6 +252,7 @@ export interface ICassandraConfig {
     password?: string;
     fetchSize?: number;
     readDelay?: number;
+    driverOptions?: ClientOptions;
 }
 
 export interface IPollToPushConfig {

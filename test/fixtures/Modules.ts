@@ -7,7 +7,6 @@ import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 export class ValidModule implements IModule {
     register(registry:IProjectionRegistry, serviceLocator?:IServiceLocator, overrides?:any):void {
     }
-
 }
 
 @FeatureToggle(Predicates.never)

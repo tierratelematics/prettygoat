@@ -1,3 +1,5 @@
+import {ClientOptions} from "cassandra-driver";
+
 interface ICassandraConfig {
     hosts: string[];
     keyspace: string;
@@ -5,6 +7,7 @@ interface ICassandraConfig {
     password?: string;
     fetchSize?: number;
     readDelay?: number;
+    driverOptions?: ClientOptions;
 }
 
 export default ICassandraConfig
