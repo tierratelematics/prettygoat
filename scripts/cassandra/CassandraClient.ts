@@ -22,7 +22,7 @@ class CassandraClient implements ICassandraClient {
             keyspace: config.keyspace,
             authProvider: authProvider
         }
-        console.log(_.mergeWith(baseClientOptions, config, (a, b) => !_.isNil(a) ? a : b));
+
         this.client = new Client(_.mergeWith(baseClientOptions, config, (a, b) => !_.isNil(a) ? a : b));
         this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
         this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
