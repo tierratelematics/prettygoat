@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import {Observable} from "rx";
 import expect = require("expect.js");
-import {Event} from "../scripts/streams/Event";
-import {mergeSort} from "../scripts/cassandra/MergeSort";
-import ReservedEvents from "../scripts/streams/ReservedEvents";
+import {Event} from "../../scripts/streams/Event";
+import {mergeSort} from "../../scripts/cassandra/MergeSort";
+import ReservedEvents from "../../scripts/streams/ReservedEvents";
 
 describe("Given a merge sort", () => {
 

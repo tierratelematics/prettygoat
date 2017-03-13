@@ -6,7 +6,7 @@ import {IWhen} from "../projections/IProjection";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "./ICassandraClient";
 import {Observable} from "rx";
-import IEventsFilter from "../streams/IEventsFilter";
+import IEventsFilter from "./IEventsFilter";
 import {mergeSort} from "./MergeSort";
 import IDateRetriever from "../util/IDateRetriever";
 import ICassandraConfig from "../configs/ICassandraConfig";
