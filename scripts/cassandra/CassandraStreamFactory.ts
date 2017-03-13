@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "./ICassandraClient";
 import {Observable} from "rx";
 import IEventsFilter from "../streams/IEventsFilter";
-import {mergeSort} from "../projections/ProjectionStream";
+import {mergeSort} from "./MergeSort";
 import IDateRetriever from "../util/IDateRetriever";
 import ICassandraConfig from "../configs/ICassandraConfig";
 import * as moment from "moment";
