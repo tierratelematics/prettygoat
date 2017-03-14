@@ -37,7 +37,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
             let runner = this.holders[request.params.projectionName];
             runner.stop();
             response.status(204);
-            response.send();
+            response.end();
         } catch (error) {
             response.status(404);
             response.send({error: "Projection not found or already stopped"});
