@@ -1,14 +1,14 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
-import CassandraStreamFactory from "../scripts/cassandra/CassandraStreamFactory";
-import TimePartitioner from "../scripts/cassandra/TimePartitioner";
-import {ICassandraClient, IQuery} from "../scripts/cassandra/ICassandraClient";
+import CassandraStreamFactory from "../../scripts/cassandra/CassandraStreamFactory";
+import TimePartitioner from "../../scripts/cassandra/TimePartitioner";
+import {ICassandraClient, IQuery} from "../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
-import {Event} from "../scripts/streams/Event";
-import IDateRetriever from "../scripts/util/IDateRetriever";
-import IEventsFilter from "../scripts/streams/IEventsFilter";
-import IEventDeserializer from "../scripts/streams/IEventDeserializer";
+import {Event} from "../../scripts/streams/Event";
+import IDateRetriever from "../../scripts/util/IDateRetriever";
+import IEventsFilter from "../../scripts/cassandra/IEventsFilter";
+import IEventDeserializer from "../../scripts/streams/IEventDeserializer";
 const anyValue = It.isAny();
 
 describe("Cassandra stream factory, given a stream factory", () => {

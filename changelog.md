@@ -1,3 +1,8 @@
+#1.2.1
+
+* don't send content type on 204 responses
+* drop useless charset-utf8 on json content type
+
 #1.2.0
 
 * add driver options to cassandra config

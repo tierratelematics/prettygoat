@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import EventsFilter from "../scripts/streams/EventsFilter";
+import EventsFilter from "../../scripts/cassandra/EventsFilter";
 
 describe("EventsFilter, given a projection definition", () => {
 
