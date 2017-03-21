@@ -1,4 +1,4 @@
-import {Subject, helpers, IDisposable} from "rx";
+import {Subject, IDisposable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -13,6 +13,7 @@ import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
+import Identity from "../matcher/Identity";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
@@ -53,7 +54,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
             })
-            .filter(data => data[1] !== helpers.identity)
+            .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
             .subscribe(data => {
                 let [event, matchFn] = data;

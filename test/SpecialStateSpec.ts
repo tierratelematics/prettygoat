@@ -15,6 +15,7 @@ import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import * as lolex from "lolex";
 import * as _ from "lodash";
+import Identity from "../scripts/matcher/Identity";
 
 describe("Given a projection runner", () => {
     let stream: IMock<IStreamFactory>;
@@ -107,7 +108,7 @@ describe("Given a projection runner", () => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.deleteSplit());
                 splitMatcher.setup(m => m.match("increment")).returns(a => (e: number) => e);
                 matcher.setup(m => m.match("ReadModel")).returns(a => (s: number, e: any) => s + e);
-                splitMatcher.setup(m => m.match("ReadModel")).returns(a => helpers.identity);
+                splitMatcher.setup(m => m.match("ReadModel")).returns(a => Identity);
                 subject.run(new Snapshot(
                     subject.state = {
                         "1": 89,

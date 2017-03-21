@@ -1,12 +1,8 @@
 import { IMatcher } from "./IMatcher";
 import { SpecialNames } from "./SpecialNames";
 import * as _ from "lodash";
-import * as Rx from "rx";
-
+import Identity from "./Identity";
 const wildcard = require("wildcard2");
-
-export type EventMatch = (state: any, event: any) => any;
-export type InitMatch = () => any;
 
 const emptyState = () => { return {}; };
 
@@ -27,7 +23,7 @@ export class Matcher implements IMatcher {
             || this.explicitMatch(SpecialNames.Any)
             || this.explicitMatch(SpecialNames.Default);
 
-        return found ? found: Rx.helpers.identity;
+        return found ? found: Identity;
     }
 
     private guardAmbiguousDefinition() {
