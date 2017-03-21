@@ -102,6 +102,8 @@ export class Matcher implements IMatcher {
     match(name: string): Function;
 }
 
+export var Identity: <T>(value: T) => T;
+
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
     stats: ProjectionStats;

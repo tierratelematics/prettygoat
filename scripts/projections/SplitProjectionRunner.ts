@@ -13,6 +13,7 @@ import {IProjection} from "./IProjection";
 import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
 import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
+import Identity from "../matcher/Identity";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -45,12 +46,12 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
             })
-            .filter(data => data[1] !== helpers.identity)
+            .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
             .subscribe(data => {
                 let [event, matchFn, splitFn] = data;
                 try {
-                    if (splitFn !== helpers.identity) {
+                    if (splitFn !== Identity) {
                         let splitKey = splitFn(event.payload, event);
                         event.splitKey = splitKey;
                         let childState = this.state[splitKey];
@@ -82,7 +83,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         this.state[splitKey] = this.matcher.match(SpecialNames.Init)();
         _.forEach(this.readModelFactory.asList(), readModel => {
             let matchFn = this.matcher.match(readModel.type);
-            if (matchFn !== helpers.identity) {
+            if (matchFn !== Identity) {
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
                 this.notifyStateChange(event.timestamp, splitKey);
             }
