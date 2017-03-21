@@ -15,6 +15,7 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import Identity from "../scripts/matcher/Identity";
 
 describe("Given a ProjectionRunner", () => {
     let stream: IMock<IStreamFactory>;
@@ -165,11 +166,11 @@ describe("Given a ProjectionRunner", () => {
                 stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
-                matcher.setup(m => m.match("increment1")).returns(streamId => Rx.helpers.identity);
+                matcher.setup(m => m.match("increment1")).returns(streamId => Identity);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
                 matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
-                matcher.setup(m => m.match("increment4")).returns(streamId => Rx.helpers.identity);
-                matcher.setup(m => m.match("increment5")).returns(streamId => Rx.helpers.identity);
+                matcher.setup(m => m.match("increment4")).returns(streamId => Identity);
+                matcher.setup(m => m.match("increment5")).returns(streamId => Identity);
             });
 
             it("should not notify a state change", () => {
@@ -230,7 +231,7 @@ describe("Given a ProjectionRunner", () => {
             readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Rx.helpers.identity);
+            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();

@@ -1,9 +1,8 @@
 import "reflect-metadata";
 import { Matcher } from "../scripts/matcher/Matcher";
 import { SpecialNames } from "../scripts/matcher/SpecialNames";
-
 import expect = require("expect.js");
-import * as Rx from "rx";
+import Identity from "../scripts/matcher/Identity";
 
 describe("Given a Matcher", () => {
     let subject: Matcher;
@@ -51,7 +50,7 @@ describe("Given a Matcher", () => {
 
             it("should return an identity function", () => {
                 let fn = subject.match("notfoo");
-                expect(fn).to.be(Rx.helpers.identity);
+                expect(fn).to.be(Identity);
             });
         });
 
