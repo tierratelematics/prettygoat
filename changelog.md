@@ -1,3 +1,7 @@
+# 2.0.0
+
+* remove cassandra related code into separated module ([prettygoat-cassandra](https://github.com/tierratelematics/prettygoat-cassandra))
+
 # 1.2.1
 
 * don't send content type on 204 responses
