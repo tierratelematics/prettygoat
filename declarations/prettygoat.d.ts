@@ -4,7 +4,6 @@ import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
 import {Server} from "net";
-import {ClientOptions} from "cassandra-driver";
 
 export class Engine {
     protected container: interfaces.Container;
@@ -245,33 +244,13 @@ export interface IApiKeyConfig {
     length: number;
 }
 
-export interface ICassandraConfig {
-    hosts: string[];
-    keyspace: string;
-    username?: string;
-    password?: string;
-    fetchSize?: number;
-    readDelay?: number;
-    driverOptions?: ClientOptions;
-}
-
-export interface IPollToPushConfig {
-    interval: number
-}
-
 export interface ISocketConfig {
     path: string;
-}
-
-export interface IRedisConfig {
-    host: string;
-    port: number;
 }
 
 export interface Dictionary<T> {
     [index: string]: T
 }
-
 
 export interface IFilterStrategy<T> {
     filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
