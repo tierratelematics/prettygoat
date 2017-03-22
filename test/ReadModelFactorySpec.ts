@@ -26,8 +26,16 @@ describe("Given a Read Model Factory", () => {
     context("when subscribing to the stream",  () => {
         it("should push a distinct of all the generated readmodels", () => {
             subject.from(null).subscribe(event => notifications.push(event));
+
             expect(notifications).to.have.length(1);
             expect(notifications[0]).to.be.eql(event);
+        });
+        it("should not copy the readmodels", () => {
+            let notifications2:Event[] = [];
+            subject.from(null).subscribe(event => notifications.push(event));
+            subject.from(null).subscribe(event => notifications2.push(event));
+
+            expect(notifications[0].payload).to.be(notifications2[0].payload);
         });
     });
 
@@ -44,6 +52,7 @@ describe("Given a Read Model Factory", () => {
         it("should push the newly generated readmodels", () => {
             subject.from(null).subscribe(event => notifications.push(event));
             subject.publish(eventB);
+
             expect(notifications).to.have.length(2);
             expect(notifications[0]).to.be.eql(event);
             expect(notifications[1]).to.be.eql(eventB);
