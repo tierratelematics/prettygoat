@@ -3,7 +3,6 @@ import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {IClientRegistry, ISocketClient} from "./IPushComponents";
-import {isEmpty} from "lodash";
 
 @injectable()
 class ClientRegistry implements IClientRegistry {
