@@ -12,7 +12,10 @@ The not so baaaaaaad Event Sourcing Projection Engine.
 ## Introduction
 
 Prettygoat aims at being an event sourcing projection engine. This means that it will allow you to create projections based on your events.
-This project is heavily under construction, so don't get disappointed if little or nothing at all can suit you for the time being.
+
+## Get started
+
+Please follow the seed available [here](https://github.com/tierratelematics/prettygoat-seed) to get some tips and a starting skeleton to register some projections.
 
 ## License
 
@@ -29,4 +32,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-****
