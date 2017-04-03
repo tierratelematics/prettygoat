@@ -254,13 +254,15 @@ export interface Dictionary<T> {
     [index: string]: T
 }
 
-export interface IFilterStrategy<T> {
-    filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
+export type FilterResult<T> = {filteredState: T, type: FilterOutputType};
+
+export interface IFilterStrategy<TState> {
+    filter<TResult>(state: TState, context: IFilterContext): FilterResult<TResult>|Promise<FilterResult<TResult>>;
 }
 
 export interface IFilterContext {
-    headers: {[key: string]: string};
-    params: {[key: string]: string};
+    headers: Dictionary<string>;
+    params: Dictionary<string>;
 }
 
 export enum FilterOutputType {

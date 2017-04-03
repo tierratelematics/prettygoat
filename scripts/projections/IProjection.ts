@@ -1,7 +1,7 @@
 import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
-import IFilterStrategy from "../filters/IFilterStrategy";
 import {Event} from "../streams/Event";
 import {SpecialState} from "./SpecialState";
+import {IFilterStrategy} from "../filters/IFilterStrategy";
 
 export interface IWhen<T extends Object> {
     $init?:() => T;

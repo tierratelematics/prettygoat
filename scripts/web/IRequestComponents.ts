@@ -8,12 +8,12 @@ export interface IRequestAdapter {
 }
 
 export interface IRequestHandler {
-    handle(request: IRequest, response: IResponse);
+    handle<T>(request: IRequest, response: IResponse): Promise<T> | void;
     keyFor(request: IRequest): string;
 }
 
 export interface IRouteResolver {
-    resolve(request:IRequest): IRouteContext;
+    resolve(request: IRequest): IRouteContext;
 }
 
 export type IRouteContext = [IRequestHandler, any];
@@ -53,5 +53,5 @@ export interface IMiddlewareTransformer {
 }
 
 export interface IDateRetriever {
-    getDate():Date;
+    getDate(): Date;
 }

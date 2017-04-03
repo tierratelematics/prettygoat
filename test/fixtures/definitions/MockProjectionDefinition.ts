@@ -1,8 +1,8 @@
 import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
 import {IProjection} from "../../../scripts/projections/IProjection";
 import Projection from "../../../scripts/registry/ProjectionDecorator";
-import CountSnapshotStrategy from "../../../scripts/snapshots/CountSnapshotStrategy";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
+import {FilterOutputType} from "../../../scripts/filters/FilterComponents";
 
 @Projection("Mock")
 class MockProjectionDefinition implements IProjectionDefinition<number> {

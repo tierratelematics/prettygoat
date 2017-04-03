@@ -1,6 +1,5 @@
-import IFilterStrategy from "../../scripts/filters/IFilterStrategy";
-import IFilterContext from "../../scripts/filters/IFilterContext";
-import FilterOutputType from "../../scripts/filters/FilterOutputType";
+import {IFilterStrategy} from "../../scripts/filters/IFilterStrategy";
+import {IFilterContext, FilterOutputType, FilterResult} from "../../scripts/filters/FilterComponents";
 
 export class ContentFilterStrategy implements IFilterStrategy<any> {
 
@@ -9,6 +8,17 @@ export class ContentFilterStrategy implements IFilterStrategy<any> {
             filteredState: state,
             type: FilterOutputType.CONTENT
         }
+    }
+
+}
+
+export class AsyncContentFilterStrategy implements IFilterStrategy<any> {
+
+    filter(state: any, context: IFilterContext): Promise<FilterResult<any>> {
+        return Promise.resolve({
+            filteredState: state,
+            type: FilterOutputType.CONTENT
+        });
     }
 
 }
