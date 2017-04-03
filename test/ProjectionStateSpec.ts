@@ -12,7 +12,7 @@ import RegistryEntry from "../scripts/registry/RegistryEntry";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {
     ContentFilterStrategy, UnauthorizedFilterStrategy,
-    ForbiddenFilterStrategy
+    ForbiddenFilterStrategy, AsyncContentFilterStrategy
 } from "./fixtures/MockFilterStrategies";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjection} from "../scripts/projections/IProjection";
@@ -52,6 +52,14 @@ describe("Given a ProjectionStateHandler", () => {
         context("and a filter strategy is applied", () => {
             context("when a content filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new ContentFilterStrategy());
+                it("should send the filtered state", async () => {
+                    await subject.handle(request, response.object);
+                    response.verify(r => r.status(200), Times.once());
+                    response.verify(r => r.send(42), Times.once());
+                });
+            });
+            context("when an async content filter is returned", () => {
+                beforeEach(() => projection.filterStrategy = new AsyncContentFilterStrategy());
                 it("should send the filtered state", async () => {
                     await subject.handle(request, response.object);
                     response.verify(r => r.status(200), Times.once());

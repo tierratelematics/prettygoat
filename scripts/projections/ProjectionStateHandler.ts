@@ -47,7 +47,7 @@ class ProjectionStateHandler implements IRequestHandler {
     private async sendResponse<T>(request: IRequest, response: IResponse, state: T,
                                   filterStrategy: IFilterStrategy<T>) {
         let filterContext = {headers: request.headers, params: request.query};
-        let filteredProjection = await Promise.resolve(filterStrategy.filter(state, filterContext));
+        let filteredProjection = await filterStrategy.filter(state, filterContext);
         switch (filteredProjection.type) {
             case FilterOutputType.CONTENT:
                 response.status(200);
