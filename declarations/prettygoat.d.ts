@@ -254,16 +254,10 @@ export interface Dictionary<T> {
     [index: string]: T
 }
 
-export type Partial<T> = { [P in keyof T]?: T[P]; };
-
 export type FilterResult<T> = {filteredState: T, type: FilterOutputType};
 
-export interface IFilterStrategy<TState, TResult> {
-    filter(state: TState, context: IFilterContext): FilterResult<TResult>|Promise<FilterResult<TResult>>;
-}
-
-export interface IPartialFilterStrategy<T> extends IFilterStrategy<T, Partial<T>> {
-
+export interface IFilterStrategy<TState> {
+    filter<TResult>(state: TState, context: IFilterContext): FilterResult<TResult>|Promise<FilterResult<TResult>>;
 }
 
 export interface IFilterContext {
