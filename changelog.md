@@ -1,3 +1,7 @@
+# 2.1.0
+
+* fix type signature for IFilterStrategy (no need to cast returned state)
+
 # 2.0.1
 
 * fix lodash types
