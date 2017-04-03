@@ -12,7 +12,7 @@ import RegistryEntry from "../scripts/registry/RegistryEntry";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import {
     ContentFilterStrategy, UnauthorizedFilterStrategy,
-    ForbiddenFilterStrategy
+    ForbiddenFilterStrategy, AsyncContentFilterStrategy
 } from "./fixtures/MockFilterStrategies";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjection} from "../scripts/projections/IProjection";
@@ -52,31 +52,39 @@ describe("Given a ProjectionStateHandler", () => {
         context("and a filter strategy is applied", () => {
             context("when a content filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new ContentFilterStrategy());
-                it("should send the filtered state", () => {
-                    subject.handle(request, response.object);
+                it("should send the filtered state", async () => {
+                    await subject.handle(request, response.object);
+                    response.verify(r => r.status(200), Times.once());
+                    response.verify(r => r.send(42), Times.once());
+                });
+            });
+            context("when an async content filter is returned", () => {
+                beforeEach(() => projection.filterStrategy = new AsyncContentFilterStrategy());
+                it("should send the filtered state", async () => {
+                    await subject.handle(request, response.object);
                     response.verify(r => r.status(200), Times.once());
                     response.verify(r => r.send(42), Times.once());
                 });
             });
             context("when an authorized filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new UnauthorizedFilterStrategy());
-                it("should return a 401 error code", () => {
-                    subject.handle(request, response.object);
+                it("should return a 401 error code", async () => {
+                    await subject.handle(request, response.object);
                     response.verify(r => r.status(401), Times.once());
                 });
             });
             context("when a forbidden filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new ForbiddenFilterStrategy());
-                it("should return a 403 error code", () => {
-                    subject.handle(request, response.object);
+                it("should return a 403 error code", async () => {
+                    await subject.handle(request, response.object);
                     response.verify(r => r.status(403), Times.once());
                 });
             });
         });
 
         context("and a filter strategy is not applied", () => {
-            it("should respond with the full state", () => {
-                subject.handle(request, response.object);
+            it("should respond with the full state", async () => {
+                await subject.handle(request, response.object);
                 response.verify(r => r.status(200), Times.once());
                 response.verify(r => r.send(42), Times.once());
             });
@@ -99,8 +107,8 @@ describe("Given a ProjectionStateHandler", () => {
         });
         context("and a specific key exists", () => {
             beforeEach(() => request.params.splitKey = "foo");
-            it("should return it", () => {
-                subject.handle(request, response.object);
+            it("should return it", async () => {
+                await subject.handle(request, response.object);
                 response.verify(r => r.status(200), Times.once());
                 response.verify(r => r.send(10), Times.once());
             });
