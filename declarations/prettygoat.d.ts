@@ -254,10 +254,10 @@ export interface Dictionary<T> {
     [index: string]: T
 }
 
-export type IFilterResult<T> = {filteredState: T, type: FilterOutputType};
+export type FilterResult<T> = {filteredState: T, type: FilterOutputType};
 
 export interface IFilterStrategy<T> {
-    filter(state: T, context: IFilterContext): IFilterResult<T>|Promise<IFilterResult<T>>;
+    filter(state: T, context: IFilterContext): FilterResult<T>|Promise<FilterResult<T>>;
 }
 
 export interface IFilterContext {

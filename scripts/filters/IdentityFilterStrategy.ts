@@ -1,11 +1,11 @@
 import IFilterStrategy from "./IFilterStrategy";
 import IFilterContext from "./IFilterContext";
 import FilterOutputType from "./FilterOutputType";
-import IFilterResult from "./IFilterResult";
+import FilterResult from "./FilterResult";
 
 class IdentityFilterStrategy<T> implements IFilterStrategy<T> {
 
-    filter(state: T, context: IFilterContext): IFilterResult<T>|Promise<IFilterResult<T>> {
+    filter(state: T, context: IFilterContext): FilterResult<T>|Promise<FilterResult<T>> {
         return {
             filteredState: state,
             type: FilterOutputType.CONTENT
