@@ -1,13 +1,13 @@
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import FilterOutputType from "../filters/FilterOutputType";
-import IFilterStrategy from "../filters/IFilterStrategy";
 import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import {STATUS_CODES} from "http";
+import {IFilterStrategy} from "../filters/IFilterStrategy";
+import {FilterOutputType} from "../filters/FilterComponents";
 
 @Route("GET", "/projections/:area/:projectionName(/:splitKey)")
 class ProjectionStateHandler implements IRequestHandler {
@@ -45,7 +45,7 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     private async sendResponse<T>(request: IRequest, response: IResponse, state: T,
-                                  filterStrategy: IFilterStrategy<T>) {
+                                  filterStrategy: IFilterStrategy<T, any>) {
         let filterContext = {headers: request.headers, params: request.query};
         let filteredProjection = await filterStrategy.filter(state, filterContext);
         switch (filteredProjection.type) {

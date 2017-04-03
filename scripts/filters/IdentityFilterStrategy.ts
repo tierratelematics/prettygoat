@@ -1,9 +1,7 @@
-import IFilterStrategy from "./IFilterStrategy";
-import IFilterContext from "./IFilterContext";
-import FilterOutputType from "./FilterOutputType";
-import FilterResult from "./FilterResult";
+import {IFilterStrategy} from "./IFilterStrategy";
+import {IFilterContext, FilterResult, FilterOutputType} from "./FilterComponents";
 
-class IdentityFilterStrategy<T> implements IFilterStrategy<T> {
+class IdentityFilterStrategy<T> implements IFilterStrategy<T, T> {
 
     filter(state: T, context: IFilterContext): FilterResult<T>|Promise<FilterResult<T>> {
         return {

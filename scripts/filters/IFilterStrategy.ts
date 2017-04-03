@@ -1,8 +1,10 @@
-import IFilterContext from "./IFilterContext";
-import FilterResult from "./FilterResult";
+import Partial from "../util/Partial";
+import {IFilterContext, FilterResult} from "./FilterComponents";
 
-interface IFilterStrategy<T extends Object> {
-    filter(state: T, context: IFilterContext): FilterResult<T>|Promise<FilterResult<T>>;
+export interface IFilterStrategy<TState, TResult> {
+    filter(state: TState, context: IFilterContext): FilterResult<TResult>|Promise<FilterResult<TResult>>;
 }
 
-export default IFilterStrategy
+export interface IPartialFilterStrategy<T> extends IFilterStrategy<T, Partial<T>> {
+
+}
