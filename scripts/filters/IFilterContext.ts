@@ -1,6 +1,8 @@
+import Dictionary from "../util/Dictionary";
+
 interface IFilterContext {
-    headers: { [key: string]: string };
-    params: { [key: string]: string };
+    headers: Dictionary<string>;
+    params: Dictionary<string>;
 }
 
 export default IFilterContext

@@ -1,8 +1,8 @@
 import IFilterContext from "./IFilterContext";
-import FilterOutputType from "./FilterOutputType";
+import IFilterResult from "./IFilterResult";
 
 interface IFilterStrategy<T extends Object> {
-    filter(state: T, context: IFilterContext): {filteredState: T, type: FilterOutputType};
+    filter(state: T, context: IFilterContext): IFilterResult<T>|Promise<IFilterResult<T>>;
 }
 
 export default IFilterStrategy
