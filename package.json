@@ -20,7 +20,7 @@
     "@types/serve-static": "~1.7.31",
     "@types/socket.io": "~1.4.27",
     "async": "~2.1.4",
-    "bivio": "~0.2.0",
+    "bivio": "^0.3.2",
     "body": "~5.1.0",
     "cors": "~2.7.1",
     "express": "~4.15.2",
