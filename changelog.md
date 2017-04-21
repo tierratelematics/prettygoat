@@ -1,3 +1,7 @@
+# 2.1.1
+
+* Bump bivio version
+
 # 2.1.0
 
 * fix type signature for IFilterStrategy (no need to cast returned state)
