@@ -27,10 +27,8 @@ describe("Given a ProjectionRunner", () => {
     let subscription: IDisposable;
     let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
-    let clock: lolex.Clock;
 
     beforeEach(() => {
-        clock = lolex.install();
         projection = new MockProjectionDefinition().define();
         notifications = [];
         stopped = false;
@@ -47,7 +45,6 @@ describe("Given a ProjectionRunner", () => {
 
     afterEach(() => {
         subscription.dispose();
-        clock.uninstall();
     });
 
     context("when initializing a projection", () => {
@@ -118,46 +115,71 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("and no error occurs", () => {
+
             beforeEach(() => {
                 let date = new Date();
-                matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
                 stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
-                subject.run();
             });
 
-            it("should match the event with the projection definition", () => {
-                matcher.verify(m => m.match("increment"), Times.exactly(5));
-            });
-            it("should consider the returned state as the projection state", () => {
-                expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
-            });
-            it("should notify that the projection has been updated", () => {
-                expect(notifications).to.be.eql([
-                    42,
-                    42 + 1,
-                    42 + 1 + 2,
-                    42 + 1 + 2 + 3,
-                    42 + 1 + 2 + 3 + 4,
-                    42 + 1 + 2 + 3 + 4 + 5
-                ]);
+            context("and an async event handler is not used", () => {
+                beforeEach(() => {
+                    matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
+                    subject.run();
+                });
+                it("should match the event with the projection definition", () => {
+                    matcher.verify(m => m.match("increment"), Times.exactly(5));
+                });
+                it("should consider the returned state as the projection state", (done) => {
+                    setTimeout(() => {
+                        expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
+                        done();
+                    }, 10);
+                });
+                it("should notify that the projection has been updated", (done) => {
+                    setTimeout(() => {
+                        expect(notifications).to.be.eql([
+                            42,
+                            42 + 1,
+                            42 + 1 + 2,
+                            42 + 1 + 2 + 3,
+                            42 + 1 + 2 + 3 + 4,
+                            42 + 1 + 2 + 3 + 4 + 5
+                        ]);
+                        done();
+                    }, 10);
+                });
+
+                it("should update the events processed counter", () => {
+                    expect(subject.stats.events).to.be(5);
+                });
+
+                it("should publish on the event stream the new aggregate state", (done) => {
+                    setTimeout(() => {
+                        readModelFactory.verify(a => a.publish(It.isValue({
+                            type: "test",
+                            payload: 42 + 1 + 2 + 3 + 4 + 5,
+                            timestamp: null,
+                            splitKey: null
+                        })), Times.atLeastOnce());
+                        done();
+                    }, 100);
+                });
             });
 
-            it("should update the events processed counter", () => {
-                expect(subject.stats.events).to.be(5);
+            context("and an async event handler is used", () => {
+                beforeEach(() => {
+                    matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
+                    subject.run();
+                });
+                it("should construct the state correctly", (done) => {
+                    setTimeout(() => {
+                        expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
+                        done();
+                    }, 10);
+                });
             });
-
-            it("should publish on the event stream the new aggregate state", () => {
-                clock.tick(100);
-                readModelFactory.verify(a => a.publish(It.isValue({
-                    type: "test",
-                    payload: 42 + 1 + 2 + 3 + 4 + 5,
-                    timestamp: null,
-                    splitKey: null
-                })), Times.atLeastOnce());
-            });
-
         });
 
         context("and no match is found for this event", () => {
@@ -185,7 +207,6 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
-                clock.uninstall();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });

@@ -1,4 +1,4 @@
-import {Subject, IDisposable} from "rx";
+import {Subject, IDisposable, Observable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -56,21 +56,24 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .subscribe(data => {
+            .flatMapWithMaxConcurrent(1, data => {
                 let [event, matchFn] = data;
-                try {
-                    let newState = matchFn(this.state, event.payload, event);
-                    if (newState instanceof SpecialState)
-                        this.state = (<SpecialState<T>>newState).state;
-                    else
-                        this.state = newState;
-                    if (!(newState instanceof StopSignallingState))
-                        this.notifyStateChange(event.timestamp);
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
-                }
+                return Observable.defer(() => Promise.resolve(matchFn(this.state, event.payload, event))
+                    .then(newState => {
+                        if (newState instanceof SpecialState)
+                            this.state = (<SpecialState<T>>newState).state;
+                        else
+                            this.state = newState;
+                        return [event, !(newState instanceof StopSignallingState)];
+                    }));
+            })
+            .subscribe(data => {
+                let [event, notify] = data;
+                if (notify) this.notifyStateChange(event.timestamp);
+            }, error => {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
             });
 
         combineStreams(
