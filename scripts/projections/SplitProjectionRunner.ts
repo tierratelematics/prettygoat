@@ -55,17 +55,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             .flatMapWithMaxConcurrent(1, data => {
                 let [event, matchFn, splitFn] = data;
                 return Observable.defer(() => {
-                    let splitKeys: string[];
-                    if (splitFn !== Identity) {
-                        let splitKey = splitFn(event.payload, event);
-                        event.splitKey = splitKey;
-                        if (_.isUndefined(this.state[splitKey]))
-                            this.initSplit(splitKey);
-                        splitKeys = [splitKey];
-                    } else {
-                        splitKeys = this.allSplitKeys();
-                    }
-                    splitKeys = this.filterNotDefinedSplits(splitKeys);
+                    let splitKeys = this.filterUndefinedSplits(this.getSplitKeysForEvent(event, splitFn));
                     return this.dispatchEvent(matchFn, event, splitKeys).then(() => [event, splitKeys]);
                 });
             })
@@ -87,6 +77,18 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
+    private getSplitKeysForEvent(event: Event, splitFn: Function): string[] {
+        if (splitFn !== Identity) {
+            let splitKey = splitFn(event.payload, event);
+            event.splitKey = splitKey;
+            if (_.isUndefined(this.state[splitKey]))
+                this.initSplit(splitKey);
+            return [splitKey];
+        } else {
+            return this.allSplitKeys();
+        }
+    }
+
     private initSplit(splitKey: string) {
         this.state[splitKey] = this.matcher.match(SpecialNames.Init)();
         _.forEach(this.readModelFactory.asList(), readModel => {
@@ -96,7 +98,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         });
     }
 
-    private filterNotDefinedSplits(splitKeys: string[]): string[] {
+    private filterUndefinedSplits(splitKeys: string[]): string[] {
         return _.filter(splitKeys, key => !!this.state[key]);
     }
 
