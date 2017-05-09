@@ -24,8 +24,9 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
-    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher, protected readModelFactory: IReadModelFactory,
-                protected tickScheduler: IStreamFactory, protected dateRetriever: IDateRetriever) {
+    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
+                protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
+                protected dateRetriever: IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
@@ -74,8 +75,13 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => this.updateStats(data[0]))
             .flatMapWithMaxConcurrent<[Event, T | Dictionary<T>]>(1, data => {
                 let [event, matchFn] = data;
-                return Observable.defer(() => Promise.resolve(matchFn(this.state, event.payload, event))
-                    .then(newState => [event, newState]));
+                return Observable.defer(() => {
+                    let state = matchFn(this.state, event.payload, event);
+                    //Not resolving every state directly with a Promise since this mess up with the
+                    //sinchronicity of the TickScheduler
+                    return (Promise.resolve(state) === state ?
+                        state.then(newState => [event, newState]) : Observable.just([event, state]));
+                });
             })
             .map<[Event, boolean]>(data => {
                 let [event, newState] = data;

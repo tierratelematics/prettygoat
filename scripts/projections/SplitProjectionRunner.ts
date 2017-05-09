@@ -14,6 +14,7 @@ import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialStat
 import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
+import {ValueOrPromise} from "../util/TypesUtil";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -56,7 +57,11 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 let [event, matchFn, splitFn] = data;
                 return Observable.defer(() => {
                     let splitKeys = this.filterUndefinedSplits(this.getSplitKeysForEvent(event, splitFn));
-                    return this.dispatchEvent(matchFn, event, splitKeys).then(() => [event, splitKeys]);
+                    let states = this.dispatchEvent(matchFn, event, splitKeys);
+                    if (Promise.resolve(states[0]) === states[0])
+                        return Promise.all(states).then(() => [event, splitKeys]);
+                    else
+                        return Observable.just([event, splitKeys]);
                 });
             })
             .subscribe(data => {
@@ -102,10 +107,11 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         return _.filter(splitKeys, key => !!this.state[key]);
     }
 
-    private dispatchEvent(matchFn: Function, event: Event, splits: string[]): Promise<void[]> {
-        return Promise.all<void>(_.map(splits, key => {
-            return Promise.resolve(matchFn(this.state[key], event.payload, event)).then(newState => this.state[key] = newState);
-        }));
+    private dispatchEvent(matchFn: Function, event: Event, splits: string[]): ValueOrPromise<T>[] {
+        return _.map(splits, key => {
+            let state = matchFn(this.state[key], event.payload, event);
+            return Promise.resolve(state) === state ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
+        });
     }
 
     private allSplitKeys(): string[] {
