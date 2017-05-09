@@ -77,8 +77,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 let [event, matchFn] = data;
                 return Observable.defer(() => {
                     let state = matchFn(this.state, event.payload, event);
-                    //Not resolving every state directly with a Promise since this mess up with the
-                    //sinchronicity of the TickScheduler
+                    //I'm not resolving every state directly with a Promise since this messes up with the
+                    //synchronicity of the TickScheduler
                     return (Promise.resolve(state) === state ?
                         state.then(newState => [event, newState]) : Observable.just([event, state]));
                 });
