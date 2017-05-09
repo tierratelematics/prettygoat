@@ -27,8 +27,10 @@ describe("Given a ProjectionRunner", () => {
     let subscription: IDisposable;
     let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
+    let clock: lolex.Clock;
 
     beforeEach(() => {
+        clock = lolex.install();
         projection = new MockProjectionDefinition().define();
         notifications = [];
         stopped = false;
@@ -45,6 +47,7 @@ describe("Given a ProjectionRunner", () => {
 
     afterEach(() => {
         subscription.dispose();
+        clock.uninstall();
     });
 
     context("when initializing a projection", () => {
@@ -120,7 +123,7 @@ describe("Given a ProjectionRunner", () => {
                 let date = new Date();
                 stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
-                }).observeOn(Rx.Scheduler.immediate));
+                }));
             });
 
             context("and an async event handler is not used", () => {
@@ -149,16 +152,14 @@ describe("Given a ProjectionRunner", () => {
                     expect(subject.stats.events).to.be(5);
                 });
 
-                it("should publish on the event stream the new aggregate state", (done) => {
-                    setTimeout(() => {
-                        readModelFactory.verify(a => a.publish(It.isValue({
-                            type: "test",
-                            payload: 42 + 1 + 2 + 3 + 4 + 5,
-                            timestamp: null,
-                            splitKey: null
-                        })), Times.atLeastOnce());
-                        done();
-                    }, 100);
+                it("should publish on the event stream the new aggregate state", () => {
+                    clock.tick(100);
+                    readModelFactory.verify(a => a.publish(It.isValue({
+                        type: "test",
+                        payload: 42 + 1 + 2 + 3 + 4 + 5,
+                        timestamp: null,
+                        splitKey: null
+                    })), Times.atLeastOnce());
                 });
             });
 
@@ -168,10 +169,10 @@ describe("Given a ProjectionRunner", () => {
                     subject.run();
                 });
                 it("should construct the state correctly", (done) => {
-                    setTimeout(() => {
+                    subject.notifications().subscribeOnCompleted(() => {
                         expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                         done();
-                    }, 10);
+                    });
                 });
             });
         });
@@ -201,6 +202,7 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
+                clock.uninstall();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });

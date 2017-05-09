@@ -78,10 +78,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     //There's a different management since it's better for testing non-async handlers
                     //(instead of resolving every event handler with a Promise)
                     let state = matchFn(this.state, event.payload, event);
-                    if (state instanceof Promise)
-                        return state.then(newState => [event, newState]);
-                    else
-                        return Observable.just([event, state]);
+                    return state instanceof Promise ? state.then(newState => [event, newState]) : Observable.just([event, state]);
                 });
             })
             .map(data => {
@@ -99,7 +96,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.isFailed = true;
                 this.subject.onError(error);
                 this.stop();
-            });
+            }, () => this.subject.onCompleted());
 
         combineStreams(
             combinedStream,
