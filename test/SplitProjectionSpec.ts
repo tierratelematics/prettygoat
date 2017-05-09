@@ -39,6 +39,7 @@ describe("Split projection, given a projection with a split definition", () => {
             new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
         stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
+        readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 
@@ -53,7 +54,6 @@ describe("Split projection, given a projection with a split definition", () => {
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
             beforeEach(async () => {
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -82,7 +82,6 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         context("and the event is not defined", () => {
-            beforeEach(() => readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>()));
             it("should continue replaying the stream", async () => {
                 subject.run();
                 streamData.onNext({
@@ -109,7 +108,6 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and a state is present for the generated split key", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10": 30
                 }, null));
@@ -158,7 +156,6 @@ describe("Split projection, given a projection with a split definition", () => {
 
         context("and a state is not present for the generated split key", () => {
             beforeEach(() => {
-                readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>());
                 readModelFactory.setup(r => r.asList()).returns(a => [
                     {
                         type: "LinkedState",
@@ -194,7 +191,6 @@ describe("Split projection, given a projection with a split definition", () => {
                     },
                     timestamp: new Date(10), splitKey: null
                 });
-                readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
