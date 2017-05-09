@@ -131,24 +131,18 @@ describe("Given a ProjectionRunner", () => {
                 it("should match the event with the projection definition", () => {
                     matcher.verify(m => m.match("increment"), Times.exactly(5));
                 });
-                it("should consider the returned state as the projection state", (done) => {
-                    setTimeout(() => {
-                        expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
-                        done();
-                    }, 10);
+                it("should consider the returned state as the projection state", () => {
+                    expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                 });
-                it("should notify that the projection has been updated", (done) => {
-                    setTimeout(() => {
-                        expect(notifications).to.be.eql([
-                            42,
-                            42 + 1,
-                            42 + 1 + 2,
-                            42 + 1 + 2 + 3,
-                            42 + 1 + 2 + 3 + 4,
-                            42 + 1 + 2 + 3 + 4 + 5
-                        ]);
-                        done();
-                    }, 10);
+                it("should notify that the projection has been updated", () => {
+                    expect(notifications).to.be.eql([
+                        42,
+                        42 + 1,
+                        42 + 1 + 2,
+                        42 + 1 + 2 + 3,
+                        42 + 1 + 2 + 3 + 4,
+                        42 + 1 + 2 + 3 + 4 + 5
+                    ]);
                 });
 
                 it("should update the events processed counter", () => {

@@ -45,6 +45,22 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
+        this.startStream(snapshot);
+    }
+
+    //Patch to remove sampling in tests where needed
+    protected subscribeToStateChanges() {
+        this.subject.sample(100).subscribe(readModel => {
+            this.readModelFactory.publish({
+                payload: readModel.payload,
+                type: readModel.type,
+                timestamp: null,
+                splitKey: null
+            });
+        }, error => null);
+    }
+
+    private startStream(snapshot: Snapshot<Dictionary<T>|T>) {
         let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
@@ -58,14 +74,23 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => this.updateStats(data[0]))
             .flatMapWithMaxConcurrent(1, data => {
                 let [event, matchFn] = data;
-                return Observable.defer(() => Promise.resolve(matchFn(this.state, event.payload, event))
-                    .then(newState => {
-                        if (newState instanceof SpecialState)
-                            this.state = (<SpecialState<T>>newState).state;
-                        else
-                            this.state = newState;
-                        return [event, !(newState instanceof StopSignallingState)];
-                    }));
+                return Observable.defer(() => {
+                    //There's a different management since it's better for testing non-async handlers
+                    //(instead of resolving every event handler with a Promise)
+                    let state = matchFn(this.state, event.payload, event);
+                    if (state instanceof Promise)
+                        return state.then(newState => [event, newState]);
+                    else
+                        return Observable.just([event, state]);
+                });
+            })
+            .map(data => {
+                let [event, newState] = data;
+                if (newState instanceof SpecialState)
+                    this.state = (<SpecialState<T>>newState).state;
+                else
+                    this.state = newState;
+                return [event, !(newState instanceof StopSignallingState)];
             })
             .subscribe(data => {
                 let [event, notify] = data;
@@ -82,18 +107,6 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
             this.tickScheduler.from(null),
             this.dateRetriever);
-    }
-
-    //Patch to remove sampling in tests where needed
-    protected subscribeToStateChanges() {
-        this.subject.sample(100).subscribe(readModel => {
-            this.readModelFactory.publish({
-                payload: readModel.payload,
-                type: readModel.type,
-                timestamp: null,
-                splitKey: null
-            });
-        }, error => null);
     }
 
     protected updateStats(event: Event) {
