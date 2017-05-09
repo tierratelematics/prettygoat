@@ -257,7 +257,7 @@ export interface Dictionary<T> {
 export type FilterResult<T> = {filteredState: T, type: FilterOutputType};
 
 export interface IFilterStrategy<TState> {
-    filter<TResult>(state: TState, context: IFilterContext): FilterResult<TResult>|Promise<FilterResult<TResult>>;
+    filter<TResult>(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
 }
 
 export interface IFilterContext {
@@ -452,3 +452,5 @@ export class PortDiscovery {
 export interface IDateRetriever {
     getDate(): Date;
 }
+
+export type ValueOrPromise<T> = T | Promise<T>;
