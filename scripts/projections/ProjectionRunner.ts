@@ -60,7 +60,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         }, error => null);
     }
 
-    private startStream(snapshot: Snapshot<Dictionary<T>|T>) {
+    protected startStream(snapshot: Snapshot<Dictionary<T>|T>) {
         let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
@@ -72,16 +72,16 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .flatMapWithMaxConcurrent(1, data => {
+            .flatMapWithMaxConcurrent<[Event, T | Dictionary<T>]>(1, data => {
                 let [event, matchFn] = data;
                 return Observable.defer(() => {
                     //There's a different management since it's better for testing non-async handlers
                     //(instead of resolving every event handler with a Promise)
                     let state = matchFn(this.state, event.payload, event);
-                    return state instanceof Promise ? state.then(newState => [event, newState]) : Observable.just([event, state]);
+                    return Promise.resolve(state) === state ? state.then(newState => [event, newState]) : Observable.just([event, state]);
                 });
             })
-            .map(data => {
+            .map<[Event, boolean]>(data => {
                 let [event, newState] = data;
                 if (newState instanceof SpecialState)
                     this.state = (<SpecialState<T>>newState).state;
