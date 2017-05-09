@@ -53,7 +53,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .flatMapWithMaxConcurrent(1, data => {
+            .flatMapWithMaxConcurrent<[Event, string[]]>(1, data => {
                 let [event, matchFn, splitFn] = data;
                 return Observable.defer(() => {
                     let splitKeys = this.filterUndefinedSplits(this.getSplitKeysForEvent(event, splitFn));
