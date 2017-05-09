@@ -74,12 +74,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => this.updateStats(data[0]))
             .flatMapWithMaxConcurrent<[Event, T | Dictionary<T>]>(1, data => {
                 let [event, matchFn] = data;
-                return Observable.defer(() => {
-                    //There's a different management since it's better for testing non-async handlers
-                    //(instead of resolving every event handler with a Promise)
-                    let state = matchFn(this.state, event.payload, event);
-                    return Promise.resolve(state) === state ? state.then(newState => [event, newState]) : Observable.just([event, state]);
-                });
+                return Observable.defer(() => Promise.resolve(matchFn(this.state, event.payload, event))
+                    .then(newState => [event, newState]));
             })
             .map<[Event, boolean]>(data => {
                 let [event, newState] = data;

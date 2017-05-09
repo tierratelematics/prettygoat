@@ -50,6 +50,12 @@ describe("Given a ProjectionRunner", () => {
         clock.uninstall();
     });
 
+    function completeStream() {
+        return new Promise((resolve, reject) => {
+            subject.notifications().subscribe(() => null, reject, resolve);
+        });
+    }
+
     context("when initializing a projection", () => {
         beforeEach(() => {
             stream.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
@@ -127,9 +133,10 @@ describe("Given a ProjectionRunner", () => {
             });
 
             context("and an async event handler is not used", () => {
-                beforeEach(() => {
+                beforeEach(async() => {
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
                     subject.run();
+                    await completeStream();
                 });
                 it("should match the event with the projection definition", () => {
                     matcher.verify(m => m.match("increment"), Times.exactly(5));
@@ -164,15 +171,13 @@ describe("Given a ProjectionRunner", () => {
             });
 
             context("and an async event handler is used", () => {
-                beforeEach(() => {
+                beforeEach(async() => {
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
                     subject.run();
+                    await completeStream();
                 });
-                it("should construct the state correctly", (done) => {
-                    subject.notifications().subscribeOnCompleted(() => {
-                        expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
-                        done();
-                    });
+                it("should construct the state correctly", () => {
+                    expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                 });
             });
         });
@@ -190,8 +195,10 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment5")).returns(streamId => Identity);
             });
 
-            it("should not notify a state change", () => {
+            it("should not notify a state change", async() => {
                 subject.run();
+                await completeStream();
+
                 expect(notifications).to.be.eql([
                     42,
                     42 + 2,
@@ -244,7 +251,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
-        beforeEach(() => {
+        beforeEach(async() => {
             readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
@@ -252,21 +259,14 @@ describe("Given a ProjectionRunner", () => {
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();
-            streamSubject.onNext({type: ReservedEvents.REALTIME, payload: null, timestamp: null});
+            subject.stop();
             streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(501)});
             streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(502)});
-            streamSubject.onNext({type: "increment", payload: 3, timestamp: new Date(503)});
-            streamSubject.onNext({type: "increment", payload: 4, timestamp: new Date(504)});
-            subject.stop();
-            streamSubject.onNext({type: "increment", payload: 5, timestamp: new Date(505)});
+            await completeStream();
         });
         it("should not process any more events", () => {
             expect(notifications).to.eql([
-                42,
-                42 + 1,
-                42 + 1 + 2,
-                42 + 1 + 2 + 3,
-                42 + 1 + 2 + 3 + 4
+                42
             ]);
         });
         it("should notify that the projection has been stopped", () => {
