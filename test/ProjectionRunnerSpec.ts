@@ -228,7 +228,7 @@ describe("Given a ProjectionRunner", () => {
         let readModelSubject = new Subject<any>();
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject.observeOn(Scheduler.immediate));
+            readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
             subject.run();
         });

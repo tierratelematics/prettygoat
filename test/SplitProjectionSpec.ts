@@ -38,8 +38,8 @@ describe("Split projection, given a projection with a split definition", () => {
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
-        stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
-        readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+        stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData);
+        readModelFactory.setup(r => r.from(null)).returns(a => readModelData);
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 
