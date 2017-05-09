@@ -38,13 +38,21 @@ describe("Split projection, given a projection with a split definition", () => {
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
             new MockDateRetriever(new Date(100000)));
+        stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 
+    function completeStream() {
+        streamData.onCompleted();
+        readModelData.onCompleted();
+        return new Promise((resolve, reject) => {
+            subject.notifications().subscribe(() => null, reject, resolve);
+        });
+    }
+
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
-            beforeEach(() => {
-                stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
+            beforeEach(async () => {
                 readModelFactory.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
                 readModelData.onNext({
                     type: "LinkedState",
@@ -57,10 +65,14 @@ describe("Split projection, given a projection with a split definition", () => {
                     "10a": 2000,
                     "25b": 5600
                 }, new Date(5000)));
+                await completeStream();
             });
-            it("should construct the snapshotted projections", () => {
-                expect(subject.state["10a"]).to.be(4000);
-                expect(subject.state["25b"]).to.be(7600);
+            it("should construct the snapshotted projections", (done) => {
+                setTimeout(() => {
+                    expect(subject.state["10a"]).to.be(4000);
+                    expect(subject.state["25b"]).to.be(7600);
+                    done();
+                }, 100);
             });
             it("should subscribe to the event stream starting from the snapshot timestamp", () => {
                 stream.verify(s => s.from(It.isValue(new Date(5000)), It.isAny(), It.isValue(projection.definition)), Times.once());
@@ -69,13 +81,9 @@ describe("Split projection, given a projection with a split definition", () => {
     });
 
     context("when a new event is received", () => {
-        beforeEach(() => {
-            stream.setup(s => s.from(null, It.isAny(), It.isValue(projection.definition))).returns(_ => streamData.observeOn(Scheduler.immediate));
-        });
-
         context("and the event is not defined", () => {
             beforeEach(() => readModelFactory.setup(r => r.from(null)).returns(_ => Observable.empty<Event>()));
-            it("should continue replaying the stream", () => {
+            it("should continue replaying the stream", async () => {
                 subject.run();
                 streamData.onNext({
                     type: "TestEvent",
@@ -94,6 +102,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     },
                     timestamp: new Date(30), splitKey: null
                 });
+                await completeStream();
                 expect(subject.state["10"]).to.be(80);
             });
         });
@@ -107,7 +116,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
             });
             context("if the event handler is synchronous", () => {
-                beforeEach(() => {
+                beforeEach(async () => {
                     streamData.onNext({
                         type: "TestEvent",
                         payload: {
@@ -116,6 +125,7 @@ describe("Split projection, given a projection with a split definition", () => {
                         },
                         timestamp: new Date(30), splitKey: null
                     });
+                    await completeStream();
                 });
                 it("should update the projection state", () => {
                     expect(subject.state["10"]).to.be(80);
@@ -129,7 +139,7 @@ describe("Split projection, given a projection with a split definition", () => {
             });
 
             context("if the event handler is asynchronous", () => {
-                beforeEach(() => {
+                beforeEach(async() => {
                     streamData.onNext({
                         type: "Async",
                         payload: {
@@ -138,13 +148,10 @@ describe("Split projection, given a projection with a split definition", () => {
                         },
                         timestamp: new Date(30), splitKey: null
                     });
-                    streamData.onCompleted();
+                    await completeStream();
                 });
-                it("should update the projection state", (done) => {
-                    subject.notifications().subscribeOnCompleted(() => {
-                        expect(subject.state["10"]).to.be(1030);
-                        done();
-                    });
+                it("should update the projection state", () => {
+                    expect(subject.state["10"]).to.be(1030);
                 });
             });
         });
@@ -162,7 +169,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     }
                 ]);
             });
-            it("should initialize the new projection by pushing all the generated read models", () => {
+            it("should initialize the new projection by pushing all the generated read models", async() => {
                 subject.run();
                 streamData.onNext({
                     type: "TestEvent",
@@ -172,12 +179,13 @@ describe("Split projection, given a projection with a split definition", () => {
                     },
                     timestamp: new Date(10), splitKey: null
                 });
+                await completeStream();
                 expect(subject.state["10"]).to.be(2030);
             });
         });
 
         context("and the event is a read model", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 streamData.onNext({
                     type: "TestEvent",
                     payload: {
@@ -195,6 +203,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     timestamp: new Date(30), splitKey: null
                 });
                 subject.run();
+                await completeStream();
             });
 
             it("should dispatch the read model to all the projections", () => {
