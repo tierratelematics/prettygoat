@@ -104,24 +104,48 @@ describe("Split projection, given a projection with a split definition", () => {
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10": 30
                 }, null));
-                streamData.onNext({
-                    type: "TestEvent",
-                    payload: {
-                        count: 50,
-                        id: "10"
-                    },
-                    timestamp: new Date(30), splitKey: null
+
+            });
+            context("if the event handler is synchronous", () => {
+                beforeEach(() => {
+                    streamData.onNext({
+                        type: "TestEvent",
+                        payload: {
+                            count: 50,
+                            id: "10"
+                        },
+                        timestamp: new Date(30), splitKey: null
+                    });
+                });
+                it("should update the projection state", () => {
+                    expect(subject.state["10"]).to.be(80);
+                });
+
+                it("should notify that the read model has changed", () => {
+                    expect(notifications).to.have.length(1);
+                    expect(notifications[0].splitKey).to.be("10");
+                    expect(notifications[0].payload).to.be(80);
                 });
             });
 
-            it("should update the projection state", () => {
-                expect(subject.state["10"]).to.be(80);
-            });
-
-            it("should notify that the read model has changed", () => {
-                expect(notifications).to.have.length(1);
-                expect(notifications[0].splitKey).to.be("10");
-                expect(notifications[0].payload).to.be(80);
+            context("if the event handler is asynchronous", () => {
+                beforeEach(() => {
+                    streamData.onNext({
+                        type: "Async",
+                        payload: {
+                            count: 1000,
+                            id: "10"
+                        },
+                        timestamp: new Date(30), splitKey: null
+                    });
+                    streamData.onCompleted();
+                });
+                it("should update the projection state", (done) => {
+                    subject.notifications().subscribeOnCompleted(() => {
+                        expect(subject.state["10"]).to.be(1030);
+                        done();
+                    });
+                });
             });
         });
 
