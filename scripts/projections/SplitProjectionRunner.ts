@@ -84,10 +84,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     private splitKeysForEvent(event: Event, splitFn: Function): ValueOrPromise<SplitKey> {
-        if (splitFn === Identity)
-            return this.allSplitKeys();
-        let splitKey = splitFn(event.payload, event);
-        return isPromise(splitKey) ? splitKey.then(key => event.splitKey = key) : event.splitKey = splitKey;
+        return splitFn === Identity ? this.allSplitKeys() : splitFn(event.payload, event);
     }
 
     private calculateStates(event: Event, matchFn: Function, splitKeys: SplitKey): ObservableOrPromise<any> {
@@ -114,6 +111,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
     private dispatchEvent(matchFn: Function, event: Event, splits: string[]): ValueOrPromise<T>[] {
         return _.map(splits, key => {
+            event = _.clone<Event>(event);
+            event.splitKey = key;
             let state = matchFn(this.state[key], event.payload, event);
             return isPromise(state) ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
         });
