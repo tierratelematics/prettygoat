@@ -53,7 +53,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
-            beforeEach(async () => {
+            beforeEach(async() => {
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -82,7 +82,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         context("and the event is not defined", () => {
-            it("should continue replaying the stream", async () => {
+            it("should continue replaying the stream", async() => {
                 subject.run();
                 streamData.onNext({
                     type: "TestEvent",
@@ -106,15 +106,34 @@ describe("Split projection, given a projection with a split definition", () => {
             });
         });
 
+        context("and the corresponding split key must be generated asynchronously", () => {
+            beforeEach(async() => {
+                subject.run(new Snapshot(<Dictionary<number>>{
+                    "10": 30
+                }, null));
+                streamData.onNext({
+                    type: "SplitAsync",
+                    payload: {
+                        count: 50,
+                        id: "10"
+                    },
+                    timestamp: new Date(30), splitKey: null
+                });
+                await completeStream();
+            });
+            it("should correctly update the projection state", () => {
+                expect(subject.state["10"]).to.be(80);
+            });
+        });
+
         context("and a state is present for the generated split key", () => {
             beforeEach(() => {
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10": 30
                 }, null));
-
             });
             context("if the event handler is synchronous", () => {
-                beforeEach(async () => {
+                beforeEach(async() => {
                     streamData.onNext({
                         type: "TestEvent",
                         payload: {
@@ -182,7 +201,7 @@ describe("Split projection, given a projection with a split definition", () => {
         });
 
         context("and the event is a read model", () => {
-            beforeEach(async () => {
+            beforeEach(async() => {
                 streamData.onNext({
                     type: "TestEvent",
                     payload: {

@@ -11,8 +11,8 @@ export interface IWhen<T extends Object> {
 }
 
 export interface ISplit {
-    $default?:(e:Object, event?:Event) => string;
-    [name:string]:(e:Object, event?:Event) => string;
+    $default?:(e:Object, event?:Event) => ValueOrPromise<string>;
+    [name:string]:(e:Object, event?:Event) => ValueOrPromise<string>;
 }
 
 export interface IProjection<T> {
