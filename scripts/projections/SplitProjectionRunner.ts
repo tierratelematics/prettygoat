@@ -9,12 +9,12 @@ import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
-import {IProjection} from "./IProjection";
+import {IProjection, SplitKey} from "./IProjection";
 import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
 import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
-import {ValueOrPromise, isPromise} from "../util/TypesUtil";
+import {ValueOrPromise, isPromise, toArray} from "../util/TypesUtil";
 import {flatMapSeries} from "../util/RxOperators";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
@@ -58,13 +58,14 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 let [event, matchFn, splitFn] = data;
                 let splitKeys = this.getSplitKeysForEvent(event, splitFn);
                 if (isPromise(splitKeys)) {
-                    return (<Promise<string[]>>splitKeys).then(keys => [event, matchFn, keys]);
+                    return (<Promise<SplitKey>>splitKeys).then(keys => [event, matchFn, keys]);
                 } else {
-                    return Observable.just([event, matchFn, <string[]>splitKeys]);
+                    return Observable.just([event, matchFn, splitKeys]);
                 }
             }))
             .let<any>(flatMapSeries<any, any>(data => {
                 let [event, matchFn, splitKeys] = data;
+                splitKeys = toArray(splitKeys);
                 _.forEach(splitKeys, key => {
                     if (_.isUndefined(this.state[key]))
                         this.initSplit(key);
@@ -93,19 +94,11 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    private getSplitKeysForEvent(event: Event, splitFn: Function): ValueOrPromise<string[]> {
+    private getSplitKeysForEvent(event: Event, splitFn: Function): ValueOrPromise<SplitKey> {
         if (splitFn === Identity)
             return this.allSplitKeys();
         let splitKey = splitFn(event.payload, event);
-        if (isPromise(splitKey)) {
-            return splitKey.then(key => {
-                event.splitKey = key;
-                return [key]
-            });
-        } else {
-            event.splitKey = splitKey;
-            return [splitKey];
-        }
+        return isPromise(splitKey) ? splitKey.then(key => event.splitKey = key) : event.splitKey = splitKey;
     }
 
     private initSplit(splitKey: string) {

@@ -13,7 +13,7 @@ export interface IWhen<T extends Object> {
 export type SplitKey = string | string[];
 
 export interface ISplit {
-    $default?:(e:Object, event?:Event) => ValueOrPromise<SplitKey;
+    $default?:(e:Object, event?:Event) => ValueOrPromise<SplitKey>;
     [name:string]:(e:Object, event?:Event) => ValueOrPromise<SplitKey>;
 }
 
