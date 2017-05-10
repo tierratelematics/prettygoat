@@ -14,7 +14,7 @@ import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialStat
 import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
-import {ValueOrPromise} from "../util/TypesUtil";
+import {ValueOrPromise, isPromise} from "../util/TypesUtil";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -53,10 +53,24 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .flatMapWithMaxConcurrent<[Event, string[]]>(1, data => {
+            .flatMapWithMaxConcurrent<[Event, Function, string[]]>(1, data => {
                 let [event, matchFn, splitFn] = data;
                 return Observable.defer(() => {
-                    let splitKeys = this.filterUndefinedSplits(this.getSplitKeysForEvent(event, splitFn));
+                    let splitKeys = this.getSplitKeysForEvent(event, splitFn);
+                    if (isPromise(splitKeys)) {
+                        return (<Promise<string[]>>splitKeys).then(keys => [event, matchFn, keys]);
+                    } else {
+                        return Observable.just([event, matchFn, splitKeys]);
+                    }
+                });
+            })
+            .flatMapWithMaxConcurrent(1, data => {
+                let [event, matchFn, splitKeys] = data;
+                return Observable.defer(() => {
+                    _.forEach(splitKeys, key => {
+                        if (_.isUndefined(this.state[key]))
+                            this.initSplit(key);
+                    });
                     let states = this.dispatchEvent(matchFn, event, splitKeys);
                     if (isPromise(states[0]))
                         return Promise.all(states).then(() => [event, splitKeys]);
@@ -82,15 +96,18 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    private getSplitKeysForEvent(event: Event, splitFn: Function): string[] {
-        if (splitFn !== Identity) {
-            let splitKey = splitFn(event.payload, event);
-            event.splitKey = splitKey;
-            if (_.isUndefined(this.state[splitKey]))
-                this.initSplit(splitKey);
-            return [splitKey];
-        } else {
+    private getSplitKeysForEvent(event: Event, splitFn: Function): ValueOrPromise<string[]> {
+        if (splitFn === Identity)
             return this.allSplitKeys();
+        let splitKey = splitFn(event.payload, event);
+        if (isPromise(splitKey)) {
+            return splitKey.then(key => {
+                event.splitKey = key;
+                return [key]
+            });
+        } else {
+            event.splitKey = splitKey;
+            return [splitKey];
         }
     }
 
@@ -101,10 +118,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             if (matchFn !== Identity)
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
         });
-    }
-
-    private filterUndefinedSplits(splitKeys: string[]): string[] {
-        return _.filter(splitKeys, key => !!this.state[key]);
     }
 
     private dispatchEvent(matchFn: Function, event: Event, splits: string[]): ValueOrPromise<T>[] {
