@@ -14,12 +14,14 @@ class SplitProjectionDefinition implements IProjectionDefinition<number> {
                 LinkedState: (s, e: {count2: number}) => s + e.count2,
                 split: (s, e: any) => s + e,
                 Async: (s, e: any) => Promise.resolve(s + e.count),
-                SplitAsync: (s, e: any) => s + e.count
+                SplitAsync: (s, e: any) => s + e.count,
+                MultipleKeys: (s, e: any) => s + e.count
             },
             split: {
                 TestEvent: (e: any) => e.id.toString(),
                 Async: (e: any) => e.id.toString(),
-                SplitAsync: (e: any) => Promise.resolve(e.id.toString())
+                SplitAsync: (e: any) => Promise.resolve(e.id.toString()),
+                MultipleKeys: (e: {splits: string[]}) => e.splits
             }
         };
     }

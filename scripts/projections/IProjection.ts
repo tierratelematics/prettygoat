@@ -10,9 +10,11 @@ export interface IWhen<T extends Object> {
     [name:string]:(s:T, payload:Object, event?:Event) => ValueOrPromise<T | SpecialState<T>>;
 }
 
+export type SplitKey = string | string[];
+
 export interface ISplit {
-    $default?:(e:Object, event?:Event) => ValueOrPromise<string>;
-    [name:string]:(e:Object, event?:Event) => ValueOrPromise<string>;
+    $default?:(e:Object, event?:Event) => ValueOrPromise<SplitKey;
+    [name:string]:(e:Object, event?:Event) => ValueOrPromise<SplitKey>;
 }
 
 export interface IProjection<T> {

@@ -238,5 +238,25 @@ describe("Split projection, given a projection with a split definition", () => {
                 });
             });
         });
+
+        context("and it will trigger multiple split keys", () => {
+            beforeEach(async() => {
+                subject.run();
+                streamData.onNext({
+                    type: "MultipleKeys",
+                    payload: {
+                        count: 20,
+                        splits: ["10", "27a", "35c"]
+                    },
+                    timestamp: new Date(10), splitKey: null
+                });
+                await completeStream();
+            });
+            it("should be dispatched to all the projections", () => {
+                expect(subject.state["10"]).to.be(30);
+                expect(subject.state["27a"]).to.be(30);
+                expect(subject.state["35c"]).to.be(30);
+            });
+        });
     });
 });
