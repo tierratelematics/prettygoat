@@ -61,15 +61,17 @@ export interface IProjection<T> {
     filterStrategy?: IFilterStrategy<T>;
 }
 
+export type SplitKey = string | string[];
+
 export interface ISplit {
-    $default?: (e: Object, event?: Event) => string;
-    [name: string]: (e: Object, event?: Event) => string;
+    $default?: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
+    [name: string]: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
 }
 
 export interface IWhen<T extends Object> {
     $init?: () => T;
-    $any?: (s: T, payload: Object, event?: Event) => T;
-    [name: string]: (s: T, payload: Object, event?: Event) => T|SpecialState<T>;
+    $any?: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
+    [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T | SpecialState<T>>;
 }
 
 export interface Event {
