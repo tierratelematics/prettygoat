@@ -15,6 +15,7 @@ import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
 import {ValueOrPromise, isPromise} from "../util/TypesUtil";
+import {flatMapSeries} from "../util/RxOperators";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -53,31 +54,27 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .flatMapWithMaxConcurrent<[Event, Function, string[]]>(1, data => {
+            .let<any>(flatMapSeries<any, any>(data => {
                 let [event, matchFn, splitFn] = data;
-                return Observable.defer(() => {
-                    let splitKeys = this.getSplitKeysForEvent(event, splitFn);
-                    if (isPromise(splitKeys)) {
-                        return (<Promise<string[]>>splitKeys).then(keys => [event, matchFn, keys]);
-                    } else {
-                        return Observable.just([event, matchFn, splitKeys]);
-                    }
-                });
-            })
-            .flatMapWithMaxConcurrent(1, data => {
+                let splitKeys = this.getSplitKeysForEvent(event, splitFn);
+                if (isPromise(splitKeys)) {
+                    return (<Promise<string[]>>splitKeys).then(keys => [event, matchFn, keys]);
+                } else {
+                    return Observable.just([event, matchFn, <string[]>splitKeys]);
+                }
+            }))
+            .let<any>(flatMapSeries<any, any>(data => {
                 let [event, matchFn, splitKeys] = data;
-                return Observable.defer(() => {
-                    _.forEach(splitKeys, key => {
-                        if (_.isUndefined(this.state[key]))
-                            this.initSplit(key);
-                    });
-                    let states = this.dispatchEvent(matchFn, event, splitKeys);
-                    if (isPromise(states[0]))
-                        return Promise.all(states).then(() => [event, splitKeys]);
-                    else
-                        return Observable.just([event, splitKeys]);
+                _.forEach(splitKeys, key => {
+                    if (_.isUndefined(this.state[key]))
+                        this.initSplit(key);
                 });
-            })
+                let states = this.dispatchEvent(matchFn, event, splitKeys);
+                if (isPromise(states[0]))
+                    return Promise.all(states).then(() => [event, splitKeys]);
+                else
+                    return Observable.just([event, splitKeys]);
+            }))
             .subscribe(data => {
                 let [event, splitKeys] = data;
                 _.forEach(splitKeys, key => this.notifyStateChange(event.timestamp, key));
