@@ -15,7 +15,7 @@ import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
 import {ValueOrPromise, isPromise, toArray, ObservableOrPromise} from "../util/TypesUtil";
-import {flatMapSeries} from "../util/RxOperators";
+import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -54,8 +54,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .let<any>(flatMapSeries<any, any>(data => this.calculateSplitKeys(data[0], data[1], data[2])))
-            .let<any>(flatMapSeries<any, any>(data => this.calculateStates(data[0], data[1], data[2])))
+            .let(untypedFlatMapSeries(data => this.calculateSplitKeys(data[0], data[1], data[2])))
+            .let(untypedFlatMapSeries(data => this.calculateStates(data[0], data[1], data[2])))
             .subscribe(data => {
                 let [event, splitKeys] = data;
                 _.forEach(splitKeys, key => this.notifyStateChange(event.timestamp, key));

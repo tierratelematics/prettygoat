@@ -15,7 +15,7 @@ import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
 import {isPromise} from "../util/TypesUtil";
-import {flatMapSeries} from "../util/RxOperators";
+import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
@@ -75,7 +75,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
-            .let<any>(flatMapSeries<any, any>(data => {
+            .let(untypedFlatMapSeries(data => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
                 //I'm not resolving every state directly with a Promise since this messes up with the
