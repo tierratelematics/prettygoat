@@ -14,6 +14,7 @@ import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
+import {isPromise} from "../util/TypesUtil";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
@@ -79,8 +80,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     let state = matchFn(this.state, event.payload, event);
                     //I'm not resolving every state directly with a Promise since this messes up with the
                     //synchronicity of the TickScheduler
-                    return (Promise.resolve(state) === state ?
-                        state.then(newState => [event, newState]) : Observable.just([event, state]));
+                    return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
                 });
             })
             .map<[Event, boolean]>(data => {

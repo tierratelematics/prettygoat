@@ -58,7 +58,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 return Observable.defer(() => {
                     let splitKeys = this.filterUndefinedSplits(this.getSplitKeysForEvent(event, splitFn));
                     let states = this.dispatchEvent(matchFn, event, splitKeys);
-                    if (Promise.resolve(states[0]) === states[0])
+                    if (isPromise(states[0]))
                         return Promise.all(states).then(() => [event, splitKeys]);
                     else
                         return Observable.just([event, splitKeys]);
@@ -110,7 +110,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     private dispatchEvent(matchFn: Function, event: Event, splits: string[]): ValueOrPromise<T>[] {
         return _.map(splits, key => {
             let state = matchFn(this.state[key], event.payload, event);
-            return Promise.resolve(state) === state ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
+            return isPromise(state) ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
         });
     }
 
