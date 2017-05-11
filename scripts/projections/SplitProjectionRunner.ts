@@ -1,6 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {helpers, Subject} from "rx";
+import {Observable, Subject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -9,11 +9,13 @@ import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
-import {IProjection} from "./IProjection";
+import {IProjection, SplitKey} from "./IProjection";
 import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
 import ProjectionRunner from "./ProjectionRunner";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
+import {ValueOrPromise, isPromise, toArray, ObservableOrPromise} from "../util/TypesUtil";
+import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
@@ -33,6 +35,10 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
         this.stats.running = true;
         this.state = snapshot ? <Dictionary<T>>snapshot.memento : {};
+        this.startStream(snapshot);
+    }
+
+    startStream(snapshot?: Snapshot<T | Dictionary<T>>) {
         let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
@@ -48,27 +54,16 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
+            .let(untypedFlatMapSeries(data => this.calculateSplitKeys(data[0], data[1], data[2])))
+            .let(untypedFlatMapSeries(data => this.calculateStates(data[0], data[1], data[2])))
             .subscribe(data => {
-                let [event, matchFn, splitFn] = data;
-                try {
-                    if (splitFn !== Identity) {
-                        let splitKey = splitFn(event.payload, event);
-                        event.splitKey = splitKey;
-                        let childState = this.state[splitKey];
-                        if (_.isUndefined(childState))
-                            this.initSplit(matchFn, event, splitKey);
-                        else
-                            this.state[splitKey] = matchFn(childState, event.payload, event);
-                        this.notifyStateChange(event.timestamp, splitKey);
-                    } else {
-                        this.dispatchEventToAll(matchFn, event);
-                    }
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
-                }
-            });
+                let [event, splitKeys] = data;
+                _.forEach(splitKeys, key => this.notifyStateChange(event.timestamp, key));
+            }, error => {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
+            }, () => this.subject.onCompleted());
 
         combineStreams(
             combinedStream,
@@ -79,24 +74,51 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             this.dateRetriever);
     }
 
-    private initSplit(matchFn: Function, event, splitKey: string) {
+    private calculateSplitKeys(event: Event, matchFn: Function, splitFn: Function): ObservableOrPromise<any> {
+        let splitKeys = this.splitKeysForEvent(event, splitFn);
+        if (isPromise(splitKeys)) {
+            return (<Promise<SplitKey>>splitKeys).then(keys => [event, matchFn, keys]);
+        } else {
+            return Observable.just([event, matchFn, splitKeys]);
+        }
+    }
+
+    private splitKeysForEvent(event: Event, splitFn: Function): ValueOrPromise<SplitKey> {
+        return splitFn === Identity ? this.allSplitKeys() : splitFn(event.payload, event);
+    }
+
+    private allSplitKeys(): string[] {
+        return _.keys(this.state);
+    }
+
+    private calculateStates(event: Event, matchFn: Function, splitKeys: SplitKey): ObservableOrPromise<any> {
+        let keysArray = toArray<string>(splitKeys);
+        _.forEach(keysArray, key => {
+            if (_.isUndefined(this.state[key]))
+                this.initSplit(key);
+        });
+        let states = this.dispatchEvent(matchFn, event, keysArray);
+        if (isPromise(states[0]))
+            return Promise.all(states).then(() => [event, keysArray]);
+        else
+            return Observable.just([event, keysArray]);
+    }
+
+    private initSplit(splitKey: string) {
         this.state[splitKey] = this.matcher.match(SpecialNames.Init)();
         _.forEach(this.readModelFactory.asList(), readModel => {
             let matchFn = this.matcher.match(readModel.type);
-            if (matchFn !== Identity) {
+            if (matchFn !== Identity)
                 this.state[splitKey] = matchFn(this.state[splitKey], readModel.payload, readModel);
-                this.notifyStateChange(event.timestamp, splitKey);
-            }
         });
-        this.state[splitKey] = matchFn(this.state[splitKey], event.payload, event);
     }
 
-    private dispatchEventToAll(matchFn: Function, event) {
-        _.forEach(this.state, (state, key) => {
-            if (this.state[key]) {
-                this.state[key] = matchFn(state, event.payload, event);
-                this.notifyStateChange(event.timestamp, key);
-            }
+    private dispatchEvent(matchFn: Function, event: Event, splits: string[]): ValueOrPromise<T>[] {
+        return _.map(splits, key => {
+            event = _.clone<Event>(event);
+            event.splitKey = key;
+            let state = matchFn(this.state[key], event.payload, event);
+            return isPromise(state) ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
         });
     }
 

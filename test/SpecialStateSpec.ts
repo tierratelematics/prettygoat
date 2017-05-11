@@ -39,7 +39,7 @@ describe("Given a projection runner", () => {
         let date = new Date();
         stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
             return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
-        }).observeOn(Scheduler.immediate));
+        }));
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
     });
 
@@ -47,6 +47,12 @@ describe("Given a projection runner", () => {
         subscription.dispose();
         clock.uninstall();
     });
+
+    function completeStream() {
+        return new Promise((resolve, reject) => {
+            subject.notifications().subscribe(() => null, reject, resolve);
+        });
+    }
 
     context("when it's not a split projection", () => {
         beforeEach(() => {
@@ -61,9 +67,10 @@ describe("Given a projection runner", () => {
         });
 
         context("and the state change should not be notified", () => {
-            beforeEach(() => {
+            beforeEach(async() => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.stopSignalling(s + e));
                 subject.run();
+                await completeStream();
             });
             it("should not send a notification", () => {
                 expect(notifications).to.eql([
@@ -79,7 +86,7 @@ describe("Given a projection runner", () => {
         let readModelData: Subject<Event>;
         beforeEach(() => {
             readModelData = new Subject<Event>();
-            readModel.setup(r => r.from(null)).returns(a => readModelData.observeOn(Scheduler.immediate));
+            readModel.setup(r => r.from(null)).returns(a => readModelData);
             splitMatcher = Mock.ofType<IMatcher>();
             let tickScheduler = Mock.ofType<IStreamFactory>();
             tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
@@ -91,10 +98,12 @@ describe("Given a projection runner", () => {
         });
 
         context("and the state of a split should not be notified", () => {
-            beforeEach(() => {
+            beforeEach(async() => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.stopSignalling(s + e));
                 splitMatcher.setup(m => m.match("increment")).returns(a => (e: number) => e);
                 subject.run();
+                readModelData.onCompleted();
+                await completeStream();
             });
             it("should not send a notification", () => {
                 expect(notifications).to.eql([]);
@@ -116,18 +125,27 @@ describe("Given a projection runner", () => {
                         "3": 392
                     }, null));
             });
-            it("should be removed from the dictionary", () => {
+            it("should be removed from the dictionary", async() => {
+                readModelData.onCompleted();
+                await completeStream();
+
                 expect(subject.state["1"]).to.be(undefined);
                 expect(subject.state["2"]).to.be(undefined);
                 expect(subject.state["3"]).to.be(392);
             });
 
-            it("should also remove the key itself", () => {
+            it("should also remove the key itself", async() => {
+                readModelData.onCompleted();
+                await completeStream();
+
                 expect(_.has(subject.state, "2")).to.be(false);
             });
 
-            it("should not receive readmodels anymore", () => {
+            it("should not receive readmodels anymore", async() => {
                 readModelData.onNext({type: "ReadModel", payload: 5000, splitKey: null, timestamp: null});
+                readModelData.onCompleted();
+                await completeStream();
+                
                 expect(subject.state["1"]).to.be(undefined);
                 expect(subject.state["2"]).to.be(undefined);
                 expect(subject.state["3"]).to.be(5392);
