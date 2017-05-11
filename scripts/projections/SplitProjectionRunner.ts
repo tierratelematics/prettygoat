@@ -87,6 +87,10 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         return splitFn === Identity ? this.allSplitKeys() : splitFn(event.payload, event);
     }
 
+    private allSplitKeys(): string[] {
+        return _.keys(this.state);
+    }
+
     private calculateStates(event: Event, matchFn: Function, splitKeys: SplitKey): ObservableOrPromise<any> {
         let keysArray = toArray<string>(splitKeys);
         _.forEach(keysArray, key => {
@@ -116,10 +120,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             let state = matchFn(this.state[key], event.payload, event);
             return isPromise(state) ? state.then(newState => this.state[key] = newState) : this.state[key] = state;
         });
-    }
-
-    private allSplitKeys(): string[] {
-        return _.keys(this.state);
     }
 
     protected notifyStateChange(timestamp: Date, splitKey: string) {
