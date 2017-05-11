@@ -1,3 +1,8 @@
+# 2.2.0
+
+* Add async management of event/split handlers
+* Add multiple split keys
+
 # 2.1.1
 
 * Bump bivio version
