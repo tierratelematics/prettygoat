@@ -31,7 +31,7 @@ export function combineStreams(combined: Subject<Event>, events: Observable<Even
                     combined.onError(error);
                 }
             }
-        });
+        }, error => combined.onError(error), () => combined.onCompleted());
 
     ticks.subscribe(event => {
         let payload: Tick = event.payload;

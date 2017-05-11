@@ -1,4 +1,4 @@
-import {Subject, IDisposable} from "rx";
+import {Subject, IDisposable, Observable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -14,6 +14,8 @@ import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
+import {isPromise} from "../util/TypesUtil";
+import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
@@ -24,8 +26,9 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
-    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher, protected readModelFactory: IReadModelFactory,
-                protected tickScheduler: IStreamFactory, protected dateRetriever: IDateRetriever) {
+    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
+                protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
+                protected dateRetriever: IDateRetriever) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }
@@ -45,40 +48,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
         this.notifyStateChange(new Date(1));
-        let combinedStream = new Subject<Event>();
-        let completions = new Subject<string>();
-
-        this.subscription = combinedStream
-            .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .do(data => {
-                if (data[0].type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(data[0].payload.event);
-            })
-            .filter(data => data[1] !== Identity)
-            .do(data => this.updateStats(data[0]))
-            .subscribe(data => {
-                let [event, matchFn] = data;
-                try {
-                    let newState = matchFn(this.state, event.payload, event);
-                    if (newState instanceof SpecialState)
-                        this.state = (<SpecialState<T>>newState).state;
-                    else
-                        this.state = newState;
-                    if (!(newState instanceof StopSignallingState))
-                        this.notifyStateChange(event.timestamp);
-                } catch (error) {
-                    this.isFailed = true;
-                    this.subject.onError(error);
-                    this.stop();
-                }
-            });
-
-        combineStreams(
-            combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
-            this.tickScheduler.from(null),
-            this.dateRetriever);
+        this.startStream(snapshot);
     }
 
     //Patch to remove sampling in tests where needed
@@ -91,6 +61,50 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 splitKey: null
             });
         }, error => null);
+    }
+
+    protected startStream(snapshot: Snapshot<Dictionary<T>|T>) {
+        let combinedStream = new Subject<Event>();
+        let completions = new Subject<string>();
+
+        this.subscription = combinedStream
+            .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
+            .do(data => {
+                if (data[0].type === ReservedEvents.FETCH_EVENTS)
+                    completions.onNext(data[0].payload.event);
+            })
+            .filter(data => data[1] !== Identity)
+            .do(data => this.updateStats(data[0]))
+            .let(untypedFlatMapSeries(data => {
+                let [event, matchFn] = data;
+                let state = matchFn(this.state, event.payload, event);
+                //I'm not resolving every state directly with a Promise since this messes up with the
+                //synchronicity of the TickScheduler
+                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
+            }))
+            .map<[Event, boolean]>(data => {
+                let [event, newState] = data;
+                if (newState instanceof SpecialState)
+                    this.state = (<SpecialState<T>>newState).state;
+                else
+                    this.state = newState;
+                return [event, !(newState instanceof StopSignallingState)];
+            })
+            .subscribe(data => {
+                let [event, notify] = data;
+                if (notify) this.notifyStateChange(event.timestamp);
+            }, error => {
+                this.isFailed = true;
+                this.subject.onError(error);
+                this.stop();
+            }, () => this.subject.onCompleted());
+
+        combineStreams(
+            combinedStream,
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
+            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.tickScheduler.from(null),
+            this.dateRetriever);
     }
 
     protected updateStats(event: Event) {
