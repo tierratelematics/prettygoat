@@ -1,3 +1,7 @@
+# 3.0.0
+
+* Update the contract when subscribing to projection's changes (see [chupacabras](https://github.com/tierratelematics/chupacabras)).
+
 # 2.2.0
 
 * Add async management of event/split handlers
