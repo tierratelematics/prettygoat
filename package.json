@@ -1,6 +1,6 @@
 {
   "name": "prettygoat",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "devDependencies": {
     "@types/expect.js": "~0.3.29",
     "@types/lolex": "~1.5.30",
@@ -22,6 +22,7 @@
     "async": "~2.1.4",
     "bivio": "^0.3.2",
     "body": "~5.1.0",
+    "chupacabras": "^0.1.0",
     "cors": "~2.7.1",
     "express": "~4.15.2",
     "hammock": "~2.0.1",
