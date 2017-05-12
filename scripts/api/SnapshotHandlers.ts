@@ -24,7 +24,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate())).subscribeOnCompleted(() => {});
+        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate())).subscribeOnCompleted();
         response.send({name: name});
     }
 
@@ -51,7 +51,7 @@ export class SnapshotDeleteHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.deleteSnapshot(name).subscribe(() => {});
+        this.snapshotRepository.deleteSnapshot(name).subscribe();
         response.send({name: name});
     }
 
