@@ -19,6 +19,7 @@ import PortDiscovery from "../util/PortDiscovery";
 import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
+import {ModelContext} from "chupacabras";
 
 class Engine {
 
@@ -90,9 +91,9 @@ class Engine {
 
         socketFactory.socketForPath(socketConfig.path).on('connection', client => {
             let wrappedClient = new SocketClient(client);
-            client.on('subscribe', message => {
+            client.on('subscribe', (message: ModelContext) => {
                 try {
-                    let context = new PushContext(message.area, message.viewmodelId, message.parameters),
+                    let context = new PushContext(message.area, message.modelId, message.parameters),
                         entry = registry.getEntry(context.projectionName, context.area).data,
                         splitKey = entry.parametersKey ? entry.parametersKey(context.parameters) : null;
                     clientRegistry.add(wrappedClient, context);
@@ -102,9 +103,9 @@ class Engine {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }
             });
-            client.on('unsubscribe', message => {
+            client.on('unsubscribe', (message: ModelContext) => {
                 try {
-                    let context = new PushContext(message.area, message.viewmodelId, message.parameters);
+                    let context = new PushContext(message.area, message.modelId, message.parameters);
                     clientRegistry.remove(wrappedClient, context);
                     logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
                 } catch (error) {

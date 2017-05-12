@@ -7,7 +7,6 @@ const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 import * as _ from "lodash";
 import SplitProjectionRunner from "../projections/SplitProjectionRunner";
-import Base = Mocha.reporters.Base;
 import IProjectionEngine from "../projections/IProjectionEngine";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
