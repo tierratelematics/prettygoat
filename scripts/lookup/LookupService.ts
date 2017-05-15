@@ -1,4 +1,6 @@
-import {injectable} from "inversify";
+import {injectable, inject} from "inversify";
+import IProjectionRunner from "../projections/IProjectionRunner";
+import Dictionary from "../util/Dictionary";
 
 export interface ILookupService {
     keysFor(id: string, projectionName: string): Promise<string[]>;
@@ -7,12 +9,12 @@ export interface ILookupService {
 @injectable()
 export class LookupService implements ILookupService {
 
-    constructor() {
+    constructor(@inject("IProjectionRunnerHolder") private runners: Dictionary<IProjectionRunner<any>>) {
 
     }
 
     keysFor(id: string, projectionName: string): Promise<string[]> {
-        return undefined;
+        return this.runners[projectionName].notifications().map(notification => notification.payload[id]).toPromise<Promise<string[]>>(Promise);
     }
 
 }
