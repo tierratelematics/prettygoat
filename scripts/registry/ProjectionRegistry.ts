@@ -36,8 +36,6 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     add<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry {
         let name = Reflect.getMetadata("prettygoat:projection", constructor);
-        if (!name)
-            throw new Error("Missing Projection decorator");
         this.unregisteredEntries.push({ctor: constructor, exposedName: name, parametersKey: parametersKey});
         return this;
     }

@@ -65,28 +65,6 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         }
     });
 
-    context("when a projection has no name", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Test:";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new UnnamedProjectionDefinition());
-        });
-        it("should throw an error regarding the missing decorator", () => {
-            expect(() => subject.add(UnnamedProjectionDefinition).forArea("Test")).to.throwError();
-        });
-    });
-
-    context("when a projection isn't formally correct", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Test:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockBadProjectionDefinition());
-        });
-        it("should throw an error", () => {
-            expect(() => subject.add(MockBadProjectionDefinition).forArea("Test")).to.throwError();
-        });
-    });
-
     context("when a projection with that name already exists", () => {
         beforeEach(() => {
             let key = "prettygoat:definitions:Admin:Mock";
