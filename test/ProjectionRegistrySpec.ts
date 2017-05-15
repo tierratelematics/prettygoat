@@ -4,9 +4,6 @@ import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
-import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
-import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
@@ -26,11 +23,10 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         holder: Dictionary<ITickScheduler>;
 
     beforeEach(() => {
-        let analyzer = new ProjectionAnalyzer();
         objectContainer = Mock.ofType<IObjectContainer>();
         tickScheduler = new TickScheduler(null);
         holder = {};
-        subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);
+        subject = new ProjectionRegistry(objectContainer.object, () => tickScheduler, holder);
     });
 
     context("when they are registered under a specific area", () => {
