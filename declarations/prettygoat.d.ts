@@ -457,3 +457,19 @@ export interface IDateRetriever {
 }
 
 export type ValueOrPromise<T> = T | Promise<T>;
+
+export interface Lookup extends Dictionary<string[]> {
+
+}
+
+export interface ILookupService {
+    keysFor(id: string, projectionName: string): Promise<string[]>;
+}
+
+export class LookupService implements ILookupService {
+
+    constructor(runners: Dictionary<IProjectionRunner<any>>);
+
+    keysFor(id: string, projectionName: string): Promise<string[]>;
+
+}

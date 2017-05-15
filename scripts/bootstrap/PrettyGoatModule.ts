@@ -47,6 +47,7 @@ import IAsyncPublisher from "../util/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
+import {ILookupService, LookupService} from "../projections/LookupService";
 
 class PrettyGoatModule implements IModule {
 
@@ -83,6 +84,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
+        container.bind<ILookupService>("ILookupService").to(LookupService).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
