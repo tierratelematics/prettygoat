@@ -3,7 +3,6 @@ import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "../ioc/IObjectContainer";
@@ -58,7 +57,6 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
-        container.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
         container.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();

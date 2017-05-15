@@ -4,9 +4,6 @@ import {IMock, Mock, Times, It} from "typemoq";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
-import MockBadProjectionDefinition from "./fixtures/definitions/MockBadProjectionDefinition";
-import {ProjectionAnalyzer} from "../scripts/projections/ProjectionAnalyzer";
 import IObjectContainer from "../scripts/ioc/IObjectContainer";
 import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
@@ -17,6 +14,7 @@ import {
     MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
+import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -26,11 +24,10 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         holder: Dictionary<ITickScheduler>;
 
     beforeEach(() => {
-        let analyzer = new ProjectionAnalyzer();
         objectContainer = Mock.ofType<IObjectContainer>();
         tickScheduler = new TickScheduler(null);
         holder = {};
-        subject = new ProjectionRegistry(analyzer, objectContainer.object, () => tickScheduler, holder);
+        subject = new ProjectionRegistry(objectContainer.object, () => tickScheduler, holder);
     });
 
     context("when they are registered under a specific area", () => {
@@ -77,17 +74,6 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
         it("should throw an error regarding the missing decorator", () => {
             expect(() => subject.add(UnnamedProjectionDefinition).forArea("Test")).to.throwError();
-        });
-    });
-
-    context("when a projection isn't formally correct", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Test:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockBadProjectionDefinition());
-        });
-        it("should throw an error", () => {
-            expect(() => subject.add(MockBadProjectionDefinition).forArea("Test")).to.throwError();
         });
     });
 

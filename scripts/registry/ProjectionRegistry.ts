@@ -4,13 +4,11 @@ import RegistryEntry from "./RegistryEntry";
 import IProjectionDefinition from "./IProjectionDefinition";
 import Constants from "./Constants";
 import {injectable, inject} from "inversify";
-import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import {interfaces} from "inversify";
 import IObjectContainer from "../ioc/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
-import {IProjection} from "../projections/IProjection";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -22,8 +20,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         parametersKey?:(parameters:any) => string
     }[] = [];
 
-    constructor(@inject("ProjectionAnalyzer") private analyzer:ProjectionAnalyzer,
-                @inject("IObjectContainer") private container:IObjectContainer,
+    constructor(@inject("IObjectContainer") private container:IObjectContainer,
                 @inject("Factory<ITickScheduler>") private tickSchedulerFactory:interfaces.Factory<ITickScheduler>,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>) {
 
@@ -48,14 +45,11 @@ class ProjectionRegistry implements IProjectionRegistry {
     forArea(area:string):AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
-                projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.exposedName).define(tickScheduler),
-                validationErrors = this.analyzer.analyze(projection);
+                projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.exposedName).define(tickScheduler);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
             if (projection.split && !entry.parametersKey)
                 throw new Error(`Missing parameters key function from projection ${projection.name} registration`);
-            if (validationErrors.length > 0)
-                throw new Error(validationErrors[0]);
-            return new RegistryEntry(projection, entry.exposedName, entry.parametersKey);
+            return new RegistryEntry(projection, entry.exposedName, entry.parametersKey, entry.ctor);
         });
         let areaRegistry = new AreaRegistry(area, entries);
         this.registry.push(areaRegistry);

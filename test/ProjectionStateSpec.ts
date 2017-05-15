@@ -16,6 +16,7 @@ import {
 } from "./fixtures/MockFilterStrategies";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjection} from "../scripts/projections/IProjection";
+import PrivateProjectionDefinition from "./fixtures/definitions/PrivateProjectionDefiniton";
 
 describe("Given a ProjectionStateHandler", () => {
     let request: IRequest,
@@ -35,12 +36,12 @@ describe("Given a ProjectionStateHandler", () => {
     });
 
     context("when the state of a projection is needed", () => {
-        let projection:IProjection<any>;
+        let projection: IProjection<any>;
 
         beforeEach(() => {
             projection = new MockProjectionDefinition().define();
             registry.setup(r => r.getEntry("Mock", "Admin")).returns(() => {
-                return {area: "Admin", data: new RegistryEntry(projection, "Mock")};
+                return {area: "Admin", data: new RegistryEntry(projection, "Mock", null, MockProjectionDefinition)};
             });
             holder["test"] = projectionRunner;
             projectionRunner.state = 42;
@@ -52,7 +53,7 @@ describe("Given a ProjectionStateHandler", () => {
         context("and a filter strategy is applied", () => {
             context("when a content filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new ContentFilterStrategy());
-                it("should send the filtered state", async () => {
+                it("should send the filtered state", async() => {
                     await subject.handle(request, response.object);
                     response.verify(r => r.status(200), Times.once());
                     response.verify(r => r.send(42), Times.once());
@@ -60,7 +61,7 @@ describe("Given a ProjectionStateHandler", () => {
             });
             context("when an async content filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new AsyncContentFilterStrategy());
-                it("should send the filtered state", async () => {
+                it("should send the filtered state", async() => {
                     await subject.handle(request, response.object);
                     response.verify(r => r.status(200), Times.once());
                     response.verify(r => r.send(42), Times.once());
@@ -68,14 +69,14 @@ describe("Given a ProjectionStateHandler", () => {
             });
             context("when an authorized filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new UnauthorizedFilterStrategy());
-                it("should return a 401 error code", async () => {
+                it("should return a 401 error code", async() => {
                     await subject.handle(request, response.object);
                     response.verify(r => r.status(401), Times.once());
                 });
             });
             context("when a forbidden filter is returned", () => {
                 beforeEach(() => projection.filterStrategy = new ForbiddenFilterStrategy());
-                it("should return a 403 error code", async () => {
+                it("should return a 403 error code", async() => {
                     await subject.handle(request, response.object);
                     response.verify(r => r.status(403), Times.once());
                 });
@@ -83,7 +84,7 @@ describe("Given a ProjectionStateHandler", () => {
         });
 
         context("and a filter strategy is not applied", () => {
-            it("should respond with the full state", async () => {
+            it("should respond with the full state", async() => {
                 await subject.handle(request, response.object);
                 response.verify(r => r.status(200), Times.once());
                 response.verify(r => r.send(42), Times.once());
@@ -94,7 +95,10 @@ describe("Given a ProjectionStateHandler", () => {
     context("when the state of a split projection is needed", () => {
         beforeEach(() => {
             registry.setup(r => r.getEntry("Split", "Admin")).returns(() => {
-                return {area: "Admin", data: new RegistryEntry(new SplitProjectionDefinition().define(), "Split")};
+                return {
+                    area: "Admin",
+                    data: new RegistryEntry(new SplitProjectionDefinition().define(), "Split", null, SplitProjectionDefinition)
+                };
             });
             holder["split"] = projectionRunner;
             projectionRunner.state = {
@@ -107,7 +111,7 @@ describe("Given a ProjectionStateHandler", () => {
         });
         context("and a specific key exists", () => {
             beforeEach(() => request.params.splitKey = "foo");
-            it("should return it", async () => {
+            it("should return it", async() => {
                 await subject.handle(request, response.object);
                 response.verify(r => r.status(200), Times.once());
                 response.verify(r => r.send(10), Times.once());
@@ -122,4 +126,30 @@ describe("Given a ProjectionStateHandler", () => {
             });
         });
     });
+
+    context("when a projection has a private decorator", () => {
+        let projection: IProjection<any>;
+
+        beforeEach(() => {
+            projection = new PrivateProjectionDefinition().define();
+            registry.setup(r => r.getEntry("Closed", "Admin")).returns(() => {
+                return {
+                    area: "Admin",
+                    data: new RegistryEntry(projection, "Closed", null, PrivateProjectionDefinition)
+                };
+            });
+            holder["Closed"] = projectionRunner;
+            projectionRunner.state = 42;
+            request.params = {
+                area: "Admin",
+                projectionName: "Closed"
+            };
+        });
+
+        it("should be kept private", async() => {
+            await subject.handle(request, response.object);
+            response.verify(r => r.status(404), Times.once());
+        });
+    });
+
 });
