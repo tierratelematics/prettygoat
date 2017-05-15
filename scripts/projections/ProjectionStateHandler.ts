@@ -1,13 +1,15 @@
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {inject} from "inversify";
+import {inject, interfaces} from "inversify";
 import Dictionary from "../util/Dictionary";
 import IProjectionRunner from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import {STATUS_CODES} from "http";
 import {IFilterStrategy} from "../filters/IFilterStrategy";
 import {FilterOutputType} from "../filters/FilterComponents";
+import {IProjection} from "./IProjection";
+import IProjectionDefinition from "../registry/IProjectionDefinition";
 
 @Route("GET", "/projections/:area/:projectionName(/:splitKey)")
 class ProjectionStateHandler implements IRequestHandler {
@@ -21,7 +23,7 @@ class ProjectionStateHandler implements IRequestHandler {
             area = request.params.area,
             splitKey = request.params.splitKey,
             entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        if (!entry) {
+        if (!entry || this.isPrivate(entry.construct)) {
             this.sendNotFound(response);
         } else {
             let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
@@ -37,6 +39,10 @@ class ProjectionStateHandler implements IRequestHandler {
             else
                 this.sendNotFound(response);
         }
+    }
+
+    private isPrivate(construct: interfaces.Newable<IProjectionDefinition<any>>): boolean {
+        return construct ? Reflect.getMetadata("prettygoat:private", construct) : false;
     }
 
     private sendNotFound(response: IResponse) {

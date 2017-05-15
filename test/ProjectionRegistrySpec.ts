@@ -14,6 +14,7 @@ import {
     MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
+import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -73,17 +74,6 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
         it("should throw an error regarding the missing decorator", () => {
             expect(() => subject.add(UnnamedProjectionDefinition).forArea("Test")).to.throwError();
-        });
-    });
-
-    context("when a projection isn't formally correct", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Test:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockBadProjectionDefinition());
-        });
-        it("should throw an error", () => {
-            expect(() => subject.add(MockBadProjectionDefinition).forArea("Test")).to.throwError();
         });
     });
 

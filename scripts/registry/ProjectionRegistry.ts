@@ -49,7 +49,7 @@ class ProjectionRegistry implements IProjectionRegistry {
             this.tickSchedulerHolder[projection.name] = tickScheduler;
             if (projection.split && !entry.parametersKey)
                 throw new Error(`Missing parameters key function from projection ${projection.name} registration`);
-            return new RegistryEntry(projection, entry.exposedName, entry.parametersKey);
+            return new RegistryEntry(projection, entry.exposedName, entry.parametersKey, entry.ctor);
         });
         let areaRegistry = new AreaRegistry(area, entries);
         this.registry.push(areaRegistry);
