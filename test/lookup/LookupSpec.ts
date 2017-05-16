@@ -26,7 +26,6 @@ describe("Given a lookup", () => {
                 payload: {test: 10},
                 splitKey: null
             });
-            observer.onCompleted();
         }));
         subject = new Lookup(readModels.object);
     });
@@ -43,21 +42,10 @@ describe("Given a lookup", () => {
 
     context("when a key is requested", () => {
         beforeEach(() => subject.setProjectionName("UsersByDevice"));
-        context("and the backing projection hasn't been requested yet", () => {
-            it("should subscribe to it and get the model", async () => {
-                let users = await subject.keysFor("test-device");
+        it("should subscribe to it and get the model", async () => {
+            let users = await subject.keysFor("test-device");
 
-                expect(users).to.eql(["26h", "128a"]);
-            });
-        });
-        context("and the backing projection has been already requested", () => {
-            beforeEach(async () => await subject.keysFor("test-device"));
-            it("should filter the model from the cache", async () => {
-                let users = await subject.keysFor("test-device");
-
-                expect(users).to.eql(["26h", "128a"]);
-                readModels.verify(r => r.from(null), Times.once());
-            });
+            expect(users).to.eql(["26h", "128a"]);
         });
     });
 });
