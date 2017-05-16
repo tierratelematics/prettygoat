@@ -1,43 +1,51 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, It, Times} from "typemoq";
-import {ILookupService, LookupService, Lookup} from "../../scripts/lookup/Lookup";
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import {Observable} from "rx";
+import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
+import ILookup from "../../scripts/lookup/ILookup";
+import Lookup from "../../scripts/lookup/Lookup";
+import {Event} from "../../scripts/streams/Event";
 
-describe("Given a lookup service", () => {
+describe("Given a lookup", () => {
 
-    let subject: ILookupService;
-    let runner: IMock<IProjectionRunner<Lookup>>;
+    let subject: ILookup;
+    let readModels: IMock<IReadModelFactory>;
 
     beforeEach(() => {
-        runner = Mock.ofType<IProjectionRunner<Lookup>>();
-        runner.setup(r => r.notifications()).returns(() => Observable.just({
-            type: "UsersByDevice",
-            timestamp: new Date(0),
-            payload: {"test-device": ["26h", "128a"]},
-            splitKey: null
+        readModels = Mock.ofType<IReadModelFactory>();
+        readModels.setup(readModels => readModels.from(null)).returns(() => Observable.create<Event>(observer => {
+            observer.onNext({
+                type: "UsersByDevice",
+                timestamp: new Date(0),
+                payload: {"test-device": ["26h", "128a"]},
+                splitKey: null
+            });
+            observer.onNext({
+                type: "OtherProjection",
+                timestamp: new Date(1),
+                payload: {test: 10},
+                splitKey: null
+            });
         }));
-        subject = new LookupService({
-            "UsersByDevice": runner.object
-        });
+        subject = new Lookup(readModels.object);
     });
 
-    context("when a lookup is requested", () => {
+    context("when a key is requested", () => {
         context("and the backing projection hasn't been requested yet", () => {
-            it("should subscribe to it and get the model", async() => {
-                let users = await subject.keysFor("test-device", "UsersByDevice");
+            it("should subscribe to it and get the model", async () => {
+                let users = await subject.keysFor("test-device");
 
                 expect(users).to.eql(["26h", "128a"]);
             });
         });
         context("and the backing projection has been already requested", () => {
-            beforeEach(async() => await subject.keysFor("test-device", "UsersByDevice"));
-            it("should filter the model from the cache", async() => {
-                let users = await subject.keysFor("test-device", "UsersByDevice");
+            beforeEach(async () => await subject.keysFor("test-device"));
+            it("should filter the model from the cache", async () => {
+                let users = await subject.keysFor("test-device");
 
                 expect(users).to.eql(["26h", "128a"]);
-                runner.verify(r => r.notifications(), Times.once());
+                readModels.verify(r => r.from(null), Times.once());
             });
         });
     });
