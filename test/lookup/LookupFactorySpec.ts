@@ -8,13 +8,14 @@ describe("Given a lookup factory", () => {
     let subject: ILookupFactory;
 
     beforeEach(() => {
-        subject = new LookupFactory();
+        subject = new LookupFactory(null);
     });
 
     context("when a lookup service is requested", () => {
         context("and it has not been created yet", () => {
             it("should be created", () => {
-                expect(subject.lookupFor("UsersByDevice")).to.be.ok();
+                expect(subject.lookupFor("UsersByDevice")).to.have.property("projectionName", "UsersByDevice");
+
             });
         });
         context("and it has already been created", () => {
