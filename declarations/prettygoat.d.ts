@@ -463,13 +463,13 @@ export interface Lookup extends Dictionary<string[]> {
 }
 
 export interface ILookupService {
-    keysFor(id: string, projectionName: string): Promise<string[]>;
+    keysFor<T extends IProjectionDefinition<Lookup>>(id: string, projectionName: string): Promise<string[]>;
 }
 
 export class LookupService implements ILookupService {
 
     constructor(runners: Dictionary<IProjectionRunner<any>>);
 
-    keysFor(id: string, projectionName: string): Promise<string[]>;
+    keysFor<T extends IProjectionDefinition<Lookup>>(id: string, projectionName: string): Promise<string[]>;
 
 }
