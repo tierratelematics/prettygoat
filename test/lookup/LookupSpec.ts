@@ -3,13 +3,12 @@ import expect = require("expect.js");
 import {IMock, Mock, It, Times} from "typemoq";
 import {Observable} from "rx";
 import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
-import ILookup from "../../scripts/lookup/ILookup";
 import Lookup from "../../scripts/lookup/Lookup";
 import {Event} from "../../scripts/streams/Event";
 
 describe("Given a lookup", () => {
 
-    let subject: ILookup;
+    let subject: Lookup;
     let readModels: IMock<IReadModelFactory>;
 
     beforeEach(() => {
@@ -27,11 +26,23 @@ describe("Given a lookup", () => {
                 payload: {test: 10},
                 splitKey: null
             });
+            observer.onCompleted();
         }));
         subject = new Lookup(readModels.object);
     });
 
+    context("when a projection name is not set", () => {
+        it("should throw an error", async () => {
+            try {
+                await subject.keysFor("test-device");
+            } catch (error) {
+                expect(error.message).to.be("A projection name must be set");
+            }
+        });
+    });
+
     context("when a key is requested", () => {
+        beforeEach(() => subject.setProjectionName("UsersByDevice"));
         context("and the backing projection hasn't been requested yet", () => {
             it("should subscribe to it and get the model", async () => {
                 let users = await subject.keysFor("test-device");
