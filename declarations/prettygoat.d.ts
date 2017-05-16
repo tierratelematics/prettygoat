@@ -189,7 +189,7 @@ export class RegistryEntry<T> {
     parametersKey: (parameters: any) => string;
     construct: interfaces.Newable<IProjectionDefinition<T>>;
 
-    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string, construct: interfaces.Newable<IProjectionDefinition<T>>);
+    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string, construct?: interfaces.Newable<IProjectionDefinition<T>>);
 }
 
 export function Projection(name: string);
