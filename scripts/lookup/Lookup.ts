@@ -21,7 +21,6 @@ class Lookup implements ILookup {
                 .map(payload => payload[id])
                 .take(1)
                 .toPromise<Promise<string[]>>(Promise);
-
     }
 
     setProjectionName(name: string) {
