@@ -26,4 +26,3 @@ export {default as ProjectionRunner} from "./projections/ProjectionRunner";
 export {default as SplitProjectionRunner} from "./projections/SplitProjectionRunner";
 export {Matcher} from "./matcher/Matcher";
 export {default as Identity} from "./matcher/Identity";
-export {LookupService} from "./projections/LookupService";

@@ -47,7 +47,7 @@ import IAsyncPublisher from "../util/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
-import {ILookupService, LookupService} from "../projections/LookupService";
+import {ILookupService, LookupService} from "../lookup/Lookup";
 
 class PrettyGoatModule implements IModule {
 

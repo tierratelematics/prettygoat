@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, It, Times} from "typemoq";
-import {ILookupService, LookupService, Lookup} from "../scripts/projections/LookupService";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {ILookupService, LookupService, Lookup} from "../../scripts/lookup/Lookup";
+import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
 import {Observable} from "rx";
 
 describe("Given a lookup service", () => {
