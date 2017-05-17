@@ -3,7 +3,6 @@ import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
 import ProjectionRegistry from "../registry/ProjectionRegistry";
-import {ProjectionAnalyzer} from "../projections/ProjectionAnalyzer";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "../ioc/IObjectContainer";
@@ -48,6 +47,8 @@ import IAsyncPublisher from "../util/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
+import LookupFactory from "../lookup/LookupFactory";
+import ILookupFactory from "../lookup/ILookupFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -58,7 +59,6 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
-        container.bind<ProjectionAnalyzer>("ProjectionAnalyzer").to(ProjectionAnalyzer).inSingletonScope();
         container.bind<IPushNotifier>("IPushNotifier").to(PushNotifier).inSingletonScope();
         container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
@@ -85,6 +85,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
+        container.bind<ILookupFactory>("ILookupFactory").to(LookupFactory).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

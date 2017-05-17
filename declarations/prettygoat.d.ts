@@ -187,11 +187,14 @@ export class RegistryEntry<T> {
     projection: IProjection<T>;
     exposedName: string;
     parametersKey: (parameters: any) => string;
+    construct: interfaces.Newable<IProjectionDefinition<T>>;
 
-    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string);
+    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string, construct?: interfaces.Newable<IProjectionDefinition<T>>);
 }
 
 export function Projection(name: string);
+
+export function Private();
 
 export interface IEventDeserializer {
     toEvent(row): Event;
@@ -456,3 +459,15 @@ export interface IDateRetriever {
 }
 
 export type ValueOrPromise<T> = T | Promise<T>;
+
+export interface ILookup {
+    keysFor(id: string): Promise<string[]>;
+}
+
+export interface ILookupFactory {
+    lookupFor<T extends IProjectionDefinition<LookupModel>>(projectionName: string): ILookup;
+}
+
+export interface LookupModel extends Dictionary<string[]> {
+
+}

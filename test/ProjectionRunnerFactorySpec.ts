@@ -3,7 +3,6 @@ import expect = require("expect.js");
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
 import IProjectionRunner from "../scripts/projections/IProjectionRunner";
@@ -23,12 +22,6 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
         it("should save the projection runner into the projections runner holder", () => {
             let projectionRunner = subject.create(new MockProjectionDefinition().define());
             expect(holder["test"]).to.be(projectionRunner);
-        });
-    });
-
-    context("when not all the required properties are defined", () => {
-        it("should throw an error", () => {
-            expect(() => subject.create(new UnnamedProjectionDefinition().define())).to.throwError();
         });
     });
 
