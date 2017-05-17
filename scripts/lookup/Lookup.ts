@@ -17,9 +17,8 @@ class Lookup implements ILookup {
         else
             return this.readModelFactory.from(null)
                 .filter(readModel => readModel.type === this.projectionName)
-                .map(readModel => readModel.payload)
-                .map(payload => payload[id])
-                .take(1)
+                .map(readModel => readModel.payload[id])
+                .first()
                 .toPromise<Promise<string[]>>(Promise);
     }
 
