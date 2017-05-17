@@ -194,6 +194,8 @@ export class RegistryEntry<T> {
 
 export function Projection(name: string);
 
+export function Private();
+
 export interface IEventDeserializer {
     toEvent(row): Event;
 }

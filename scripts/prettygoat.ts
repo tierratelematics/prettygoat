@@ -1,4 +1,5 @@
 export {default as Projection} from "./registry/ProjectionDecorator";
+export {default as Private} from "./registry/PrivateDecorator";
 export {default as Engine} from "./bootstrap/Engine";
 export {default as TimeSnapshotStrategy} from "./snapshots/TimeSnapshotStrategy";
 export {default as CountSnapshotStrategy} from "./snapshots/CountSnapshotStrategy";
