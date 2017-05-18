@@ -73,56 +73,29 @@ describe("Given a ProjectionRunner", () => {
             it("should create an initial state based on snapshot memento", () => {
                 expect(subject.state).to.be(56);
             });
-            it("should subscribe to the event stream starting from the snapshot timestamp", () => {
-                stream.verify(s => s.from(It.isValue(new Date(5000)), It.isAny(), It.isAny()), Times.once());
-            });
         });
 
         context("if a snapshot is not present", () => {
             beforeEach(() => {
                 subject.run();
             });
-
             it("should create an initial state based on the projection definition", () => {
                 matcher.verify(m => m.match(SpecialNames.Init), Times.once());
             });
-            it("should subscribe to the event stream starting from the stream's beginning", () => {
-                stream.verify(s => s.from(null, It.isAny(), It.isAny()), Times.once());
-            });
 
-            it("should subscribe to the aggregates stream to build linked projections", () => {
-                readModelFactory.verify(a => a.from(null), Times.once());
-            });
-
-            context("should behave regularly", behavesRegularly);
-        });
-
-        function behavesRegularly() {
             it("should consider the initial state as the projection state", () => {
                 expect(subject.state).to.be(42);
             });
             it("should notify that the projection has been initialized", () => {
                 expect(notifications).to.eql([42]);
             });
-        }
+        });
     });
 
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
-        });
-
-        it("it should filter out diagnostic events", () => {
-            matcher.setup(m => m.match("__diagnostic:Size")).returns(streamId => (s: number, e: any) => s + e);
-            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
-                type: "__diagnostic:Size",
-                payload: 1,
-                timestamp: new Date(),
-                splitKey: null
-            }).observeOn(Rx.Scheduler.immediate));
-            subject.run();
-            expect(notifications).to.be.eql([42]);
         });
 
         context("and no error occurs", () => {
@@ -252,22 +225,12 @@ describe("Given a ProjectionRunner", () => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
+            matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e)
             subject.run();
         });
-        context("of the same projection", () => {
-            beforeEach(() => matcher.setup(m => m.match("test")).returns(streamId => (s: number, e: any) => s + e));
-            it("should filter it", () => {
-                readModelSubject.onNext({type: "test", payload: 1});
-                expect(subject.state).to.be(42);
-            });
-        });
-
-        context("of another projection", () => {
-            beforeEach(() => matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e));
-            it("should update the readmodels processed counter", () => {
-                readModelSubject.onNext({type: "test2", payload: 1});
-                expect(subject.stats.readModels).to.be(1);
-            });
+        it("should update the readmodels processed counter", () => {
+            readModelSubject.onNext({type: "test2", payload: 1});
+            expect(subject.stats.readModels).to.be(1);
         });
     });
 

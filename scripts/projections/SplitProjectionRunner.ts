@@ -42,8 +42,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         let completions = new Subject<string>();
 
         this.subscription = combineStreams(
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .filter(event => event.type !== this.projection.name),
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
             this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
             this.tickScheduler.from(null),
             this.dateRetriever
