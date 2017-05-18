@@ -1,6 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {Observable, Subject} from "rx";
+import {Observable, Subject, ISubject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -22,11 +22,11 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
     constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
                 private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
-                dateRetriever: IDateRetriever) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
+                dateRetriever: IDateRetriever, realtimeNotifier: ISubject<string>) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever, realtimeNotifier);
     }
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 

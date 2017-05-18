@@ -3,7 +3,7 @@ import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
 import {IStreamFactory} from "../scripts/streams/IStreamFactory";
-import {Observable, Subject, IDisposable, Scheduler} from "rx";
+import {Observable, Subject, IDisposable} from "rx";
 import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
@@ -28,6 +28,7 @@ describe("Given a ProjectionRunner", () => {
     let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
     let clock: lolex.Clock;
+    let realtimeNotifier: Subject<string>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -40,8 +41,9 @@ describe("Given a ProjectionRunner", () => {
         readModelFactory = Mock.ofType<IReadModelFactory>();
         let tickScheduler = Mock.ofType<IStreamFactory>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
+        realtimeNotifier = new Subject<string>();
         subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, tickScheduler.object,
-            new MockDateRetriever(new Date(100000)));
+            new MockDateRetriever(new Date(100000)), realtimeNotifier);
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });
 
@@ -133,7 +135,7 @@ describe("Given a ProjectionRunner", () => {
             });
 
             context("and an async event handler is not used", () => {
-                beforeEach(async() => {
+                beforeEach(async () => {
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
                     subject.run();
                     await completeStream();
@@ -171,7 +173,7 @@ describe("Given a ProjectionRunner", () => {
             });
 
             context("and an async event handler is used", () => {
-                beforeEach(async() => {
+                beforeEach(async () => {
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
                     subject.run();
                     await completeStream();
@@ -195,7 +197,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment5")).returns(streamId => Identity);
             });
 
-            it("should not notify a state change", async() => {
+            it("should not notify a state change", async () => {
                 subject.run();
                 await completeStream();
 
@@ -220,6 +222,26 @@ describe("Given a ProjectionRunner", () => {
             it("should notify an error", () => {
                 subject.run();
                 expect(failed).to.be.ok();
+            });
+        });
+
+        context("and it's a realtime event", () => {
+            let realtimeNotifications: string[] = [];
+            beforeEach(async () => {
+                matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
+                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
+                    type: "__prettygoat_internal_realtime",
+                    payload: null,
+                    timestamp: null,
+                    splitKey: null
+                }));
+                realtimeNotifier.subscribe(value => realtimeNotifications.push(value));
+                subject.run();
+                await completeStream();
+            });
+            it("should notify the completions service", () => {
+                expect(realtimeNotifications).to.have.length(1);
+                expect(realtimeNotifications[0]).to.be("test");
             });
         });
     });
@@ -251,7 +273,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
-        beforeEach(async() => {
+        beforeEach(async () => {
             readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);

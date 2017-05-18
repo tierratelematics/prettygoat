@@ -1,4 +1,4 @@
-import {Subject, IDisposable, Observable} from "rx";
+import {Subject, IDisposable, Observable, ISubject} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -28,7 +28,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
                 protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
-                protected dateRetriever: IDateRetriever) {
+                protected dateRetriever: IDateRetriever, protected realtimeNotifier: ISubject<string>) {
         this.subject = new Subject<Event>();
         this.streamId = projection.name;
     }

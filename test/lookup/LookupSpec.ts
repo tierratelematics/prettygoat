@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, It, Times} from "typemoq";
-import {Observable} from "rx";
+import {Observable, Subject} from "rx";
 import IReadModelFactory from "../../scripts/streams/IReadModelFactory";
 import Lookup from "../../scripts/lookup/Lookup";
 import {Event} from "../../scripts/streams/Event";
@@ -10,6 +10,7 @@ describe("Given a lookup", () => {
 
     let subject: Lookup;
     let readModels: IMock<IReadModelFactory>;
+    let realtimeNotifier: Subject<string>;
 
     beforeEach(() => {
         readModels = Mock.ofType<IReadModelFactory>();
@@ -27,7 +28,8 @@ describe("Given a lookup", () => {
                 splitKey: null
             });
         }));
-        subject = new Lookup(readModels.object);
+        realtimeNotifier = new Subject<string>();
+        subject = new Lookup(readModels.object, realtimeNotifier);
     });
 
     context("when a projection name is not set", () => {
