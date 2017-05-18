@@ -11,7 +11,7 @@ import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../util/Dictionary";
 import ITickScheduler from "../ticks/ITickScheduler";
 import IDateRetriever from "../util/IDateRetriever";
-import {Observable} from "rx";
+import {ISubject} from "rx";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -21,7 +21,7 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder: Dictionary<ITickScheduler>,
                 @inject("IDateRetriever") private dateRetriever: IDateRetriever,
-                @inject("RealtimeNotifier") private realtimeNotifier: Observable<string>) {
+                @inject("RealtimeNotifier") private realtimeNotifier: ISubject<string>) {
 
     }
 
