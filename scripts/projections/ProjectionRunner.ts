@@ -62,10 +62,14 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     protected startStream(snapshot: Snapshot<Dictionary<T> | T>) {
-        let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
-        this.subscription = combinedStream
+        this.subscription = combineStreams(
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
+            this.tickScheduler.from(null),
+            this.dateRetriever
+        )
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
@@ -98,13 +102,6 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }, () => this.subject.onCompleted());
-
-        combineStreams(
-            combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
-            this.tickScheduler.from(null),
-            this.dateRetriever);
     }
 
     protected updateStats(event: Event) {

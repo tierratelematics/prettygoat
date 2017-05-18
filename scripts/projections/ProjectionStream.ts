@@ -1,13 +1,14 @@
 import {Event} from "../streams/Event";
-import {Observable, Subject, Disposable, helpers, HistoricalScheduler} from "rx";
+import {Observable, ReplaySubject, Disposable, helpers, HistoricalScheduler} from "rx";
 import ReservedEvents from "../streams/ReservedEvents";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../util/IDateRetriever";
 import * as _ from "lodash";
 
-export function combineStreams(combined: Subject<Event>, events: Observable<Event>, readModels: Observable<Event>, ticks: Observable<Event>, dateRetriever: IDateRetriever) {
+export function combineStreams(events: Observable<Event>, readModels: Observable<Event>, ticks: Observable<Event>, dateRetriever: IDateRetriever) {
     let realtime = false;
     let scheduler = new HistoricalScheduler(0, helpers.defaultSubComparer);
+    let combined = new ReplaySubject<Event>();
 
     events
         .merge(readModels)
@@ -44,4 +45,6 @@ export function combineStreams(combined: Subject<Event>, events: Observable<Even
             });
         }
     });
+
+    return combined;
 }

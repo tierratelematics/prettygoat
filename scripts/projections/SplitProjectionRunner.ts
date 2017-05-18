@@ -39,10 +39,15 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     startStream(snapshot?: Snapshot<T | Dictionary<T>>) {
-        let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
-        this.subscription = combinedStream
+        this.subscription = combineStreams(
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
+                .filter(event => event.type !== this.projection.name),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
+            this.tickScheduler.from(null),
+            this.dateRetriever
+        )
             .map<[Event, Function, Function]>(event => [
                 event,
                 this.matcher.match(event.type),
@@ -66,14 +71,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }, () => this.subject.onCompleted());
-
-        combineStreams(
-            combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .filter(event => event.type !== this.projection.name),
-            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
-            this.tickScheduler.from(null),
-            this.dateRetriever);
     }
 
     private calculateSplitKeys(event: Event, matchFn: Function, splitFn: Function): ObservableOrPromise<any> {
