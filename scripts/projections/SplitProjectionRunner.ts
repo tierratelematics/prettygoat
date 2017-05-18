@@ -28,7 +28,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
     run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
-            throw new Error(`${this.streamId}: cannot run a disposed projection`);
+            throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
@@ -70,8 +70,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .filter(event => event.type !== this.streamId),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+                .filter(event => event.type !== this.projection.name),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
@@ -132,7 +132,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             delete this.state[splitKey];
         if (!(newState instanceof StopSignallingState))
             this.subject.onNext({
-                type: this.streamId,
+                type: this.projection.name,
                 payload: this.state[splitKey],
                 timestamp: timestamp,
                 splitKey: splitKey

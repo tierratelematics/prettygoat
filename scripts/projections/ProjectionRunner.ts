@@ -20,8 +20,7 @@ import {untypedFlatMapSeries} from "../util/RxOperators";
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T | Dictionary<T>;
     stats = new ProjectionStats();
-    protected streamId: string;
-    protected subject: Subject<Event>;
+    protected subject: Subject<Event> = new Subject<Event>();
     protected subscription: IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
@@ -29,8 +28,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
                 protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
                 protected dateRetriever: IDateRetriever, protected realtimeNotifier: ISubject<string>) {
-        this.subject = new Subject<Event>();
-        this.streamId = projection.name;
+
     }
 
     notifications() {
@@ -39,7 +37,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
-            throw new Error(`${this.streamId}: cannot run a disposed projection`);
+            throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
@@ -104,7 +102,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         combineStreams(
             combinedStream,
             this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
             this.tickScheduler.from(null),
             this.dateRetriever);
     }
@@ -137,7 +135,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     protected notifyStateChange(timestamp: Date, splitKey?: string) {
-        this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
+        this.subject.onNext({payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null});
     }
 }
 
