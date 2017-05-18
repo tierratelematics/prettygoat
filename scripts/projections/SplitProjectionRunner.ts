@@ -1,6 +1,6 @@
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
-import {Observable, Subject} from "rx";
+import {Observable, Subject, ISubject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -22,13 +22,13 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
 
     constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
                 private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
-                dateRetriever: IDateRetriever) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever);
+                dateRetriever: IDateRetriever, realtimeNotifier: ISubject<string>) {
+        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever, realtimeNotifier);
     }
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
-            throw new Error(`${this.streamId}: cannot run a disposed projection`);
+            throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
@@ -39,10 +39,15 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     }
 
     startStream(snapshot?: Snapshot<T | Dictionary<T>>) {
-        let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
-        this.subscription = combinedStream
+        this.subscription = combineStreams(
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
+                .filter(event => event.type !== this.projection.name),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
+            this.tickScheduler.from(null),
+            this.dateRetriever
+        )
             .map<[Event, Function, Function]>(event => [
                 event,
                 this.matcher.match(event.type),
@@ -51,6 +56,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                else if (data[0].type === ReservedEvents.REALTIME)
+                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
@@ -64,14 +71,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }, () => this.subject.onCompleted());
-
-        combineStreams(
-            combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .filter(event => event.type !== this.streamId),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
-            this.tickScheduler.from(null),
-            this.dateRetriever);
     }
 
     private calculateSplitKeys(event: Event, matchFn: Function, splitFn: Function): ObservableOrPromise<any> {
@@ -130,7 +129,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             delete this.state[splitKey];
         if (!(newState instanceof StopSignallingState))
             this.subject.onNext({
-                type: this.streamId,
+                type: this.projection.name,
                 payload: this.state[splitKey],
                 timestamp: timestamp,
                 splitKey: splitKey

@@ -24,6 +24,7 @@ describe("Split projection, given a projection with a split definition", () => {
     let streamData: Subject<Event>;
     let readModelData: Subject<Event>;
     let projection = new SplitProjectionDefinition().define();
+    let realtimeNotifier: Subject<string>;
 
     beforeEach(() => {
         notifications = [];
@@ -35,9 +36,10 @@ describe("Split projection, given a projection with a split definition", () => {
         readModelFactory = Mock.ofType<IReadModelFactory>();
         let tickScheduler = Mock.ofType<IStreamFactory>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
+        realtimeNotifier = new Subject<string>();
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object, tickScheduler.object,
-            new MockDateRetriever(new Date(100000)));
+            new MockDateRetriever(new Date(100000)), realtimeNotifier);
         stream.setup(s => s.from(It.isAny(), It.isAny(), It.isValue(projection.definition))).returns(_ => streamData);
         readModelFactory.setup(r => r.from(null)).returns(a => readModelData);
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
@@ -53,7 +55,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when initializing the projection", () => {
         context("and a snapshot is present", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 readModelData.onNext({
                     type: "LinkedState",
                     payload: {
@@ -82,7 +84,7 @@ describe("Split projection, given a projection with a split definition", () => {
 
     context("when a new event is received", () => {
         context("and the event is not defined", () => {
-            it("should continue replaying the stream", async() => {
+            it("should continue replaying the stream", async () => {
                 subject.run();
                 streamData.onNext({
                     type: "TestEvent",
@@ -107,7 +109,7 @@ describe("Split projection, given a projection with a split definition", () => {
         });
 
         context("and the corresponding split key must be generated asynchronously", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 subject.run(new Snapshot(<Dictionary<number>>{
                     "10": 30
                 }, null));
@@ -133,7 +135,7 @@ describe("Split projection, given a projection with a split definition", () => {
                 }, null));
             });
             context("if the event handler is synchronous", () => {
-                beforeEach(async() => {
+                beforeEach(async () => {
                     streamData.onNext({
                         type: "TestEvent",
                         payload: {
@@ -156,7 +158,7 @@ describe("Split projection, given a projection with a split definition", () => {
             });
 
             context("if the event handler is asynchronous", () => {
-                beforeEach(async() => {
+                beforeEach(async () => {
                     streamData.onNext({
                         type: "Async",
                         payload: {
@@ -185,7 +187,7 @@ describe("Split projection, given a projection with a split definition", () => {
                     }
                 ]);
             });
-            it("should initialize the new projection by pushing all the generated read models", async() => {
+            it("should initialize the new projection by pushing all the generated read models", async () => {
                 subject.run();
                 streamData.onNext({
                     type: "TestEvent",
@@ -201,7 +203,7 @@ describe("Split projection, given a projection with a split definition", () => {
         });
 
         context("and the event is a read model", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 streamData.onNext({
                     type: "TestEvent",
                     payload: {
@@ -240,7 +242,7 @@ describe("Split projection, given a projection with a split definition", () => {
         });
 
         context("and it will trigger multiple split keys", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 subject.run();
                 streamData.onNext({
                     type: "MultipleKeys",
@@ -256,6 +258,25 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["10"]).to.be(30);
                 expect(subject.state["27a"]).to.be(30);
                 expect(subject.state["35c"]).to.be(30);
+            });
+        });
+
+        context("and it's a realtime event", () => {
+            let realtimeNotifications: string[] = [];
+            beforeEach(async () => {
+                streamData.onNext({
+                    type: "__prettygoat_internal_realtime",
+                    payload: null,
+                    timestamp: null,
+                    splitKey: null
+                });
+                realtimeNotifier.subscribe(value => realtimeNotifications.push(value));
+                subject.run();
+                await completeStream();
+            });
+            it("should notify the completions service", () => {
+                expect(realtimeNotifications).to.have.length(1);
+                expect(realtimeNotifications[0]).to.be("split");
             });
         });
     });

@@ -8,7 +8,7 @@ describe("Given a lookup factory", () => {
     let subject: ILookupFactory;
 
     beforeEach(() => {
-        subject = new LookupFactory(null);
+        subject = new LookupFactory(null, null);
     });
 
     context("when a lookup service is requested", () => {

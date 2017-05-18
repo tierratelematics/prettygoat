@@ -62,7 +62,7 @@ describe("Given a projection runner", () => {
             subject = new ProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)));
+            }, stream.object, matcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)), null);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
@@ -93,7 +93,7 @@ describe("Given a projection runner", () => {
             subject = new SplitProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, splitMatcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)));
+            }, stream.object, matcher.object, splitMatcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)), null);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 

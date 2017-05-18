@@ -1,3 +1,4 @@
+///<reference types="socket.io" />
 import {interfaces} from "inversify";
 import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
@@ -14,6 +15,8 @@ export class Engine {
 
     run(overrides?: any);
 }
+
+export let lazyInject:(serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
 
 export interface IModule {
     modules?: (container: interfaces.Container) => void;

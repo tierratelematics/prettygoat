@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {DisabledModule, ValidModule, WithoutFTModule} from "./fixtures/Modules";
-import Engine from "../scripts/bootstrap/Engine";
+import {Engine} from "../scripts/bootstrap/Engine";
 
 describe("Engine, given some modules", () => {
 
