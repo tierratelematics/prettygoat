@@ -51,6 +51,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                else if (data[0].type === ReservedEvents.REALTIME)
+                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))

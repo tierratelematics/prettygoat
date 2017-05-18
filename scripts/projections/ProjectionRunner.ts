@@ -18,7 +18,7 @@ import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T|Dictionary<T>;
+    state: T | Dictionary<T>;
     stats = new ProjectionStats();
     protected streamId: string;
     protected subject: Subject<Event>;
@@ -37,7 +37,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         return this.subject;
     }
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
             throw new Error(`${this.streamId}: cannot run a disposed projection`);
 
@@ -63,7 +63,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         }, error => null);
     }
 
-    protected startStream(snapshot: Snapshot<Dictionary<T>|T>) {
+    protected startStream(snapshot: Snapshot<Dictionary<T> | T>) {
         let combinedStream = new Subject<Event>();
         let completions = new Subject<string>();
 
@@ -72,6 +72,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                else if (data[0].type === ReservedEvents.REALTIME)
+                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
