@@ -1,3 +1,4 @@
+///<reference types="socket.io" />
 import {interfaces} from "inversify";
 import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
