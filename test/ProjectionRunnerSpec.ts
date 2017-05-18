@@ -10,15 +10,15 @@ import * as Rx from "rx";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import {Event} from "../scripts/streams/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
 import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import Identity from "../scripts/matcher/Identity";
+import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 
 describe("Given a ProjectionRunner", () => {
-    let stream: IMock<IStreamFactory>;
+    let streamGenerator: IMock<IProjectionStreamGenerator>;
     let subject: ProjectionRunner<number>;
     let matcher: IMock<IMatcher>;
     let notifications: number[];
@@ -36,14 +36,11 @@ describe("Given a ProjectionRunner", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        stream = Mock.ofType<IStreamFactory>();
+        streamGenerator = Mock.ofType<IProjectionStreamGenerator>();
         matcher = Mock.ofType<IMatcher>();
         readModelFactory = Mock.ofType<IReadModelFactory>();
-        let tickScheduler = Mock.ofType<IStreamFactory>();
-        tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
         realtimeNotifier = new Subject<string>();
-        subject = new ProjectionRunner<number>(projection, stream.object, matcher.object, readModelFactory.object, tickScheduler.object,
-            new MockDateRetriever(new Date(100000)), realtimeNotifier);
+        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, readModelFactory.object, realtimeNotifier);
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });
 
@@ -60,9 +57,8 @@ describe("Given a ProjectionRunner", () => {
 
     context("when initializing a projection", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
+            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
         });
 
         context("if a snapshot is present", () => {
@@ -95,14 +91,13 @@ describe("Given a ProjectionRunner", () => {
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
         });
 
         context("and no error occurs", () => {
 
             beforeEach(() => {
                 let date = new Date();
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
             });
@@ -158,9 +153,9 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("and no match is found for this event", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 let date = new Date();
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => Identity);
@@ -168,12 +163,11 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
                 matcher.setup(m => m.match("increment4")).returns(streamId => Identity);
                 matcher.setup(m => m.match("increment5")).returns(streamId => Identity);
-            });
-
-            it("should not notify a state change", async () => {
                 subject.run();
                 await completeStream();
+            });
 
+            it("should not notify a state change", () => {
                 expect(notifications).to.be.eql([
                     42,
                     42 + 2,
@@ -188,7 +182,7 @@ describe("Given a ProjectionRunner", () => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
+                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
                 }).observeOn(Rx.Scheduler.immediate));
             });
@@ -202,7 +196,7 @@ describe("Given a ProjectionRunner", () => {
             let realtimeNotifications: string[] = [];
             beforeEach(async () => {
                 matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
+                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
                     type: "__prettygoat_internal_realtime",
                     payload: null,
                     timestamp: null,
@@ -220,16 +214,15 @@ describe("Given a ProjectionRunner", () => {
     });
 
     context("when receiving a readmodel", () => {
-        let readModelSubject = new Subject<any>();
         beforeEach(() => {
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
-            readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
-            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
-            matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e)
+            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
+                type: "test2", payload: 1, splitKey: null, timestamp: null
+            }));
+            matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e);
             subject.run();
         });
         it("should update the readmodels processed counter", () => {
-            readModelSubject.onNext({type: "test2", payload: 1});
             expect(subject.stats.readModels).to.be(1);
         });
     });
@@ -237,11 +230,10 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(async () => {
-            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Rx.Observable.empty<Event>());
             matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
             matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
-            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => streamSubject);
+            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();
             subject.stop();
