@@ -1,3 +1,8 @@
+# 3.2.0
+
+* Correctly lookup keys while replaying the events
+* Add lazyInject
+
 # 3.1.0
 
 Add [lookup service](https://github.com/tierratelematics/prettygoat/wiki/Lookup-service).
