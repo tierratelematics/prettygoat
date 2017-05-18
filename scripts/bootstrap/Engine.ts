@@ -20,8 +20,12 @@ import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
 import {ModelContext} from "chupacabras";
+import getDecorators from "inversify-inject-decorators";
 
-class Engine {
+let container = new Container();
+export let {lazyInject} = getDecorators(container);
+
+export class Engine {
 
     protected container = new Container();
     private modules: IModule[] = [];
@@ -122,5 +126,3 @@ class Engine {
             this.container.get<IProjectionEngine>("IProjectionEngine").run();
     }
 }
-
-export default Engine;

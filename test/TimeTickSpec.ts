@@ -45,7 +45,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             beforeEach(() => {
                 let initTickProjection = new InitTickProjectionDefinition().define(tickScheduler);
                 let projectionRunner = new PublishProjectionRunner(projection, stream.object, new Matcher(initTickProjection.definition),
-                    readModelFactory.object, tickScheduler, dateRetriever);
+                    readModelFactory.object, tickScheduler, dateRetriever, new Subject<string>());
                 projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
                 projectionRunner.run();
             });
@@ -63,7 +63,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     context("when a new tick is scheduled", () => {
         beforeEach(() => {
             let projectionRunner = new PublishProjectionRunner(projection, stream.object, new Matcher(projection.definition),
-                readModelFactory.object, tickScheduler, dateRetriever);
+                readModelFactory.object, tickScheduler, dateRetriever, new Subject<string>());
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
         });
@@ -190,7 +190,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         let projectionRunner: IProjectionRunner<Tick>;
         beforeEach(() => {
             projectionRunner = new SplitProjectionRunner<Tick>(projection, stream.object, new Matcher(projection.definition),
-                new Matcher(projection.split), readModelFactory.object, tickScheduler, dateRetriever);
+                new Matcher(projection.split), readModelFactory.object, tickScheduler, dateRetriever, null);
             projectionRunner.notifications().subscribe(event => notifications.push(event.payload));
             projectionRunner.run();
         });

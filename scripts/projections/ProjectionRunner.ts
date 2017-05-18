@@ -1,4 +1,4 @@
-import {Subject, IDisposable, Observable} from "rx";
+import {Subject, IDisposable, Observable, ISubject} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
 import {IStreamFactory} from "../streams/IStreamFactory";
@@ -18,28 +18,26 @@ import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T|Dictionary<T>;
+    state: T | Dictionary<T>;
     stats = new ProjectionStats();
-    protected streamId: string;
-    protected subject: Subject<Event>;
+    protected subject: Subject<Event> = new Subject<Event>();
     protected subscription: IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
     constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
                 protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
-                protected dateRetriever: IDateRetriever) {
-        this.subject = new Subject<Event>();
-        this.streamId = projection.name;
+                protected dateRetriever: IDateRetriever, protected realtimeNotifier: ISubject<string>) {
+
     }
 
     notifications() {
         return this.subject;
     }
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void {
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
         if (this.isDisposed)
-            throw new Error(`${this.streamId}: cannot run a disposed projection`);
+            throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
@@ -63,15 +61,21 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         }, error => null);
     }
 
-    protected startStream(snapshot: Snapshot<Dictionary<T>|T>) {
-        let combinedStream = new Subject<Event>();
+    protected startStream(snapshot: Snapshot<Dictionary<T> | T>) {
         let completions = new Subject<string>();
 
-        this.subscription = combinedStream
+        this.subscription = combineStreams(
+            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
+            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
+            this.tickScheduler.from(null),
+            this.dateRetriever
+        )
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                else if (data[0].type === ReservedEvents.REALTIME)
+                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
@@ -98,13 +102,6 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }, () => this.subject.onCompleted());
-
-        combineStreams(
-            combinedStream,
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.streamId),
-            this.tickScheduler.from(null),
-            this.dateRetriever);
     }
 
     protected updateStats(event: Event) {
@@ -135,7 +132,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     protected notifyStateChange(timestamp: Date, splitKey?: string) {
-        this.subject.onNext({payload: this.state, type: this.streamId, timestamp: timestamp, splitKey: null});
+        this.subject.onNext({payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null});
     }
 }
 
