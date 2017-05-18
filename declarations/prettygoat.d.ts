@@ -16,6 +16,8 @@ export class Engine {
     run(overrides?: any);
 }
 
+export let lazyInject:(serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
+
 export interface IModule {
     modules?: (container: interfaces.Container) => void;
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void;

@@ -28,6 +28,7 @@
     "hammock": "~2.0.1",
     "humanize": "0.0.9",
     "inversify": "~3.1.0",
+    "inversify-inject-decorators": "~3.0.1",
     "lodash": "~4.13.1",
     "moment": "2.15.2",
     "object-sizeof": "~1.1.1",
