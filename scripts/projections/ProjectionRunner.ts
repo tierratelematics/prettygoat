@@ -8,7 +8,6 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
-import {combineStreams} from "./ProjectionStream";
 import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
@@ -16,6 +15,7 @@ import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
 import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
+import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T | Dictionary<T>;
@@ -25,9 +25,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
-    constructor(protected projection: IProjection<T>, protected stream: IStreamFactory, protected matcher: IMatcher,
-                protected readModelFactory: IReadModelFactory, protected tickScheduler: IStreamFactory,
-                protected dateRetriever: IDateRetriever, protected realtimeNotifier: ISubject<string>) {
+    constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher,
+                protected readModelFactory: IReadModelFactory, protected realtimeNotifier: ISubject<string>) {
 
     }
 
@@ -64,12 +63,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected startStream(snapshot: Snapshot<Dictionary<T> | T>) {
         let completions = new Subject<string>();
 
-        this.subscription = combineStreams(
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
-            this.tickScheduler.from(null),
-            this.dateRetriever
-        )
+        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)

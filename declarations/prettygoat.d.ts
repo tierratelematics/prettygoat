@@ -1,6 +1,6 @@
 ///<reference types="socket.io" />
 import {interfaces} from "inversify";
-import {Observable, IDisposable} from "rx";
+import {Observable, IDisposable, ISubject} from "rx";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
@@ -84,6 +84,10 @@ export interface Event {
     splitKey: string;
 }
 
+export interface IProjectionStreamGenerator {
+    generate(projection: IProjection<any>, snapshot: Snapshot<any>, completions: Observable<any>): Observable<Event>;
+}
+
 export interface IProjectionRunner<T> extends IDisposable {
     state: T|Dictionary<T>;
     stats: ProjectionStats;
@@ -113,8 +117,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T|Dictionary<T>;
     stats: ProjectionStats;
 
-    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher, readModelFactory: IReadModelFactory,
-                tickScheduler: IStreamFactory, dateRetriever: IDateRetriever);
+    constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
+                readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
 
     notifications();
 
@@ -130,9 +134,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 export class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T>;
 
-    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
-                splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
-                dateRetriever: IDateRetriever);
+    constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
+                splitMatcher: IMatcher, readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
 
     run(snapshot?: Snapshot<T|Dictionary<T>>): void;
 }

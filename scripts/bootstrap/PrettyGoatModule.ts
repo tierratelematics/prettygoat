@@ -50,6 +50,7 @@ import HealthCheckHandler from "../web/HealthCheckHandler";
 import LookupFactory from "../lookup/LookupFactory";
 import ILookupFactory from "../lookup/ILookupFactory";
 import {ISubject, ReplaySubject} from "rx";
+import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
 
 class PrettyGoatModule implements IModule {
 
@@ -88,6 +89,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
         container.bind<ILookupFactory>("ILookupFactory").to(LookupFactory).inSingletonScope();
         container.bind<ISubject<string>>("RealtimeNotifier").toConstantValue(new ReplaySubject<string>());
+        container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

@@ -1,5 +1,4 @@
 import {IMatcher} from "../matcher/IMatcher";
-import {IStreamFactory} from "../streams/IStreamFactory";
 import {Observable, Subject, ISubject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
@@ -7,8 +6,6 @@ import * as _ from "lodash";
 import {SpecialNames} from "../matcher/SpecialNames";
 import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import {combineStreams} from "./ProjectionStream";
-import IDateRetriever from "../util/IDateRetriever";
 import {IProjection, SplitKey} from "./IProjection";
 import {SpecialState, StopSignallingState, DeleteSplitState} from "./SpecialState";
 import ProjectionRunner from "./ProjectionRunner";
@@ -16,14 +13,14 @@ import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
 import {ValueOrPromise, isPromise, toArray, ObservableOrPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
+import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 
 class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
 
-    constructor(projection: IProjection<T>, stream: IStreamFactory, matcher: IMatcher,
-                private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, tickScheduler: IStreamFactory,
-                dateRetriever: IDateRetriever, realtimeNotifier: ISubject<string>) {
-        super(projection, stream, matcher, readModelFactory, tickScheduler, dateRetriever, realtimeNotifier);
+    constructor(projection: IProjection<T>, streamGenerator: IProjectionStreamGenerator, matcher: IMatcher,
+                private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>) {
+        super(projection, streamGenerator, matcher, readModelFactory, realtimeNotifier);
     }
 
     run(snapshot?: Snapshot<T | Dictionary<T>>): void {
@@ -41,13 +38,7 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     startStream(snapshot?: Snapshot<T | Dictionary<T>>) {
         let completions = new Subject<string>();
 
-        this.subscription = combineStreams(
-            this.stream.from(snapshot ? snapshot.lastEvent : null, completions, this.projection.definition)
-                .filter(event => event.type !== this.projection.name),
-            this.readModelFactory.from(null).filter(event => event.type !== this.projection.name),
-            this.tickScheduler.from(null),
-            this.dateRetriever
-        )
+        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .map<[Event, Function, Function]>(event => [
                 event,
                 this.matcher.match(event.type),

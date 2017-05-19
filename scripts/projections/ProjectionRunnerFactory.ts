@@ -3,24 +3,20 @@ import IProjectionRunner from "./IProjectionRunner";
 import ProjectionRunner from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
-import {IStreamFactory} from "../streams/IStreamFactory";
 import {Matcher} from "../matcher/Matcher";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import SplitProjectionRunner from "./SplitProjectionRunner";
 import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../util/Dictionary";
-import ITickScheduler from "../ticks/ITickScheduler";
-import IDateRetriever from "../util/IDateRetriever";
 import {ISubject} from "rx";
+import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
-    constructor(@inject("IStreamFactory") private streamFactory: IStreamFactory,
+    constructor(@inject("IProjectionStreamGenerator") private streamGenerator: IProjectionStreamGenerator,
                 @inject("IReadModelFactory") private readModelFactory: IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
-                @inject("ITickSchedulerHolder") private tickSchedulerHolder: Dictionary<ITickScheduler>,
-                @inject("IDateRetriever") private dateRetriever: IDateRetriever,
                 @inject("RealtimeNotifier") private realtimeNotifier: ISubject<string>) {
 
     }
@@ -29,12 +25,10 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
         let projectionRunner: IProjectionRunner<T>;
         if (!projection.split)
-            projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, definitionMatcher, this.readModelFactory,
-                this.tickSchedulerHolder[projection.name], this.dateRetriever, this.realtimeNotifier);
+            projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher, this.readModelFactory, this.realtimeNotifier);
         else
-            projectionRunner = new SplitProjectionRunner<T>(projection, this.streamFactory, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection.split)), this.readModelFactory, this.tickSchedulerHolder[projection.name],
-                this.dateRetriever, this.realtimeNotifier);
+            projectionRunner = new SplitProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher,
+                new MemoizingMatcher(new Matcher(projection.split)), this.readModelFactory, this.realtimeNotifier);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }
