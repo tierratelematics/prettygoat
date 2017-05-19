@@ -16,9 +16,10 @@ import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import * as lolex from "lolex";
 import * as _ from "lodash";
 import Identity from "../scripts/matcher/Identity";
+import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 
 describe("Given a projection runner", () => {
-    let stream: IMock<IStreamFactory>;
+    let stream: IMock<IProjectionStreamGenerator>;
     let readModel: IMock<IReadModelFactory>;
     let subject: IProjectionRunner<number>;
     let matcher: IMock<IMatcher>;
@@ -33,11 +34,11 @@ describe("Given a projection runner", () => {
         notifications = [];
         stopped = false;
         failed = false;
-        stream = Mock.ofType<IStreamFactory>();
+        stream = Mock.ofType<IProjectionStreamGenerator>();
         readModel = Mock.ofType<IReadModelFactory>();
         matcher = Mock.ofType<IMatcher>();
         let date = new Date();
-        stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
+        stream.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
             return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
         }));
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
@@ -56,18 +57,15 @@ describe("Given a projection runner", () => {
 
     context("when it's not a split projection", () => {
         beforeEach(() => {
-            readModel.setup(r => r.from(null)).returns(a => Observable.empty<Event>());
-            let tickScheduler = Mock.ofType<IStreamFactory>();
-            tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
             subject = new ProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)), null);
+            }, stream.object, matcher.object, readModel.object, null);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
         context("and the state change should not be notified", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.stopSignalling(s + e));
                 subject.run();
                 await completeStream();
@@ -83,26 +81,20 @@ describe("Given a projection runner", () => {
 
     context("when it's a split projection", () => {
         let splitMatcher: IMock<IMatcher>;
-        let readModelData: Subject<Event>;
         beforeEach(() => {
-            readModelData = new Subject<Event>();
-            readModel.setup(r => r.from(null)).returns(a => readModelData);
             splitMatcher = Mock.ofType<IMatcher>();
-            let tickScheduler = Mock.ofType<IStreamFactory>();
-            tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
             subject = new SplitProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, splitMatcher.object, readModel.object, tickScheduler.object, new MockDateRetriever(new Date(100000)), null);
+            }, stream.object, matcher.object, splitMatcher.object, readModel.object, null);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
         context("and the state of a split should not be notified", () => {
-            beforeEach(async() => {
+            beforeEach(async () => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.stopSignalling(s + e));
                 splitMatcher.setup(m => m.match("increment")).returns(a => (e: number) => e);
                 subject.run();
-                readModelData.onCompleted();
                 await completeStream();
             });
             it("should not send a notification", () => {
@@ -113,42 +105,26 @@ describe("Given a projection runner", () => {
         });
 
         context("and a state change triggers the removal of a split", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 matcher.setup(m => m.match("increment")).returns(a => (s: number, e: any) => SpecialStates.deleteSplit());
                 splitMatcher.setup(m => m.match("increment")).returns(a => (e: number) => e);
-                matcher.setup(m => m.match("ReadModel")).returns(a => (s: number, e: any) => s + e);
-                splitMatcher.setup(m => m.match("ReadModel")).returns(a => Identity);
                 subject.run(new Snapshot(
                     subject.state = {
                         "1": 89,
                         "2": 293,
                         "3": 392
                     }, null));
-            });
-            it("should be removed from the dictionary", async() => {
-                readModelData.onCompleted();
-                await completeStream();
 
+                await completeStream();
+            });
+            it("should be removed from the dictionary", () => {
                 expect(subject.state["1"]).to.be(undefined);
                 expect(subject.state["2"]).to.be(undefined);
                 expect(subject.state["3"]).to.be(392);
             });
 
-            it("should also remove the key itself", async() => {
-                readModelData.onCompleted();
-                await completeStream();
-
+            it("should also remove the key itself", () => {
                 expect(_.has(subject.state, "2")).to.be(false);
-            });
-
-            it("should not receive readmodels anymore", async() => {
-                readModelData.onNext({type: "ReadModel", payload: 5000, splitKey: null, timestamp: null});
-                readModelData.onCompleted();
-                await completeStream();
-                
-                expect(subject.state["1"]).to.be(undefined);
-                expect(subject.state["2"]).to.be(undefined);
-                expect(subject.state["3"]).to.be(5392);
             });
         });
     });
