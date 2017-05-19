@@ -48,8 +48,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.startStream(snapshot);
     }
 
-    //Patch to remove sampling in tests where needed
-    protected subscribeToStateChanges() {
+    private subscribeToStateChanges() {
         this.subject.sample(100).subscribe(readModel => {
             this.readModelFactory.publish({
                 payload: readModel.payload,

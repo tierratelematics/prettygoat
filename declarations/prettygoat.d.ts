@@ -124,8 +124,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     run(snapshot?: Snapshot<T|Dictionary<T>>): void;
 
-    protected subscribeToStateChanges();
-
     stop(): void;
 
     dispose(): void;
