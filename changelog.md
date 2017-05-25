@@ -1,3 +1,7 @@
+# 3.3.0
+
+Projection runner optimizations
+
 # 3.2.0
 
 * Correctly lookup keys while replaying the events
