@@ -118,7 +118,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     stats: ProjectionStats;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
+                readModelFactory: IReadModelFactory);
 
     notifications();
 

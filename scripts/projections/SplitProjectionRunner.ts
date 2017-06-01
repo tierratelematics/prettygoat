@@ -1,5 +1,5 @@
 import {IMatcher} from "../matcher/IMatcher";
-import {Observable, Subject, ISubject} from "rx";
+import {Observable, Subject} from "rx";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import * as _ from "lodash";
@@ -19,8 +19,8 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T> = {};
 
     constructor(projection: IProjection<T>, streamGenerator: IProjectionStreamGenerator, matcher: IMatcher,
-                private splitMatcher: IMatcher, readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>) {
-        super(projection, streamGenerator, matcher, readModelFactory, realtimeNotifier);
+                private splitMatcher: IMatcher, readModelFactory: IReadModelFactory) {
+        super(projection, streamGenerator, matcher, readModelFactory);
     }
 
     run(snapshot?: Snapshot<T | Dictionary<T>>): void {
@@ -47,8 +47,6 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
-                else if (data[0].type === ReservedEvents.REALTIME)
-                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))

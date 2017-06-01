@@ -26,7 +26,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     protected isFailed: boolean;
 
     constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher,
-                protected readModelFactory: IReadModelFactory, protected realtimeNotifier: ISubject<string>) {
+                protected readModelFactory: IReadModelFactory) {
 
     }
 
@@ -67,16 +67,14 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
-                else if (data[0].type === ReservedEvents.REALTIME)
-                    this.realtimeNotifier.onNext(this.projection.name);
             })
             .filter(data => data[1] !== Identity)
             .do(data => this.updateStats(data[0]))
             .let(untypedFlatMapSeries(data => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
-                //I'm not resolving every state directly with a Promise since this messes up with the
-                //synchronicity of the TickScheduler
+                // I'm not resolving every state directly with a Promise since this messes up with the
+                // synchronicity of the TickScheduler
                 return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
             }))
             .map<[Event, boolean]>(data => {
