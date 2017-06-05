@@ -1,3 +1,7 @@
+# 3.4.0
+
+Add synchronization to lookup service
+
 # 3.3.0
 
 Projection runner optimizations
