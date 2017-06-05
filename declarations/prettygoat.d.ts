@@ -16,7 +16,7 @@ export class Engine {
     run(overrides?: any);
 }
 
-export let lazyInject:(serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
+export let lazyInject: (serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
 
 export interface IModule {
     modules?: (container: interfaces.Container) => void;
@@ -28,7 +28,7 @@ export  interface IServiceLocator {
 }
 
 export interface IObjectContainer extends IServiceLocator {
-    set<T>(key: string, object: interfaces.Newable<T>|T, parent?: string);
+    set<T>(key: string, object: interfaces.Newable<T> | T, parent?: string);
     contains(key: string): boolean;
     remove(key: string): void;
 }
@@ -89,9 +89,9 @@ export interface IProjectionStreamGenerator {
 }
 
 export interface IProjectionRunner<T> extends IDisposable {
-    state: T|Dictionary<T>;
+    state: T | Dictionary<T>;
     stats: ProjectionStats;
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
     stop(): void;
     notifications(): Observable<Event>;
 }
@@ -114,15 +114,15 @@ export class Matcher implements IMatcher {
 export var Identity: <T>(value: T) => T;
 
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T|Dictionary<T>;
+    state: T | Dictionary<T>;
     stats: ProjectionStats;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
+                readModelFactory: IReadModelFactory);
 
     notifications();
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
 
     stop(): void;
 
@@ -133,9 +133,9 @@ export class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T>;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                splitMatcher: IMatcher, readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
+                splitMatcher: IMatcher, readModelFactory: IReadModelFactory);
 
-    run(snapshot?: Snapshot<T|Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
 }
 
 export class ProjectionStats {
@@ -177,7 +177,7 @@ export interface IProjectionRegistry {
     forArea(area: string): AreaRegistry;
     getAreas(): AreaRegistry[];
     getArea(areaId: string): AreaRegistry;
-    getEntry<T>(id: string, area?: string): {area: string, data: RegistryEntry<T>};
+    getEntry<T>(id: string, area?: string): { area: string, data: RegistryEntry<T> };
 }
 
 export class AreaRegistry {
@@ -263,7 +263,7 @@ export interface Dictionary<T> {
     [index: string]: T
 }
 
-export type FilterResult<T> = {filteredState: T, type: FilterOutputType};
+export type FilterResult<T> = { filteredState: T, type: FilterOutputType };
 
 export interface IFilterStrategy<TState> {
     filter<TResult>(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
@@ -294,7 +294,7 @@ export interface ILogger {
 
     warning(message: string);
 
-    error(error: string|Error);
+    error(error: string | Error);
 
     setLogLevel(level: LogLevel);
 }
@@ -307,7 +307,7 @@ export class ConsoleLogger implements ILogger {
 
     warning(message: string);
 
-    error(error: string|Error);
+    error(error: string | Error);
 
     setLogLevel(level: LogLevel);
 }
@@ -465,6 +465,7 @@ export interface IDateRetriever {
 export type ValueOrPromise<T> = T | Promise<T>;
 
 export interface ILookup {
+    sync(timestamp: Date): Promise<void>;
     keysFor(id: string): Promise<string[]>;
 }
 
@@ -472,6 +473,7 @@ export interface ILookupFactory {
     lookupFor<T extends IProjectionDefinition<LookupModel>>(projectionName: string): ILookup;
 }
 
-export interface LookupModel extends Dictionary<string[]> {
-
+export type LookupModel = {
+    timestamp: Date;
+    lookup: Dictionary<string[]>
 }

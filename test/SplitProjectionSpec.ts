@@ -21,7 +21,6 @@ describe("Split projection, given a projection with a split definition", () => {
     let subscription: IDisposable;
     let readModelFactory: IMock<IReadModelFactory>;
     let projection = new SplitProjectionDefinition().define();
-    let realtimeNotifier: Subject<string>;
 
     beforeEach(() => {
         notifications = [];
@@ -29,9 +28,8 @@ describe("Split projection, given a projection with a split definition", () => {
         failed = false;
         stream = Mock.ofType<IProjectionStreamGenerator>();
         readModelFactory = Mock.ofType<IReadModelFactory>();
-        realtimeNotifier = new Subject<string>();
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
-            new Matcher(projection.split), readModelFactory.object, realtimeNotifier);
+            new Matcher(projection.split), readModelFactory.object);
         subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
     });
 
@@ -242,25 +240,6 @@ describe("Split projection, given a projection with a split definition", () => {
                 expect(subject.state["10"]).to.be(30);
                 expect(subject.state["27a"]).to.be(30);
                 expect(subject.state["35c"]).to.be(30);
-            });
-        });
-
-        context("and it's a realtime event", () => {
-            let realtimeNotifications: string[] = [];
-            beforeEach(async () => {
-                stream.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(() => Observable.just({
-                    type: "__prettygoat_internal_realtime",
-                    payload: null,
-                    timestamp: null,
-                    splitKey: null
-                }));
-                realtimeNotifier.subscribe(value => realtimeNotifications.push(value));
-                subject.run();
-                await completeStream();
-            });
-            it("should notify the completions service", () => {
-                expect(realtimeNotifications).to.have.length(1);
-                expect(realtimeNotifications[0]).to.be("split");
             });
         });
     });

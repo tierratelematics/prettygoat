@@ -13,15 +13,14 @@ class LookupFactory implements ILookupFactory {
 
     private cache: Dictionary<Lookup> = {};
 
-    constructor(@inject("IReadModelFactory") private readModelFactory: IReadModelFactory,
-                @inject("RealtimeNotifier") private realtimeNotifier: Observable<string>) {
+    constructor(@inject("IReadModelFactory") private readModelFactory: IReadModelFactory) {
 
     }
 
     lookupFor<T extends IProjectionDefinition<LookupModel>>(projectionName: string): ILookup {
         let cached = this.cache[projectionName];
         if (!cached) {
-            cached = this.cache[projectionName] = new Lookup(this.readModelFactory, this.realtimeNotifier);
+            cached = this.cache[projectionName] = new Lookup(this.readModelFactory);
             cached.setProjectionName(projectionName);
         }
         return cached;

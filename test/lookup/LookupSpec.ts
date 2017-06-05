@@ -10,26 +10,31 @@ describe("Given a lookup", () => {
 
     let subject: Lookup;
     let readModels: IMock<IReadModelFactory>;
-    let realtimeNotifier: ReplaySubject<string>;
 
     beforeEach(() => {
         readModels = Mock.ofType<IReadModelFactory>();
-        readModels.setup(readModels => readModels.from(null)).returns(() => Observable.create<Event>(observer => {
+        readModels.setup(r => r.from(null)).returns(() => Observable.create<Event>(observer => {
             observer.onNext({
-                type: "UsersByDevice",
-                timestamp: new Date(0),
-                payload: {"test-device": ["26h", "128a"]},
+                type: "OtherProjection",
+                timestamp: null,
+                payload: {timestamp: new Date(100), lookup: {test: 10}},
                 splitKey: null
             });
             observer.onNext({
-                type: "OtherProjection",
-                timestamp: new Date(1),
-                payload: {test: 10},
+                type: "UsersByDevice",
+                timestamp: null,
+                payload: {timestamp: new Date(150), lookup: {"test-device": ["26h"]}},
+                splitKey: null
+            });
+            observer.onNext({
+                type: "UsersByDevice",
+                timestamp: null,
+                payload: {timestamp: new Date(200), lookup: {"test-device": ["26h", "128a"]}},
                 splitKey: null
             });
         }));
-        realtimeNotifier = new ReplaySubject<string>();
-        subject = new Lookup(readModels.object, realtimeNotifier);
+        subject = new Lookup(readModels.object);
+        subject.setProjectionName("UsersByDevice");
     });
 
     context("when a projection name is not set", () => {
@@ -43,15 +48,24 @@ describe("Given a lookup", () => {
     });
 
     context("when a key is requested", () => {
-        beforeEach(() => {
-            subject.setProjectionName("UsersByDevice");
-            realtimeNotifier.onNext("OtherProjection");
-            realtimeNotifier.onNext("UsersByDevice");
-        });
-        it("should subscribe to it and get the model", async () => {
-            let users = await subject.keysFor("test-device");
+        context("and the lookup is in sync with the projection", () => {
+            beforeEach(async () => {
+                await subject.sync(new Date(200));
+            });
+            it("should return the lookup", async () => {
+                let users = await subject.keysFor("test-device");
 
-            expect(users).to.eql(["26h", "128a"]);
+                expect(users).to.eql(["26h", "128a"]);
+            });
+        });
+
+        context("and the lookup is not in sync with the projection", () => {
+            it("should wait for synchronization and return the lookup", async () => {
+                subject.sync(new Date(200));
+                let users = await subject.keysFor("test-device");
+
+                expect(users).to.eql(["26h", "128a"]);
+            });
         });
     });
 });
