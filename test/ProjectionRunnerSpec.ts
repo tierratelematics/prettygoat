@@ -28,7 +28,6 @@ describe("Given a ProjectionRunner", () => {
     let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
     let clock: lolex.Clock;
-    let realtimeNotifier: Subject<string>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -39,8 +38,7 @@ describe("Given a ProjectionRunner", () => {
         streamGenerator = Mock.ofType<IProjectionStreamGenerator>();
         matcher = Mock.ofType<IMatcher>();
         readModelFactory = Mock.ofType<IReadModelFactory>();
-        realtimeNotifier = new Subject<string>();
-        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, readModelFactory.object, realtimeNotifier);
+        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, readModelFactory.object);
         subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
     });
 
@@ -189,26 +187,6 @@ describe("Given a ProjectionRunner", () => {
             it("should notify an error", () => {
                 subject.run();
                 expect(failed).to.be.ok();
-            });
-        });
-
-        context("and it's a realtime event", () => {
-            let realtimeNotifications: string[] = [];
-            beforeEach(async () => {
-                matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
-                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
-                    type: "__prettygoat_internal_realtime",
-                    payload: null,
-                    timestamp: null,
-                    splitKey: null
-                }));
-                realtimeNotifier.subscribe(value => realtimeNotifications.push(value));
-                subject.run();
-                await completeStream();
-            });
-            it("should notify the completions service", () => {
-                expect(realtimeNotifications).to.have.length(1);
-                expect(realtimeNotifications[0]).to.be("test");
             });
         });
     });

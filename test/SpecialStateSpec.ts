@@ -2,7 +2,6 @@ import "reflect-metadata";
 import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {SpecialNames} from "../scripts/matcher/SpecialNames";
 import {IMatcher} from "../scripts/matcher/IMatcher";
-import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {Observable, Subject, IDisposable, Scheduler, helpers} from "rx";
 import {Mock, IMock, Times, It} from "typemoq";
 import expect = require("expect.js");
@@ -60,7 +59,7 @@ describe("Given a projection runner", () => {
             subject = new ProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, readModel.object, null);
+            }, stream.object, matcher.object, readModel.object);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
@@ -86,7 +85,7 @@ describe("Given a projection runner", () => {
             subject = new SplitProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, splitMatcher.object, readModel.object, null);
+            }, stream.object, matcher.object, splitMatcher.object, readModel.object);
             subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
         });
 
