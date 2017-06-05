@@ -133,7 +133,7 @@ export class SplitProjectionRunner<T> extends ProjectionRunner<T> {
     state: Dictionary<T>;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                splitMatcher: IMatcher, readModelFactory: IReadModelFactory, realtimeNotifier: ISubject<string>);
+                splitMatcher: IMatcher, readModelFactory: IReadModelFactory);
 
     run(snapshot?: Snapshot<T | Dictionary<T>>): void;
 }
