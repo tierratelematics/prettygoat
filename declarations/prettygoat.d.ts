@@ -77,9 +77,9 @@ export interface IWhen<T extends Object> {
     [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T | SpecialState<T>>;
 }
 
-export interface Event {
+export interface Event<T = any> {
     type: string;
-    payload: any;
+    payload: T;
     timestamp: Date;
     splitKey: string;
 }
