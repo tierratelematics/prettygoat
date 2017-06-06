@@ -265,8 +265,8 @@ export interface Dictionary<T> {
 
 export type FilterResult<T> = { filteredState: T, type: FilterOutputType };
 
-export interface IFilterStrategy<TState> {
-    filter<TResult>(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
+export interface IFilterStrategy<TState, TResult = any> {
+    filter(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
 }
 
 export interface IFilterContext {
