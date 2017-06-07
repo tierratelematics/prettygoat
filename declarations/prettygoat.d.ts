@@ -1,6 +1,6 @@
 ///<reference types="socket.io" />
 import {interfaces} from "inversify";
-import {Observable, IDisposable, ISubject} from "rx";
+import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
