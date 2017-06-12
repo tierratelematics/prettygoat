@@ -259,8 +259,13 @@ export interface ISocketConfig {
     path: string;
 }
 
+export interface IRedisConfig {
+    host: string;
+    port: number;
+}
+
 export interface Dictionary<T> {
-    [index: string]: T
+    [index: string]: T;
 }
 
 export type FilterResult<T> = { filteredState: T, type: FilterOutputType };
