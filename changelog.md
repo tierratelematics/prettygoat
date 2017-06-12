@@ -1,3 +1,7 @@
+# 3.5.0
+
+Add IRedisConfig
+
 # 3.4.0
 
 Add synchronization to lookup service
