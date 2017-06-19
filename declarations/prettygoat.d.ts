@@ -468,17 +468,3 @@ export interface IDateRetriever {
 }
 
 export type ValueOrPromise<T> = T | Promise<T>;
-
-export interface ILookup {
-    sync(timestamp: Date): Promise<void>;
-    keysFor(id: string): Promise<string[]>;
-}
-
-export interface ILookupFactory {
-    lookupFor<T extends IProjectionDefinition<LookupModel>>(projectionName: string): ILookup;
-}
-
-export type LookupModel = {
-    timestamp: Date;
-    lookup: Dictionary<string[]>
-}
