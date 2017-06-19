@@ -1,14 +1,12 @@
-import {Subject, IDisposable, Observable, ISubject} from "rx";
+import {Subject, IDisposable, Observable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
-import {IStreamFactory} from "../streams/IStreamFactory";
 import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
-import IDateRetriever from "../util/IDateRetriever";
 import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";

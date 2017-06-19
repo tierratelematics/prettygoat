@@ -47,7 +47,7 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
             .subscribe(event => {
                 if (event.type === ReservedEvents.REALTIME) {
                     if (!realtime)
-                        scheduler.advanceTo(Number.MAX_VALUE); //Flush events buffer since there are no more events
+                        scheduler.advanceTo(Number.MAX_VALUE); // Flush events buffer since there are no more events
                     realtime = true;
                 }
                 if (realtime || !event.timestamp) {
@@ -65,12 +65,11 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
                 }
             }, error => combined.onError(error), () => combined.onCompleted()));
 
-        subscriptions.add(ticks.subscribe(event => {
-            let payload: Tick = event.payload;
-            if (realtime || payload.clock > dateRetriever.getDate()) {
+        subscriptions.add(ticks.subscribe((event: Event<Tick>) => {
+            if (realtime || event.payload.clock > dateRetriever.getDate()) {
                 Observable.empty().delay(event.timestamp).subscribeOnCompleted(() => combined.onNext(event));
             } else {
-                scheduler.scheduleFuture(null, payload.clock, () => {
+                scheduler.scheduleFuture(null, event.payload.clock, () => {
                     combined.onNext(event);
                     return Disposable.empty;
                 });
@@ -79,6 +78,4 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
 
         return combined.finally(() => subscriptions.dispose());
     }
-
-
 }

@@ -1,6 +1,6 @@
-export interface Event {
+export interface Event<T = any> {
     type: string;
-    payload: any;
+    payload: T;
     timestamp: Date;
     splitKey: string;
 }

@@ -1,6 +1,6 @@
 ///<reference types="socket.io" />
 import {interfaces} from "inversify";
-import {Observable, IDisposable, ISubject} from "rx";
+import {Observable, IDisposable} from "rx";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
@@ -77,9 +77,9 @@ export interface IWhen<T extends Object> {
     [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T | SpecialState<T>>;
 }
 
-export interface Event {
+export interface Event<T = any> {
     type: string;
-    payload: any;
+    payload: T;
     timestamp: Date;
     splitKey: string;
 }
@@ -270,8 +270,8 @@ export interface Dictionary<T> {
 
 export type FilterResult<T> = { filteredState: T, type: FilterOutputType };
 
-export interface IFilterStrategy<TState> {
-    filter<TResult>(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
+export interface IFilterStrategy<TState, TResult = any> {
+    filter(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
 }
 
 export interface IFilterContext {
