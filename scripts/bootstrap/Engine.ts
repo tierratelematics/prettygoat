@@ -93,9 +93,9 @@ export class Engine {
             });
         });
 
-        socketFactory.socketForPath(socketConfig.path).on('connection', client => {
+        socketFactory.socketForPath(socketConfig.path).on("connection", client => {
             let wrappedClient = new SocketClient(client);
-            client.on('subscribe', (message: ModelContext) => {
+            client.on("subscribe", (message: ModelContext) => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters),
                         entry = registry.getEntry(context.projectionName, context.area).data,
@@ -107,7 +107,7 @@ export class Engine {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }
             });
-            client.on('unsubscribe', (message: ModelContext) => {
+            client.on("unsubscribe", (message: ModelContext) => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     clientRegistry.remove(wrappedClient, context);

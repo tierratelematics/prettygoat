@@ -51,8 +51,7 @@ class ProjectionEngine implements IProjectionEngine {
                     let areas = this.registry.getAreas();
                     _.forEach<AreaRegistry>(areas, areaRegistry => {
                         _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                            let projection = entry.projection;
-                            this.runSingleProjection(projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[projection.name]);
+                            this.runSingleProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
                         });
                     });
                 });
