@@ -40,7 +40,7 @@ class ProjectionEngine implements IProjectionEngine {
     run(projection?: IProjection<any>, context?: PushContext) {
         if (projection) {
             this.snapshotRepository.getSnapshot(projection.name).subscribe(snapshot => {
-                this.runSingleProjection(projection, context, snapshot);
+                this.startProjection(projection, context, snapshot);
             });
         } else {
             this.sorter.sort();
@@ -51,14 +51,14 @@ class ProjectionEngine implements IProjectionEngine {
                     let areas = this.registry.getAreas();
                     _.forEach<AreaRegistry>(areas, areaRegistry => {
                         _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                            this.runSingleProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
+                            this.startProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
                         });
                     });
                 });
         }
     }
 
-    private runSingleProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
+    private startProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
         let runner = this.runnerFactory.create(projection);
 
         let sequence = runner
