@@ -15,6 +15,8 @@ import {
 } from "./fixtures/definitions/MockProjectionCircularDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
+import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
+import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -87,6 +89,35 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             expect(() => {
                 subject.add(MockProjectionDefinition).add(MockProjectionDefinition).forArea("Admin");
             }).to.throwError();
+        });
+    });
+
+    context("when a projection has a notification field", () => {
+
+        context("and not all the events of the definition are present", () => {
+            beforeEach(() => {
+                let key = "prettygoat:definitions:Admin:Bad";
+                objectContainer.setup(o => o.contains(key)).returns(a => true);
+                objectContainer.setup(o => o.get(key)).returns(a => new BadNotificationProjection());
+            });
+            it("should throw an error", () => {
+                expect(() => {
+                    subject.add(BadNotificationProjection).forArea("Admin");
+                }).to.throwError();
+            });
+        });
+
+        context("and all the events of the definition are present", () => {
+            beforeEach(() => {
+                let key = "prettygoat:definitions:Admin:Mock";
+                objectContainer.setup(o => o.contains(key)).returns(a => true);
+                objectContainer.setup(o => o.get(key)).returns(a => new MockNotificationProjection());
+            });
+            it("should not raise an error", () => {
+                expect(() => {
+                    subject.add(MockNotificationProjection).forArea("Admin");
+                }).not.to.throwError();
+            });
         });
     });
 
