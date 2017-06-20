@@ -14,6 +14,7 @@ class MockNotificationProjection implements IProjectionDefinition<number> {
             name: "test",
             definition: {
                 $init: () => 10,
+                $any: (s, e) => 50,
                 TestEvent: (s, e: number) => s + e
             },
             notification: {

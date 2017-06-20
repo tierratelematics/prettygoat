@@ -9,6 +9,9 @@ import IObjectContainer from "../ioc/IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
+import {IProjection} from "../projections/IProjection";
+import {Matcher} from "../matcher/Matcher";
+import Identity from "../matcher/Identity";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -49,6 +52,8 @@ class ProjectionRegistry implements IProjectionRegistry {
             this.tickSchedulerHolder[projection.name] = tickScheduler;
             if (projection.split && !entry.parametersKey)
                 throw new Error(`Missing parameters key function from projection ${projection.name} registration`);
+            if (projection.notification && !this.isNotificationFieldValid(projection))
+                throw new Error(`Notification field is incomplete on ${projection.name}`);
             return new RegistryEntry(projection, entry.exposedName, entry.parametersKey, entry.ctor);
         });
         let areaRegistry = new AreaRegistry(area, entries);
@@ -63,6 +68,12 @@ class ProjectionRegistry implements IProjectionRegistry {
         if (!this.container.contains(key))
             this.container.set(key, constructor);
         return this.container.get<IProjectionDefinition<T>>(key);
+    }
+
+    private isNotificationFieldValid(projection: IProjection<any>): boolean {
+        let events = _(projection.definition).keys().filter(key => key !== "$any" && key !== "$init").valueOf();
+        let matcher = new Matcher(projection.notification);
+        return _.every(events, key => matcher.match(key) !== Identity);
     }
 
     private hasDuplicatedEntries():boolean {
