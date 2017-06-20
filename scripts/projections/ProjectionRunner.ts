@@ -42,7 +42,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.stats.running = true;
         this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.notifyStateChange(new Date(1));
+        this.notifyStateChange(snapshot ? snapshot.lastEvent : new Date(1));
         this.startStream(snapshot);
     }
 
@@ -83,9 +83,19 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.state = newState;
                 return [event, !(newState instanceof StopSignallingState)];
             })
-            .subscribe(data => {
+            .let(untypedFlatMapSeries(data => {
                 let [event, notify] = data;
-                if (notify) this.notifyStateChange(event.timestamp);
+                let notificationFn = this.notificationMatcher.match(event.type);
+                if (notificationFn !== Identity) {
+                    let keys = notificationFn(this.state, event.payload);
+                    return isPromise(keys) ? keys.then(splitKeys => [event, notify, splitKeys]): Observable.just([event, notify, keys]);
+                } else {
+                    return Observable.just([event, notify, null]);
+                }
+            }))
+            .subscribe(data => {
+                let [event, notify, keys] = data;
+                if (notify) this.notifyStateChange(event.timestamp, keys);
             }, error => {
                 this.isFailed = true;
                 this.subject.onError(error);

@@ -50,6 +50,7 @@ describe("Given a ProjectionRunner", () => {
             notificationKeys.push(notification[1]);
             timestamps.push(notification[0].timestamp);
         }, e => failed = true, () => stopped = true);
+        notificationMatcher.setup(m => m.match(It.isAny())).returns(() => Identity);
     });
 
     afterEach(() => {
@@ -168,8 +169,9 @@ describe("Given a ProjectionRunner", () => {
 
             context("and a notification field is present", () => {
                 beforeEach(async () => {
+                    notificationMatcher.reset();
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
-                    notificationMatcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => e);
+                    notificationMatcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(e));
                     subject.run();
                     await completeStream();
                 });
@@ -180,8 +182,9 @@ describe("Given a ProjectionRunner", () => {
 
             context("and a notification field is not present", () => {
                 beforeEach(async () => {
+                    notificationMatcher.reset();
                     matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
-                    notificationMatcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Identity);
+                    notificationMatcher.setup(m => m.match("increment")).returns(() => Identity);
                     subject.run();
                     await completeStream();
                 });
