@@ -94,6 +94,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 }
             }))
             .subscribe(data => {
+                console.log(data);
                 let [event, notify, keys] = data;
                 if (notify) this.notifyStateChange(event.timestamp, keys);
             }, error => {

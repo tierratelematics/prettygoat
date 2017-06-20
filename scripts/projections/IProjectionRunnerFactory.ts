@@ -1,4 +1,4 @@
-import IProjectionRunner from "./IProjectionRunner";
+import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 
 interface IProjectionRunnerFactory {

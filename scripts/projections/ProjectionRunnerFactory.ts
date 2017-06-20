@@ -1,5 +1,4 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
-import IProjectionRunner from "./IProjectionRunner";
 import ProjectionRunner from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
@@ -9,6 +8,7 @@ import SplitProjectionRunner from "./SplitProjectionRunner";
 import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
 import Dictionary from "../util/Dictionary";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
+import {IProjectionRunner} from "./IProjectionRunner";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -23,7 +23,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
         let projectionRunner: IProjectionRunner<T>;
         if (!projection.split)
-            projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher, this.readModelFactory);
+            projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher,
+                new MemoizingMatcher(new Matcher(projection.notification)), this.readModelFactory);
         else
             projectionRunner = new SplitProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher,
                 new MemoizingMatcher(new Matcher(projection.split)), this.readModelFactory);

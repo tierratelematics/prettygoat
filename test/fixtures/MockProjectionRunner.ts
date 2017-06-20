@@ -1,4 +1,4 @@
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
+import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Subject, IObserver} from "rx";
 import {Event} from "../../scripts/streams/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";

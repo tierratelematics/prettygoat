@@ -14,8 +14,6 @@ import DateRetriever from "../util/DateRetriever";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
 import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
-import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import IProjectionRunner from "../projections/IProjectionRunner";
 import Dictionary from "../util/Dictionary";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
@@ -48,6 +46,8 @@ import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
 import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
+import {IProjectionRunner} from "../projections/IProjectionRunner";
+import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 
 class PrettyGoatModule implements IModule {
 

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandler";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
 import {IRequest, IResponse, IRequestHandler} from "../scripts/web/IRequestComponents";

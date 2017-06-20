@@ -6,13 +6,13 @@ import AreaRegistry from "../registry/AreaRegistry";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
-import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
 import IAsyncPublisher from "../util/IAsyncPublisher";
+import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 
 type SnapshotData = [string, Snapshot<any>];
 

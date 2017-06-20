@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import {Subject, Observable, Scheduler} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/streams/Event";
