@@ -16,28 +16,28 @@ import Identity from "../matcher/Identity";
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
 
-    private registry:AreaRegistry[] = [];
-    private unregisteredEntries:{
-        ctor:interfaces.Newable<IProjectionDefinition<any>>,
-        exposedName:string,
-        parametersKey?:(parameters:any) => string
+    private registry: AreaRegistry[] = [];
+    private unregisteredEntries: {
+        ctor: interfaces.Newable<IProjectionDefinition<any>>,
+        exposedName: string,
+        parametersKey?: (parameters: any) => string
     }[] = [];
 
-    constructor(@inject("IObjectContainer") private container:IObjectContainer,
-                @inject("Factory<ITickScheduler>") private tickSchedulerFactory:interfaces.Factory<ITickScheduler>,
-                @inject("ITickSchedulerHolder") private tickSchedulerHolder:Dictionary<ITickScheduler>) {
+    constructor(@inject("IObjectContainer") private container: IObjectContainer,
+                @inject("Factory<ITickScheduler>") private tickSchedulerFactory: interfaces.Factory<ITickScheduler>,
+                @inject("ITickSchedulerHolder") private tickSchedulerHolder: Dictionary<ITickScheduler>) {
 
     }
 
-    master<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry {
+    master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry {
         return this.add(constructor).forArea(Constants.MASTER_AREA);
     }
 
-    index<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>):AreaRegistry {
+    index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry {
         return this.add(constructor).forArea(Constants.INDEX_AREA);
     }
 
-    add<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, parametersKey?:(parameters:any) => string):IProjectionRegistry {
+    add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry {
         let name = Reflect.getMetadata("prettygoat:projection", constructor);
         if (!name)
             throw new Error("Missing Projection decorator");
@@ -45,7 +45,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this;
     }
 
-    forArea(area:string):AreaRegistry {
+    forArea(area: string): AreaRegistry {
         let entries = _.map(this.unregisteredEntries, entry => {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
                 projection = this.getDefinitionFromConstructor(entry.ctor, area, entry.exposedName).define(tickScheduler);
@@ -63,7 +63,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         return areaRegistry;
     }
 
-    private getDefinitionFromConstructor<T>(constructor:interfaces.Newable<IProjectionDefinition<T>>, area:string, name:string):IProjectionDefinition<T> {
+    private getDefinitionFromConstructor<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, area: string, name: string): IProjectionDefinition<T> {
         const key = `prettygoat:definitions:${area}:${name}`;
         if (!this.container.contains(key))
             this.container.set(key, constructor);
@@ -76,25 +76,25 @@ class ProjectionRegistry implements IProjectionRegistry {
         return _.every(events, key => matcher.match(key) !== Identity);
     }
 
-    private hasDuplicatedEntries():boolean {
+    private hasDuplicatedEntries(): boolean {
         let entries = _(this.getAreas())
-            .map((areaRegistry:AreaRegistry) => areaRegistry.entries)
+            .map((areaRegistry: AreaRegistry) => areaRegistry.entries)
             .concat()
             .flatten()
-            .groupBy((entry:RegistryEntry<any>) => entry.projection.name)
+            .groupBy((entry: RegistryEntry<any>) => entry.projection.name)
             .valueOf();
-        return _.some(entries, (entry:RegistryEntry<any>[]) => entry.length > 1);
+        return _.some(entries, (entry: RegistryEntry<any>[]) => entry.length > 1);
     }
 
-    getAreas():AreaRegistry[] {
+    getAreas(): AreaRegistry[] {
         return this.registry;
     }
 
-    getArea(areaId:string):AreaRegistry {
-        return _.find(this.registry, (entry:AreaRegistry) => entry.area.toLowerCase() === areaId.toLowerCase());
+    getArea(areaId: string): AreaRegistry {
+        return _.find(this.registry, (entry: AreaRegistry) => entry.area.toLowerCase() === areaId.toLowerCase());
     }
 
-    getEntry<T>(id:string, area:string):{ area:string, data:RegistryEntry<T>} {
+    getEntry<T>(id: string, area: string): { area: string, data: RegistryEntry<T> } {
         let entry = null;
         if (area) {
             let areaRegistry = this.getArea(area);
@@ -104,7 +104,7 @@ class ProjectionRegistry implements IProjectionRegistry {
             }
         } else {
             let areas = this.getAreas();
-            _.forEach(areas, (areaRegistry:AreaRegistry) => {
+            _.forEach(areas, (areaRegistry: AreaRegistry) => {
                 if (!entry) {
                     entry = _.find(areaRegistry.entries, (entry: RegistryEntry<any>) => entry.projection.name.toLowerCase() === id.toLowerCase());
                     if (entry)
