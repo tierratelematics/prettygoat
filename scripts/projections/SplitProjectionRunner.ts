@@ -117,12 +117,12 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
         if (newState instanceof DeleteSplitState)
             delete this.state[splitKey];
         if (!(newState instanceof StopSignallingState))
-            this.subject.onNext({
+            this.subject.onNext([{
                 type: this.projection.name,
                 payload: this.state[splitKey],
                 timestamp: timestamp,
                 splitKey: splitKey
-            });
+            }, [splitKey]]);
     }
 }
 

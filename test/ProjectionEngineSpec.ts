@@ -21,6 +21,7 @@ import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/IPushComponents";
 import IAsyncPublisher from "../scripts/util/IAsyncPublisher";
+import PushContext from "../scripts/push/PushContext";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -47,7 +48,6 @@ describe("Given a ProjectionEngine", () => {
         runner = Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = Mock.ofType<IPushNotifier>();
-        pushNotifier.setup(p => p.notify(It.isAny(), It.isAny())).returns(a => null);
         runnerFactory = Mock.ofType<IProjectionRunnerFactory>();
         runnerFactory.setup(r => r.create(It.isAny())).returns(a => runner.object);
         registry = Mock.ofType<IProjectionRegistry>();
@@ -68,14 +68,14 @@ describe("Given a ProjectionEngine", () => {
 
     afterEach(() => clock.uninstall());
 
-    function publishReadModel(state, timestamp, splitKeys:string[] = null) {
+    function publishReadModel(state, timestamp, splitKeys: string[] = null) {
         runner.object.state = state;
         dataSubject.onNext([{
             type: "test",
             payload: state,
             timestamp: timestamp,
             splitKey: null
-        }], splitKeys);
+        }, splitKeys]);
     }
 
     context("when a snapshot is present", () => {
@@ -186,6 +186,33 @@ describe("Given a ProjectionEngine", () => {
             });
             it("should not save the snapshot", () => {
                 asyncPublisher.verify(a => a.publish(It.isValue(["test", new Snapshot(66, new Date(5000))])), Times.never());
+            });
+        });
+
+        context("and the projection isn't a split", () => {
+            beforeEach(() => {
+                snapshotStrategy.setup(s => s.needsSnapshot(It.isAny())).returns(a => false);
+                subject.run();
+                publishReadModel(66, new Date(5000));
+            });
+            it("should notify on the main context", () => {
+                clock.tick(200);
+
+                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null), Times.once());
+            });
+        });
+
+        context("and the projection is a split", () => {
+            beforeEach(() => {
+                snapshotStrategy.setup(s => s.needsSnapshot(It.isAny())).returns(a => false);
+                subject.run();
+                publishReadModel(66, new Date(5000), ["user-1", "user-3"]);
+            });
+            it("should notify every split", () => {
+                clock.tick(200);
+
+                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "user-1"), Times.once());
+                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "user-3"), Times.once());
             });
         });
     });

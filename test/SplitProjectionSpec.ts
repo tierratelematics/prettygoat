@@ -30,7 +30,7 @@ describe("Split projection, given a projection with a split definition", () => {
         readModelFactory = Mock.ofType<IReadModelFactory>();
         subject = new SplitProjectionRunner<number>(projection, stream.object, new Matcher(projection.definition),
             new Matcher(projection.split), readModelFactory.object);
-        subscription = subject.notifications().subscribe((event: Event) => notifications.push(event), e => failed = true, () => stopped = true);
+        subscription = subject.notifications().subscribe(notification => notifications.push(notification[0]), e => failed = true, () => stopped = true);
     });
 
     function completeStream() {

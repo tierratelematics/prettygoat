@@ -71,21 +71,25 @@ class ProjectionEngine implements IProjectionEngine {
                 }
             });
 
-        if (!projection.split)
-            sequence = sequence.sample(200);
-        else
+        if (projection.split)
             sequence = sequence.groupBy(notification => notification[0].splitKey).flatMap(notifications => notifications.sample(200));
+        else if (!projection.definition)
+            sequence = sequence.sample(200);
 
         let subscription = sequence.subscribe(notification => {
-            let splitKey = notification[0].splitKey;
-            this.pushNotifier.notify(context, splitKey);
-            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${splitKey ? "with key " + splitKey : ""}`);
+            if (!notification[1]) this.notifyContext(context, null);
+            else _.forEach(notification[1], key => this.notifyContext(context, key));
         }, error => {
             subscription.dispose();
             this.logger.error(error);
         });
 
         runner.run(snapshot);
+    }
+
+    private notifyContext(context: PushContext, splitKey: string = null) {
+        this.pushNotifier.notify(context, splitKey);
+        this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${splitKey ? "with key " + splitKey : ""}`);
     }
 }
 
