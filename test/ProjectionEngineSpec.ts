@@ -68,14 +68,14 @@ describe("Given a ProjectionEngine", () => {
 
     afterEach(() => clock.uninstall());
 
-    function publishReadModel(state, timestamp) {
+    function publishReadModel(state, timestamp, splitKeys:string[] = null) {
         runner.object.state = state;
-        dataSubject.onNext({
+        dataSubject.onNext([{
             type: "test",
             payload: state,
             timestamp: timestamp,
             splitKey: null
-        });
+        }], splitKeys);
     }
 
     context("when a snapshot is present", () => {
@@ -154,13 +154,13 @@ describe("Given a ProjectionEngine", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     payload: 10,
-                    type: 'test',
+                    type: "test",
                     timestamp: new Date(1),
                     splitKey: null
                 }))).returns(a => false);
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     payload: 66,
-                    type: 'test',
+                    type: "test",
                     timestamp: null,
                     splitKey: null
                 }))).returns(a => true);

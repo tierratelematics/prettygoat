@@ -1,4 +1,5 @@
 import {injectable} from "inversify";
+
 export interface IReplicationManager {
     canReplicate(): boolean;
     replicate();

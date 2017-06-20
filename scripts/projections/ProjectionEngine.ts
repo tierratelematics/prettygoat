@@ -63,8 +63,9 @@ class ProjectionEngine implements IProjectionEngine {
 
         let sequence = runner
             .notifications()
-            .do(state => {
-                let snapshotStrategy = projection.snapshotStrategy;
+            .do(notification => {
+                let snapshotStrategy = projection.snapshotStrategy,
+                    state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
                     this.publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
                 }
@@ -73,11 +74,12 @@ class ProjectionEngine implements IProjectionEngine {
         if (!projection.split)
             sequence = sequence.sample(200);
         else
-            sequence = sequence.groupBy(state => state.splitKey).flatMap(states => states.sample(200));
+            sequence = sequence.groupBy(notification => notification[0].splitKey).flatMap(notifications => notifications.sample(200));
 
-        let subscription = sequence.subscribe(state => {
-            this.pushNotifier.notify(context, state.splitKey);
-            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${state.splitKey ? "with key " + state.splitKey : ""}`);
+        let subscription = sequence.subscribe(notification => {
+            let splitKey = notification[0].splitKey;
+            this.pushNotifier.notify(context, splitKey);
+            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${splitKey ? "with key " + splitKey : ""}`);
         }, error => {
             subscription.dispose();
             this.logger.error(error);
