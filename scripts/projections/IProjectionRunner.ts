@@ -4,12 +4,12 @@ import Dictionary from "../util/Dictionary";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import ProjectionStats from "./ProjectionStats";
 
-interface IProjectionRunner<T> extends IDisposable {
-    state:T|Dictionary<T>;
-    stats:ProjectionStats;
-    run(snapshot?:Snapshot<T|Dictionary<T>>):void;
-    stop():void;
-    notifications():Observable<Event>;
-}
+export type RunnerNotification<T> = [Event<T>, string[]];
 
-export default IProjectionRunner
+export interface IProjectionRunner<T> extends IDisposable {
+    state: T | Dictionary<T>;
+    stats: ProjectionStats;
+    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
+    stop(): void;
+    notifications(): Observable<RunnerNotification<T>>;
+}

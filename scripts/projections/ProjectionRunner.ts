@@ -1,7 +1,6 @@
 import {Subject, IDisposable, Observable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
-import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
@@ -14,17 +13,18 @@ import Identity from "../matcher/Identity";
 import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
+import {IProjectionRunner, RunnerNotification} from "./IProjectionRunner";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T | Dictionary<T>;
     stats = new ProjectionStats();
-    protected subject: Subject<Event> = new Subject<Event>();
+    protected subject: Subject<RunnerNotification<Event<T>>> = new Subject<RunnerNotification<Event<T>>>();
     protected subscription: IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
     constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher,
-                protected readModelFactory: IReadModelFactory) {
+                protected notificationMatcher: IMatcher, protected readModelFactory: IReadModelFactory) {
 
     }
 
@@ -47,10 +47,10 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private subscribeToStateChanges() {
-        this.subject.sample(100).subscribe(readModel => {
+        this.subject.sample(100).subscribe(notification => {
             this.readModelFactory.publish({
-                payload: readModel.payload,
-                type: readModel.type,
+                payload: notification[0].payload,
+                type: notification[0].type,
                 timestamp: null,
                 splitKey: null
             });
@@ -120,8 +120,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    protected notifyStateChange(timestamp: Date, splitKey?: string) {
-        this.subject.onNext({payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null});
+    protected notifyStateChange(timestamp: Date, splitKeys?: string | string[]) {
+        this.subject.onNext([{payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null}, splitKeys || null]);
     }
 }
 
