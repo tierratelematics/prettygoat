@@ -38,8 +38,7 @@
     "socket.io": "~1.7.3",
     "tcp-port-used": "~0.1.2",
     "toposort": "~1.0.0",
-    "url-pattern": "~1.0.3",
-    "wildcard2": "0.0.2"
+    "url-pattern": "~1.0.3"
   },
   "main": "dist/prettygoat.js",
   "typings": "declarations/prettygoat.d.ts"
