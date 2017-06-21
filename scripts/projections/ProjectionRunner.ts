@@ -6,7 +6,6 @@ import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
-import {SpecialState, StopSignallingState} from "./SpecialState";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
 import Identity from "../matcher/Identity";
@@ -16,7 +15,7 @@ import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner, RunnerNotification} from "./IProjectionRunner";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T | Dictionary<T>;
+    state: T;
     stats = new ProjectionStats();
     protected subject: Subject<RunnerNotification<Event<T>>> = new Subject<RunnerNotification<Event<T>>>();
     protected subscription: IDisposable;
@@ -32,7 +31,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         return this.subject;
     }
 
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
+    run(snapshot?: Snapshot<T>): void {
         if (this.isDisposed)
             throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
@@ -51,8 +50,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.readModelFactory.publish({
                 payload: notification[0].payload,
                 type: notification[0].type,
-                timestamp: null,
-                splitKey: null
+                timestamp: null
             });
         }, error => null);
     }
@@ -77,25 +75,21 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             }))
             .map<[Event, boolean]>(data => {
                 let [event, newState] = data;
-                if (newState instanceof SpecialState)
-                    this.state = (<SpecialState<T>>newState).state;
-                else
-                    this.state = newState;
-                return [event, !(newState instanceof StopSignallingState)];
+                this.state = newState;
+                return event;
             })
-            .let(untypedFlatMapSeries(data => {
-                let [event, notify] = data;
+            .let(untypedFlatMapSeries(event => {
                 let notificationFn = this.notificationMatcher.match(event.type);
                 if (notificationFn !== Identity) {
                     let keys = notificationFn(this.state, event.payload);
-                    return isPromise(keys) ? keys.then(splitKeys => [event, notify, splitKeys]): Observable.just([event, notify, keys]);
+                    return isPromise(keys) ? keys.then(notifyKeys => [event, notifyKeys]) : Observable.just([event, keys]);
                 } else {
-                    return Observable.just([event, notify, null]);
+                    return Observable.just([event, null]);
                 }
             }))
             .subscribe(data => {
-                let [event, notify, keys] = data;
-                if (notify) this.notifyStateChange(event.timestamp, keys);
+                let [event, keys] = data;
+                this.notifyStateChange(event.timestamp, keys);
             }, error => {
                 this.isFailed = true;
                 this.subject.onError(error);
@@ -130,8 +124,12 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    protected notifyStateChange(timestamp: Date, splitKeys?: string | string[]) {
-        this.subject.onNext([{payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null}, splitKeys || null]);
+    private notifyStateChange(timestamp: Date, notifyKeys?: string[]) {
+        this.subject.onNext([{
+            payload: this.state,
+            type: this.projection.name,
+            timestamp: timestamp
+        }, notifyKeys || null]);
     }
 }
 

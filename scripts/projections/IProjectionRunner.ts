@@ -7,9 +7,9 @@ import ProjectionStats from "./ProjectionStats";
 export type RunnerNotification<T> = [Event<T>, string[]];
 
 export interface IProjectionRunner<T> extends IDisposable {
-    state: T | Dictionary<T>;
+    state: T;
     stats: ProjectionStats;
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T>): void;
     stop(): void;
     notifications(): Observable<RunnerNotification<T>>;
 }

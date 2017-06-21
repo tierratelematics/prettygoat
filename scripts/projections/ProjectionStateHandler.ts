@@ -8,7 +8,6 @@ import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import {STATUS_CODES} from "http";
 import {IFilterStrategy} from "../filters/IFilterStrategy";
 import {FilterOutputType} from "../filters/FilterComponents";
-import {IProjection} from "./IProjection";
 import IProjectionDefinition from "../registry/IProjectionDefinition";
 
 @Route("GET", "/projections/:area/:projectionName(/:splitKey)")
@@ -27,17 +26,9 @@ class ProjectionStateHandler implements IRequestHandler {
             this.sendNotFound(response);
         } else {
             let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
-                projectionRunner = this.holder[entry.projection.name],
-                state;
-            if (entry.projection.split) {
-                state = projectionRunner.state[splitKey];
-            } else {
-                state = projectionRunner.state;
-            }
-            if (state)
-                return this.sendResponse(request, response, state, filterStrategy);
-            else
-                this.sendNotFound(response);
+                projectionRunner = this.holder[entry.projection.name];
+
+            return this.sendResponse(request, response, projectionRunner.state, filterStrategy);
         }
     }
 
