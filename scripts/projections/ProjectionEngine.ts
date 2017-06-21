@@ -6,13 +6,13 @@ import AreaRegistry from "../registry/AreaRegistry";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
-import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
 import IAsyncPublisher from "../util/IAsyncPublisher";
+import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -40,7 +40,7 @@ class ProjectionEngine implements IProjectionEngine {
     run(projection?: IProjection<any>, context?: PushContext) {
         if (projection) {
             this.snapshotRepository.getSnapshot(projection.name).subscribe(snapshot => {
-                this.runSingleProjection(projection, context, snapshot);
+                this.startProjection(projection, context, snapshot);
             });
         } else {
             this.sorter.sort();
@@ -51,39 +51,45 @@ class ProjectionEngine implements IProjectionEngine {
                     let areas = this.registry.getAreas();
                     _.forEach<AreaRegistry>(areas, areaRegistry => {
                         _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                            this.runSingleProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
+                            this.startProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
                         });
                     });
                 });
         }
     }
 
-    private runSingleProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
+    private startProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
         let runner = this.runnerFactory.create(projection);
 
         let sequence = runner
             .notifications()
-            .do(state => {
-                let snapshotStrategy = projection.snapshotStrategy;
+            .do(notification => {
+                let snapshotStrategy = projection.snapshotStrategy,
+                    state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
                     this.publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
                 }
             });
 
-        if (!projection.split)
+        if (projection.split)
+            sequence = sequence.groupBy(notification => notification[0].splitKey).flatMap(notifications => notifications.sample(200));
+        else if (!projection.definition)
             sequence = sequence.sample(200);
-        else
-            sequence = sequence.groupBy(state => state.splitKey).flatMap(states => states.sample(200));
 
-        let subscription = sequence.subscribe(state => {
-            this.pushNotifier.notify(context, state.splitKey);
-            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${state.splitKey ? "with key " + state.splitKey : ""}`);
+        let subscription = sequence.subscribe(notification => {
+            if (!notification[1]) this.notifyContext(context, null);
+            else _.forEach(notification[1], key => this.notifyContext(context, key));
         }, error => {
             subscription.dispose();
             this.logger.error(error);
         });
 
         runner.run(snapshot);
+    }
+
+    private notifyContext(context: PushContext, splitKey: string = null) {
+        this.pushNotifier.notify(context, splitKey);
+        this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${splitKey ? "with key " + splitKey : ""}`);
     }
 }
 

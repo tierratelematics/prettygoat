@@ -3,7 +3,7 @@ import IProjectionDefinition from "../registry/IProjectionDefinition";
 import {IProjection} from "../projections/IProjection";
 import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
-import IProjectionRunner from "../projections/IProjectionRunner";
+import {IProjectionRunner} from "../projections/IProjectionRunner";
 import * as _ from "lodash";
 import TickScheduler from "../ticks/TickScheduler";
 import IProjectionSorter from "../projections/IProjectionSorter";

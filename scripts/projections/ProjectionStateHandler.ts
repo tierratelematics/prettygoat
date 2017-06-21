@@ -3,7 +3,7 @@ import Route from "../web/RouteDecorator";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {inject, interfaces} from "inversify";
 import Dictionary from "../util/Dictionary";
-import IProjectionRunner from "./IProjectionRunner";
+import {IProjectionRunner} from "./IProjectionRunner";
 import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import {STATUS_CODES} from "http";
 import {IFilterStrategy} from "../filters/IFilterStrategy";

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import Dictionary from "../../scripts/util/Dictionary";
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
+import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";

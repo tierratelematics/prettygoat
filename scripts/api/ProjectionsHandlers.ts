@@ -1,6 +1,6 @@
 import {inject, injectable} from "inversify";
 import Dictionary from "../util/Dictionary";
-import IProjectionRunner from "../projections/IProjectionRunner";
+import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 const sizeof = require("object-sizeof");

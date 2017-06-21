@@ -1,7 +1,6 @@
 import {Subject, IDisposable, Observable} from "rx";
 import {SpecialNames} from "../matcher/SpecialNames";
 import {IMatcher} from "../matcher/IMatcher";
-import IProjectionRunner from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import IReadModelFactory from "../streams/IReadModelFactory";
 import {Event} from "../streams/Event";
@@ -14,17 +13,18 @@ import Identity from "../matcher/Identity";
 import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
+import {IProjectionRunner, RunnerNotification} from "./IProjectionRunner";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T | Dictionary<T>;
     stats = new ProjectionStats();
-    protected subject: Subject<Event> = new Subject<Event>();
+    protected subject: Subject<RunnerNotification<Event<T>>> = new Subject<RunnerNotification<Event<T>>>();
     protected subscription: IDisposable;
     protected isDisposed: boolean;
     protected isFailed: boolean;
 
     constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher,
-                protected readModelFactory: IReadModelFactory) {
+                protected notificationMatcher: IMatcher, protected readModelFactory: IReadModelFactory) {
 
     }
 
@@ -42,15 +42,15 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.stats.running = true;
         this.subscribeToStateChanges();
         this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.notifyStateChange(new Date(1));
+        this.notifyStateChange(snapshot ? snapshot.lastEvent : new Date(1));
         this.startStream(snapshot);
     }
 
     private subscribeToStateChanges() {
-        this.subject.sample(100).subscribe(readModel => {
+        this.subject.sample(100).subscribe(notification => {
             this.readModelFactory.publish({
-                payload: readModel.payload,
-                type: readModel.type,
+                payload: notification[0].payload,
+                type: notification[0].type,
                 timestamp: null,
                 splitKey: null
             });
@@ -83,9 +83,19 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.state = newState;
                 return [event, !(newState instanceof StopSignallingState)];
             })
-            .subscribe(data => {
+            .let(untypedFlatMapSeries(data => {
                 let [event, notify] = data;
-                if (notify) this.notifyStateChange(event.timestamp);
+                let notificationFn = this.notificationMatcher.match(event.type);
+                if (notificationFn !== Identity) {
+                    let keys = notificationFn(this.state, event.payload);
+                    return isPromise(keys) ? keys.then(splitKeys => [event, notify, splitKeys]): Observable.just([event, notify, keys]);
+                } else {
+                    return Observable.just([event, notify, null]);
+                }
+            }))
+            .subscribe(data => {
+                let [event, notify, keys] = data;
+                if (notify) this.notifyStateChange(event.timestamp, keys);
             }, error => {
                 this.isFailed = true;
                 this.subject.onError(error);
@@ -120,8 +130,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 
-    protected notifyStateChange(timestamp: Date, splitKey?: string) {
-        this.subject.onNext({payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null});
+    protected notifyStateChange(timestamp: Date, splitKeys?: string | string[]) {
+        this.subject.onNext([{payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null}, splitKeys || null]);
     }
 }
 

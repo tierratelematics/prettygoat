@@ -14,7 +14,7 @@ export interface ISocketFactory {
 }
 
 export interface PushNotification {
-    url: string
+    url: string;
 }
 
 export interface IClientRegistry {

@@ -6,22 +6,22 @@ import {Observable, Subject, IDisposable, Scheduler, helpers} from "rx";
 import {Mock, IMock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import {Event} from "../scripts/streams/Event";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
 import {SpecialStates} from "../scripts/projections/SpecialState";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner, RunnerNotification} from "../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import * as lolex from "lolex";
 import * as _ from "lodash";
-import Identity from "../scripts/matcher/Identity";
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
+import Identity from "../scripts/matcher/Identity";
 
 describe("Given a projection runner", () => {
     let stream: IMock<IProjectionStreamGenerator>;
     let readModel: IMock<IReadModelFactory>;
     let subject: IProjectionRunner<number>;
     let matcher: IMock<IMatcher>;
+    let notificationMatcher: IMock<IMatcher>;
     let notifications: number[];
     let stopped: boolean;
     let failed: boolean;
@@ -36,11 +36,13 @@ describe("Given a projection runner", () => {
         stream = Mock.ofType<IProjectionStreamGenerator>();
         readModel = Mock.ofType<IReadModelFactory>();
         matcher = Mock.ofType<IMatcher>();
+        notificationMatcher = Mock.ofType<IMatcher>();
         let date = new Date();
         stream.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 2).map(n => {
             return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
         }));
         matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+        notificationMatcher.setup(m => m.match(It.isAny())).returns(() => Identity);
     });
 
     afterEach(() => {
@@ -59,8 +61,8 @@ describe("Given a projection runner", () => {
             subject = new ProjectionRunner<number>({
                 name: "test",
                 definition: {}
-            }, stream.object, matcher.object, readModel.object);
-            subscription = subject.notifications().subscribe((state: Event) => notifications.push(state.payload), e => failed = true, () => stopped = true);
+            }, stream.object, matcher.object, notificationMatcher.object, readModel.object);
+            subscription = subject.notifications().subscribe((notification: RunnerNotification<any>) => notifications.push(notification[0].payload), e => failed = true, () => stopped = true);
         });
 
         context("and the state change should not be notified", () => {

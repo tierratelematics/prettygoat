@@ -23,4 +23,10 @@ export interface IProjection<T> {
     definition: IWhen<T>;
     snapshotStrategy?: ISnapshotStrategy;
     filterStrategy?: IFilterStrategy<T>;
+    notification?: INotification<T>;
+}
+
+export interface INotification<T extends Object> {
+    $default?: (s: T, payload: Object) => ValueOrPromise<string[]>;
+    [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
 }

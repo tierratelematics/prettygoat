@@ -5,7 +5,7 @@ import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFact
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import SplitProjectionRunner from "../scripts/projections/SplitProjectionRunner";
-import IProjectionRunner from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import Dictionary from "../scripts/util/Dictionary";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {

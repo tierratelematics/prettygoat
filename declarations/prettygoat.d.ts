@@ -62,6 +62,12 @@ export interface IProjection<T> {
     definition: IWhen<T>;
     snapshotStrategy?: ISnapshotStrategy;
     filterStrategy?: IFilterStrategy<T>;
+    notification?: INotification<T>;
+}
+
+export interface INotification<T extends Object> {
+    $default?: (s: T, payload: Object) => ValueOrPromise<string[]>;
+    [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
 }
 
 export type SplitKey = string | string[];
@@ -88,12 +94,14 @@ export interface IProjectionStreamGenerator {
     generate(projection: IProjection<any>, snapshot: Snapshot<any>, completions: Observable<any>): Observable<Event>;
 }
 
+export type RunnerNotification<T> = [Event<T>, string[]];
+
 export interface IProjectionRunner<T> extends IDisposable {
     state: T | Dictionary<T>;
     stats: ProjectionStats;
     run(snapshot?: Snapshot<T | Dictionary<T>>): void;
     stop(): void;
-    notifications(): Observable<Event>;
+    notifications(): Observable<RunnerNotification<T>>;
 }
 
 export interface IProjectionRunnerFactory {
@@ -118,7 +126,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     stats: ProjectionStats;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                readModelFactory: IReadModelFactory);
+                notificationMatcher: IMatcher, readModelFactory: IReadModelFactory);
 
     notifications();
 
