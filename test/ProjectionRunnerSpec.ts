@@ -13,7 +13,7 @@ import ReservedEvents from "../scripts/streams/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import Identity from "../scripts/matcher/Identity";
+import Identity from "../scripts/util/Identity";
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {RunnerNotification} from "../scripts/projections/IProjectionRunner";
 

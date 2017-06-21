@@ -26,4 +26,4 @@ export {default as PrettyGoatModule} from "./bootstrap/PrettyGoatModule";
 export {default as ProjectionRunner} from "./projections/ProjectionRunner";
 export {default as SplitProjectionRunner} from "./projections/SplitProjectionRunner";
 export {Matcher} from "./matcher/Matcher";
-export {default as Identity} from "./matcher/Identity";
+export {default as Identity} from "./util/Identity";

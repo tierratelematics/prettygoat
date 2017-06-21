@@ -8,7 +8,6 @@ import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import RegistryEntry from "../registry/RegistryEntry";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
-import IProjectionSorter from "./IProjectionSorter";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
 import IAsyncPublisher from "../util/IAsyncPublisher";
@@ -24,7 +23,6 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
-                @inject("IProjectionSorter") private sorter: IProjectionSorter,
                 @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>) {
         publisher.items()
             .flatMap(snapshotData => {
@@ -43,7 +41,6 @@ class ProjectionEngine implements IProjectionEngine {
                 this.startProjection(projection, context, snapshot);
             });
         } else {
-            this.sorter.sort();
             this.snapshotRepository
                 .initialize()
                 .flatMap(() => this.snapshotRepository.getSnapshots())

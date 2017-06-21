@@ -11,7 +11,7 @@ import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection} from "../projections/IProjection";
 import {Matcher} from "../matcher/Matcher";
-import Identity from "../matcher/Identity";
+import Identity from "../util/Identity";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {

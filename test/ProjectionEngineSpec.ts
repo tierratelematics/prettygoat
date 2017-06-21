@@ -15,7 +15,6 @@ import AreaRegistry from "../scripts/registry/AreaRegistry";
 import RegistryEntry from "../scripts/registry/RegistryEntry";
 import Dictionary from "../scripts/util/Dictionary";
 import {IProjection} from "../scripts/projections/IProjection";
-import IProjectionSorter from "../scripts/projections/IProjectionSorter";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
@@ -31,7 +30,6 @@ describe("Given a ProjectionEngine", () => {
         snapshotStrategy: IMock<ISnapshotStrategy>,
         runner: IMock<IProjectionRunner<number>>,
         runnerFactory: IMock<IProjectionRunnerFactory>,
-        projectionSorter: IMock<IProjectionSorter>,
         snapshotRepository: IMock<ISnapshotRepository>,
         dataSubject: Subject<Event>,
         projection: IProjection<number>,
@@ -58,12 +56,10 @@ describe("Given a ProjectionEngine", () => {
                 ])
             ]
         });
-        projectionSorter = Mock.ofType<IProjectionSorter>();
-        projectionSorter.setup(s => s.sort()).returns(a => []);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, projectionSorter.object, asyncPublisher.object);
+            NullLogger, asyncPublisher.object);
     });
 
     afterEach(() => clock.uninstall());
@@ -104,16 +100,6 @@ describe("Given a ProjectionEngine", () => {
         });
     });
 
-    context("when the engine starts up", () => {
-        beforeEach(() => {
-            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
-        });
-        it("should check for circular dependencies between projections", () => {
-            subject.run();
-            projectionSorter.verify(d => d.sort(), Times.once());
-        });
-    });
-
     context("when some snapshots needs to be processed", () => {
         beforeEach(() => {
             asyncPublisher.reset();
@@ -122,7 +108,7 @@ describe("Given a ProjectionEngine", () => {
             }));
             snapshotRepository.setup(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Observable.empty<void>());
             subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-                NullLogger, projectionSorter.object, asyncPublisher.object);
+                NullLogger, asyncPublisher.object);
         });
         it("should save them", () => {
             snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, new Date(5000)))), Times.once());

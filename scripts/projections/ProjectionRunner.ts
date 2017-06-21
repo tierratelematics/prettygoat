@@ -8,7 +8,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
 import ProjectionStats from "./ProjectionStats";
 import ReservedEvents from "../streams/ReservedEvents";
-import Identity from "../matcher/Identity";
+import Identity from "../util/Identity";
 import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
