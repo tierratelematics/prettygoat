@@ -7,7 +7,6 @@ import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
 import AuthMiddleware from "./AuthMiddleware";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
 import AuthorizationHandler from "./AuthorizationHandler";
-import SystemProjection from "./SystemProjection";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
 import {ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler} from "./ProjectionsHandlers";
 
@@ -25,7 +24,7 @@ class APIModule implements IModule {
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
-        registry.add(SystemProjection).forArea("__diagnostic");
+
     }
 }
 

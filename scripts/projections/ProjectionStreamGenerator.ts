@@ -43,7 +43,6 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
 
         subscriptions.add(events
             .merge(readModels)
-            .filter(event => !_.startsWith(event.type, "__diagnostic"))
             .subscribe(event => {
                 if (event.type === ReservedEvents.REALTIME) {
                     if (!realtime)

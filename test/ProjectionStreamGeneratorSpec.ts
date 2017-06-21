@@ -97,34 +97,16 @@ describe("Given a projection stream generator", () => {
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Observable.empty<Event>());
+            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
+                type: "CassandraEvent",
+                payload: 1,
+                timestamp: new Date(),
+                splitKey: null
+            }));
+            subscription = subject.generate(projection, null, null).subscribe(event => notifications.push(event));
         });
-        context("and it's a diagnostic event", () => {
-            beforeEach(() => {
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
-                    type: "__diagnostic:Size",
-                    payload: 1,
-                    timestamp: new Date(),
-                    splitKey: null
-                }));
-                subscription = subject.generate(projection, null, null).subscribe(event => notifications.push(event));
-            });
-            it("it should be filtered out", () => {
-                expect(notifications).to.have.length(0);
-            });
-        });
-        context("and it's not a diagnostic event", () => {
-            beforeEach(() => {
-                stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
-                    type: "CassandraEvent",
-                    payload: 1,
-                    timestamp: new Date(),
-                    splitKey: null
-                }));
-                subscription = subject.generate(projection, null, null).subscribe(event => notifications.push(event));
-            });
-            it("it should be filtered out", () => {
-                expect(notifications).to.have.length(1);
-            });
+        it("it should be processed", () => {
+            expect(notifications).to.have.length(1);
         });
     });
 });
