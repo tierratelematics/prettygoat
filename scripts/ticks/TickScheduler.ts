@@ -12,26 +12,25 @@ class TickScheduler implements ITickScheduler {
 
     private subject = new ReplaySubject<Event>();
 
-    constructor(@inject("IDateRetriever") private dateRetriever:IDateRetriever) {
+    constructor(@inject("IDateRetriever") private dateRetriever: IDateRetriever) {
 
     }
 
-    schedule(dueTime:number|Date, state?:string, splitKey?:string) {
+    schedule(dueTime: number | Date, state?: string) {
         let dueDate = dueTime instanceof Date ? dueTime : this.calculateDueDate(<number>dueTime);
         this.subject.onNext({
             type: ReservedEvents.TICK,
             payload: new Tick(dueDate, state),
-            timestamp: dueDate,
-            splitKey: splitKey
+            timestamp: dueDate
         });
     }
 
-    from(lastEvent:Date):Observable<Event> {
+    from(lastEvent: Date): Observable<Event> {
         return this.subject;
     }
 
-    private calculateDueDate(dueTime:number):Date {
-        return moment(this.dateRetriever.getDate()).add(dueTime, 'milliseconds').toDate();
+    private calculateDueDate(dueTime: number): Date {
+        return moment(this.dateRetriever.getDate()).add(dueTime, "milliseconds").toDate();
     }
 }
 
