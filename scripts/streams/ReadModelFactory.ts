@@ -1,4 +1,4 @@
-import IReadModelFactory from "./IReadModelFactory";
+import IReadModelFactory from "./IReadModel";
 import {Subject, Observable} from "rx";
 import {injectable} from "inversify";
 import Dictionary from "../util/Dictionary";
