@@ -1,3 +1,7 @@
+# 3.5.1
+
+Use portscanner instead of tcp-port-used
+
 # 3.5.0
 
 Add IRedisConfig
