@@ -68,7 +68,7 @@ class ProjectionRegistry implements IProjectionRegistry {
     }
 
     private isNotificationFieldValid(projection: IProjection<any>): boolean {
-        let events = _(projection.definition).keys().filter(key => key !== "$any" && key !== "$init").valueOf();
+        let events = _(projection.definition).keys().filter(key => key !== "$init").valueOf();
         let matcher = new Matcher(projection.notification);
         return _.every(events, key => matcher.match(key) !== Identity);
     }

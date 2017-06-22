@@ -5,7 +5,6 @@ import {ValueOrPromise} from "../util/TypesUtil";
 
 export interface IWhen<T extends Object> {
     $init?: () => T;
-    $any?: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
     [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
 }
 
