@@ -23,4 +23,3 @@ export {default as AreaRegistry} from "./registry/AreaRegistry";
 export {default as ProjectionStats} from "./projections/ProjectionStats";
 export {default as PrettyGoatModule} from "./bootstrap/PrettyGoatModule";
 export {default as ProjectionRunner} from "./projections/ProjectionRunner";
-export {default as Identity} from "./util/Identity";
