@@ -9,11 +9,6 @@ import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/util/Dictionary";
-import {
-    MockProjectionCircularADefinition,
-    MockProjectionCircularBDefinition, MockProjectionCircularAnyDefinition
-} from "./fixtures/definitions/MockProjectionCircularDefinition";
-import SplitProjectionDefinition from "./fixtures/definitions/SplitProjectionDefinition";
 import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
@@ -118,30 +113,6 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
                     subject.add(MockNotificationProjection).forArea("Admin");
                 }).not.to.throwError();
             });
-        });
-    });
-
-    context("when multiple projections are registered with different names", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Admin:CircularA";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularADefinition());
-
-            key = "prettygoat:definitions:Admin:CircularAny";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularAnyDefinition());
-
-            key = "prettygoat:definitions:Admin:CircularB";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionCircularBDefinition());
-        });
-        it("should register them correctly", () => {
-            expect(() => {
-                subject.add(MockProjectionCircularBDefinition)
-                    .add(MockProjectionCircularADefinition)
-                    .add(MockProjectionCircularAnyDefinition)
-                    .forArea("Admin");
-            }).not.to.throwError();
         });
     });
 
