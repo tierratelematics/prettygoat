@@ -1,12 +1,9 @@
-const portUsed = require("tcp-port-used");
+const portscanner = require("portscanner");
 
 class PortDiscovery {
 
     static freePort(initialPort: number, host?: string): Promise<number> {
-        return portUsed.check({
-            port: initialPort,
-            host: host
-        }).then(used => used ? this.freePort(initialPort + 1, host) : initialPort);
+        return portscanner.findAPortNotInUse(initialPort, host);
     }
 }
 
