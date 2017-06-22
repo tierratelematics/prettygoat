@@ -2,7 +2,6 @@ import IProjectionRegistry from "./IProjectionRegistry";
 import AreaRegistry from "./AreaRegistry";
 import RegistryEntry from "./RegistryEntry";
 import IProjectionDefinition from "./IProjectionDefinition";
-import Constants from "./Constants";
 import {injectable, inject} from "inversify";
 import {interfaces} from "inversify";
 import IObjectContainer from "../ioc/IObjectContainer";
@@ -10,8 +9,6 @@ import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection} from "../projections/IProjection";
-import {Matcher} from "../matcher/Matcher";
-import Identity from "../util/Identity";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -30,11 +27,11 @@ class ProjectionRegistry implements IProjectionRegistry {
     }
 
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry {
-        return this.add(constructor).forArea(Constants.MASTER_AREA);
+        return this.add(constructor).forArea("Master");
     }
 
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry {
-        return this.add(constructor).forArea(Constants.INDEX_AREA);
+        return this.add(constructor).forArea("Index");
     }
 
     add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry {
