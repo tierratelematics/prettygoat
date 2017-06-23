@@ -19,7 +19,6 @@ import PortDiscovery from "../util/PortDiscovery";
 import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
-import {ModelContext} from "chupacabras";
 import getDecorators from "inversify-inject-decorators";
 
 let container = new Container();
@@ -95,7 +94,7 @@ export class Engine {
 
         socketFactory.socketForPath(socketConfig.path).on("connection", client => {
             let wrappedClient = new SocketClient(client);
-            client.on("subscribe", (message: ModelContext) => {
+            client.on("subscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters),
                         entry = registry.getEntry(context.projectionName, context.area).data,
@@ -107,7 +106,7 @@ export class Engine {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }
             });
-            client.on("unsubscribe", (message: ModelContext) => {
+            client.on("unsubscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     clientRegistry.remove(wrappedClient, context);
