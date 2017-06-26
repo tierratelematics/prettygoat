@@ -149,7 +149,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
             objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
-            subject.add(MockProjectionDefinition).forArea("Admin")
+            subject.add(MockProjectionDefinition).forArea("Admin");
         });
 
         context("and I supply the stream name", () => {
@@ -174,18 +174,6 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
                 expect(entry.data).to.be(null);
             });
-        });
-    });
-
-    context("when a split projection is registered without a parameters key", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Admin:Split";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new SplitProjectionDefinition());
-        });
-
-        it("should throw an error", () => {
-            expect(() => subject.add(SplitProjectionDefinition).forArea("Admin")).to.throwError();
         });
     });
 });
