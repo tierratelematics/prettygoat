@@ -4,13 +4,12 @@ import {IMock, Mock, Times, It} from "typemoq";
 import {ProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {Observable, IDisposable, Subject} from "rx";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
-import {IStreamFactory} from "../scripts/streams/IStreamFactory";
-import IReadModelFactory from "../scripts/streams/IReadModelFactory";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import {Event} from "../scripts/streams/Event";
+import {IStreamFactory} from "../scripts/events/IStreamFactory";
+import {Event} from "../scripts/events/Event";
 
 describe("Given a projection stream generator", () => {
 

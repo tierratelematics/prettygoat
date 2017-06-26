@@ -9,9 +9,9 @@ import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/util/Dictionary";
-import UnnamedProjectionDefinition from "./fixtures/definitions/UnnamedProjectionDefinition";
 import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
+import MockReadModel from "./fixtures/definitions/MockReadModel";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -53,25 +53,14 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         function setUpTickScheduler(): IMock<IProjectionDefinition<number>> {
             let key = "prettygoat:definitions:Admin:Mock";
             objectContainer.setup(o => o.contains(key)).returns(a => true);
-            let projectionDefinition: IMock<IProjectionDefinition<number>> = Mock.ofType(MockProjectionDefinition);
+            let projectionDefinition = Mock.ofType<IProjectionDefinition<number>>();
             objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
-            projectionDefinition.setup(p => p.define(It.isValue(tickScheduler))).returns(a => {
-                return {name: "test", definition: {}};
+            projectionDefinition.setup(p => p.define(It.isValue(tickScheduler))).returns(() => {
+                return {name: "Mock", definition: {}, publish: {}};
             });
             subject.add(MockProjectionDefinition).forArea("Admin");
             return projectionDefinition;
         }
-    });
-
-    context("when a projection has no name", () => {
-        beforeEach(() => {
-            let key = "prettygoat:definitions:Test:";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new UnnamedProjectionDefinition());
-        });
-        it("should throw an error regarding the missing decorator", () => {
-            expect(() => subject.add(UnnamedProjectionDefinition).forArea("Test")).to.throwError();
-        });
     });
 
     context("when a projection with that name already exists", () => {
@@ -144,6 +133,15 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
     });
 
+    context("when a readmodel has to be registered", () => {
+        it("should be added to a specific area", () => {
+            subject.readmodel(MockReadModel);
+            let areas = subject.getAreas();
+
+            expect(areas[0].area).to.be("Readmodels");
+        });
+    });
+
     context("when a projection needs to be retrieved", () => {
         beforeEach(() => {
             let key = "prettygoat:definitions:Admin:Mock";
@@ -152,27 +150,35 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             subject.add(MockProjectionDefinition).forArea("Admin");
         });
 
-        context("and I supply the stream name", () => {
+        context("and the projection name is supplied", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("test");
+                let entry = subject.getEntry("Mock");
 
-                expect(entry.data.projection.name).to.be("test");
+                expect(entry[1].name).to.be("Mock");
             });
         });
 
-        context("and I supply the registered projection name", () => {
+        context("and an existing publish point is supplied", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("Mock", "Admin");
+                let entry = subject.getEntry("Test", "Admin");
 
-                expect(entry.data.projection.name).to.be("test");
+                expect(entry[1].name).to.be("test");
             });
         });
 
-        context("and I supply an inexistent area name", () => {
+        context("and a non existing publish point is supplied", () => {
+            it("should return a null entry", () => {
+                let entry = subject.getEntry("Inexistent", "Admin");
+
+                expect(entry).not.to.be.ok();
+            });
+        });
+
+        context("and a non existing area is supplied", () => {
             it("should return no data", () => {
-                let entry = subject.getEntry("Mock", "AdminBad");
+                let entry = subject.getEntry("Test", "AdminBad");
 
-                expect(entry.data).to.be(null);
+                expect(entry).not.to.be.ok();
             });
         });
     });

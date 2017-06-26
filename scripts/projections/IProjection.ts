@@ -1,13 +1,20 @@
-import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
-import {IFilterStrategy} from "../filters/IFilterStrategy";
 import {ValueOrPromise} from "../util/TypesUtil";
-import {Event} from "../events/Event";
 import Dictionary from "../util/Dictionary";
+import {IFilterStrategy} from "../publish/IFilterStrategy";
+import {IReadModel} from "../readmodels/IReadModel";
 
-export interface IProjection<T> {
-    definition: IWhen<T>;
-    snapshot?: ISnapshotStrategy;
+export interface IProjectionDefinition<T> {
+    define(): IProjection<T>;
+}
+
+export interface IProjection<T> extends IReadModel<T> {
     publish: Dictionary<PublishPoint<T>>;
+}
+
+export type PublishPoint<T> = {
+    notify?: INotification<T>;
+    deliver?: IFilterStrategy<T>;
+    readModels?: string[];
 }
 
 export interface INotification<T extends Object> {
@@ -15,13 +22,3 @@ export interface INotification<T extends Object> {
     [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
 }
 
-export interface IWhen<T extends Object> {
-    $init?: () => T;
-    [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
-}
-
-export type PublishPoint<T> = {
-    notify: INotification<T>;
-    deliver: IFilterStrategy<T>;
-    readModels: string[];
-}

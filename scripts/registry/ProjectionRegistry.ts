@@ -9,6 +9,7 @@ import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection} from "../projections/IProjection";
+import {IReadModelDefinition} from "../readmodels/IReadModel";
 
 @injectable()
 class ProjectionRegistry implements IProjectionRegistry {
@@ -32,6 +33,10 @@ class ProjectionRegistry implements IProjectionRegistry {
 
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry {
         return this.add(constructor).forArea("Index");
+    }
+
+    readmodel<T>(constructor: interfaces.Newable<IReadModelDefinition<T>>): AreaRegistry {
+        return undefined;
     }
 
     add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry {
@@ -87,7 +92,7 @@ class ProjectionRegistry implements IProjectionRegistry {
         return this.registry;
     }
 
-    getArea(areaId: string): AreaRegistry {
+    private getArea(areaId: string): AreaRegistry {
         return _.find(this.registry, (entry: AreaRegistry) => entry.area.toLowerCase() === areaId.toLowerCase());
     }
 

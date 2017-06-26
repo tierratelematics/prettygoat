@@ -1,8 +1,8 @@
 import RegistryEntry from "./RegistryEntry";
 
 class AreaRegistry {
-    constructor(public area:string, public entries:RegistryEntry<any>[]) {
+    constructor(public area: string, public entries: RegistryEntry<any>[]) {
     }
 }
 
-export default AreaRegistry;
+export default AreaRegistry

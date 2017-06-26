@@ -127,29 +127,8 @@ describe("Given a ProjectionStateHandler", () => {
         });
     });
 
-    context("when a projection has a private decorator", () => {
-        let projection: IProjection<any>;
-
-        beforeEach(() => {
-            projection = new PrivateProjectionDefinition().define();
-            registry.setup(r => r.getEntry("Closed", "Admin")).returns(() => {
-                return {
-                    area: "Admin",
-                    data: new RegistryEntry(projection, "Closed", null, PrivateProjectionDefinition)
-                };
-            });
-            holder["Closed"] = projectionRunner;
-            projectionRunner.state = 42;
-            request.params = {
-                area: "Admin",
-                projectionName: "Closed"
-            };
-        });
-
-        it("should be kept private", async() => {
-            await subject.handle(request, response.object);
-            response.verify(r => r.status(404), Times.once());
-        });
+    context("when a projection is a readmodel", () => {
+        it("should be kept private");
     });
 
 });

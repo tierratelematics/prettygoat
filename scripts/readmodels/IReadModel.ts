@@ -1,11 +1,12 @@
 import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
-import {IProjection, IWhen} from "../projections/IProjection";
+import {IWhen} from "../projections/Matcher";
 
 export interface IReadModelDefinition<T> {
-    define(): IProjection<T>;
+    define(): IReadModel<T>;
 }
 
 export interface IReadModel<T> {
+    name: string;
     definition: IWhen<T>;
     snapshot?: ISnapshotStrategy;
 }
