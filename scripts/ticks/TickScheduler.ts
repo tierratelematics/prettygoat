@@ -1,11 +1,11 @@
 import ITickScheduler from "./ITickScheduler";
 import {injectable, inject} from "inversify";
-import {Subject, ReplaySubject, Observable} from "rx";
+import {ReplaySubject, Observable} from "rx";
 import Tick from "./Tick";
-import {Event} from "../streams/Event";
 import * as moment from "moment";
 import IDateRetriever from "../util/IDateRetriever";
-import ReservedEvents from "../streams/ReservedEvents";
+import ReservedEvents from "../events/ReservedEvents";
+import {Event} from "../events/Event";
 
 @injectable()
 class TickScheduler implements ITickScheduler {

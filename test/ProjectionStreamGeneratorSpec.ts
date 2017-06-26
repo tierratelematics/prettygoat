@@ -20,7 +20,6 @@ describe("Given a projection stream generator", () => {
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
     let completions = new Subject<string>();
 
@@ -30,10 +29,9 @@ describe("Given a projection stream generator", () => {
         stopped = false;
         failed = false;
         stream = Mock.ofType<IStreamFactory>();
-        readModelFactory = Mock.ofType<IReadModelFactory>();
         let tickScheduler = Mock.ofType<ITickScheduler>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
-        subject = new ProjectionStreamGenerator(stream.object, readModelFactory.object, {
+        subject = new ProjectionStreamGenerator(stream.object, {
             "test": tickScheduler.object
         }, new MockDateRetriever(new Date(100000)));
     });
@@ -46,7 +44,6 @@ describe("Given a projection stream generator", () => {
     context("when initializing a stream", () => {
         beforeEach(() => {
             stream.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
-            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Observable.empty<Event>());
         });
 
         context("if a snapshot is present", () => {
@@ -65,38 +62,11 @@ describe("Given a projection stream generator", () => {
             it("should subscribe to the event stream starting from the stream's beginning", () => {
                 stream.verify(s => s.from(null, It.isValue(completions), It.isValue(projection.definition)), Times.once());
             });
-
-            it("should subscribe to the readmodels stream to build linked projections", () => {
-                readModelFactory.verify(a => a.from(null), Times.once());
-            });
         });
     });
 
-    context("when receiving a readmodel", () => {
-        let readModelSubject = new Subject<any>();
-        beforeEach(() => {
-            readModelFactory.setup(s => s.from(null)).returns(_ => readModelSubject);
-            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
-            subscription = subject.generate(projection, null, null).subscribe(event => notifications.push(event));
-        });
-        context("of the same projection", () => {
-            it("should filter it", () => {
-                readModelSubject.onNext({type: "test", payload: 1});
-
-                expect(notifications).to.have.length(0);
-            });
-        });
-        context("of another projection", () => {
-            it("should not filter it", () => {
-                readModelSubject.onNext({type: "other", payload: 1});
-
-                expect(notifications).to.have.length(1);
-            });
-        });
-    });
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
-            readModelFactory.setup(r => r.from(It.isAny())).returns(_ => Observable.empty<Event>());
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
                 type: "CassandraEvent",
                 payload: 1,

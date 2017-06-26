@@ -1,16 +1,14 @@
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {inject, injectable} from "inversify";
-import {Event} from "../streams/Event";
+import {Event} from "../events/Event";
 import {Observable, ReplaySubject, Disposable, helpers, HistoricalScheduler, CompositeDisposable} from "rx";
-import ReservedEvents from "../streams/ReservedEvents";
+import ReservedEvents from "../events/ReservedEvents";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../util/IDateRetriever";
-import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
-import IReadModelFactory from "../streams/IReadModelFactory";
-import {IStreamFactory} from "../streams/IStreamFactory";
 import {IProjection} from "./IProjection";
 import Dictionary from "../util/Dictionary";
+import {IStreamFactory} from "../events/IStreamFactory";
 
 export interface IProjectionStreamGenerator {
     generate(projection: IProjection<any>, snapshot: Snapshot<any>, completions: Observable<any>): Observable<Event>;
@@ -20,7 +18,6 @@ export interface IProjectionStreamGenerator {
 export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
 
     constructor(@inject("IStreamFactory") private streamFactory: IStreamFactory,
-                @inject("IReadModelFactory") private readModelFactory: IReadModelFactory,
                 @inject("ITickSchedulerHolder") private tickSchedulerHolder: Dictionary<ITickScheduler>,
                 @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
 
@@ -29,40 +26,37 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
     generate(projection: IProjection<any>, snapshot: Snapshot<any>, completions: Observable<any>) {
         return this.combineStreams(
             this.streamFactory.from(snapshot ? snapshot.lastEvent : null, completions, projection.definition),
-            this.readModelFactory.from(null).filter(event => event.type !== projection.name),
             this.tickSchedulerHolder[projection.name].from(null),
             this.dateRetriever
-        )
+        );
     }
 
-    private combineStreams(events: Observable<Event>, readModels: Observable<Event>, ticks: Observable<Event>, dateRetriever: IDateRetriever) {
+    private combineStreams(events: Observable<Event>, ticks: Observable<Event>, dateRetriever: IDateRetriever) {
         let realtime = false;
         let scheduler = new HistoricalScheduler(0, helpers.defaultSubComparer);
         let combined = new ReplaySubject<Event>();
         let subscriptions = new CompositeDisposable();
 
-        subscriptions.add(events
-            .merge(readModels)
-            .subscribe(event => {
-                if (event.type === ReservedEvents.REALTIME) {
-                    if (!realtime)
-                        scheduler.advanceTo(Number.MAX_VALUE); // Flush events buffer since there are no more events
-                    realtime = true;
-                }
-                if (realtime || !event.timestamp) {
+        subscriptions.add(events.subscribe(event => {
+            if (event.type === ReservedEvents.REALTIME) {
+                if (!realtime)
+                    scheduler.advanceTo(Number.MAX_VALUE); // Flush events buffer since there are no more events
+                realtime = true;
+            }
+            if (realtime) {
+                combined.onNext(event);
+            } else {
+                scheduler.scheduleFuture(null, event.timestamp, () => {
                     combined.onNext(event);
-                } else {
-                    scheduler.scheduleFuture(null, event.timestamp, () => {
-                        combined.onNext(event);
-                        return Disposable.empty;
-                    });
-                    try {
-                        scheduler.advanceTo(+event.timestamp);
-                    } catch (error) {
-                        combined.onError(error);
-                    }
+                    return Disposable.empty;
+                });
+                try {
+                    scheduler.advanceTo(+event.timestamp);
+                } catch (error) {
+                    combined.onError(error);
                 }
-            }, error => combined.onError(error), () => combined.onCompleted()));
+            }
+        }, error => combined.onError(error), () => combined.onCompleted()));
 
         subscriptions.add(ticks.subscribe((event: Event<Tick>) => {
             if (realtime || event.payload.clock > dateRetriever.getDate()) {
