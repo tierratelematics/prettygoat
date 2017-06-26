@@ -267,10 +267,12 @@ export interface ISocketConfig {
     path: string;
 }
 
-export interface IRedisConfig {
+type RedisEndpoint = {
     host: string;
     port: number;
 }
+
+export type IRedisConfig = RedisEndpoint | RedisEndpoint[]
 
 export interface Dictionary<T> {
     [index: string]: T;
