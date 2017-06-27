@@ -48,6 +48,9 @@ import HealthCheckHandler from "../web/HealthCheckHandler";
 import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
+import * as Redis from "ioredis";
+import {isArray} from "lodash";
+import IRedisConfig from "../configs/IRedisConfig";
 
 class PrettyGoatModule implements IModule {
 
@@ -85,6 +88,10 @@ class PrettyGoatModule implements IModule {
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
         container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
+        container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
+            let config = container.get<IRedisConfig>("IRedisConfig");
+            return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
+        });
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
