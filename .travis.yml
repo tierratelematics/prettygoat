@@ -12,7 +12,9 @@ install:
   - $CXX --version
   - npm install smild@4.4.0 -g
   - npm install
-script: smild test && smild build
+script:
+  - smild test
+  - smild build
 deploy:
   skip_cleanup: true
   provider: npm
