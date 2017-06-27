@@ -1,3 +1,7 @@
+# 3.6.0
+
+Add redis client
+
 # 3.5.1
 
 Use portscanner instead of tcp-port-used
