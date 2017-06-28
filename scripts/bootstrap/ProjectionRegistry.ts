@@ -1,6 +1,6 @@
 import {injectable, inject} from "inversify";
 import {interfaces} from "inversify";
-import IObjectContainer from "../ioc/IObjectContainer";
+import IObjectContainer from "./IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";

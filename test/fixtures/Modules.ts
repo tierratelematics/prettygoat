@@ -1,6 +1,6 @@
 import {Predicates, FeatureToggle} from "bivio";
 import IModule from "../../scripts/bootstrap/IModule";
-import IServiceLocator from "../../scripts/ioc/IServiceLocator";
+import IServiceLocator from "../../scripts/bootstrap/IServiceLocator";
 import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
 
 @FeatureToggle(Predicates.always)

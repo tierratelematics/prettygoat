@@ -1,7 +1,7 @@
 import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
-import IServiceLocator from "../ioc/IServiceLocator";
+import IServiceLocator from "../bootstrap/IServiceLocator";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
 import AuthMiddleware from "./AuthMiddleware";

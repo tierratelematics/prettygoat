@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, Times, It} from "typemoq";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import IObjectContainer from "../scripts/ioc/IObjectContainer";
+import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/util/Dictionary";
