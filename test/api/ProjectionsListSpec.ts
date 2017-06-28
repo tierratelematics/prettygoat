@@ -4,7 +4,7 @@ import {Mock, IMock, Times, It} from "typemoq";
 import {ProjectionsListHandler} from "../../scripts/api/ProjectionsListHandler";
 import {IRequest, IResponse} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
-import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
+import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
 
 describe("Given a ProjectionsListHandler", () => {
     let request: IRequest,
@@ -17,12 +17,9 @@ describe("Given a ProjectionsListHandler", () => {
         request = new MockRequest();
         response = Mock.ofType<IResponse>();
         subject = new ProjectionsListHandler(registry.object);
-        registry.setup(r => r.getAreas()).returns(() => [
-            {
-                area: "Admin", entries: [
-                {name: "Test", definition: {}, publish: {}},
-                {name: "Test2", definition: {}, publish: {}}]
-            }
+        registry.setup(r => r.projections()).returns(() => [
+            ["Admin", {name: "Test", definition: {}, publish: {}}],
+            ["Admin", {name: "Test2", definition: {}, publish: {}}]
         ]);
     });
 

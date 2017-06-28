@@ -5,12 +5,10 @@ import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
-import * as _ from "lodash";
-import SplitProjectionRunner from "../projections/SplitProjectionRunner";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import PushContext from "../push/PushContext";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 @injectable()
 abstract class BaseProjectionHandler implements IRequestHandler {
@@ -58,14 +56,14 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
     handle(request: IRequest, response: IResponse) {
         try {
             let projectionName = request.params.projectionName,
-                entry = this.registry.getEntry(projectionName),
+                entry = this.registry.projectionFor(projectionName),
                 runner = this.holders[projectionName];
 
             if (runner.stats.running)
                 runner.stop();
 
             this.snapshotRepository.deleteSnapshot(projectionName).subscribe(() => {
-                this.projectionEngine.run(entry.data.projection, new PushContext(entry.area, entry.data.exposedName));
+                this.projectionEngine.run(entry[1], new PushContext(entry[0], entry[1].name));
                 response.status(204);
                 response.send();
             }, () => this.writeError(response));
@@ -92,21 +90,16 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
         try {
             let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
-            let data: any = {
+            response.send({
                 name: request.params.projectionName,
                 size: size,
                 humanizedSize: humanize.filesize(size),
                 events: runner.stats.events,
-                readModels: runner.stats.readModels,
                 running: runner.stats.running
-            };
-            if (runner instanceof SplitProjectionRunner) {
-                data.splits = _.keys(runner.state).length;
-            }
-            response.send(data);
+            });
         } catch (e) {
             response.status(404);
-            response.send({error: "Projection not found or already in this state"});
+            response.send({error: "Projection not found"});
         }
     }
 }

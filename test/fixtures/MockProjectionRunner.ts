@@ -1,16 +1,15 @@
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
-import {Subject, IObserver} from "rx";
-import {Event} from "../../scripts/streams/Event";
+import {Subject} from "rx";
+import {Event} from "../../scripts/events/Event";
 import ProjectionStats from "../../scripts/projections/ProjectionStats";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../../scripts/util/Dictionary";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
-    state:T;
+    state: T;
     stats = new ProjectionStats();
-    private subject:Subject<Event>;
+    private subject: Subject<Event>;
 
-    constructor(data?:Subject<Event>) {
+    constructor(data?: Subject<Event>) {
         this.subject = data;
     }
 
@@ -18,20 +17,20 @@ class MockProjectionRunner<T> implements IProjectionRunner<T> {
         return this.subject;
     }
 
-    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
+    run(snapshot?: Snapshot<T>): void {
 
     }
 
-    stop():void {
+    stop(): void {
     }
 
-    pause():void {
+    pause(): void {
     }
 
-    resume():void {
+    resume(): void {
     }
 
-    dispose():void {
+    dispose(): void {
 
     }
 
