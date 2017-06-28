@@ -9,6 +9,7 @@ import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
 import AuthorizationHandler from "./AuthorizationHandler";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
 import {ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler} from "./ProjectionsHandlers";
+import {ProjectionsListHandler} from "./ProjectionsListHandler";
 
 class APIModule implements IModule {
 
@@ -21,6 +22,7 @@ class APIModule implements IModule {
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotDeleteHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(AuthorizationHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStatsHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionsListHandler).inSingletonScope();
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
