@@ -1,6 +1,4 @@
-import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
-import {IProjection} from "../../../scripts/projections/IProjection";
-import Projection from "../../../scripts/registry/ProjectionDecorator";
+import {IProjection, IProjectionDefinition} from "../../../scripts/projections/IProjection";
 import {injectable} from "inversify";
 
 @injectable()

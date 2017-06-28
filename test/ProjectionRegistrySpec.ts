@@ -1,11 +1,8 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, Times, It} from "typemoq";
-import IProjectionRegistry from "../scripts/registry/IProjectionRegistry";
-import ProjectionRegistry from "../scripts/registry/ProjectionRegistry";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import IObjectContainer from "../scripts/ioc/IObjectContainer";
-import IProjectionDefinition from "../scripts/registry/IProjectionDefinition";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import Dictionary from "../scripts/util/Dictionary";
@@ -13,6 +10,8 @@ import MockNotificationProjection from "./fixtures/definitions/MockNotificationP
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
 import MockPublishPointDefinition from "./fixtures/definitions/MockPublishPointDefinition";
+import {IProjectionDefinition} from "../scripts/projections/IProjection";
+import {IProjectionRegistry, ProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -31,31 +30,29 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     context("when they are registered under a specific area", () => {
 
         it("should register the projection handler with the right contexts", () => {
-            let key = "prettygoat:definitions:Admin:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
 
             subject.add(MockProjectionDefinition).forArea("Admin");
-            let areas = subject.getAreas();
+            let areas = subject.projections();
 
-            expect(areas[0].area).to.be("Admin");
+            expect(areas[0][0]).to.be("Admin");
         });
 
         it("should pass a tick scheduler to the definition", () => {
             let projectionDefinition = setUpTickScheduler();
+
             projectionDefinition.verify(p => p.define(It.isValue(tickScheduler)), Times.once());
         });
 
         it("should cache the tick scheduler passed to the definition", () => {
             setUpTickScheduler();
+
             expect(holder["test"]).to.be(tickScheduler);
         });
 
         function setUpTickScheduler(): IMock<IProjectionDefinition<number>> {
-            let key = "prettygoat:definitions:Admin:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
             let projectionDefinition = Mock.ofType<IProjectionDefinition<number>>();
-            objectContainer.setup(o => o.get(key)).returns(a => projectionDefinition.object);
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => projectionDefinition.object);
             projectionDefinition.setup(p => p.define(It.isValue(tickScheduler))).returns(() => {
                 return {name: "Mock", definition: {}, publish: {}};
             });
@@ -66,9 +63,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection with that name already exists", () => {
         beforeEach(() => {
-            let key = "prettygoat:definitions:Admin:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
         });
         it("should throw an error", () => {
             expect(() => {
@@ -79,12 +74,8 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection with the same publish points has been registered", () => {
         beforeEach(() => {
-            let key = "prettygoat:definitions:Admin:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
-            key = "prettygoat:definitions:Admin:Publish";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockPublishPointDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockPublishPointDefinition)).returns(a => new MockPublishPointDefinition());
         });
         it("should throw an error", () => {
             expect(() => {
@@ -94,12 +85,9 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     });
 
     context("when a projection has a notification field", () => {
-
         context("and not all the events of the definition are present", () => {
             beforeEach(() => {
-                let key = "prettygoat:definitions:Admin:Bad";
-                objectContainer.setup(o => o.contains(key)).returns(a => true);
-                objectContainer.setup(o => o.get(key)).returns(a => new BadNotificationProjection());
+                objectContainer.setup(o => o.resolve(BadNotificationProjection)).returns(a => new BadNotificationProjection());
             });
             it("should throw an error", () => {
                 expect(() => {
@@ -110,9 +98,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and all the events of the definition are present", () => {
             beforeEach(() => {
-                let key = "prettygoat:definitions:Admin:Mock";
-                objectContainer.setup(o => o.contains(key)).returns(a => true);
-                objectContainer.setup(o => o.get(key)).returns(a => new MockNotificationProjection());
+                objectContainer.setup(o => o.resolve(MockNotificationProjection)).returns(a => new MockNotificationProjection());
             });
             it("should not raise an error", () => {
                 expect(() => {
@@ -124,52 +110,46 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when the projection corresponding to the index page has to be registered", () => {
         beforeEach(() => {
-            let key = "prettygoat:definitions:Index:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
         });
         it("should be registered with a default area name", () => {
             subject.index(MockProjectionDefinition);
-            let areas = subject.getAreas();
+            let areas = subject.projections();
 
-            expect(areas[0].area).to.be("Index");
+            expect(areas[0][0]).to.be("Index");
         });
     });
 
     context("when the projection corresponding to the master page has to be registered", () => {
         beforeEach(() => {
-            let key = "prettygoat:definitions:Master:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
         });
         it("should be registered with a default area name", () => {
             subject.master(MockProjectionDefinition);
-            let areas = subject.getAreas();
+            let areas = subject.projections();
 
-            expect(areas[0].area).to.be("Master");
+            expect(areas[0][0]).to.be("Master");
         });
     });
 
     context("when a readmodel has to be registered", () => {
         it("should be added to a specific area", () => {
             subject.readmodel(MockReadModel);
-            let areas = subject.getAreas();
+            let areas = subject.projections();
 
-            expect(areas[0].area).to.be("Readmodels");
+            expect(areas[0][0]).to.be("Readmodels");
         });
     });
 
     context("when a projection needs to be retrieved", () => {
         beforeEach(() => {
-            let key = "prettygoat:definitions:Admin:Mock";
-            objectContainer.setup(o => o.contains(key)).returns(a => true);
-            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
             subject.add(MockProjectionDefinition).forArea("Admin");
         });
 
         context("and the projection name is supplied", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("Mock");
+                let entry = subject.projectionFor("mock");
 
                 expect(entry[1].name).to.be("Mock");
             });
@@ -177,7 +157,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and an existing publish point is supplied", () => {
             it("should retrieve it", () => {
-                let entry = subject.getEntry("Test", "Admin");
+                let entry = subject.projectionFor("test", "admin");
 
                 expect(entry[1].name).to.be("Mock");
             });
@@ -185,7 +165,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and a non existing publish point is supplied", () => {
             it("should return a null entry", () => {
-                let entry = subject.getEntry("Inexistent", "Admin");
+                let entry = subject.projectionFor("Inexistent", "Admin");
 
                 expect(entry).not.to.be.ok();
             });
@@ -193,7 +173,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and a non existing area is supplied", () => {
             it("should return no data", () => {
-                let entry = subject.getEntry("Test", "AdminBad");
+                let entry = subject.projectionFor("Test", "AdminBad");
 
                 expect(entry).not.to.be.ok();
             });

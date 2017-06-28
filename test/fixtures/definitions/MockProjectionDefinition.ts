@@ -1,5 +1,4 @@
-import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
-import {IProjection} from "../../../scripts/projections/IProjection";
+import {IProjection, IProjectionDefinition} from "../../../scripts/projections/IProjection";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
 import {injectable} from "inversify";
 

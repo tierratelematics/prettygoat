@@ -6,6 +6,7 @@
     "@types/lolex": "~1.5.30",
     "@types/mocha": "~2.2.33",
     "expect.js": "~0.3.1",
+    "hammock": "~2.0.1",
     "lolex": "~1.5.2",
     "typemoq": "~1.2.1"
   },
@@ -25,9 +26,8 @@
     "body": "~5.1.0",
     "cors": "~2.7.1",
     "express": "~4.15.2",
-    "hammock": "~2.0.1",
     "humanize": "0.0.9",
-    "inversify": "~3.1.0",
+    "inversify": "~4.1.1",
     "inversify-inject-decorators": "~3.0.1",
     "ioredis": "~3.1.1",
     "lodash": "~4.13.1",

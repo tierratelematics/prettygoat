@@ -2,9 +2,10 @@ import {ValueOrPromise} from "../util/TypesUtil";
 import Dictionary from "../util/Dictionary";
 import {IFilterStrategy} from "../publish/IFilterStrategy";
 import {IReadModel} from "../readmodels/IReadModel";
+import ITickScheduler from "../ticks/ITickScheduler";
 
-export interface IProjectionDefinition<T> {
-    define(): IProjection<T>;
+export interface IProjectionDefinition<T = any> {
+    define(tickScheduler?: ITickScheduler): IProjection<T>;
 }
 
 export interface IProjection<T> extends IReadModel<T> {
