@@ -19,7 +19,9 @@ export type PublishPoint<T> = {
 }
 
 export interface INotification<T extends Object> {
-    $default?: (s: T, payload: Object) => ValueOrPromise<string[]>;
-    [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
+    $partition?: (parameters: any) => ValueOrPromise<NotificationKey>;
+    $default?: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
+    [name: string]: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
 }
 
+export type NotificationKey = string | string[];

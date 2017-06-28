@@ -40,11 +40,11 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         context("and the projection is still fetching historical events", () => {
             it("should schedule the tick after the other events", () => {
                 streamData.onNext({
-                    type: "TickTrigger", payload: null, timestamp: new Date(60), splitKey: null
+                    type: "TickTrigger", payload: null, timestamp: new Date(60)
                 });
                 tickScheduler.schedule(new Date(100));
                 streamData.onNext({
-                    type: "OtherEvent", payload: null, timestamp: new Date(200), splitKey: null
+                    type: "OtherEvent", payload: null, timestamp: new Date(200)
                 });
 
                 expect(notifications[0].type).to.eql("TickTrigger");
@@ -70,7 +70,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             it("should carry it when accessing the event", () => {
                 tickScheduler.schedule(new Date(100), "state");
                 streamData.onNext({
-                    type: "OtherEvent", payload: null, timestamp: new Date(300), splitKey: null
+                    type: "OtherEvent", payload: null, timestamp: new Date(300)
                 });
 
                 expect(notifications[0].payload.state).to.be("state");
@@ -81,10 +81,10 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             it("should be scheduled without the historical scheduler", () => {
                 tickScheduler.schedule(new Date(100));
                 streamData.onNext({
-                    type: "ReadModel", payload: null, timestamp: null, splitKey: null
+                    type: "ReadModel", payload: null, timestamp: null
                 });
                 streamData.onNext({
-                    type: "OtherEvent", payload: null, timestamp: new Date(300), splitKey: null
+                    type: "OtherEvent", payload: null, timestamp: new Date(300)
                 });
 
                 expect(notifications[0].type).to.eql("ReadModel");
@@ -97,7 +97,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             it("should flush the buffer of ticks", () => {
                 tickScheduler.schedule(new Date(100));
                 streamData.onNext({
-                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110), splitKey: null
+                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110)
                 });
 
                 expect(notifications[0].type).to.eql("Tick");
@@ -109,7 +109,7 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         context("and the projection is fetching real time events", () => {
             it("should schedule the tick in the future", (done) => {
                 streamData.onNext({
-                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110), splitKey: null
+                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110)
                 });
                 tickScheduler.schedule(new Date(150));
 
