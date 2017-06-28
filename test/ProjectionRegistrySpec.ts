@@ -12,6 +12,7 @@ import Dictionary from "../scripts/util/Dictionary";
 import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
+import MockPublishPointDefinition from "./fixtures/definitions/MockPublishPointDefinition";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
@@ -72,6 +73,22 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         it("should throw an error", () => {
             expect(() => {
                 subject.add(MockProjectionDefinition).add(MockProjectionDefinition).forArea("Admin");
+            }).to.throwError();
+        });
+    });
+
+    context("when a projection with the same publish points has been registered", () => {
+        beforeEach(() => {
+            let key = "prettygoat:definitions:Admin:Mock";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockProjectionDefinition());
+            key = "prettygoat:definitions:Admin:Publish";
+            objectContainer.setup(o => o.contains(key)).returns(a => true);
+            objectContainer.setup(o => o.get(key)).returns(a => new MockPublishPointDefinition());
+        });
+        it("should throw an error", () => {
+            expect(() => {
+                subject.add(MockProjectionDefinition).add(MockPublishPointDefinition).forArea("Admin");
             }).to.throwError();
         });
     });
@@ -162,7 +179,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
             it("should retrieve it", () => {
                 let entry = subject.getEntry("Test", "Admin");
 
-                expect(entry[1].name).to.be("test");
+                expect(entry[1].name).to.be("Mock");
             });
         });
 
