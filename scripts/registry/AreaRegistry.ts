@@ -1,7 +1,7 @@
-import RegistryEntry from "./RegistryEntry";
+import {IProjection} from "../projections/IProjection";
 
 class AreaRegistry {
-    constructor(public area: string, public entries: RegistryEntry<any>[]) {
+    constructor(public area: string, public entries: IProjection<any>[]) {
     }
 }
 
