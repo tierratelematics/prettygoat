@@ -1,34 +1,27 @@
 import "reflect-metadata";
 import ProjectionRunner from "../scripts/projections/ProjectionRunner";
-import {SpecialNames} from "../scripts/matcher/SpecialNames";
-import {IMatcher} from "../scripts/matcher/IMatcher";
 import {Observable, Subject, IDisposable} from "rx";
 import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import * as Rx from "rx";
-import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import {Event} from "../scripts/streams/Event";
+import {Event} from "../scripts/events/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import ReservedEvents from "../scripts/streams/ReservedEvents";
+import ReservedEvents from "../scripts/events/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import Identity from "../scripts/util/Identity";
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
-import {RunnerNotification} from "../scripts/projections/IProjectionRunner";
+import {IMatcher} from "../scripts/projections/Matcher";
 
 describe("Given a ProjectionRunner", () => {
     let streamGenerator: IMock<IProjectionStreamGenerator>;
     let subject: ProjectionRunner<number>;
     let matcher: IMock<IMatcher>;
-    let notificationMatcher: IMock<IMatcher>;
     let notifications: number[];
-    let notificationKeys: string[][];
     let timestamps: Date[];
     let stopped: boolean;
     let failed: boolean;
     let subscription: IDisposable;
-    let readModelFactory: IMock<IReadModelFactory>;
     let projection: IProjection<number>;
     let clock: lolex.Clock;
 
@@ -36,21 +29,16 @@ describe("Given a ProjectionRunner", () => {
         clock = lolex.install();
         projection = new MockProjectionDefinition().define();
         notifications = [];
-        notificationKeys = [];
         timestamps = [];
         stopped = false;
         failed = false;
         streamGenerator = Mock.ofType<IProjectionStreamGenerator>();
         matcher = Mock.ofType<IMatcher>();
-        notificationMatcher = Mock.ofType<IMatcher>();
-        readModelFactory = Mock.ofType<IReadModelFactory>();
-        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, notificationMatcher.object, readModelFactory.object);
-        subscription = subject.notifications().subscribe((notification: RunnerNotification<any>) => {
-            notifications.push(notification[0].payload);
-            notificationKeys.push(notification[1]);
-            timestamps.push(notification[0].timestamp);
+        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object);
+        subscription = subject.notifications().subscribe(event => {
+            notifications.push(event.payload);
+            timestamps.push(event.timestamp);
         }, e => failed = true, () => stopped = true);
-        notificationMatcher.setup(m => m.match(It.isAny())).returns(() => Identity);
     });
 
     afterEach(() => {
@@ -67,7 +55,7 @@ describe("Given a ProjectionRunner", () => {
     context("when initializing a projection", () => {
         beforeEach(() => {
             streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.empty<Event>());
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
         });
 
         context("if a snapshot is present", () => {
@@ -89,7 +77,7 @@ describe("Given a ProjectionRunner", () => {
                 subject.run();
             });
             it("should create an initial state based on the projection definition", () => {
-                matcher.verify(m => m.match(SpecialNames.Init), Times.once());
+                matcher.verify(m => m.match("$init"), Times.once());
             });
 
             it("should consider the initial state as the projection state", () => {
@@ -106,7 +94,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
         });
 
         context("and no error occurs", () => {
@@ -144,16 +132,6 @@ describe("Given a ProjectionRunner", () => {
                 it("should update the events processed counter", () => {
                     expect(subject.stats.events).to.be(5);
                 });
-
-                it("should publish on the event stream the new aggregate state", () => {
-                    clock.tick(100);
-                    readModelFactory.verify(a => a.publish(It.isValue({
-                        type: "test",
-                        payload: 42 + 1 + 2 + 3 + 4 + 5,
-                        timestamp: null,
-                        splitKey: null
-                    })), Times.atLeastOnce());
-                });
             });
 
             context("and an async event handler is used", () => {
@@ -166,32 +144,6 @@ describe("Given a ProjectionRunner", () => {
                     expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                 });
             });
-
-            context("and a notification field is present", () => {
-                beforeEach(async () => {
-                    notificationMatcher.reset();
-                    matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
-                    notificationMatcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(e));
-                    subject.run();
-                    await completeStream();
-                });
-                it("should return the correct notification keys", () => {
-                    expect(notificationKeys).to.eql([null, 1, 2, 3, 4, 5]);
-                });
-            });
-
-            context("and a notification field is not present", () => {
-                beforeEach(async () => {
-                    notificationMatcher.reset();
-                    matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => Promise.resolve(s + e));
-                    notificationMatcher.setup(m => m.match("increment")).returns(() => Identity);
-                    subject.run();
-                    await completeStream();
-                });
-                it("should not return notification keys", () => {
-                    expect(notificationKeys).to.eql([null, null, null, null, null, null]);
-                });
-            });
         });
 
         context("and no match is found for this event", () => {
@@ -200,11 +152,11 @@ describe("Given a ProjectionRunner", () => {
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
                 }));
-                matcher.setup(m => m.match("increment1")).returns(streamId => Identity);
+                matcher.setup(m => m.match("increment1")).returns(streamId => null);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
                 matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
-                matcher.setup(m => m.match("increment4")).returns(streamId => Identity);
-                matcher.setup(m => m.match("increment5")).returns(streamId => Identity);
+                matcher.setup(m => m.match("increment4")).returns(streamId => null);
+                matcher.setup(m => m.match("increment5")).returns(streamId => null);
                 subject.run();
                 await completeStream();
             });
@@ -237,7 +189,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when receiving a readmodel", () => {
         beforeEach(() => {
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
             streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
                 type: "test2", payload: 1, splitKey: null, timestamp: null
             }));
@@ -252,9 +204,9 @@ describe("Given a ProjectionRunner", () => {
     context("when stopping a projection", () => {
         let streamSubject = new Subject<any>();
         beforeEach(async () => {
-            matcher.setup(m => m.match(SpecialNames.Init)).returns(streamId => () => 42);
+            matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => Identity);
+            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => null);
             streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();
