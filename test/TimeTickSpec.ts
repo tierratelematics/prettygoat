@@ -1,18 +1,16 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import {Mock, IMock, Times, It} from "typemoq";
-import {Observable, Subject} from "rx";
+import {Mock, IMock, It} from "typemoq";
+import {Subject} from "rx";
 import {IProjection} from "../scripts/projections/IProjection";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
-import {Event} from "../scripts/streams/Event";
-import Tick from "../scripts/ticks/Tick";
-import ReservedEvents from "../scripts/streams/ReservedEvents";
+import {Event} from "../scripts/events/Event";
+import ReservedEvents from "../scripts/events/ReservedEvents";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
-import IReadModelFactory from "../scripts/streams/IReadModelFactory";
-import {IStreamFactory} from "../scripts/streams/IStreamFactory";
 import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
+import {IStreamFactory} from "../scripts/events/IStreamFactory";
 
 describe("TimeTick, given a tick scheduler and a projection", () => {
 
@@ -22,7 +20,6 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
     let notifications: Event[];
     let dateRetriever: MockDateRetriever;
     let stream: IMock<IStreamFactory>;
-    let readModelFactory: IMock<IReadModelFactory>;
     let subject: IProjectionStreamGenerator;
 
     beforeEach(() => {
@@ -32,11 +29,9 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
         projection = new MockProjectionDefinition().define();
         streamData = new Subject<Event>();
         stream = Mock.ofType<IStreamFactory>();
-        readModelFactory = Mock.ofType<IReadModelFactory>();
         stream.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(() => streamData);
-        readModelFactory.setup(r => r.from(null)).returns(() => Observable.empty<Event>());
-        subject = new ProjectionStreamGenerator(stream.object, readModelFactory.object, {
-            "test": tickScheduler
+        subject = new ProjectionStreamGenerator(stream.object, {
+            "Mock": tickScheduler
         }, dateRetriever);
         subject.generate(projection, null, null).subscribe(event => notifications.push(event));
     });
@@ -124,17 +119,6 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
                     expect(notifications[1].payload.clock).to.eql(new Date(150));
                     done();
                 }, 200);
-            });
-        });
-
-        context("and it's for a split projection", () => {
-            it("should carry the split key info", () => {
-                tickScheduler.schedule(new Date(100), null, "20");
-                streamData.onNext({
-                    type: "OtherEvent", payload: null, timestamp: new Date(300), splitKey: null
-                });
-
-                expect(notifications[0].splitKey).to.be("20");
             });
         });
     });
