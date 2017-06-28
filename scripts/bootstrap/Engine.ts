@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import {Container} from "inversify";
 import IModule from "./IModule";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
@@ -20,6 +19,7 @@ import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
 import getDecorators from "inversify-inject-decorators";
+import {IProjectionRegistry} from "./ProjectionRegistry";
 
 let container = new Container();
 export let {lazyInject} = getDecorators(container);
@@ -97,11 +97,12 @@ export class Engine {
             client.on("subscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters),
-                        entry = registry.getEntry(context.projectionName, context.area).data,
-                        splitKey = entry.parametersKey ? entry.parametersKey(context.parameters) : null;
+                        entry = registry.projectionFor(context.projectionName, context.area),
+                        partition = entry[1].publish[context.projectionName].notify.$partition,
+                        notificationKey = partition ? <string>partition(context.parameters) : null;
                     clientRegistry.add(wrappedClient, context);
-                    pushNotifier.notify(context, splitKey, client.id);
-                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, splitKey)} with id ${client.id}`);
+                    pushNotifier.notify(context, notificationKey, client.id);
+                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }

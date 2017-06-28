@@ -5,7 +5,7 @@ import {Engine} from "../scripts/bootstrap/Engine";
 
 describe("Engine, given some modules", () => {
 
-    let engine:Engine;
+    let engine: Engine;
 
     beforeEach(() => {
         engine = new Engine();

@@ -17,32 +17,32 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...defaultPath, ...notificationConfig};
     }
 
-    notify(context: PushContext, splitKey?: string, clientId?: string): void {
+    notify(context: PushContext, notificationKey?: string, clientId?: string): void {
         if (clientId) {
-            this.emitToSingleClient(clientId, context, splitKey);
+            this.emitToSingleClient(clientId, context, notificationKey);
         } else {
             this.eventEmitter.broadcastTo(
-                ContextOperations.getRoom(context, splitKey),
+                ContextOperations.getRoom(context, notificationKey),
                 ContextOperations.getChannel(context),
-                this.buildNotification(context, splitKey)
+                this.buildNotification(context, notificationKey)
             );
         }
     }
 
-    private buildNotification(context: PushContext, splitKey: string): PushNotification {
+    private buildNotification(context: PushContext, notificationKey: string): PushNotification {
         let url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
             url += `:${this.config.port}`;
         url += `${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase();
-        if (splitKey)
-            url += `/${splitKey}`;
+        if (notificationKey)
+            url += `/${notificationKey}`;
         return {
             url: url
         };
     }
 
-    private emitToSingleClient(clientId: string, context: PushContext, splitKey: string = ""): void {
-        let notification = this.buildNotification(context, splitKey);
+    private emitToSingleClient(clientId: string, context: PushContext, notificationKey = ""): void {
+        let notification = this.buildNotification(context, notificationKey);
         this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 }

@@ -31,7 +31,7 @@ describe("Given a projection stream generator", () => {
         let tickScheduler = Mock.ofType<ITickScheduler>();
         tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
         subject = new ProjectionStreamGenerator(stream.object, {
-            "test": tickScheduler.object
+            "Mock": tickScheduler.object
         }, new MockDateRetriever(new Date(100000)));
     });
 

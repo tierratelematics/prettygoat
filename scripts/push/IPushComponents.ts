@@ -1,7 +1,7 @@
 import PushContext from "./PushContext";
 
 export interface IPushNotifier {
-    notify(context: PushContext, splitKey?: string, clientId?: string): void;
+    notify(context: PushContext, notificationKey?: string, clientId?: string): void;
 }
 
 export interface ISocketClient {

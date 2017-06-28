@@ -1,14 +1,10 @@
 import IModule from "./IModule";
 import {interfaces} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../ioc/IServiceLocator";
-import ProjectionRegistry from "./ProjectionRegistry";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
 import IObjectContainer from "../ioc/IObjectContainer";
 import ObjectContainer from "../ioc/ObjectContainer";
-import ReadModelFactory from "../streams/ReadModelFactory";
-import IReadModelFactory from "../streams/IReadModelFactory";
 import IDateRetriever from "../util/IDateRetriever";
 import DateRetriever from "../util/DateRetriever";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
@@ -47,6 +43,7 @@ import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import * as Redis from "ioredis";
 import {isArray} from "lodash";
 import IRedisConfig from "../configs/IRedisConfig";
+import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 
 class PrettyGoatModule implements IModule {
 
@@ -60,7 +57,6 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         container.bind<ISocketFactory>("ISocketFactory").to(SocketFactory).inSingletonScope();
-        container.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
