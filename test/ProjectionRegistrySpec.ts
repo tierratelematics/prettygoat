@@ -47,7 +47,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         it("should cache the tick scheduler passed to the definition", () => {
             setUpTickScheduler();
 
-            expect(holder["test"]).to.be(tickScheduler);
+            expect(holder["Mock"]).to.be(tickScheduler);
         });
 
         function setUpTickScheduler(): IMock<IProjectionDefinition<number>> {
@@ -133,11 +133,14 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     });
 
     context("when a readmodel has to be registered", () => {
+        beforeEach(() => {
+            objectContainer.setup(o => o.resolve(MockReadModel)).returns(a => new MockReadModel());
+        });
         it("should be added to a specific area", () => {
             subject.readmodel(MockReadModel);
             let areas = subject.projections();
 
-            expect(areas[0][0]).to.be("Readmodels");
+            expect(areas[0][0]).to.be("Readmodel");
         });
     });
 

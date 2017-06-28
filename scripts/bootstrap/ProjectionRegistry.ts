@@ -6,6 +6,7 @@ import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection, IProjectionDefinition} from "../projections/IProjection";
 import {IReadModelDefinition} from "../readmodels/IReadModel";
+import {Matcher} from "../projections/Matcher";
 
 export type RegistryLookup<T = any> = [string, IProjection<T>];
 
@@ -19,10 +20,18 @@ export interface IProjectionRegistry {
     projectionFor<T>(name: string, area?: string): RegistryLookup<T>;
 }
 
+export class SpecialAreas {
+    static Master = "Master";
+    static Index = "Index";
+    static Readmodel = "Readmodel";
+}
+
 @injectable()
 export class ProjectionRegistry implements IProjectionRegistry {
 
     private registry: RegistryLookup[] = [];
+    private nameLookup: Dictionary<RegistryLookup> = {};
+    private areaLookup: Dictionary<RegistryLookup> = {};
     private unregisteredProjections: interfaces.Newable<IProjectionDefinition>[] = [];
 
     constructor(@inject("IObjectContainer") private container: IObjectContainer,
@@ -32,15 +41,16 @@ export class ProjectionRegistry implements IProjectionRegistry {
     }
 
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>) {
-        return this.add(constructor).forArea("Master");
+        this.add(constructor).forArea(SpecialAreas.Master);
     }
 
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>) {
-        return this.add(constructor).forArea("Index");
+        this.add(constructor).forArea(SpecialAreas.Index);
     }
 
     readmodel<T>(constructor: interfaces.Newable<IReadModelDefinition<T>>) {
-        return undefined;
+        this.registry.push([SpecialAreas.Readmodel, this.container.resolve(constructor).define()]);
+        this.buildLookups();
     }
 
     add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): IProjectionRegistry {
@@ -49,40 +59,58 @@ export class ProjectionRegistry implements IProjectionRegistry {
     }
 
     forArea(area: string) {
-        let entries = _.map<interfaces.Newable<IProjectionDefinition>, RegistryLookup>(this.unregisteredProjections, definition => {
+        _.forEach(this.unregisteredProjections, definition => {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
                 projection = this.container.resolve(definition).define(tickScheduler);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
-            if (this.isNotificationFieldValid(projection))
+            if (!this.isNotificationFieldValid(projection))
                 throw new Error(`Notification field is incomplete on ${projection.name}`);
-            return [area, projection];
+            if (this.hasDuplicatedName(projection))
+                throw new Error(`Duplicated name on ${projection.name}`);
+            if (this.hasDuplicatedPublishPoints(projection, area))
+                throw new Error(`Duplicated publish points on ${projection.name}`);
+            this.registry.push([area, projection]);
         });
-        this.registry = _.concat<RegistryLookup>(this.registry, entries);
         this.unregisteredProjections = [];
-        if (this.hasDuplicatedEntries()) throw new Error("Cannot startup due to some projections with the same name");
+        this.buildLookups();
     }
 
-    private isNotificationFieldValid(projection: IProjection<any>): boolean {
+    private buildLookups() {
+        this.nameLookup = _.zipObject<Dictionary<RegistryLookup>>(_.map(this.registry, entry => entry[1].name.toLowerCase()), this.registry);
+        this.areaLookup = _.reduce(this.registry, (result, entry) => {
+            let areaKeys = _(entry[1].publish).keys().map(key => (entry[0] + ":" + key).toLowerCase()).valueOf();
+            let mappings = _.zipObject<Dictionary<RegistryLookup>>(areaKeys, _.map(areaKeys, key => entry));
+            return _.assign(result, mappings);
+        }, {});
+    }
+
+    private isNotificationFieldValid(projection: IProjection): boolean {
+        let publishPoints = _.keys(projection.publish);
+        if (!publishPoints.length) return true;
         let events = _(projection.definition).keys().filter(key => key !== "$init").valueOf();
-        return false;
+        return _.every(publishPoints, point => {
+            let notify = projection.publish[point].notify;
+            if (!notify) return true;
+            let matcher = new Matcher(notify);
+            return _.every(events, event => !!matcher.match(event));
+        });
     }
 
-    private hasDuplicatedEntries(): boolean {
-        // let entries = _(this.getAreas())
-        //     .map((areaRegistry: AreaRegistry) => areaRegistry.entries)
-        //     .concat()
-        //     .flatten()
-        //     .groupBy((entry: RegistryEntry<any>) => entry.projection.name)
-        //     .valueOf();
-        // return some(entries, (entry: RegistryEntry<any>[]) => entry.length > 1);
-        return false;
+    private hasDuplicatedName(projection: IProjection): boolean {
+        return !!_.find(this.registry, entry => entry[1].name === projection.name);
+    }
+
+    private hasDuplicatedPublishPoints(projection: IProjection, area: string): boolean {
+        let publishPoints: string[] = _(this.registry).filter(entry => entry[0] === area).map(entry => _.keys(entry[1].publish)).flatten<string>().valueOf();
+        return !!_.intersection<string>(publishPoints, _.keys(projection.publish)).length;
     }
 
     projections(): RegistryLookup<any>[] {
         return this.registry;
     }
 
-    projectionFor<T>(id: string, area: string): RegistryLookup<T> {
-        return null;
+    projectionFor<T>(name: string, area?: string): RegistryLookup<T> {
+        if (!area) return this.nameLookup[name.toLowerCase()];
+        else return this.areaLookup[(area + ":" + name).toLowerCase()];
     }
 }
