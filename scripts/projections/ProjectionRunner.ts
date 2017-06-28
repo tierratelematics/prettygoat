@@ -59,7 +59,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                     completions.onNext(data[0].payload.event);
             })
             .filter(data => data[1])
-            .do(data => this.updateStats(data[0]))
+            .do(data => this.stats.events++)
             .let(untypedFlatMapSeries(data => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
@@ -77,13 +77,6 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.onError(error);
                 this.stop();
             }, () => this.subject.onCompleted());
-    }
-
-    private updateStats(event: Event) {
-        if (event.timestamp)
-            this.stats.events++;
-        else
-            this.stats.readModels++;
     }
 
     stop(): void {

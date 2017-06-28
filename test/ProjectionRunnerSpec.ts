@@ -8,7 +8,6 @@ import {Event} from "../scripts/events/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import ReservedEvents from "../scripts/events/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
-import * as lolex from "lolex";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {IMatcher} from "../scripts/projections/Matcher";
@@ -23,10 +22,8 @@ describe("Given a ProjectionRunner", () => {
     let failed: boolean;
     let subscription: IDisposable;
     let projection: IProjection<number>;
-    let clock: lolex.Clock;
 
     beforeEach(() => {
-        clock = lolex.install();
         projection = new MockProjectionDefinition().define();
         notifications = [];
         timestamps = [];
@@ -43,7 +40,6 @@ describe("Given a ProjectionRunner", () => {
 
     afterEach(() => {
         subscription.dispose();
-        clock.uninstall();
     });
 
     function completeStream() {
@@ -172,7 +168,6 @@ describe("Given a ProjectionRunner", () => {
 
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
-                clock.uninstall();
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
                     throw new Error("Kaboom!");
                 });
@@ -184,20 +179,6 @@ describe("Given a ProjectionRunner", () => {
                 subject.run();
                 expect(failed).to.be.ok();
             });
-        });
-    });
-
-    context("when receiving a readmodel", () => {
-        beforeEach(() => {
-            matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
-            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
-                type: "test2", payload: 1, splitKey: null, timestamp: null
-            }));
-            matcher.setup(m => m.match("test2")).returns(streamId => (s: number, e: any) => s + e);
-            subject.run();
-        });
-        it("should update the readmodels processed counter", () => {
-            expect(subject.stats.readModels).to.be(1);
         });
     });
 
