@@ -88,6 +88,21 @@ describe("Given a ProjectionRunner", () => {
         });
     });
 
+    context("when the projection has gone realtime", () => {
+        beforeEach(async () => {
+            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
+                type: "__prettygoat_internal_realtime",
+                payload: null,
+                timestamp: null
+            }));
+            subject.run();
+            await completeStream();
+        });
+        it("should set it on stats", () => {
+            expect(subject.stats.realtime).to.be(true);
+        });
+    });
+
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
             matcher.setup(m => m.match("$init")).returns(streamId => () => 42);

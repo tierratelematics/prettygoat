@@ -57,6 +57,8 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                if (data[0].type === ReservedEvents.REALTIME)
+                    this.stats.realtime = true;
             })
             .filter(data => data[1])
             .do(data => {
