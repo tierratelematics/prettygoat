@@ -4,9 +4,9 @@ import IProjectionRegistry from "../registry/IProjectionRegistry";
 import {inject, interfaces} from "inversify";
 import Dictionary from "../util/Dictionary";
 import {IProjectionRunner} from "./IProjectionRunner";
-import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
+import IdentityFilterStrategy from "../filters/IdentityDeliverStrategy";
 import {STATUS_CODES} from "http";
-import {IFilterStrategy} from "../filters/IFilterStrategy";
+import {IFilterStrategy} from "../filters/IDeliverStrategy";
 import {FilterOutputType} from "../filters/FilterComponents";
 import IProjectionDefinition from "../registry/IProjectionDefinition";
 

@@ -1,6 +1,6 @@
 import {ValueOrPromise} from "../util/TypesUtil";
 import Dictionary from "../util/Dictionary";
-import {IFilterStrategy} from "../publish/IFilterStrategy";
+import {IDeliverStrategy} from "./Deliver";
 import {IReadModel} from "../readmodels/IReadModel";
 import ITickScheduler from "../ticks/ITickScheduler";
 
@@ -14,7 +14,7 @@ export interface IProjection<T = any> extends IReadModel<T> {
 
 export type PublishPoint<T> = {
     notify?: INotification<T>;
-    deliver?: IFilterStrategy<T>;
+    deliver?: IDeliverStrategy<T>;
     readmodels?: string[];
 }
 

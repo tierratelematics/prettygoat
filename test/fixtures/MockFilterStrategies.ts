@@ -1,4 +1,4 @@
-import {IFilterStrategy} from "../../scripts/filters/IFilterStrategy";
+import {IFilterStrategy} from "../../scripts/filters/IDeliverStrategy";
 import {IFilterContext, FilterOutputType, FilterResult} from "../../scripts/filters/FilterComponents";
 
 export class ContentFilterStrategy implements IFilterStrategy<any> {

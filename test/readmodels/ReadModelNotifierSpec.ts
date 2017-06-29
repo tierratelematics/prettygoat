@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IReadModelNotifier, ReadModelNotifier} from "../../scripts/readmodels/ReadModelNotifier";
+import SpecialEvents from "../../scripts/events/SpecialEvents";
 
 describe("Given a readmodel notifier", () => {
     let subject: IReadModelNotifier;
@@ -19,11 +20,11 @@ describe("Given a readmodel notifier", () => {
             subject.notifyChanged("readmodel1", new Date(6000));
 
             expect(notifications).to.eql([{
-                type: "ReadModelChanged",
+                type: SpecialEvents.READMODEL_CHANGED,
                 payload: "readmodel1",
                 timestamp: new Date(5000)
             }, {
-                type: "ReadModelChanged",
+                type: SpecialEvents.READMODEL_CHANGED,
                 payload: "readmodel1",
                 timestamp: new Date(6000)
             }]);

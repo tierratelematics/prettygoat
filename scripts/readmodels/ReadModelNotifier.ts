@@ -1,5 +1,6 @@
 import {Event} from "../events/Event";
 import {Observable, Subject} from "rx";
+import SpecialEvents from "../events/SpecialEvents";
 
 export interface IReadModelNotifier {
     changes(name: string): Observable<Event>;
@@ -16,7 +17,7 @@ export class ReadModelNotifier implements IReadModelNotifier {
 
     notifyChanged(name: string, timestamp: Date) {
         this.subject.onNext({
-            type: "ReadModelChanged",
+            type: SpecialEvents.READMODEL_CHANGED,
             payload: name,
             timestamp: timestamp
         });
