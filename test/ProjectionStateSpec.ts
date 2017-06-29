@@ -11,7 +11,7 @@ import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefin
 import {IProjection} from "../scripts/projections/IProjection";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
 import {
-    AsyncContentDeliverStrategy, ContentDeliverStrategy, ForbiddenDeliverStrategy,
+    AsyncContentDeliverStrategy, ContentDeliverStrategy, ForbiddenDeliverStrategy, NotificationDeliverStrategy,
     UnauthorizedDeliverStrategy
 } from "./fixtures/MockDeliverStrategies";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
@@ -44,7 +44,7 @@ describe("Given a ProjectionStateHandler", () => {
             projectionRunner.state = 42;
             request.params = {
                 area: "Admin",
-                projectionName: "Test"
+                publishPoint: "Test"
             };
         });
         context("and a deliver strategy is applied", () => {
@@ -85,7 +85,7 @@ describe("Given a ProjectionStateHandler", () => {
 
             context("when a notification key is passed", () => {
                 beforeEach(() => {
-                    projection.publish["Test"].deliver = new ForbiddenDeliverStrategy();
+                    projection.publish["Test"].deliver = new NotificationDeliverStrategy();
                     request.params.partitionKey = "partition-key";
                 });
                 it("should be vehiculated to the deliver strategy", async () => {
@@ -119,7 +119,7 @@ describe("Given a ProjectionStateHandler", () => {
             projectionRunner.state = 42;
             request.params = {
                 area: SpecialAreas.Readmodel,
-                projectionName: "ReadModel"
+                publishPoint: "ReadModel"
             };
         });
         it("should be kept private", () => {

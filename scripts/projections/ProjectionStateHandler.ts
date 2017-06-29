@@ -1,39 +1,31 @@
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {inject, interfaces} from "inversify";
+import {inject} from "inversify";
 import Dictionary from "../util/Dictionary";
 import {IProjectionRunner} from "./IProjectionRunner";
-import IdentityFilterStrategy from "../filters/IdentityDeliverStrategy";
 import {STATUS_CODES} from "http";
-import {IFilterStrategy} from "../filters/IDeliverStrategy";
-import {FilterOutputType} from "../filters/FilterComponents";
-import IProjectionDefinition from "../registry/IProjectionDefinition";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
+import {IProjection} from "./IProjection";
+import {DeliverAuthorization, IDeliverStrategy, IdentityDeliverStrategy} from "./Deliver";
 
-@Route("GET", "/projections/:area/:projectionName(/:splitKey)")
+@Route("GET", "/projections/:area/:publishPoint(/:partitionKey)")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
-                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
+                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>) {
     }
 
     handle(request: IRequest, response: IResponse): Promise<void> {
-        let projectionName = request.params.projectionName,
+        let publishPoint = request.params.publishPoint,
             area = request.params.area,
-            splitKey = request.params.splitKey,
-            entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        if (!entry || this.isPrivate(entry.construct)) {
+            projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];
+        if (!projection || !(<any>projection).publish) {
             this.sendNotFound(response);
         } else {
-            let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
-                projectionRunner = this.holder[entry.projection.name];
-
-            return this.sendResponse(request, response, projectionRunner.state, filterStrategy);
+            let deliverStrategy = (<IProjection>projection).publish[publishPoint].deliver || new IdentityDeliverStrategy<any>(),
+                projectionRunner = this.holder[projection.name];
+            return this.sendResponse(request, response, projectionRunner.state, deliverStrategy);
         }
-    }
-
-    private isPrivate(construct: interfaces.Newable<IProjectionDefinition<any>>): boolean {
-        return construct ? Reflect.getMetadata("prettygoat:private", construct) : false;
     }
 
     private sendNotFound(response: IResponse) {
@@ -42,19 +34,23 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     private async sendResponse<T>(request: IRequest, response: IResponse, state: T,
-                                  filterStrategy: IFilterStrategy<T>) {
-        let filterContext = {headers: request.headers, params: request.query};
-        let filteredProjection = await filterStrategy.filter(state, filterContext);
-        switch (filteredProjection.type) {
-            case FilterOutputType.CONTENT:
+                                  deliverStrategy: IDeliverStrategy<T>) {
+        let deliverContext = {
+            headers: request.headers,
+            params: request.query,
+            partitionKey: request.params.partitionKey
+        };
+        let deliverResult = await deliverStrategy.deliver(state, deliverContext);
+        switch (deliverResult[1]) {
+            case DeliverAuthorization.CONTENT:
                 response.status(200);
-                response.send(filteredProjection.filteredState);
+                response.send(deliverResult[0]);
                 break;
-            case FilterOutputType.UNAUTHORIZED:
+            case DeliverAuthorization.UNAUTHORIZED:
                 response.status(401);
                 response.send({error: STATUS_CODES[401]});
                 break;
-            case FilterOutputType.FORBIDDEN:
+            case DeliverAuthorization.FORBIDDEN:
                 response.status(403);
                 response.send({error: STATUS_CODES[403]});
                 break;
@@ -64,10 +60,10 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     keyFor(request: IRequest): string {
-        let projectionName = request.params.projectionName,
+        let publishPoint = request.params.publishPoint,
             area = request.params.area;
-        let entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        return !entry ? null : entry.projection.name;
+        let projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];
+        return !projection ? null : projection.name;
     }
 
 }
