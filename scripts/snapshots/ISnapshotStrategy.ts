@@ -1,5 +1,5 @@
-import {Event} from "../streams/Event";
+import {Event} from "../events/Event";
 
 export interface ISnapshotStrategy {
-    needsSnapshot(event:Event): boolean;
+    needsSnapshot(event: Event): boolean;
 }

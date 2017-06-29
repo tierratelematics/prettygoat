@@ -7,7 +7,7 @@ class ContextOperations {
         return `${context.area}:${context.projectionName}`;
     }
 
-    // Group connected clients in notifications groups so I can broadcast to a room when a projection (split or not) changes
+    // Group connected clients in notifications groups so I can broadcast to a room when a projection changes
     static getRoom(context: PushContext, notificationKey?: string): string {
         let channel = `/${context.area}/${context.projectionName}`.toLowerCase();
         if (!isUndefined(notificationKey) && notificationKey !== null)

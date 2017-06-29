@@ -69,8 +69,7 @@ describe("Given a ProjectionEngine", () => {
         dataSubject.onNext([{
             type: "test",
             payload: state,
-            timestamp: timestamp,
-            splitKey: null
+            timestamp: timestamp
         }, splitKeys]);
     }
 
@@ -125,8 +124,7 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: new Date(5000),
-                    splitKey: null
+                    timestamp: new Date(5000)
                 }))).returns(a => true);
                 subject.run();
                 publishReadModel(66, new Date(5000));
@@ -141,14 +139,12 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     payload: 10,
                     type: "test",
-                    timestamp: new Date(1),
-                    splitKey: null
+                    timestamp: new Date(1)
                 }))).returns(a => false);
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     payload: 66,
                     type: "test",
-                    timestamp: null,
-                    splitKey: null
+                    timestamp: null
                 }))).returns(a => true);
                 subject.run();
                 publishReadModel(66, new Date(null));
@@ -164,8 +160,7 @@ describe("Given a ProjectionEngine", () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "test",
                     payload: 66,
-                    timestamp: new Date(5000),
-                    splitKey: null
+                    timestamp: new Date(5000)
                 }))).returns(a => false);
                 subject.run();
                 publishReadModel(66, new Date(5000));

@@ -98,7 +98,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 let date = new Date();
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment", payload: n, timestamp: new Date(+date + n), splitKey: null};
+                    return {type: "increment", payload: n, timestamp: new Date(+date + n)};
                 }));
             });
 
@@ -146,7 +146,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(async () => {
                 let date = new Date();
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment" + n, payload: n, timestamp: new Date(+date + n), splitKey: null};
+                    return {type: "increment" + n, payload: n, timestamp: new Date(+date + n)};
                 }));
                 matcher.setup(m => m.match("increment1")).returns(streamId => null);
                 matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
@@ -172,7 +172,7 @@ describe("Given a ProjectionRunner", () => {
                     throw new Error("Kaboom!");
                 });
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment", payload: n, timestamp: new Date(), splitKey: null};
+                    return {type: "increment", payload: n, timestamp: new Date()};
                 }).observeOn(Rx.Scheduler.immediate));
             });
             it("should notify an error", () => {

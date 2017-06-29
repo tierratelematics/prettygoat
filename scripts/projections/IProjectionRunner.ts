@@ -3,7 +3,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import ProjectionStats from "./ProjectionStats";
 import {Event} from "../events/Event";
 
-export interface IProjectionRunner<T> extends IDisposable {
+export interface IProjectionRunner<T = any> extends IDisposable {
     state: T;
     stats: ProjectionStats;
     run(snapshot?: Snapshot<T>): void;

@@ -1,5 +1,3 @@
-import {Observable} from "rx";
-
 export class Snapshot<T> {
     public static Empty: Snapshot<any> = new Snapshot<any>(undefined, undefined);
 
@@ -8,7 +6,7 @@ export class Snapshot<T> {
 }
 
 export interface ISnapshotRepository {
-    getSnapshot<T>(name: string): Observable<Snapshot<T>>;
-    saveSnapshot<T>(name: string, snapshot: Snapshot<T>): Observable<void>;
-    deleteSnapshot(name: string): Observable<void>;
+    getSnapshot<T>(name: string): Promise<Snapshot<T>>;
+    saveSnapshot<T>(name: string, snapshot: Snapshot<T>): Promise<void>;
+    deleteSnapshot(name: string): Promise<void>;
 }

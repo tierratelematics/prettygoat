@@ -69,8 +69,7 @@ describe("Given a projection stream generator", () => {
             stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
                 type: "CassandraEvent",
                 payload: 1,
-                timestamp: new Date(),
-                splitKey: null
+                timestamp: new Date()
             }));
             subscription = subject.generate(projection, null, null).subscribe(event => notifications.push(event));
         });
