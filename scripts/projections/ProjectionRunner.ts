@@ -8,8 +8,8 @@ import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
-import ReservedEvents from "../events/ReservedEvents";
 import {Event} from "../events/Event";
+import SpecialEvents from "../events/SpecialEvents";
 
 class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
@@ -55,9 +55,9 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
-                if (data[0].type === ReservedEvents.FETCH_EVENTS)
+                if (data[0].type === SpecialEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
-                if (data[0].type === ReservedEvents.REALTIME)
+                if (data[0].type === SpecialEvents.REALTIME)
                     this.stats.realtime = true;
             })
             .filter(data => data[1])

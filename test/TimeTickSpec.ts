@@ -6,7 +6,7 @@ import {IProjection} from "../scripts/projections/IProjection";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
 import {Event} from "../scripts/events/Event";
-import ReservedEvents from "../scripts/events/ReservedEvents";
+import SpecialEvents from "../scripts/events/SpecialEvents";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
@@ -97,23 +97,23 @@ describe("TimeTick, given a tick scheduler and a projection", () => {
             it("should flush the buffer of ticks", () => {
                 tickScheduler.schedule(new Date(100));
                 streamData.onNext({
-                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110)
+                    type: SpecialEvents.REALTIME, payload: null, timestamp: new Date(110)
                 });
 
                 expect(notifications[0].type).to.eql("Tick");
                 expect(notifications[0].payload.clock).to.eql(new Date(100));
-                expect(notifications[1].type).to.eql(ReservedEvents.REALTIME);
+                expect(notifications[1].type).to.eql(SpecialEvents.REALTIME);
             });
         });
 
         context("and the projection is fetching real time events", () => {
             it("should schedule the tick in the future", (done) => {
                 streamData.onNext({
-                    type: ReservedEvents.REALTIME, payload: null, timestamp: new Date(110)
+                    type: SpecialEvents.REALTIME, payload: null, timestamp: new Date(110)
                 });
                 tickScheduler.schedule(new Date(150));
 
-                expect(notifications[0].type).to.eql(ReservedEvents.REALTIME);
+                expect(notifications[0].type).to.eql(SpecialEvents.REALTIME);
                 expect(notifications[1]).not.to.be.ok();
                 setTimeout(() => {
                     expect(notifications[1].payload.clock).to.eql(new Date(150));

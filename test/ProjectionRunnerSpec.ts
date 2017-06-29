@@ -6,11 +6,11 @@ import expect = require("expect.js");
 import * as Rx from "rx";
 import {Event} from "../scripts/events/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
-import ReservedEvents from "../scripts/events/ReservedEvents";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {IMatcher} from "../scripts/projections/Matcher";
+import SpecialEvents from "../scripts/events/SpecialEvents";
 
 describe("Given a ProjectionRunner", () => {
     let streamGenerator: IMock<IProjectionStreamGenerator>;
@@ -91,7 +91,7 @@ describe("Given a ProjectionRunner", () => {
     context("when the projection has gone realtime", () => {
         beforeEach(async () => {
             streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
-                type: "__prettygoat_internal_realtime",
+                type: SpecialEvents.REALTIME,
                 payload: null,
                 timestamp: null
             }));
@@ -206,7 +206,7 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(async () => {
             matcher.setup(m => m.match("$init")).returns(streamId => () => 42);
             matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => s + e);
-            matcher.setup(m => m.match(ReservedEvents.REALTIME)).returns(streamId => null);
+            matcher.setup(m => m.match(SpecialEvents.REALTIME)).returns(streamId => null);
             streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => streamSubject);
 
             subject.run();

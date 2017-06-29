@@ -2,7 +2,7 @@ import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {inject, injectable} from "inversify";
 import {Event} from "../events/Event";
 import {Observable, ReplaySubject, Disposable, helpers, HistoricalScheduler, CompositeDisposable} from "rx";
-import ReservedEvents from "../events/ReservedEvents";
+import SpecialEvents from "../events/SpecialEvents";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../util/IDateRetriever";
 import ITickScheduler from "../ticks/ITickScheduler";
@@ -38,7 +38,7 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
         let subscriptions = new CompositeDisposable();
 
         subscriptions.add(events.subscribe(event => {
-            if (event.type === ReservedEvents.REALTIME) {
+            if (event.type === SpecialEvents.REALTIME) {
                 if (!realtime)
                     scheduler.advanceTo(Number.MAX_VALUE); // Flush events buffer since there are no more events
                 realtime = true;
