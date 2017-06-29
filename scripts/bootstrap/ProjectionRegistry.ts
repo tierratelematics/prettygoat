@@ -5,10 +5,10 @@ import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection, IProjectionDefinition} from "../projections/IProjection";
-import {IReadModelDefinition} from "../readmodels/IReadModel";
+import {IReadModel, IReadModelDefinition} from "../readmodels/IReadModel";
 import {Matcher} from "../projections/Matcher";
 
-export type RegistryLookup<T = any> = [string, IProjection<T>];
+export type RegistryLookup<T = any> = [string, IProjection<T> | IReadModel<T>];
 
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
