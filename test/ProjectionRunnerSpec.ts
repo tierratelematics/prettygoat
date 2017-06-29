@@ -96,7 +96,7 @@ describe("Given a ProjectionRunner", () => {
         context("and no error occurs", () => {
 
             beforeEach(() => {
-                let date = new Date();
+                let date = new Date(5000);
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date(+date + n)};
                 }));
@@ -127,6 +127,10 @@ describe("Given a ProjectionRunner", () => {
 
                 it("should update the events processed counter", () => {
                     expect(subject.stats.events).to.be(5);
+                });
+                
+                it("should set the latest timestamp", () => {
+                    expect(subject.stats.lastEvent).to.eql(new Date(5005));
                 });
             });
 
