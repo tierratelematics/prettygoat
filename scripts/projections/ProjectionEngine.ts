@@ -1,17 +1,15 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
-import AreaRegistry from "../registry/AreaRegistry";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import RegistryEntry from "../registry/RegistryEntry";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
 import IAsyncPublisher from "../util/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -25,9 +23,7 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>) {
         publisher.items()
-            .flatMap(snapshotData => {
-                return this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).map(() => snapshotData);
-            })
+            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
             .subscribe(snapshotData => {
                 let streamId = snapshotData[0],
                     snapshot = snapshotData[1];
@@ -35,46 +31,37 @@ class ProjectionEngine implements IProjectionEngine {
             });
     }
 
-    run(projection?: IProjection<any>, context?: PushContext) {
+    async run(projection?: IProjection<any>, context?: PushContext) {
         if (projection) {
-            this.snapshotRepository.getSnapshot(projection.name).subscribe(snapshot => {
-                this.startProjection(projection, context, snapshot);
-            });
+            let snapshot = await this.snapshotRepository.getSnapshot(projection.name);
+            this.startProjection(projection, context, snapshot);
         } else {
-            this.snapshotRepository
-                .initialize()
-                .flatMap(() => this.snapshotRepository.getSnapshots())
-                .subscribe(snapshots => {
-                    let areas = this.registry.getAreas();
-                    _.forEach<AreaRegistry>(areas, areaRegistry => {
-                        _.forEach<RegistryEntry<any>>(areaRegistry.entries, (entry: RegistryEntry<any>) => {
-                            this.startProjection(entry.projection, new PushContext(areaRegistry.area, entry.exposedName), snapshots[entry.projection.name]);
-                        });
-                    });
-                });
+            let projections = this.registry.projections();
+            _.forEach(projections, async (entry) => {
+                let snapshot = await this.snapshotRepository.getSnapshot(entry[1].name);
+                this.startProjection(entry[1], new PushContext(entry[0], entry[1].name), snapshot);
+            });
         }
     }
 
-    private startProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
+    private startProjection(projection: IProjection<any>, context: PushContext, snapshot: Snapshot<any>) {
         let runner = this.runnerFactory.create(projection);
 
-        let sequence = runner
+        let subscription = runner
             .notifications()
-            .do(notification => {
-                let snapshotStrategy = projection.snapshotStrategy,
-                    state = notification[0];
-                if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    this.publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
+            .do(event => {
+                let snapshotStrategy = projection.snapshot;
+                if (event.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(event)) {
+                    this.publisher.publish([event.type, new Snapshot(event.payload, event.timestamp)]);
                 }
+            })
+            .subscribe(notification => {
+                if (!notification[1]) this.notifyContext(context, null);
+                else _.forEach(notification[1], key => this.notifyContext(context, key));
+            }, error => {
+                subscription.dispose();
+                this.logger.error(error);
             });
-
-        let subscription = sequence.subscribe(notification => {
-            if (!notification[1]) this.notifyContext(context, null);
-            else _.forEach(notification[1], key => this.notifyContext(context, key));
-        }, error => {
-            subscription.dispose();
-            this.logger.error(error);
-        });
 
         runner.run(snapshot);
     }
