@@ -5,9 +5,9 @@ import Dictionary from "../util/Dictionary";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
-import {IProjection} from "./IProjection";
-import {DeliverAuthorization, IDeliverStrategy, IdentityDeliverStrategy} from "./Deliver";
+import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./Deliver";
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
+import {map, zipObject} from "lodash";
 
 @Route("GET", "/projections/:area/:publishPoint(/:partitionKey)")
 class ProjectionStateHandler implements IRequestHandler {
@@ -17,7 +17,7 @@ class ProjectionStateHandler implements IRequestHandler {
                 @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
     }
 
-    handle(request: IRequest, response: IResponse): Promise<void> {
+    async handle(request: IRequest, response: IResponse): Promise<void> {
         let publishPoint = request.params.publishPoint,
             area = request.params.area,
             projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];
@@ -25,8 +25,19 @@ class ProjectionStateHandler implements IRequestHandler {
             this.sendNotFound(response);
         } else {
             let deliverStrategy = projection.publish[publishPoint].deliver || new IdentityDeliverStrategy<any>(),
-                projectionRunner = this.holder[projection.name];
-            return this.sendResponse(request, response, projectionRunner.state, deliverStrategy);
+                projectionRunner = this.holder[projection.name],
+                readModelsDefinition = projection.publish[publishPoint].readmodels,
+                dependencies = readModelsDefinition ? readModelsDefinition.$list : [];
+
+            let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
+            let deliverContext = {
+                headers: request.headers,
+                params: request.query,
+                partitionKey: request.params.partitionKey
+            };
+
+            let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
+            this.sendResponse(response, deliverResult);
         }
     }
 
@@ -35,14 +46,7 @@ class ProjectionStateHandler implements IRequestHandler {
         response.send({error: "Projection not found"});
     }
 
-    private async sendResponse<T>(request: IRequest, response: IResponse, state: T,
-                                  deliverStrategy: IDeliverStrategy<T>) {
-        let deliverContext = {
-            headers: request.headers,
-            params: request.query,
-            partitionKey: request.params.partitionKey
-        };
-        let deliverResult = await deliverStrategy.deliver(state, deliverContext);
+    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>) {
         switch (deliverResult[1]) {
             case DeliverAuthorization.CONTENT:
                 response.status(200);
