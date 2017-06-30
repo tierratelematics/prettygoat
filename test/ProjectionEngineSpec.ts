@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
-import {Subject, Observable, Scheduler} from "rx";
+import {ReplaySubject, Observable} from "rx";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/events/Event";
 import {IMock, Mock, Times, It} from "typemoq";
@@ -16,7 +16,6 @@ import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/IPushComponents";
 import IAsyncPublisher from "../scripts/util/IAsyncPublisher";
-import PushContext from "../scripts/push/PushContext";
 import {IProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
 
 describe("Given a ProjectionEngine", () => {
@@ -28,7 +27,7 @@ describe("Given a ProjectionEngine", () => {
         runner: IMock<IProjectionRunner<number>>,
         runnerFactory: IMock<IProjectionRunnerFactory>,
         snapshotRepository: IMock<ISnapshotRepository>,
-        dataSubject: Subject<Event>,
+        dataSubject: ReplaySubject<Event>,
         projection: IProjection<number>,
         asyncPublisher: IMock<IAsyncPublisher<any>>,
         clock: lolex.Clock;
@@ -39,7 +38,7 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
-        dataSubject = new Subject<Event>();
+        dataSubject = new ReplaySubject<Event>();
         runner = Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = Mock.ofType<IPushNotifier>();
@@ -92,14 +91,13 @@ describe("Given a ProjectionEngine", () => {
             asyncPublisher.setup(a => a.items()).returns(() => Observable.create(observer => {
                 observer.onNext(["Mock", new Snapshot(66, new Date(5000))]);
             }));
-            snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Observable.empty<void>());
+            snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Promise.resolve());
             subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
                 NullLogger, asyncPublisher.object);
         });
         it("should save them", () => {
             snapshotRepository.verify(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000)))), Times.once());
         });
-
     });
 
     context("when a projections triggers a new state", () => {
@@ -107,14 +105,14 @@ describe("Given a ProjectionEngine", () => {
             snapshotRepository.setup(s => s.getSnapshot("Mock")).returns(a => Promise.resolve(null));
         });
         context("and a snapshot is needed", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "Mock",
                     payload: 66,
                     timestamp: new Date(5000)
                 }))).returns(a => true);
-                subject.run();
                 publishReadModel(66, new Date(5000));
+                await subject.run();
             });
             it("should save the snapshot", () => {
                 asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000))])), Times.once());
@@ -122,44 +120,17 @@ describe("Given a ProjectionEngine", () => {
         });
 
         context("and a snapshot is not needed", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
                     type: "Mock",
                     payload: 66,
                     timestamp: new Date(5000)
                 }))).returns(a => false);
-                subject.run();
                 publishReadModel(66, new Date(5000));
+                await subject.run();
             });
             it("should not save the snapshot", () => {
                 asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000))])), Times.never());
-            });
-        });
-
-        context("and the projection isn't a split", () => {
-            beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isAny())).returns(a => false);
-                subject.run();
-                publishReadModel(66, new Date(5000));
-            });
-            it("should notify on the main context", () => {
-                clock.tick(200);
-
-                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), null), Times.once());
-            });
-        });
-
-        context("and the projection is a split", () => {
-            beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isAny())).returns(a => false);
-                subject.run();
-                publishReadModel(66, new Date(5000));
-            });
-            it("should notify every split", () => {
-                clock.tick(200);
-
-                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "user-1"), Times.once());
-                pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "user-3"), Times.once());
             });
         });
     });
