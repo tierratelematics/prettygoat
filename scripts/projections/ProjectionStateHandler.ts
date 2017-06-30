@@ -22,7 +22,7 @@ class ProjectionStateHandler implements IRequestHandler {
         if (!projection || !(<any>projection).publish) {
             this.sendNotFound(response);
         } else {
-            let deliverStrategy = (<IProjection>projection).publish[publishPoint].deliver || new IdentityDeliverStrategy<any>(),
+            let deliverStrategy = projection.publish[publishPoint].deliver || new IdentityDeliverStrategy<any>(),
                 projectionRunner = this.holder[projection.name];
             return this.sendResponse(request, response, projectionRunner.state, deliverStrategy);
         }

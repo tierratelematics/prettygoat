@@ -82,12 +82,13 @@ describe("Given a ProjectionsController and a projection name", () => {
                 projectionEngine = Mock.ofType<IProjectionEngine>();
                 snapshotRepository = Mock.ofType<ISnapshotRepository>();
                 registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
-                snapshotRepository.setup(s => s.deleteSnapshot("Mock")).returns(() => Observable.just(null));
+                snapshotRepository.setup(s => s.deleteSnapshot("Mock")).returns(() => Promise.resolve());
                 subject = new ProjectionRestartHandler(holder, registry.object, projectionEngine.object, snapshotRepository.object);
             });
             context("when the projection is already stopped", () => {
-                it("should simply restart the projection", () => {
-                    subject.handle(request, response.object);
+                it("should simply restart the projection", async () => {
+                    await subject.handle(request, response.object);
+
                     snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
                     projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
                 });
@@ -95,8 +96,9 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             context("when the projection is running", () => {
                 beforeEach(() => holder["Mock"].stats.running = true);
-                it("should stop and restart the projection", () => {
-                    subject.handle(request, response.object);
+                it("should stop and restart the projection", async () => {
+                    await subject.handle(request, response.object);
+
                     projectionRunner.verify(p => p.stop(), Times.once());
                     snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
                     projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());

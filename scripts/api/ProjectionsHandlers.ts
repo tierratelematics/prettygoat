@@ -53,7 +53,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
         super();
     }
 
-    handle(request: IRequest, response: IResponse) {
+    async handle(request: IRequest, response: IResponse) {
         try {
             let projectionName = request.params.projectionName,
                 entry = this.registry.projectionFor(projectionName),
@@ -62,11 +62,10 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
             if (runner.stats.running)
                 runner.stop();
 
-            this.snapshotRepository.deleteSnapshot(projectionName).subscribe(() => {
-                this.projectionEngine.run(entry[1], new PushContext(entry[0], entry[1].name));
-                response.status(204);
-                response.send();
-            }, () => this.writeError(response));
+            await this.snapshotRepository.deleteSnapshot(projectionName);
+            this.projectionEngine.run(entry[1], new PushContext(entry[0], entry[1].name));
+            response.status(204);
+            response.send();
         } catch (error) {
             this.writeError(response);
         }
