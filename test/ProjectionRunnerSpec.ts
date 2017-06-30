@@ -141,7 +141,7 @@ describe("Given a ProjectionRunner", () => {
                 });
 
                 it("should update the events processed counter", () => {
-                    expect(subject.stats.events).to.be(5);
+                    expect(subject.stats.events).to.be(6);
                 });
 
                 it("should set the latest timestamp", () => {

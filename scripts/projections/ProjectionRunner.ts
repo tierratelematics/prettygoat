@@ -34,11 +34,12 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        this.stats.running = true;
-        let init = this.matcher.match("$init");
-        this.state = snapshot ? snapshot.memento : init && init();
-        this.notifyStateChange(snapshot ? snapshot.lastEvent : new Date(1));
+        if (snapshot) {
+            this.state = snapshot.memento;
+            this.notifyStateChange(snapshot.lastEvent);
+        }
         this.startStream(snapshot);
+        this.stats.running = true;
     }
 
     private notifyStateChange(timestamp: Date) {
@@ -53,6 +54,11 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         let completions = new Subject<string>();
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
+            .startWith(!snapshot && {
+                type: "$init",
+                payload: null,
+                timestamp: new Date(1)
+            })
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === SpecialEvents.FETCH_EVENTS)
