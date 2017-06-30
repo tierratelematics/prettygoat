@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import ProjectionRunner from "../scripts/projections/ProjectionRunner";
 import {Observable, Subject, IDisposable} from "rx";
 import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
@@ -11,6 +10,7 @@ import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefin
 import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {IMatcher} from "../scripts/projections/Matcher";
 import SpecialEvents from "../scripts/events/SpecialEvents";
+import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 
 describe("Given a ProjectionRunner", () => {
     let streamGenerator: IMock<IProjectionStreamGenerator>;

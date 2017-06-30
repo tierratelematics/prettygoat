@@ -1,7 +1,6 @@
 import {Subject, IDisposable, Observable} from "rx";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
-import ProjectionStats from "./ProjectionStats";
 import {isPromise} from "../util/TypesUtil";
 import {untypedFlatMapSeries} from "../util/RxOperators";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
@@ -11,7 +10,14 @@ import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
 
-class ProjectionRunner<T> implements IProjectionRunner<T> {
+export class ProjectionStats {
+    running = false;
+    events = 0;
+    lastEvent: Date;
+    realtime = false;
+}
+
+export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
     stats = new ProjectionStats();
     private subject: Subject<Event<T>> = new Subject<Event<T>>();
@@ -110,5 +116,3 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.subject.dispose();
     }
 }
-
-export default ProjectionRunner

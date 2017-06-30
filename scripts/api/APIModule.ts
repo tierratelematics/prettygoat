@@ -1,6 +1,5 @@
 import IModule from "../bootstrap/IModule";
 import {interfaces} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import IServiceLocator from "../bootstrap/IServiceLocator";
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
 import {IMiddleware, IRequestHandler} from "../web/IRequestComponents";
@@ -10,6 +9,7 @@ import AuthorizationHandler from "./AuthorizationHandler";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
 import {ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler} from "./ProjectionsHandlers";
 import {ProjectionsListHandler} from "./ProjectionsListHandler";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 class APIModule implements IModule {
 

@@ -1,11 +1,11 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
-import ProjectionRunner from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
 import Dictionary from "../util/Dictionary";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {Matcher} from "./Matcher";
+import {ProjectionRunner} from "./ProjectionRunner";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
