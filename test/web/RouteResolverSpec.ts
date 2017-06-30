@@ -48,6 +48,10 @@ describe("Given a RouteResolver and a new request", () => {
             });
         });
 
+        context("and a duplicated request handler exists for the request", () => {
+           it("should pick the last");
+        });
+
         context("and a specific handler does not exists for the request", () => {
             it("should not return an handler", () => {
                 request.url = "/notfound";
