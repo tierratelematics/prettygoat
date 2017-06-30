@@ -1,5 +1,5 @@
 interface IEndpointConfig {
-    port:number;
+    port: number;
 }
 
 export default IEndpointConfig

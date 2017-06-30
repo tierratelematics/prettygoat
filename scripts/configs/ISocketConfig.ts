@@ -1,5 +1,5 @@
 interface ISocketConfig {
-    path:string;
+    path: string;
 }
 
 export default ISocketConfig
