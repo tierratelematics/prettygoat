@@ -16,7 +16,7 @@ export class Matcher implements IMatcher {
     }
 }
 
-export interface IWhen<T extends Object> {
+export interface WhenBlock<T extends Object> {
     $init?: () => T;
     [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
 }

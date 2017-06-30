@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import {Mock, IMock, Times} from "typemoq";
+import {Mock, IMock, Times, It} from "typemoq";
 import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandler";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
@@ -11,11 +11,13 @@ import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefin
 import {IProjection} from "../scripts/projections/IProjection";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
 import {
-    AsyncContentDeliverStrategy, ContentDeliverStrategy, ForbiddenDeliverStrategy, NotificationDeliverStrategy,
+    AsyncContentDeliverStrategy, ContentDeliverStrategy, DependenciesDeliverStrategy,
+    ForbiddenDeliverStrategy,
+    NotificationDeliverStrategy,
     UnauthorizedDeliverStrategy
 } from "./fixtures/MockDeliverStrategies";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
-import {IReadModel} from "../scripts/readmodels/IReadModel";
+import {IReadModelRetriever} from "../scripts/readmodels/ReadModelRetriever";
 
 describe("Given a ProjectionStateHandler", () => {
     let request: IRequest,
@@ -23,15 +25,17 @@ describe("Given a ProjectionStateHandler", () => {
         subject: IRequestHandler,
         holder: Dictionary<IProjectionRunner<any>>,
         projectionRunner: IProjectionRunner<any>,
-        registry: IMock<IProjectionRegistry>;
+        registry: IMock<IProjectionRegistry>,
+        readModelRetriever: IMock<IReadModelRetriever>;
 
     beforeEach(() => {
         holder = {};
+        readModelRetriever = Mock.ofType<IReadModelRetriever>();
         projectionRunner = new MockProjectionRunner();
         registry = Mock.ofType<IProjectionRegistry>();
         request = new MockRequest();
         response = Mock.ofType<IResponse>();
-        subject = new ProjectionStateHandler(registry.object, holder);
+        subject = new ProjectionStateHandler(registry.object, holder, readModelRetriever.object);
     });
 
     context("when the state of a projection is needed", () => {
@@ -95,6 +99,40 @@ describe("Given a ProjectionStateHandler", () => {
                     response.verify(r => r.send("partition-key"), Times.once());
                 });
             });
+
+            context("and has some dependencies defined", () => {
+                beforeEach(() => {
+                    projection.publish["Test"].deliver = new DependenciesDeliverStrategy();
+                    projection.publish["Test"].readmodels = {
+                        $list: ["a", "b"],
+                        $change: s => null
+                    };
+                    readModelRetriever.setup(r => r.modelFor("a")).returns(() => Promise.resolve("model-a"));
+                    readModelRetriever.setup(r => r.modelFor("b")).returns(() => Promise.resolve(100));
+                });
+                it("should resolve and pass those readmodels to the deliver", async () => {
+                    await subject.handle(request, response.object);
+
+                    response.verify(r => r.status(200), Times.once());
+                    response.verify(r => r.send(It.isValue({a: "model-a", b: 100})), Times.once());
+                });
+            });
+
+            context("and has no dependencies defined", () => {
+                beforeEach(() => {
+                    projection.publish["Test"].deliver = new DependenciesDeliverStrategy();
+                    projection.publish["Test"].readmodels = {
+                        $list: [],
+                        $change: s => null
+                    };
+                });
+                it("should pass no readmodels to the deliver", async () => {
+                    await subject.handle(request, response.object);
+
+                    response.verify(r => r.status(200), Times.once());
+                    response.verify(r => r.send(It.isValue({})), Times.once());
+                });
+            });
         });
 
         context("and a deliver strategy is not applied", () => {
@@ -105,8 +143,6 @@ describe("Given a ProjectionStateHandler", () => {
                 response.verify(r => r.send(42), Times.once());
             });
         });
-
-
     });
 
     context("when a projection is a readmodel", () => {

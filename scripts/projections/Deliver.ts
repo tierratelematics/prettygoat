@@ -16,7 +16,7 @@ export interface DeliverContext {
 }
 
 export interface IDeliverStrategy<TState, TResult = any> {
-    deliver(state: TState, context: DeliverContext): ValueOrPromise<DeliverResult<TResult>>;
+    deliver(state: TState, context: DeliverContext, readModels?: Dictionary<any>): ValueOrPromise<DeliverResult<TResult>>;
 }
 
 export class IdentityDeliverStrategy<T> implements IDeliverStrategy<T, T> {

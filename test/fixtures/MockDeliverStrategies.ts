@@ -39,3 +39,11 @@ export class NotificationDeliverStrategy implements IDeliverStrategy<any> {
     }
 
 }
+
+export class DependenciesDeliverStrategy implements IDeliverStrategy<any> {
+
+    deliver(state: any, context: DeliverContext, readModels: { a: string, b: number }): DeliverResult<any> {
+        return [readModels, DeliverAuthorization.CONTENT];
+    }
+
+}

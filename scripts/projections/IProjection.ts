@@ -13,15 +13,20 @@ export interface IProjection<T = any> extends IReadModel<T> {
 }
 
 export type PublishPoint<T> = {
-    notify?: INotification<T>;
+    notify?: NotificationBlock<T>;
     deliver?: IDeliverStrategy<T>;
-    readmodels?: string[];
+    readmodels?: ReadModelBlock<T>;
 }
 
-export interface INotification<T extends Object> {
+export interface NotificationBlock<T extends Object> {
     $partition?: (parameters: any) => ValueOrPromise<NotificationKey>;
     $default?: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
     [name: string]: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
+}
+
+export interface ReadModelBlock<T extends Object> {
+    $list: NotificationKey;
+    $change: (s: T) => ValueOrPromise<NotificationKey>;
 }
 
 export type NotificationKey = string | string[];

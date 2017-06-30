@@ -1,7 +1,7 @@
 import {Observable} from "rx";
 import {Event} from "./Event";
-import {IWhen} from "../projections/IProjection";
+import {WhenBlock} from "../projections/Matcher";
 
 export interface IStreamFactory {
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
+    from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event>;
 }

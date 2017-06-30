@@ -1,8 +1,8 @@
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Subject} from "rx";
 import {Event} from "../../scripts/events/Event";
-import ProjectionStats from "../../scripts/projections/ProjectionStats";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
+import {ProjectionStats} from "../../scripts/projections/ProjectionRunner";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;

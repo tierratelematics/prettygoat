@@ -7,12 +7,14 @@ import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IProjection} from "./IProjection";
 import {DeliverAuthorization, IDeliverStrategy, IdentityDeliverStrategy} from "./Deliver";
+import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 
 @Route("GET", "/projections/:area/:publishPoint(/:partitionKey)")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
-                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>) {
+                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>,
+                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
     }
 
     handle(request: IRequest, response: IResponse): Promise<void> {

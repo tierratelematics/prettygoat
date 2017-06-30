@@ -1,7 +1,7 @@
 import {Observable, IDisposable} from "rx";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import ProjectionStats from "./ProjectionStats";
 import {Event} from "../events/Event";
+import {ProjectionStats} from "./ProjectionRunner";
 
 export interface IProjectionRunner<T = any> extends IDisposable {
     state: T;
