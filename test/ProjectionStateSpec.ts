@@ -110,10 +110,10 @@ describe("Given a ProjectionStateHandler", () => {
     });
 
     context("when a projection is a readmodel", () => {
-        let readModel: IReadModel<any>;
+        let readModel: IProjection<any>;
 
         beforeEach(() => {
-            readModel = new MockReadModel().define();
+            readModel = <IProjection>new MockReadModel().define();
             registry.setup(r => r.projectionFor("ReadModel", SpecialAreas.Readmodel)).returns(() => [SpecialAreas.Readmodel, readModel]);
             holder["ReadModel"] = projectionRunner;
             projectionRunner.state = 42;

@@ -134,27 +134,6 @@ describe("Given a ProjectionEngine", () => {
             });
         });
 
-        context("and it does not carry the timestamp information because it's calculated from a read model", () => {
-            beforeEach(() => {
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
-                    payload: 10,
-                    type: "test",
-                    timestamp: new Date(1)
-                }))).returns(a => false);
-                snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
-                    payload: 66,
-                    type: "test",
-                    timestamp: null
-                }))).returns(a => true);
-                subject.run();
-                publishReadModel(66, new Date(null));
-            });
-            it("should not trigger a snapshot save", () => {
-                clock.tick(500);
-                asyncPublisher.verify(a => a.publish(It.isValue(["test", new Snapshot(66, null)])), Times.never());
-            });
-        });
-
         context("and a snapshot is not needed", () => {
             beforeEach(() => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({

@@ -5,10 +5,10 @@ import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../util/Dictionary";
 import {IProjection, IProjectionDefinition} from "../projections/IProjection";
-import {IReadModel, IReadModelDefinition} from "../readmodels/IReadModel";
+import {IReadModelDefinition} from "../readmodels/IReadModel";
 import {Matcher} from "../projections/Matcher";
 
-export type RegistryLookup<T = any> = [string, IProjection<T> | IReadModel<T>];
+export type RegistryLookup<T = any> = [string, IProjection<T>];
 
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
@@ -78,7 +78,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
     private buildLookups() {
         this.nameLookup = _.zipObject<Dictionary<RegistryLookup>>(_.map(this.registry, entry => entry[1].name.toLowerCase()), this.registry);
         this.areaLookup = _.reduce(this.registry, (result, entry) => {
-            let areaKeys = _((<IProjection>entry[1]).publish).keys().map(key => (entry[0] + ":" + key).toLowerCase()).valueOf();
+            let areaKeys = _(entry[1].publish).keys().map(key => (entry[0] + ":" + key).toLowerCase()).valueOf();
             let mappings = _.zipObject<Dictionary<RegistryLookup>>(areaKeys, _.map(areaKeys, key => entry));
             return _.assign(result, mappings);
         }, {});
@@ -101,9 +101,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
     }
 
     private hasDuplicatedPublishPoints(projection: IProjection, area: string): boolean {
-        let publishPoints: string[] = _(this.registry).filter(entry => entry[0] === area).map(entry => {
-            return _.keys((<IProjection>entry[1]).publish);
-        }).flatten<string>().valueOf();
+        let publishPoints: string[] = _(this.registry).filter(entry => entry[0] === area).map(entry => _.keys(entry[1].publish)).flatten<string>().valueOf();
         return !!_.intersection<string>(publishPoints, _.keys(projection.publish)).length;
     }
 
