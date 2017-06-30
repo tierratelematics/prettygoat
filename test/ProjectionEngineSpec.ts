@@ -104,6 +104,7 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshot("Mock")).returns(a => Promise.resolve(null));
         });
+
         context("and a snapshot is needed", () => {
             beforeEach(async () => {
                 snapshotStrategy.setup(s => s.needsSnapshot(It.isValue({
@@ -132,6 +133,38 @@ describe("Given a ProjectionEngine", () => {
             it("should not save the snapshot", () => {
                 asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000))])), Times.never());
             });
+        });
+
+        context("and the projection has a notification block", () => {
+            it("should notify the matching channels", () => {
+
+            });
+        });
+
+        context("and the projection has not a notification block", () => {
+            it("should notify the main channel", () => {
+
+            });
+        });
+    });
+
+    context("when a readmodel triggers a new state", () => {
+        context("and the running projection depends on it", () => {
+            it("should trigger a state change", () => {
+
+            });
+        });
+
+        context("and the running projection does not depend on it", () => {
+            it("should not trigger a state change", () => {
+
+            });
+        });
+    });
+
+    context("when the running readmodel triggers a new state", () => {
+        it("should notify that the model has changed", () => {
+
         });
     });
 });
