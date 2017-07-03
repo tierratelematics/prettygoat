@@ -9,7 +9,7 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject} from "lodash";
 
-@Route("GET", "/projections/:area/:publishPoint(/:partitionKey)")
+@Route("GET", "/projections/:area/:publishPoint(/:notificationKey)")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
@@ -33,7 +33,7 @@ class ProjectionStateHandler implements IRequestHandler {
             let deliverContext = {
                 headers: request.headers,
                 params: request.query,
-                partitionKey: request.params.partitionKey
+                notificationKey: request.params.notificationKey
             };
 
             let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));

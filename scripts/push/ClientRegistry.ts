@@ -12,21 +12,21 @@ class ClientRegistry implements IClientRegistry {
 
     add(client: ISocketClient, context: PushContext) {
         let entry = this.registry.projectionFor(context.projectionName, context.area),
-            partition = entry[1].publish[context.projectionName].notify.$partition;
-        if (!partition) {
+            notification = entry[1].publish[context.projectionName].notify.$key;
+        if (!notification) {
             client.join(ContextOperations.getRoom(context));
         } else {
-            client.join(ContextOperations.getRoom(context, <string>partition(context.parameters)));
+            client.join(ContextOperations.getRoom(context, <string>notification(context.parameters)));
         }
     }
 
     remove(client: ISocketClient, context: PushContext) {
         let entry = this.registry.projectionFor(context.projectionName, context.area),
-            partition = entry[1].publish[context.projectionName].notify.$partition;
-        if (!partition) {
+            notification = entry[1].publish[context.projectionName].notify.$key;
+        if (!notification) {
             client.leave(ContextOperations.getRoom(context));
         } else {
-            client.leave(ContextOperations.getRoom(context, <string>partition(context.parameters)));
+            client.leave(ContextOperations.getRoom(context, <string>notification(context.parameters)));
         }
     }
 }

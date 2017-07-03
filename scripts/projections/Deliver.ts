@@ -12,7 +12,7 @@ export type DeliverResult<T> = [T, DeliverAuthorization];
 export interface DeliverContext {
     headers: Dictionary<string>;
     params: Dictionary<string>;
-    partitionKey?: string;
+    notificationKey?: string;
 }
 
 export interface IDeliverStrategy<TState, TResult = any> {

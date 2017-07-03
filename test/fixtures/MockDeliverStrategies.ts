@@ -35,7 +35,7 @@ export class UnauthorizedDeliverStrategy implements IDeliverStrategy<any> {
 export class NotificationDeliverStrategy implements IDeliverStrategy<any> {
 
     deliver(state: any, context: DeliverContext): DeliverResult<any> {
-        return [context.partitionKey, DeliverAuthorization.CONTENT];
+        return [context.notificationKey, DeliverAuthorization.CONTENT];
     }
 
 }

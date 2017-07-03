@@ -29,6 +29,11 @@ class PushNotifier implements IPushNotifier {
         }
     }
 
+    private emitToSingleClient(clientId: string, context: PushContext, notificationKey = ""): void {
+        let notification = this.buildNotification(context, notificationKey);
+        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
+    }
+
     private buildNotification(context: PushContext, notificationKey: string): PushNotification {
         let url = `${this.config.protocol}://${this.config.host}`;
         if (this.config.port)
@@ -39,11 +44,6 @@ class PushNotifier implements IPushNotifier {
         return {
             url: url
         };
-    }
-
-    private emitToSingleClient(clientId: string, context: PushContext, notificationKey = ""): void {
-        let notification = this.buildNotification(context, notificationKey);
-        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 }
 

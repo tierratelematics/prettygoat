@@ -19,7 +19,7 @@ export type PublishPoint<T> = {
 }
 
 export interface NotificationBlock<T extends Object> {
-    $partition?: (parameters: any) => ValueOrPromise<NotificationKey>;
+    $key?: (parameters: any) => ValueOrPromise<NotificationKey>;
     $default?: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
     [name: string]: (s: T, payload: Object) => ValueOrPromise<NotificationKey>;
 }

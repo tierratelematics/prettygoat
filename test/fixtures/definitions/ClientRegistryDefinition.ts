@@ -16,7 +16,7 @@ class ClientRegistryDefinition implements IProjectionDefinition<number> {
                 },
                 "Bar": {
                     notify: {
-                        $partition: (parameters) => parameters.id,
+                        $key: (parameters) => parameters.id,
                         TestEvent: (s, e) => null
                     }
                 }

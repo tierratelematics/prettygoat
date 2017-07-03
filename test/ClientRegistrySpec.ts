@@ -32,7 +32,7 @@ describe("ClientRegistry, given a client", () => {
         });
 
         context("and custom parameters are passed during the registration", () => {
-            context("and there's a partition clause defined", () => {
+            context("and there's a $key clause defined", () => {
                 it("should subscribe that client using also those parameters", () => {
                     let context = new PushContext("Admin", "Bar", {id: 25});
                     subject.add(client.object, context);
@@ -40,7 +40,7 @@ describe("ClientRegistry, given a client", () => {
                     client.verify(c => c.join("/admin/bar/25"), Times.once());
                 });
             });
-            context("but there's no partition clause defined", () => {
+            context("but there's no $key clause defined", () => {
                 it("should subscribe to the channel without parameters", () => {
                     let context = new PushContext("Admin", "Foo", {id: 25});
                     subject.add(client.object, context);

@@ -16,7 +16,9 @@ import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/IPushComponents";
 import IAsyncPublisher from "../scripts/util/IAsyncPublisher";
-import {IProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
+import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
+import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
+import MockReadModel from "./fixtures/definitions/MockReadModel";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -30,7 +32,8 @@ describe("Given a ProjectionEngine", () => {
         dataSubject: ReplaySubject<Event>,
         projection: IProjection<number>,
         asyncPublisher: IMock<IAsyncPublisher<any>>,
-        clock: lolex.Clock;
+        clock: lolex.Clock,
+        readModelNotifier: IMock<IReadModelNotifier>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -47,16 +50,26 @@ describe("Given a ProjectionEngine", () => {
         registry = Mock.ofType<IProjectionRegistry>();
         registry.setup(r => r.projections()).returns(() => [["Admin", projection]]);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
+        readModelNotifier = Mock.ofType<IReadModelNotifier>();
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, asyncPublisher.object);
+            NullLogger, asyncPublisher.object, readModelNotifier.object);
     });
 
     afterEach(() => clock.uninstall());
 
-    function publishReadModel(state, timestamp) {
+    function publishState(state, timestamp) {
         runner.object.state = state;
         dataSubject.onNext({
             type: "Mock",
+            payload: state,
+            timestamp: timestamp
+        });
+    }
+
+    function publishReadModel(state, timestamp) {
+        runner.object.state = state;
+        dataSubject.onNext({
+            type: "ReadModel",
             payload: state,
             timestamp: timestamp
         });
@@ -93,7 +106,7 @@ describe("Given a ProjectionEngine", () => {
             }));
             snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Promise.resolve());
             subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-                NullLogger, asyncPublisher.object);
+                NullLogger, asyncPublisher.object, readModelNotifier.object);
         });
         it("should save them", () => {
             snapshotRepository.verify(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000)))), Times.once());
@@ -112,7 +125,7 @@ describe("Given a ProjectionEngine", () => {
                     payload: 66,
                     timestamp: new Date(5000)
                 }))).returns(a => true);
-                publishReadModel(66, new Date(5000));
+                publishState(66, new Date(5000));
                 await subject.run();
             });
             it("should save the snapshot", () => {
@@ -127,7 +140,7 @@ describe("Given a ProjectionEngine", () => {
                     payload: 66,
                     timestamp: new Date(5000)
                 }))).returns(a => false);
-                publishReadModel(66, new Date(5000));
+                publishState(66, new Date(5000));
                 await subject.run();
             });
             it("should not save the snapshot", () => {
@@ -135,16 +148,8 @@ describe("Given a ProjectionEngine", () => {
             });
         });
 
-        context("and the projection has a notification block", () => {
-            it("should notify the matching channels", () => {
+        it("should notify on all the registered publish points correctly", () => {
 
-            });
-        });
-
-        context("and the projection has not a notification block", () => {
-            it("should notify the main channel", () => {
-
-            });
         });
     });
 
@@ -163,8 +168,15 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when the running readmodel triggers a new state", () => {
+        beforeEach(async () => {
+            let readModel = <IProjection>new MockReadModel().define();
+            registry.reset();
+            registry.setup(r => r.projections()).returns(() => [[SpecialAreas.Readmodel, readModel]]);
+            publishReadModel(66, new Date(5000));
+            await subject.run();
+        });
         it("should notify that the model has changed", () => {
-
+            readModelNotifier.verify(r => r.notifyChanged("ReadModel", It.isValue(new Date(5000))), Times.once());
         });
     });
 });

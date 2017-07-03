@@ -90,13 +90,13 @@ describe("Given a ProjectionStateHandler", () => {
             context("when a model id is passed", () => {
                 beforeEach(() => {
                     projection.publish["Test"].deliver = new NotificationDeliverStrategy();
-                    request.params.partitionKey = "partition-key";
+                    request.params.notificationKey = "notification-key";
                 });
                 it("should be vehiculated to the deliver strategy", async () => {
                     await subject.handle(request, response.object);
 
                     response.verify(r => r.status(200), Times.once());
-                    response.verify(r => r.send("partition-key"), Times.once());
+                    response.verify(r => r.send("notification-key"), Times.once());
                 });
             });
 

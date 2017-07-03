@@ -10,6 +10,7 @@ import {IPushNotifier} from "../push/IPushComponents";
 import IAsyncPublisher from "../util/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
+import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -21,7 +22,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
-                @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>) {
+                @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>,
+                @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier) {
         publisher.items()
             .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
             .subscribe(snapshotData => {
@@ -56,8 +58,7 @@ class ProjectionEngine implements IProjectionEngine {
                 }
             })
             .subscribe(notification => {
-                if (!notification[1]) this.notifyContext(context, null);
-                else _.forEach(notification[1], key => this.notifyContext(context, key));
+
             }, error => {
                 subscription.dispose();
                 this.logger.error(error);

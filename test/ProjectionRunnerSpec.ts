@@ -159,6 +159,10 @@ describe("Given a ProjectionRunner", () => {
                     expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                 });
             });
+
+            it("should produce the correct notification keys", () => {
+
+            });
         });
 
         context("and no match is found for this event", () => {
