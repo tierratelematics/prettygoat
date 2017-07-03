@@ -87,7 +87,7 @@ describe("Given a ProjectionStateHandler", () => {
                 });
             });
 
-            context("when a notification key is passed", () => {
+            context("when a model id is passed", () => {
                 beforeEach(() => {
                     projection.publish["Test"].deliver = new NotificationDeliverStrategy();
                     request.params.partitionKey = "partition-key";

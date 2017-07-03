@@ -99,10 +99,10 @@ export class Engine {
                     let context = new PushContext(message.area, message.modelId, message.parameters),
                         entry = registry.projectionFor(context.projectionName, context.area),
                         partition = entry[1].publish[context.projectionName].notify.$partition,
-                        notificationKey = partition ? <string>partition(context.parameters) : null;
+                        partitionKey = partition ? <string>partition(context.parameters) : null;
                     clientRegistry.add(wrappedClient, context);
-                    pushNotifier.notify(context, notificationKey, client.id);
-                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
+                    pushNotifier.notify(context, partitionKey, client.id);
+                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, partitionKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                 }
