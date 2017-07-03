@@ -9,6 +9,8 @@ import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
+import {keys, map, zipObject, mapValues} from "lodash";
+
 
 export class ProjectionStats {
     running = false;
@@ -20,12 +22,13 @@ export class ProjectionStats {
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
     stats = new ProjectionStats();
-    private subject: Subject<Event<T>> = new Subject<Event<T>>();
+    private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
     private subscription: IDisposable;
     private disposed: boolean;
     private failed: boolean;
 
-    constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher) {
+    constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
+                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
 
     }
 
@@ -42,29 +45,30 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         if (snapshot) {
             this.state = snapshot.memento;
-            this.notifyStateChange(snapshot.lastEvent);
+            this.notifyStateChange(snapshot.lastEvent, mapValues(this.notifyMatchers, matcher => [null]));
         }
         this.startStream(snapshot);
         this.stats.running = true;
     }
 
-    private notifyStateChange(timestamp: Date) {
-        this.subject.onNext({
+    private notifyStateChange(timestamp: Date, notificationKeys: Dictionary<string[]>) {
+        this.subject.onNext([{
             payload: this.state,
             type: this.projection.name,
             timestamp: timestamp
-        });
+        }, notificationKeys]);
     }
 
     private startStream(snapshot: Snapshot<Dictionary<T> | T>) {
-        let completions = new Subject<string>();
-
-        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
-            .startWith(!snapshot && {
+        let completions = new Subject<string>(),
+            initEvent = {
                 type: "$init",
                 payload: null,
                 timestamp: new Date(1)
-            })
+            };
+
+        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
+            .startWith(!snapshot && initEvent)
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === SpecialEvents.FETCH_EVENTS)
@@ -84,11 +88,24 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 // synchronicity of the TickScheduler
                 return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
             }))
-            .subscribe(data => {
+            .map(data => {
                 let [event, newState] = data;
                 this.state = newState;
-                this.notifyStateChange(event.timestamp);
-                return event;
+
+                let publishPoints = keys(this.notifyMatchers),
+                    notificationKeys = map(this.notifyMatchers, matcher => {
+                        if (!matcher) return [null];
+                        else {
+                            let matchFn = matcher.match(event.type);
+                            return matchFn ? matchFn(this.state, event.payload) : [null];
+                        }
+                    });
+
+                return [event, zipObject(publishPoints, notificationKeys)];
+            })
+            .subscribe(data => {
+                let [event, notificationKeys] = data;
+                this.notifyStateChange(event.timestamp, notificationKeys);
             }, error => {
                 this.failed = true;
                 this.subject.onError(error);

@@ -18,12 +18,7 @@ class MockProjectionDefinition implements IProjectionDefinition<number> {
             },
             snapshot: this.strategy,
             publish: {
-                "Test": {},
-                "Detail": {
-                    notify: {
-                        "TestEvent": (s, e: number) => e.toString()
-                    }
-                }
+                "Test": {}
             }
         };
     }

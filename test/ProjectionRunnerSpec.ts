@@ -22,6 +22,8 @@ describe("Given a ProjectionRunner", () => {
     let failed: boolean;
     let subscription: IDisposable;
     let projection: IProjection<number>;
+    let notificationKeys: string[];
+    let detailMatcher: IMock<IMatcher>;
 
     beforeEach(() => {
         projection = new MockProjectionDefinition().define();
@@ -31,10 +33,16 @@ describe("Given a ProjectionRunner", () => {
         failed = false;
         streamGenerator = Mock.ofType<IProjectionStreamGenerator>();
         matcher = Mock.ofType<IMatcher>();
-        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object);
-        subscription = subject.notifications().subscribe(event => {
-            notifications.push(event.payload);
-            timestamps.push(event.timestamp);
+        detailMatcher = Mock.ofType<IMatcher>();
+        detailMatcher.setup(d => d.match("increment")).returns(() => (s, e) => e.toString());
+        notificationKeys = [];
+        subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, {
+            "Test": null, "Detail": detailMatcher.object
+        });
+        subscription = subject.notifications().subscribe(notification => {
+            notifications.push(notification[0].payload);
+            timestamps.push(notification[0].timestamp);
+            notificationKeys = notification[1];
         }, e => failed = true, () => stopped = true);
     });
 
@@ -66,11 +74,19 @@ describe("Given a ProjectionRunner", () => {
             it("should notify with the snapshot timestamp", () => {
                 expect(timestamps[0]).to.eql(new Date(5000));
             });
+
+            it("should notify the main channel of every publish point", () => {
+                expect(notificationKeys).to.eql({
+                    "Test": [null],
+                    "Detail": [null]
+                });
+            });
         });
 
         context("if a snapshot is not present", () => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 subject.run();
+                await completeStream();
             });
             it("should create an initial state based on the projection definition", () => {
                 matcher.verify(m => m.match("$init"), Times.once());
@@ -147,6 +163,13 @@ describe("Given a ProjectionRunner", () => {
                 it("should set the latest timestamp", () => {
                     expect(subject.stats.lastEvent).to.eql(new Date(5005));
                 });
+
+                it("should produce the correct notification keys", () => {
+                    expect(notificationKeys).to.eql({
+                        "Test": [null],
+                        "Detail": ["5"]
+                    });
+                });
             });
 
             context("and an async event handler is used", () => {
@@ -158,10 +181,6 @@ describe("Given a ProjectionRunner", () => {
                 it("should construct the state correctly", () => {
                     expect(subject.state).to.be(42 + 1 + 2 + 3 + 4 + 5);
                 });
-            });
-
-            it("should produce the correct notification keys", () => {
-
             });
         });
 

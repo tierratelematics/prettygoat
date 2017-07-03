@@ -8,5 +8,5 @@ export interface IProjectionRunner<T = any> extends IDisposable {
     stats: ProjectionStats;
     run(snapshot?: Snapshot<T>): void;
     stop(): void;
-    notifications(): Observable<Event<T>>;
+    notifications(): Observable<[Event<T>, Dictionary<string[]>]>;
 }
