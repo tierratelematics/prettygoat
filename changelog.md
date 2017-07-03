@@ -1,3 +1,7 @@
+# 3.6.1
+
+Fix stackoverflow on async handlers
+
 # 3.6.0
 
 Add redis client
