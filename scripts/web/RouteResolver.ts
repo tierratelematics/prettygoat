@@ -37,7 +37,7 @@ class RouteResolver implements IRouteResolver {
             .takeRight(1)
             .flatten()
             .valueOf();
-        
+
         return !context[0] ? [null, null] : context;
     }
 
