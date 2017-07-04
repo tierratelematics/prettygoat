@@ -90,7 +90,7 @@ describe("Given a ProjectionsController and a projection name", () => {
                     await subject.handle(request, response.object);
 
                     snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
-                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection)), Times.once());
                 });
             });
 
@@ -101,7 +101,7 @@ describe("Given a ProjectionsController and a projection name", () => {
 
                     projectionRunner.verify(p => p.stop(), Times.once());
                     snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
-                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection)), Times.once());
                 });
             });
         });

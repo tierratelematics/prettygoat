@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import * as _ from "lodash";
+import {forEach, map, flatten, includes, isArray} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import ILogger from "../log/ILogger";
@@ -11,6 +11,8 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
+import {Observable} from "rx";
+import SpecialEvents from "../events/SpecialEvents";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -33,32 +35,51 @@ class ProjectionEngine implements IProjectionEngine {
             });
     }
 
-    async run(projection?: IProjection<any>, context?: PushContext) {
+    async run(projection?: IProjection<any>) {
         if (projection) {
             let snapshot = await this.snapshotRepository.getSnapshot(projection.name);
-            this.startProjection(projection, context, snapshot);
+            this.startProjection(projection, snapshot);
         } else {
             let projections = this.registry.projections();
-            _.forEach(projections, async (entry) => {
+            forEach(projections, async (entry) => {
                 let snapshot = await this.snapshotRepository.getSnapshot(entry[1].name);
-                this.startProjection(entry[1], new PushContext(entry[0], entry[1].name), snapshot);
+                this.startProjection(entry[1], snapshot);
             });
         }
     }
 
-    private startProjection(projection: IProjection<any>, context: PushContext, snapshot: Snapshot<any>) {
-        let runner = this.runnerFactory.create(projection);
+    private startProjection(projection: IProjection<any>, snapshot: Snapshot<any>) {
+        let runner = this.runnerFactory.create(projection),
+            area = this.registry.projectionFor(projection.name)[0],
+            readModels = Observable.merge(!projection.publish ? [] : flatten(map(projection.publish, point => {
+                return !point.readmodels ? [] : map(point.readmodels.$list, readmodel => {
+                    return this.readModelNotifier.changes(readmodel).map(event => [event, []]);
+                });
+            })));
 
         let subscription = runner
             .notifications()
-            .do(event => {
-                let snapshotStrategy = projection.snapshot;
-                if (event.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(event)) {
-                    this.publisher.publish([event.type, new Snapshot(event.payload, event.timestamp)]);
+            .do(notification => {
+                let snapshotStrategy = projection.snapshot,
+                    state = notification[0];
+                if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
+                    this.publisher.publish([state.type, new Snapshot(state.payload, state.timestamp)]);
                 }
             })
+            .merge(readModels)
             .subscribe(notification => {
-
+                if (!projection.publish) {
+                    this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp);
+                }
+                if (notification[0].type === SpecialEvents.READMODEL_CHANGED) {
+                    forEach(projection.publish, (point, pointName) => {
+                        if (point.readmodels && includes(point.readmodels.$list, notification[0].payload)) {
+                            let notificationKeys = point.readmodels.$change(runner.state);
+                            notificationKeys = isArray(notificationKeys) ? notificationKeys : [];
+                            forEach(notificationKeys, key => this.pushNotifier.notify(new PushContext(area, pointName), key));
+                        }
+                    });
+                }
             }, error => {
                 subscription.dispose();
                 this.logger.error(error);

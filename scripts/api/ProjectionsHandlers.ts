@@ -63,7 +63,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
                 runner.stop();
 
             await this.snapshotRepository.deleteSnapshot(projectionName);
-            this.projectionEngine.run(entry[1], new PushContext(entry[0], entry[1].name));
+            this.projectionEngine.run(entry[1]);
             response.status(204);
             response.send();
         } catch (error) {

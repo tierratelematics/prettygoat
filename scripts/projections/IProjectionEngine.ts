@@ -1,8 +1,7 @@
 import {IProjection} from "./IProjection";
-import PushContext from "../push/PushContext";
 
 interface IProjectionEngine {
-    run(projection?: IProjection<any>, context?: PushContext);
+    run(projection?: IProjection<any>);
 }
 
 export default IProjectionEngine

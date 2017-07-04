@@ -19,6 +19,8 @@ import IAsyncPublisher from "../scripts/common/IAsyncPublisher";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
+import SpecialEvents from "../scripts/events/SpecialEvents";
+import PushContext from "../scripts/push/PushContext";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -49,6 +51,7 @@ describe("Given a ProjectionEngine", () => {
         runnerFactory.setup(r => r.create(It.isAny())).returns(a => runner.object);
         registry = Mock.ofType<IProjectionRegistry>();
         registry.setup(r => r.projections()).returns(() => [["Admin", projection]]);
+        registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
@@ -57,22 +60,22 @@ describe("Given a ProjectionEngine", () => {
 
     afterEach(() => clock.uninstall());
 
-    function publishState(state, timestamp) {
+    function publishState(state, timestamp, notificationKeys = []) {
         runner.object.state = state;
-        dataSubject.onNext({
+        dataSubject.onNext([{
             type: "Mock",
             payload: state,
             timestamp: timestamp
-        });
+        }, notificationKeys]);
     }
 
-    function publishReadModel(state, timestamp) {
+    function publishReadModel(state, timestamp, notificationKeys = []) {
         runner.object.state = state;
-        dataSubject.onNext({
+        dataSubject.onNext([{
             type: "ReadModel",
             payload: state,
             timestamp: timestamp
-        });
+        }, notificationKeys]);
     }
 
     context("when a snapshot is present", () => {
@@ -154,16 +157,32 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when a readmodel triggers a new state", () => {
-        context("and the running projection depends on it", () => {
-            it("should trigger a state change", () => {
-
-            });
+        beforeEach(async () => {
+            projection.publish = {
+                "Dependency": {
+                    readmodels: {
+                        $list: ["a"],
+                        $change: () => ["some-client"]
+                    }
+                },
+                "NoDependencies": {}
+            };
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.just({
+                type: SpecialEvents.READMODEL_CHANGED,
+                payload: "a",
+                timestamp: new Date(10000)
+            }));
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.just({
+                type: SpecialEvents.READMODEL_CHANGED,
+                payload: "b",
+                timestamp: new Date(11000)
+            }));
+            publishState(66, new Date(5000));
+            await subject.run();
         });
-
-        context("and the running projection does not depend on it", () => {
-            it("should not trigger a state change", () => {
-
-            });
+        it("should notify the publish points that depend on it", () => {
+            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Dependency")), "some-client"), Times.once());
+            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "NoDependencies"))), Times.never());
         });
     });
 
@@ -172,6 +191,7 @@ describe("Given a ProjectionEngine", () => {
             let readModel = <IProjection>new MockReadModel().define();
             registry.reset();
             registry.setup(r => r.projections()).returns(() => [[SpecialAreas.Readmodel, readModel]]);
+            registry.setup(r => r.projectionFor("ReadModel")).returns(() => [SpecialAreas.Readmodel, readModel]);
             publishReadModel(66, new Date(5000));
             await subject.run();
         });
