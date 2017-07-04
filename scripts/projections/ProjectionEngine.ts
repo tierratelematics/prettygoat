@@ -79,6 +79,10 @@ class ProjectionEngine implements IProjectionEngine {
                             forEach(notificationKeys, key => this.pushNotifier.notify(new PushContext(area, pointName), key));
                         }
                     });
+                } else {
+                    forEach(notification[1], (notificationKeys, point) => {
+                        forEach(notificationKeys, key => this.pushNotifier.notify(new PushContext(area, point), key));
+                    });
                 }
             }, error => {
                 subscription.dispose();

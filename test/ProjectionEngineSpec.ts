@@ -60,7 +60,7 @@ describe("Given a ProjectionEngine", () => {
 
     afterEach(() => clock.uninstall());
 
-    function publishState(state, timestamp, notificationKeys = []) {
+    function publishState(state, timestamp, notificationKeys = {}) {
         runner.object.state = state;
         dataSubject.onNext([{
             type: "Mock",
@@ -151,8 +151,13 @@ describe("Given a ProjectionEngine", () => {
             });
         });
 
-        it("should notify on all the registered publish points correctly", () => {
+        it("should notify on all the registered publish points correctly", async () => {
+            pushNotifier.setup(p => p.notify(It.isAny(), It.isAny()));
+            publishState(66, new Date(5000), {List: [null], "Detail": ["66"]});
+            await subject.run();
 
+            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "List")), null), Times.once());
+            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Detail")), "66"), Times.once());
         });
     });
 
