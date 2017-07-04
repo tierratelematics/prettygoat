@@ -34,8 +34,10 @@ class RouteResolver implements IRouteResolver {
             .filter(route => route.method === request.method)
             .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : false])
             .filter(route => route[1])
+            .takeRight(1)
             .flatten()
             .valueOf();
+        
         return !context[0] ? [null, null] : context;
     }
 

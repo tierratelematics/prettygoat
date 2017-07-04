@@ -1,7 +1,10 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IRouteResolver, IRequest, IRequestHandler} from "../../scripts/web/IRequestComponents";
-import {MockRequestHandler, ParamRequestHandler, NoUrlRequestHandler} from "../fixtures/web/MockRequestHandler";
+import {
+    MockRequestHandler, ParamRequestHandler, NoUrlRequestHandler,
+    DuplicatedRequestHandler
+} from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import RouteResolver from "../../scripts/web/RouteResolver";
 
@@ -49,7 +52,15 @@ describe("Given a RouteResolver and a new request", () => {
         });
 
         context("and a duplicated request handler exists for the request", () => {
-           it("should pick the last");
+            beforeEach(() => {
+                subject = new RouteResolver([mockRequestHandler, paramRequestHandler, new DuplicatedRequestHandler()]);
+            });
+           it("should pick the last", () => {
+               request.url = "/test";
+               let data = subject.resolve(request);
+
+               expect((<any>data[0]).duplicated).to.be(true);
+           });
         });
 
         context("and a specific handler does not exists for the request", () => {
