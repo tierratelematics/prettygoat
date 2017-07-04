@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import {Mock} from "typemoq";
 import {IReadModelRetriever, ReadModelRetriever} from "../../scripts/readmodels/ReadModelRetriever";
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
-import Dictionary from "../../scripts/util/Dictionary";
+import Dictionary from "../../scripts/common/Dictionary";
 
 describe("Given a readmodel provider", () => {
     let subject: IReadModelRetriever;

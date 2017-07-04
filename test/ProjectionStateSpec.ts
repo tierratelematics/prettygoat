@@ -6,7 +6,7 @@ import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IRequest, IResponse, IRequestHandler} from "../scripts/web/IRequestComponents";
 import MockRequest from "./fixtures/web/MockRequest";
-import Dictionary from "../scripts/util/Dictionary";
+import Dictionary from "../scripts/common/Dictionary";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjection} from "../scripts/projections/IProjection";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";

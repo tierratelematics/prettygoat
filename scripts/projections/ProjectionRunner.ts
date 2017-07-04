@@ -1,7 +1,7 @@
 import {Subject, IDisposable, Observable, Scheduler} from "rx";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import Dictionary from "../util/Dictionary";
-import {isPromise} from "../util/TypesUtil";
+import Dictionary from "../common/Dictionary";
+import {isPromise} from "../common/TypesUtil";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";

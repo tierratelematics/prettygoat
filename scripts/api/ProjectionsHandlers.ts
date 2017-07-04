@@ -1,5 +1,5 @@
 import {inject, injectable} from "inversify";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";

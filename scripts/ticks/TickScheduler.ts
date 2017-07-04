@@ -3,7 +3,7 @@ import {injectable, inject} from "inversify";
 import {ReplaySubject, Observable} from "rx";
 import Tick from "./Tick";
 import * as moment from "moment";
-import IDateRetriever from "../util/IDateRetriever";
+import IDateRetriever from "../common/IDateRetriever";
 import SpecialEvents from "../events/SpecialEvents";
 import {Event} from "../events/Event";
 

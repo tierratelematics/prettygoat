@@ -5,7 +5,7 @@ import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefin
 import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
 import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import TickScheduler from "../scripts/ticks/TickScheduler";
-import Dictionary from "../scripts/util/Dictionary";
+import Dictionary from "../scripts/common/Dictionary";
 import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
 import MockReadModel from "./fixtures/definitions/MockReadModel";

@@ -1,7 +1,7 @@
 import {ISnapshotStrategy} from "./ISnapshotStrategy";
 import {Event} from "../events/Event";
 import * as moment from "moment";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 
 class TimeSnapshotStrategy implements ISnapshotStrategy {
 

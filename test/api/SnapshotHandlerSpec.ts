@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import Dictionary from "../../scripts/util/Dictionary";
+import Dictionary from "../../scripts/common/Dictionary";
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import IDateRetriever from "../../scripts/util/IDateRetriever";
+import IDateRetriever from "../../scripts/common/IDateRetriever";
 import {IRequestHandler, IRequest, IResponse} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/SnapshotHandlers";

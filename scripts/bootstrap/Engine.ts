@@ -14,7 +14,7 @@ import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushCompo
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser, IMiddlewareTransformer} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";
-import PortDiscovery from "../util/PortDiscovery";
+import PortDiscovery from "../common/PortDiscovery";
 import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";

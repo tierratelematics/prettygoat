@@ -4,7 +4,7 @@ import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFa
 import ProjectionRunnerFactory from "../scripts/projections/ProjectionRunnerFactory";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
-import Dictionary from "../scripts/util/Dictionary";
+import Dictionary from "../scripts/common/Dictionary";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 

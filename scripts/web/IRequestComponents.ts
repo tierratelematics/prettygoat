@@ -1,6 +1,6 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 
 export interface IRequestAdapter {
     route(request: IRequest, response: IResponse);

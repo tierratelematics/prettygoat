@@ -4,10 +4,10 @@ import {Event} from "../events/Event";
 import {Observable, ReplaySubject, Disposable, helpers, HistoricalScheduler, CompositeDisposable} from "rx";
 import SpecialEvents from "../events/SpecialEvents";
 import Tick from "../ticks/Tick";
-import IDateRetriever from "../util/IDateRetriever";
+import IDateRetriever from "../common/IDateRetriever";
 import ITickScheduler from "../ticks/ITickScheduler";
 import {IProjection} from "./IProjection";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IStreamFactory} from "../events/IStreamFactory";
 
 export interface IProjectionStreamGenerator {

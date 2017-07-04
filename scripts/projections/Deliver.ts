@@ -1,5 +1,5 @@
-import Dictionary from "../util/Dictionary";
-import {ValueOrPromise} from "../util/TypesUtil";
+import Dictionary from "../common/Dictionary";
+import {ValueOrPromise} from "../common/TypesUtil";
 
 export enum DeliverAuthorization {
     CONTENT,

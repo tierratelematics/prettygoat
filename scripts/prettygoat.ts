@@ -15,6 +15,6 @@ export {default as RouteResolver} from "./web/RouteResolver";
 export {default as ProjectionEngine} from "./projections/ProjectionEngine";
 export {default as PushContext} from "./push/PushContext";
 export {Snapshot} from "./snapshots/ISnapshotRepository";
-export {default as PortDiscovery} from "./util/PortDiscovery";
+export {default as PortDiscovery} from "./common/PortDiscovery";
 export {default as PrettyGoatModule} from "./bootstrap/PrettyGoatModule";
 export {ProjectionRunner, ProjectionStats} from "./projections/ProjectionRunner";

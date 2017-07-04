@@ -1,7 +1,7 @@
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 import {inject} from "inversify";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";

@@ -1,7 +1,7 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {Matcher} from "./Matcher";

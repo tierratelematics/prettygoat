@@ -1,6 +1,6 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
 import {injectable} from "inversify";

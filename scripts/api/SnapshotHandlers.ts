@@ -1,8 +1,8 @@
 import {inject} from "inversify";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import IDateRetriever from "../util/IDateRetriever";
+import IDateRetriever from "../common/IDateRetriever";
 import Route from "../web/RouteDecorator";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 

@@ -3,7 +3,7 @@ import {interfaces} from "inversify";
 import IObjectContainer from "./IObjectContainer";
 import * as _ from "lodash";
 import ITickScheduler from "../ticks/ITickScheduler";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjection, IProjectionDefinition} from "../projections/IProjection";
 import {IReadModelDefinition} from "../readmodels/IReadModel";
 import {Matcher} from "../projections/Matcher";

@@ -1,4 +1,4 @@
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IDeliverStrategy} from "./Deliver";
 import {IReadModel} from "../readmodels/IReadModel";
 import ITickScheduler from "../ticks/ITickScheduler";

@@ -7,7 +7,7 @@ import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
-import IAsyncPublisher from "../util/IAsyncPublisher";
+import IAsyncPublisher from "../common/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
