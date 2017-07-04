@@ -16,10 +16,10 @@ describe("Given a RequestParser", () => {
         context("and the request is coming from a channel", () => {
             it("should populate the channel", () => {
                 let data = subject.parse(new hammock.Request({
-                    url: "pgoat://readModels"
+                    url: "pgoat://readmodel"
                 }), new hammock.Response());
                 expect(data[0].url).to.be(null);
-                expect(data[0].channel).to.be("readModels");
+                expect(data[0].channel).to.be("readmodel");
             });
         });
 

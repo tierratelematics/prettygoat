@@ -13,6 +13,20 @@ export class MockRequestHandler implements IRequestHandler {
 
 }
 
+@Route("GET", "/test")
+export class DuplicatedRequestHandler implements IRequestHandler {
+
+    duplicated = true;
+
+    handle(request: IRequest, response: IResponse) {
+    }
+
+    keyFor(request: IRequest): string {
+        return null;
+    }
+
+}
+
 @Route("GET", "/foo/:id")
 export class ParamRequestHandler implements IRequestHandler {
 

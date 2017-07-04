@@ -1,5 +1,5 @@
 import IAsyncPublisher from "./IAsyncPublisher";
-import {Subject, Observable} from "rx";
+import {Subject, Observable} from "rxjs";
 import {injectable} from "inversify";
 
 @injectable()
@@ -8,11 +8,11 @@ class DebouncePublisher<T> implements IAsyncPublisher<T> {
     private subject = new Subject<T>();
 
     publish(item: T) {
-        this.subject.onNext(item);
+        this.subject.next(item);
     }
 
     items(): Observable<T> {
-        return this.subject.debounce(10000);
+        return this.subject.debounceTime(10000);
     }
 
 }

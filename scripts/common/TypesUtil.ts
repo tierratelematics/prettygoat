@@ -1,5 +1,5 @@
 import {isArray} from "lodash";
-import {Observable} from "rx";
+import {Observable} from "rxjs";
 
 export type ValueOrPromise<T> = T | Promise<T>;
 

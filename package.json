@@ -36,7 +36,6 @@
     "portscanner": "~2.1.1",
     "qs": "~6.3.0",
     "reflect-metadata": "0.1.8",
-    "rx": "~4.1.0",
     "socket.io": "~1.7.3",
     "url-pattern": "~1.0.3"
   },

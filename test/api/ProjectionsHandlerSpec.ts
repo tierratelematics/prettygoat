@@ -8,10 +8,8 @@ import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestCo
 import MockRequest from "../fixtures/web/MockRequest";
 import IProjectionEngine from "../../scripts/projections/IProjectionEngine";
 import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
-import {Observable} from "rx";
 import {IProjection} from "../../scripts/projections/IProjection";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
-import PushContext from "../../scripts/push/PushContext";
 import {ProjectionStopHandler, ProjectionRestartHandler} from "../../scripts/api/ProjectionsHandlers";
 import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
 

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import PushContext from "../../scripts/push/PushContext";
-import {Subject} from "rx";
+import {Subject} from "rxjs";
 import {Event} from "../../scripts/events/Event";
 import {IPushNotifier, IEventEmitter} from "../../scripts/push/IPushComponents";
 import PushNotifier from "../../scripts/push/PushNotifier";

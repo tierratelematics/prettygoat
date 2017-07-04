@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
-import {ReplaySubject, Observable} from "rx";
+import {ReplaySubject, Observable} from "rxjs";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/events/Event";
 import {IMock, Mock, Times, It} from "typemoq";
@@ -21,6 +21,7 @@ import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
+import Dictionary from "../scripts/common/Dictionary";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -31,7 +32,7 @@ describe("Given a ProjectionEngine", () => {
         runner: IMock<IProjectionRunner<number>>,
         runnerFactory: IMock<IProjectionRunnerFactory>,
         snapshotRepository: IMock<ISnapshotRepository>,
-        dataSubject: ReplaySubject<Event>,
+        dataSubject: ReplaySubject<[Event, Dictionary<string[]>]>,
         projection: IProjection<number>,
         asyncPublisher: IMock<IAsyncPublisher<any>>,
         clock: lolex.Clock,
@@ -43,7 +44,7 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
-        dataSubject = new ReplaySubject<Event>();
+        dataSubject = new ReplaySubject<[Event, Dictionary<string[]>]>();
         runner = Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = Mock.ofType<IPushNotifier>();
@@ -62,16 +63,16 @@ describe("Given a ProjectionEngine", () => {
 
     function publishState(state, timestamp, notificationKeys = {}) {
         runner.object.state = state;
-        dataSubject.onNext([{
+        dataSubject.next([{
             type: "Mock",
             payload: state,
             timestamp: timestamp
         }, notificationKeys]);
     }
 
-    function publishReadModel(state, timestamp, notificationKeys = []) {
+    function publishReadModel(state, timestamp, notificationKeys = {}) {
         runner.object.state = state;
-        dataSubject.onNext([{
+        dataSubject.next([{
             type: "ReadModel",
             payload: state,
             timestamp: timestamp
@@ -105,7 +106,7 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(() => {
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items()).returns(() => Observable.create(observer => {
-                observer.onNext(["Mock", new Snapshot(66, new Date(5000))]);
+                observer.next(["Mock", new Snapshot(66, new Date(5000))]);
             }));
             snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Promise.resolve());
             subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
@@ -172,12 +173,12 @@ describe("Given a ProjectionEngine", () => {
                 },
                 "NoDependencies": {}
             };
-            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.just({
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of({
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "a",
                 timestamp: new Date(10000)
             }));
-            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.just({
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of({
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "b",
                 timestamp: new Date(11000)

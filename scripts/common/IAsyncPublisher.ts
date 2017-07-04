@@ -1,4 +1,4 @@
-import {Observable} from "rx";
+import {Observable} from "rxjs";
 
 interface IAsyncPublisher<T> {
     publish(item: T);

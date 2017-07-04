@@ -1,8 +1,7 @@
 import "reflect-metadata";
-import {Observable, Subject, IDisposable} from "rx";
+import {Observable, Subject, Scheduler, Subscription} from "rxjs";
 import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
-import * as Rx from "rx";
 import {Event} from "../scripts/events/Event";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import {IProjection} from "../scripts/projections/IProjection";
@@ -11,6 +10,7 @@ import {IProjectionStreamGenerator} from "../scripts/projections/ProjectionStrea
 import {IMatcher} from "../scripts/projections/Matcher";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
+import Dictionary from "../scripts/common/Dictionary";
 
 describe("Given a ProjectionRunner", () => {
     let streamGenerator: IMock<IProjectionStreamGenerator>;
@@ -20,9 +20,9 @@ describe("Given a ProjectionRunner", () => {
     let timestamps: Date[];
     let stopped: boolean;
     let failed: boolean;
-    let subscription: IDisposable;
+    let subscription: Subscription;
     let projection: IProjection<number>;
-    let notificationKeys: string[];
+    let notificationKeys: Dictionary<string[]>;
     let detailMatcher: IMock<IMatcher>;
 
     beforeEach(() => {
@@ -35,7 +35,6 @@ describe("Given a ProjectionRunner", () => {
         matcher = Mock.ofType<IMatcher>();
         detailMatcher = Mock.ofType<IMatcher>();
         detailMatcher.setup(d => d.match("increment")).returns(() => (s, e) => e.toString());
-        notificationKeys = [];
         subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, {
             "Test": null, "Detail": detailMatcher.object
         });
@@ -47,7 +46,7 @@ describe("Given a ProjectionRunner", () => {
     });
 
     afterEach(() => {
-        subscription.dispose();
+        subscription.unsubscribe();
     });
 
     function completeStream() {
@@ -106,7 +105,7 @@ describe("Given a ProjectionRunner", () => {
 
     context("when the projection has gone realtime", () => {
         beforeEach(async () => {
-            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.just({
+            streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.of({
                 type: SpecialEvents.REALTIME,
                 payload: null,
                 timestamp: null
@@ -215,7 +214,7 @@ describe("Given a ProjectionRunner", () => {
                 });
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
                     return {type: "increment", payload: n, timestamp: new Date()};
-                }).observeOn(Rx.Scheduler.immediate));
+                }));
             });
             it("should notify an error", () => {
                 subject.run();
@@ -234,8 +233,8 @@ describe("Given a ProjectionRunner", () => {
 
             subject.run();
             subject.stop();
-            streamSubject.onNext({type: "increment", payload: 1, timestamp: new Date(501)});
-            streamSubject.onNext({type: "increment", payload: 2, timestamp: new Date(502)});
+            streamSubject.next({type: "increment", payload: 1, timestamp: new Date(501)});
+            streamSubject.next({type: "increment", payload: 2, timestamp: new Date(502)});
             await completeStream();
         });
         it("should not process any more events", () => {

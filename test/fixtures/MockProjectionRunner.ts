@@ -1,20 +1,14 @@
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
-import {Subject} from "rx";
-import {Event} from "../../scripts/events/Event";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import {ProjectionStats} from "../../scripts/projections/ProjectionRunner";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
+    closed = false;
     stats = new ProjectionStats();
-    private subject: Subject<Event>;
-
-    constructor(data?: Subject<Event>) {
-        this.subject = data;
-    }
 
     notifications() {
-        return this.subject;
+        return null;
     }
 
     run(snapshot?: Snapshot<T>): void {
@@ -30,7 +24,7 @@ class MockProjectionRunner<T> implements IProjectionRunner<T> {
     resume(): void {
     }
 
-    dispose(): void {
+    unsubscribe(): void {
 
     }
 

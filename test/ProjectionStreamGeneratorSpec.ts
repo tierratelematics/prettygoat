@@ -2,7 +2,8 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, Times, It} from "typemoq";
 import {ProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
-import {Observable, IDisposable, Subject} from "rx";
+import {Observable, Subject} from "rxjs";
+import {ISubscription} from "rxjs/Subscription";
 import MockDateRetriever from "./fixtures/MockDateRetriever";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
@@ -18,7 +19,7 @@ describe("Given a projection stream generator", () => {
     let notifications: Event[];
     let stopped: boolean;
     let failed: boolean;
-    let subscription: IDisposable;
+    let subscription: ISubscription;
     let projection: IProjection<number>;
     let completions = new Subject<string>();
 
@@ -36,8 +37,7 @@ describe("Given a projection stream generator", () => {
     });
 
     afterEach(() => {
-        if (subscription)
-            subscription.dispose();
+        if (subscription) subscription.unsubscribe();
     });
 
     context("when initializing a stream", () => {
@@ -66,7 +66,7 @@ describe("Given a projection stream generator", () => {
 
     context("when receiving an event from a stream", () => {
         beforeEach(() => {
-            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.just({
+            stream.setup(s => s.from(null, It.isAny(), It.isAny())).returns(_ => Observable.of({
                 type: "CassandraEvent",
                 payload: 1,
                 timestamp: new Date()

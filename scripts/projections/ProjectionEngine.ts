@@ -11,9 +11,10 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
-import {Observable} from "rx";
+import {Observable} from "rxjs";
 import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
+import {read} from "fs";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -54,14 +55,13 @@ class ProjectionEngine implements IProjectionEngine {
     private startProjection(projection: IProjection, snapshot: Snapshot<any>) {
         let runner = this.runnerFactory.create(projection),
             area = this.registry.projectionFor(projection.name)[0],
-            readModels = Observable.merge(!projection.publish ? [] : flatten(map(projection.publish, point => {
+            readModels = !projection.publish ? [] : flatten(map(projection.publish, point => {
                 return !point.readmodels ? [] : map(point.readmodels.$list, readmodel => {
                     return this.readModelNotifier.changes(readmodel).map(event => [event, []]);
                 });
-            })));
+            }));
 
-        let subscription = runner
-            .notifications()
+        let subscription = runner.notifications()
             .do(notification => {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
@@ -69,7 +69,7 @@ class ProjectionEngine implements IProjectionEngine {
                     this.publisher.publish([state.type, new Snapshot(state.payload, state.timestamp)]);
                 }
             })
-            .merge(readModels)
+            .merge(...readModels)
             .subscribe(notification => {
                 if (!projection.publish) {
                     this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp);
@@ -80,7 +80,7 @@ class ProjectionEngine implements IProjectionEngine {
 
                 forEach(contexts, context => this.notifyStateChange(context[0], context[1]));
             }, error => {
-                subscription.dispose();
+                subscription.unsubscribe();
                 this.logger.error(error);
             });
 

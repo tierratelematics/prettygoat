@@ -1,4 +1,5 @@
-import {Subject, IDisposable, Observable, Scheduler} from "rx";
+import {Subject, Observable, Scheduler} from "rxjs";
+import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../common/Dictionary";
 import {isPromise} from "../common/TypesUtil";
@@ -20,9 +21,9 @@ export class ProjectionStats {
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
     stats = new ProjectionStats();
+    closed: boolean;
     private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
-    private subscription: IDisposable;
-    private disposed: boolean;
+    private subscription: ISubscription;
     private failed: boolean;
 
     constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
@@ -35,7 +36,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     run(snapshot?: Snapshot<T>): void {
-        if (this.disposed)
+        if (this.closed)
             throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
@@ -50,7 +51,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private notifyStateChange(timestamp: Date, notificationKeys: Dictionary<string[]>) {
-        this.subject.onNext([{
+        this.subject.next([{
             payload: this.state,
             type: this.projection.name,
             timestamp: timestamp
@@ -67,67 +68,63 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .startWith(!snapshot && initEvent)
-            .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
+            .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .do(data => {
                 if (data[0].type === SpecialEvents.FETCH_EVENTS)
-                    completions.onNext(data[0].payload.event);
+                    completions.next(data[0].payload.event);
                 if (data[0].type === SpecialEvents.REALTIME)
                     this.stats.realtime = true;
             })
-            .filter(data => data[1])
+            .filter(data => !!data[1])
             .do(data => {
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
-            .flatMapWithMaxConcurrent(1, data => Observable.defer(() => {
+            .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
-                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
-            }).observeOn(Scheduler.currentThread))
-            .map(data => {
+                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.of([event, state]);
+            }).observeOn(Scheduler.queue), 1)
+            .subscribe(data => {
                 let [event, newState] = data;
                 this.state = newState;
 
                 let publishPoints = keys(this.notifyMatchers),
-                    notificationKeys = map(this.notifyMatchers, matcher => {
-                        if (!matcher) return [null];
-                        else {
-                            let matchFn = matcher.match(event.type);
-                            return matchFn ? matchFn(this.state, event.payload) : [null];
-                        }
-                    });
+                    notificationKeys = this.getNotificationKeys(event);
 
-                return [event, zipObject(publishPoints, notificationKeys)];
-            })
-            .subscribe(data => {
-                let [event, notificationKeys] = data;
-                this.notifyStateChange(event.timestamp, notificationKeys);
+                this.notifyStateChange(event.timestamp, <Dictionary<string[]>>zipObject(publishPoints, notificationKeys));
             }, error => {
                 this.failed = true;
-                this.subject.onError(error);
+                this.subject.error(error);
                 this.stop();
-            }, () => this.subject.onCompleted());
+            }, () => this.subject.complete());
+    }
+
+    private getNotificationKeys(event: Event) {
+        return map(this.notifyMatchers, matcher => {
+            if (!matcher) return [null];
+            else {
+                let matchFn = matcher.match(event.type);
+                return matchFn ? matchFn(this.state, event.payload) : [null];
+            }
+        });
     }
 
     stop(): void {
-        if (this.disposed)
-            throw Error("Projection already stopped");
+        if (this.closed) throw Error("Projection already stopped");
 
-        this.disposed = true;
+        this.closed = true;
         this.stats.running = false;
 
-        if (this.subscription)
-            this.subscription.dispose();
-        if (!this.failed)
-            this.subject.onCompleted();
+        if (this.subscription) this.subscription.unsubscribe();
+        if (!this.failed) this.subject.complete();
     }
 
-    dispose(): void {
+    unsubscribe(): void {
         this.stop();
 
-        if (!this.subject.isDisposed)
-            this.subject.dispose();
+        if (!this.subject.closed) this.subject.unsubscribe();
     }
 }
