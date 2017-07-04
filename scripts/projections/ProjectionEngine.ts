@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, isArray} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import ILogger from "../log/ILogger";
@@ -13,8 +13,11 @@ import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import {Observable} from "rx";
 import SpecialEvents from "../events/SpecialEvents";
+import Dictionary from "../common/Dictionary";
 
 type SnapshotData = [string, Snapshot<any>];
+
+type NotificationData = [PushContext, string];
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -48,7 +51,7 @@ class ProjectionEngine implements IProjectionEngine {
         }
     }
 
-    private startProjection(projection: IProjection<any>, snapshot: Snapshot<any>) {
+    private startProjection(projection: IProjection, snapshot: Snapshot<any>) {
         let runner = this.runnerFactory.create(projection),
             area = this.registry.projectionFor(projection.name)[0],
             readModels = Observable.merge(!projection.publish ? [] : flatten(map(projection.publish, point => {
@@ -71,19 +74,11 @@ class ProjectionEngine implements IProjectionEngine {
                 if (!projection.publish) {
                     this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp);
                 }
-                if (notification[0].type === SpecialEvents.READMODEL_CHANGED) {
-                    forEach(projection.publish, (point, pointName) => {
-                        if (point.readmodels && includes(point.readmodels.$list, notification[0].payload)) {
-                            let notificationKeys = point.readmodels.$change(runner.state);
-                            notificationKeys = isArray(notificationKeys) ? notificationKeys : [];
-                            forEach(notificationKeys, key => this.pushNotifier.notify(new PushContext(area, pointName), key));
-                        }
-                    });
-                } else {
-                    forEach(notification[1], (notificationKeys, point) => {
-                        forEach(notificationKeys, key => this.pushNotifier.notify(new PushContext(area, point), key));
-                    });
-                }
+                let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
+                    ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
+                    : this.projectionChangeKeys(notification[1], area);
+
+                forEach(contexts, context => this.notifyStateChange(context[0], context[1]));
             }, error => {
                 subscription.dispose();
                 this.logger.error(error);
@@ -92,7 +87,23 @@ class ProjectionEngine implements IProjectionEngine {
         runner.run(snapshot);
     }
 
-    private notifyContext(context: PushContext, notifyKey: string = null) {
+    private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string): NotificationData[] {
+        return reduce(projection.publish, (result, publishBlock, point) => {
+            if (publishBlock.readmodels && includes(publishBlock.readmodels.$list, readModel)) {
+                let notificationKeys = publishBlock.readmodels.$change(state);
+                result = concat(result, map<string, [PushContext, string]>(notificationKeys, key => [new PushContext(area, point), key]));
+            }
+            return result;
+        }, []);
+    }
+
+    private projectionChangeKeys(notifications: Dictionary<string[]>, area: string): NotificationData[] {
+        return reduce(notifications, (result, notificationKeys, point) => {
+            return concat(result, map<string, [PushContext, string]>(notificationKeys, key => [new PushContext(area, point), key]));
+        }, []);
+    }
+
+    private notifyStateChange(context: PushContext, notifyKey: string) {
         this.pushNotifier.notify(context, notifyKey);
         this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
     }
