@@ -6,6 +6,7 @@ import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {Matcher} from "./Matcher";
 import {ProjectionRunner} from "./ProjectionRunner";
+import {mapValues} from "lodash";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -16,7 +17,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
     }
 
     create<T>(projection: IProjection<T>): IProjectionRunner<T> {
-        let projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, new Matcher(projection.definition));
+        let notifyMatchers = mapValues(projection.publish, point => new Matcher(point.notify));
+        let projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, new Matcher(projection.definition), notifyMatchers);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }
