@@ -1,8 +1,7 @@
-import {Subject, IDisposable, Observable} from "rx";
+import {Subject, IDisposable, Observable, Scheduler} from "rx";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../util/Dictionary";
 import {isPromise} from "../util/TypesUtil";
-import {untypedFlatMapSeries} from "../util/RxOperators";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
@@ -10,7 +9,6 @@ import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
 import {keys, map, zipObject, mapValues} from "lodash";
-
 
 export class ProjectionStats {
     running = false;
@@ -81,13 +79,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
-            .let(untypedFlatMapSeries(data => {
+            .flatMapWithMaxConcurrent(1, data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
                 return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
-            }))
+            }).observeOn(Scheduler.currentThread))
             .map(data => {
                 let [event, newState] = data;
                 this.state = newState;
