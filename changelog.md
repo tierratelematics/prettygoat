@@ -1,3 +1,7 @@
+# 3.6.2
+
+Fix memory growth with lots of events
+
 # 3.6.1
 
 Fix stackoverflow on async handlers
