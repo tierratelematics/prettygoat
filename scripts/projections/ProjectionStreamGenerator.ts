@@ -35,7 +35,7 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
         let realtime = false;
         let scheduler = new VirtualTimeScheduler();
 
-        return Observable.create<Event>(observer => {
+        return Observable.create(observer => {
             let subscription = events.subscribe(event => {
                 if (event.type === SpecialEvents.REALTIME) {
                     if (!realtime) {
