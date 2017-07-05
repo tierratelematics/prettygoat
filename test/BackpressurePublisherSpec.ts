@@ -62,6 +62,7 @@ describe("Given a backpressure publisher", () => {
                 subject.publish("item2");
 
                 expect(notifications).to.eql(["item2"]);
+                expect(completed).to.be(true);
             });
         });
     });

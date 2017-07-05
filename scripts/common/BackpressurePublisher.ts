@@ -18,8 +18,10 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
     }
 
     publish(item: T) {
-        if (this.runner.stats.realtime)
+        if (this.runner.stats.realtime) {
+            this.historical.complete();
             this.realtime.next(item);
+        }
         else
             this.historical.next(item);
     }
