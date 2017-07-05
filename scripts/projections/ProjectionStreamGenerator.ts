@@ -1,7 +1,7 @@
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {inject, injectable} from "inversify";
 import {Event} from "../events/Event";
-import {Observable, ReplaySubject, Subscription, VirtualTimeScheduler} from "rxjs";
+import {Observable, VirtualTimeScheduler} from "rxjs";
 import SpecialEvents from "../events/SpecialEvents";
 import Tick from "../ticks/Tick";
 import IDateRetriever from "../common/IDateRetriever";
@@ -33,43 +33,43 @@ export class ProjectionStreamGenerator implements IProjectionStreamGenerator {
 
     private combineStreams(events: Observable<Event>, ticks: Observable<Event>, dateRetriever: IDateRetriever) {
         let realtime = false;
-        let combined = new ReplaySubject<Event>();
-        let subscriptions = new Subscription();
         let scheduler = new VirtualTimeScheduler();
 
-        subscriptions.add(events.subscribe(event => {
-            if (event.type === SpecialEvents.REALTIME) {
-                if (!realtime) {
-                    scheduler.maxFrames = Number.POSITIVE_INFINITY;
-                    scheduler.flush();
+        return Observable.create<Event>(observer => {
+            let subscription = events.subscribe(event => {
+                if (event.type === SpecialEvents.REALTIME) {
+                    if (!realtime) {
+                        scheduler.maxFrames = Number.POSITIVE_INFINITY;
+                        scheduler.flush();
+                    }
+                    realtime = true;
                 }
-                realtime = true;
-            }
-            if (realtime) {
-                combined.next(event);
-            } else {
-                scheduler.schedule(() => {
-                    combined.next(event);
-                }, +event.timestamp - scheduler.frame);
-                try {
-                    scheduler.maxFrames = +event.timestamp;
-                    scheduler.flush();
-                } catch (error) {
-                    combined.error(error);
+                if (realtime) {
+                    observer.next(event);
+                } else {
+                    scheduler.schedule(() => {
+                        observer.next(event);
+                    }, +event.timestamp - scheduler.frame);
+                    try {
+                        scheduler.maxFrames = +event.timestamp;
+                        scheduler.flush();
+                    } catch (error) {
+                        observer.error(error);
+                    }
                 }
-            }
-        }, error => combined.error(error), () => combined.complete()));
+            }, error => observer.error(error), () => observer.complete());
 
-        subscriptions.add(ticks.subscribe((event: Event<Tick>) => {
-            if (realtime || event.payload.clock > dateRetriever.getDate()) {
-                Observable.empty().delay(event.timestamp).subscribe(null, null, () => combined.next(event));
-            } else {
-                scheduler.schedule(() => {
-                    combined.next(event);
-                }, +event.payload.clock - scheduler.frame);
-            }
-        }));
+            subscription.add(ticks.subscribe((event: Event<Tick>) => {
+                if (realtime || event.payload.clock > dateRetriever.getDate()) {
+                    Observable.empty().delay(event.timestamp).subscribe(null, null, () => observer.next(event));
+                } else {
+                    scheduler.schedule(() => {
+                        observer.next(event);
+                    }, +event.payload.clock - scheduler.frame);
+                }
+            }));
 
-        return combined.finally(() => subscriptions.unsubscribe());
+            return subscription;
+        });
     }
 }
