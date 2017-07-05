@@ -2,9 +2,11 @@
   "name": "prettygoat",
   "version": "3.6.2",
   "devDependencies": {
+    "@types/chai": "~4.0.1",
     "@types/expect.js": "~0.3.29",
     "@types/lolex": "~1.5.30",
     "@types/mocha": "~2.2.33",
+    "chai": "~4.0.2",
     "expect.js": "~0.3.1",
     "hammock": "~2.0.1",
     "lolex": "~1.5.2",

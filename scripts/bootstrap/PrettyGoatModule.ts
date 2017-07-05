@@ -32,7 +32,7 @@ import BodyMiddleware from "../web/BodyMiddleware";
 import RequestParser from "../web/RequestParser";
 import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
 import MiddlewareTransformer from "../web/MiddlewareTransformer";
-import DebouncePublisher from "../common/DebouncePublisher";
+import DebouncePublisher from "../common/BackpressurePublisher";
 import IAsyncPublisher from "../common/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
