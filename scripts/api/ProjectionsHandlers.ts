@@ -7,7 +7,7 @@ const sizeof = require("object-sizeof");
 const humanize = require("humanize");
 import IProjectionEngine from "../projections/IProjectionEngine";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
-import PushContext from "../push/PushContext";
+import {assign} from "lodash";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 @injectable()
@@ -89,13 +89,11 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
         try {
             let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
-            response.send({
+            response.send(assign({}, runner.stats, {
                 name: request.params.projectionName,
                 size: size,
-                humanizedSize: humanize.filesize(size),
-                events: runner.stats.events,
-                running: runner.stats.running
-            });
+                humanizedSize: humanize.filesize(size)
+            }));
         } catch (e) {
             response.status(404);
             response.send({error: "Projection not found"});
