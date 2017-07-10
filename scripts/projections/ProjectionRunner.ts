@@ -64,12 +64,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .do(data => {
-                if (data[0].type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(data[0].payload.event);
-            })
-            .filter(data => data[1] !== Identity)
-            .do(data => this.updateStats(data[0]))
+            .filter(data => data[0].timestamp || (!data[0].timestamp && data[1] !== Identity))
             .let(untypedFlatMapSeries(data => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
@@ -84,6 +79,11 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
                 else
                     this.state = newState;
                 return [event, !(newState instanceof StopSignallingState)];
+            })
+            .do(data => {
+                if (data[0].type === ReservedEvents.FETCH_EVENTS)
+                    completions.onNext(data[0].payload.event);
+                this.updateStats(data[0]);
             })
             .subscribe(data => {
                 let [event, notify] = data;

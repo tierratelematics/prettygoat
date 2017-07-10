@@ -44,14 +44,14 @@ class SplitProjectionRunner<T> extends ProjectionRunner<T> {
                 this.matcher.match(event.type),
                 this.splitMatcher.match(event.type)
             ])
+            .filter(data => data[0].timestamp || (!data[0].timestamp && data[1] !== Identity))
+            .let(untypedFlatMapSeries(data => this.calculateSplitKeys(data[0], data[1], data[2])))
+            .let(untypedFlatMapSeries(data => this.calculateStates(data[0], data[1], data[2])))
             .do(data => {
                 if (data[0].type === ReservedEvents.FETCH_EVENTS)
                     completions.onNext(data[0].payload.event);
+                this.updateStats(data[0]);
             })
-            .filter(data => data[1] !== Identity)
-            .do(data => this.updateStats(data[0]))
-            .let(untypedFlatMapSeries(data => this.calculateSplitKeys(data[0], data[1], data[2])))
-            .let(untypedFlatMapSeries(data => this.calculateStates(data[0], data[1], data[2])))
             .subscribe(data => {
                 let [event, splitKeys] = data;
                 _.forEach(splitKeys, key => this.notifyStateChange(event.timestamp, key));
