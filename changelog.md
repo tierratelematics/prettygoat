@@ -1,4 +1,4 @@
-# 3.6.2
+# 3.6.3
 
 Fix memory growth with lots of events
 
