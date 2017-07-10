@@ -69,24 +69,23 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
+
+            .filter(data => data[0].type === SpecialEvents.FETCH_EVENTS || data[0].type === SpecialEvents.REALTIME || !!data[1])
+            .flatMap<any, any>(data => Observable.defer(() => {
+                let [event, matchFn] = data;
+                let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
+                // I'm not resolving every state directly with a Promise since this messes up with the
+                // synchronicity of the TickScheduler
+                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.of([event, state]);
+            }).observeOn(Scheduler.queue), 1)
             .do(data => {
                 if (data[0].type === SpecialEvents.FETCH_EVENTS)
                     completions.next(data[0].payload.event);
                 if (data[0].type === SpecialEvents.REALTIME)
                     this.stats.realtime = true;
-            })
-            .filter(data => !!data[1])
-            .do(data => {
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
-            .flatMap<any, any>(data => Observable.defer(() => {
-                let [event, matchFn] = data;
-                let state = matchFn(this.state, event.payload, event);
-                // I'm not resolving every state directly with a Promise since this messes up with the
-                // synchronicity of the TickScheduler
-                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.of([event, state]);
-            }).observeOn(Scheduler.queue), 1)
             .subscribe(data => {
                 let [event, newState] = data;
                 this.state = newState;
