@@ -64,7 +64,7 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .filter(data => data[0].timestamp || (!data[0].timestamp && data[1] !== Identity))
+            .filter(data => data[0].type === ReservedEvents.FETCH_EVENTS || data[1] !== Identity)
             .let(untypedFlatMapSeries(data => {
                 let [event, matchFn] = data;
                 let state = matchFn(this.state, event.payload, event);
