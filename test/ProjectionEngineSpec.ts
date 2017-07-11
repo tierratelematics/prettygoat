@@ -103,14 +103,13 @@ describe("Given a ProjectionEngine", () => {
     });
 
     context("when some snapshots needs to be processed", () => {
-        beforeEach(() => {
+        beforeEach(async () => {
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items()).returns(() => Observable.create(observer => {
                 observer.next(["Mock", new Snapshot(66, new Date(5000))]);
             }));
             snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Promise.resolve());
-            subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-                NullLogger, asyncPublisher.object, readModelNotifier.object);
+            await subject.run();
         });
         it("should save them", () => {
             snapshotRepository.verify(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000)))), Times.once());

@@ -30,13 +30,6 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>,
                 @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier) {
-        publisher.items()
-            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
-            .subscribe(snapshotData => {
-                let streamId = snapshotData[0],
-                    snapshot = snapshotData[1];
-                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshot.lastEvent.toISOString()}`);
-            });
     }
 
     async run(projection?: IProjection<any>) {
@@ -60,6 +53,14 @@ class ProjectionEngine implements IProjectionEngine {
                     return this.readModelNotifier.changes(readmodel).map(event => [event, []]);
                 });
             }));
+
+        this.publisher.items()
+            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+            .subscribe(snapshotData => {
+                let streamId = snapshotData[0],
+                    snapshotPayload = snapshotData[1];
+                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
+            });
 
         let subscription = runner.notifications()
             .do(notification => {
