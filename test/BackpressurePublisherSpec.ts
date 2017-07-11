@@ -6,6 +6,7 @@ import * as chai from "chai";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import {Subject} from "rxjs/Subject";
 import {ProjectionStats} from "../scripts/projections/ProjectionRunner";
+import {observable} from "rxjs/symbol/observable";
 
 describe("Given a backpressure publisher", () => {
 
@@ -22,13 +23,13 @@ describe("Given a backpressure publisher", () => {
             subject = new BackpressurePublisher(null, {
                 replay: 50,
                 realtime: 20
-            }, scheduler, scheduler.createHotObservable("ab", {
+            }, scheduler, scheduler.createHotObservable("(ab)", {
                 a: "item1",
                 b: "item2"
             }), scheduler.createHotObservable("|"));
         });
         it("should process those items with a delay", () => {
-            scheduler.expectObservable(subject.items()).toBe("------b", {b: "item2"});
+            scheduler.expectObservable(subject.items()).toBe("-----b", {b: "item2"});
 
             scheduler.flush();
         });
@@ -48,6 +49,30 @@ describe("Given a backpressure publisher", () => {
         });
         it("should process those events after the past events", () => {
             scheduler.expectObservable(subject.items()).toBe("--b-----c", {b: "item2", c: "item3"});
+
+            scheduler.flush();
+        });
+    });
+
+    context("when some messages are grouped", () => {
+        let subject: BackpressurePublisher<any>;
+
+        beforeEach(() => {
+            subject = new BackpressurePublisher(null, {
+                replay: 50,
+                realtime: 20
+            }, scheduler, scheduler.createHotObservable("(abcd)", {
+                a: "item1",
+                b: "item2",
+                c: "item1",
+                d: "item2"
+            }), scheduler.createHotObservable("|"));
+        });
+        it("should process those items respecting the grouping", () => {
+            scheduler.expectObservable(subject.items(item => item)).toBe("-----(cd)", {
+                c: "item1",
+                d: "item2"
+            });
 
             scheduler.flush();
         });

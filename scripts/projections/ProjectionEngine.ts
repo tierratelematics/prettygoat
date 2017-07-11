@@ -11,10 +11,8 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
-import {Observable} from "rxjs";
 import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
-import {read} from "fs";
 
 type SnapshotData = [string, Snapshot<any>];
 

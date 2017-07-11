@@ -26,9 +26,10 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
             this.historical.next(item);
     }
 
-    items(): Observable<T> {
+    items(grouping: (item: T) => string = (item => null)): Observable<T> {
         return this.historical
-            .debounceTime(this.backpressureConfig.replay, this.scheduler)
+            .groupBy(grouping)
+            .flatMap(group => group.debounceTime(this.backpressureConfig.replay, this.scheduler))
             .concat(this.realtime.sampleTime(this.backpressureConfig.realtime, this.scheduler));
     }
 
