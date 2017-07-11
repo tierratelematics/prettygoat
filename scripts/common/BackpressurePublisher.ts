@@ -27,7 +27,9 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
     }
 
     items(): Observable<T> {
-        return this.historical.debounceTime(this.backpressureConfig.replay, this.scheduler);
+        return this.historical
+            .debounceTime(this.backpressureConfig.replay, this.scheduler)
+            .concat(this.realtime.sampleTime(this.backpressureConfig.realtime, this.scheduler));
     }
 
 }
