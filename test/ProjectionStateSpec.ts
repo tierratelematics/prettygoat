@@ -13,7 +13,6 @@ import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/Projection
 import {
     AsyncContentDeliverStrategy, ContentDeliverStrategy, DependenciesDeliverStrategy,
     ForbiddenDeliverStrategy,
-    NotificationDeliverStrategy,
     UnauthorizedDeliverStrategy
 } from "./fixtures/MockDeliverStrategies";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
@@ -84,19 +83,6 @@ describe("Given a ProjectionStateHandler", () => {
                     await subject.handle(request, response.object);
 
                     response.verify(r => r.status(403), Times.once());
-                });
-            });
-
-            context("when a model id is passed", () => {
-                beforeEach(() => {
-                    projection.publish["Test"].deliver = new NotificationDeliverStrategy();
-                    request.params.notificationKey = "notification-key";
-                });
-                it("should be vehiculated to the deliver strategy", async () => {
-                    await subject.handle(request, response.object);
-
-                    response.verify(r => r.status(200), Times.once());
-                    response.verify(r => r.send("notification-key"), Times.once());
                 });
             });
 

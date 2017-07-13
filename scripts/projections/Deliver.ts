@@ -12,7 +12,6 @@ export type DeliverResult<T> = [T, DeliverAuthorization];
 export interface DeliverContext {
     headers: Dictionary<string>;
     params: Dictionary<string>;
-    notificationKey?: string;
 }
 
 export interface IDeliverStrategy<TState, TResult = any> {

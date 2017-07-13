@@ -32,14 +32,6 @@ export class UnauthorizedDeliverStrategy implements IDeliverStrategy<any> {
 
 }
 
-export class NotificationDeliverStrategy implements IDeliverStrategy<any> {
-
-    deliver(state: any, context: DeliverContext): DeliverResult<any> {
-        return [context.notificationKey, DeliverAuthorization.CONTENT];
-    }
-
-}
-
 export class DependenciesDeliverStrategy implements IDeliverStrategy<any> {
 
     deliver(state: any, context: DeliverContext, readModels: { a: string, b: number }): DeliverResult<any> {
