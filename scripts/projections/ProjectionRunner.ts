@@ -69,7 +69,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .filter(data => data[0].type === SpecialEvents.FETCH_EVENTS || data[0].type === SpecialEvents.REALTIME || !!data[1])
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
@@ -94,7 +93,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
                 this.notifyStateChange(event.timestamp, <Dictionary<string[]>>zipObject(publishPoints, notificationKeys));
             }, error => {
-                this.stats.failed= true;
+                this.stats.failed = true;
                 this.subject.error(error);
                 this.stop();
             }, () => this.subject.complete());
