@@ -183,30 +183,6 @@ describe("Given a ProjectionRunner", () => {
             });
         });
 
-        context("and no match is found for this event", () => {
-            beforeEach(async () => {
-                let date = new Date();
-                streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment" + n, payload: n, timestamp: new Date(+date + n)};
-                }));
-                matcher.setup(m => m.match("increment1")).returns(streamId => null);
-                matcher.setup(m => m.match("increment2")).returns(streamId => (s: number, e: any) => s + e);
-                matcher.setup(m => m.match("increment3")).returns(streamId => (s: number, e: any) => s + e);
-                matcher.setup(m => m.match("increment4")).returns(streamId => null);
-                matcher.setup(m => m.match("increment5")).returns(streamId => null);
-                subject.run();
-                await completeStream();
-            });
-
-            it("should not notify a state change", () => {
-                expect(notifications).to.be.eql([
-                    42,
-                    42 + 2,
-                    42 + 2 + 3
-                ]);
-            });
-        });
-
         context("and an error occurs while processing the event", () => {
             beforeEach(() => {
                 matcher.setup(m => m.match("increment")).returns(streamId => (s: number, e: any) => {
