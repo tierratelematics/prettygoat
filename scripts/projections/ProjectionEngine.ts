@@ -7,12 +7,12 @@ import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/IPushComponents";
-import IAsyncPublisher from "../common/IAsyncPublisher";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
+import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -26,7 +26,7 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
-                @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>,
+                @inject("IAsyncPublisherFactory") private publisherFactory: IAsyncPublisherFactory,
                 @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier) {
     }
 
@@ -52,7 +52,10 @@ class ProjectionEngine implements IProjectionEngine {
                 });
             }));
 
-        this.publisher.items()
+        let snapshotsPublisher = this.publisherFactory.publisherFor<SnapshotData>(runner);
+        let notificationsPublisher = this.publisherFactory.publisherFor(runner);
+
+        snapshotsPublisher.items()
             .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
             .subscribe(snapshotData => {
                 let streamId = snapshotData[0],
@@ -65,7 +68,7 @@ class ProjectionEngine implements IProjectionEngine {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    this.publisher.publish([state.type, new Snapshot(state.payload, state.timestamp)]);
+                    snapshotsPublisher.publish([state.type, new Snapshot(state.payload, state.timestamp)]);
                 }
             })
             .merge(...readModels)

@@ -1,18 +1,19 @@
 import {IProjectionRunner} from "../projections/IProjectionRunner";
-import BackpressurePublisher from "./BackpressurePublisher";
 import {inject, optional} from "inversify";
 import {IBackpressureConfig} from "../configs/BackpressureConfig";
+import IAsyncPublisher from "./IAsyncPublisher";
+import BackpressurePublisher from "./BackpressurePublisher";
 
-export interface IBackpressurePublisherFactory {
-    publisherFor<T>(runner: IProjectionRunner): BackpressurePublisher<T>;
+export interface IAsyncPublisherFactory {
+    publisherFor<T>(runner: IProjectionRunner): IAsyncPublisher<T>;
 }
 
-export class BackpressurePublisherFactory implements IBackpressurePublisherFactory {
+export class AsyncPublisherFactory implements IAsyncPublisherFactory {
 
     constructor(@inject("IBackpressureConfig") @optional() private config: IBackpressureConfig) {
     }
 
-    publisherFor<T>(runner: IProjectionRunner): BackpressurePublisher<T> {
+    publisherFor<T>(runner: IProjectionRunner): IAsyncPublisher<T> {
         return new BackpressurePublisher(runner, this.config);
     }
 

@@ -22,6 +22,7 @@ import MockReadModel from "./fixtures/definitions/MockReadModel";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
 import Dictionary from "../scripts/common/Dictionary";
+import {IAsyncPublisherFactory} from "../scripts/common/AsyncPublisherFactory";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -42,6 +43,8 @@ describe("Given a ProjectionEngine", () => {
         clock = lolex.install();
         asyncPublisher = Mock.ofType<IAsyncPublisher<any>>();
         asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
+        let asyncPublisherFactory = Mock.ofType<IAsyncPublisherFactory>();
+        asyncPublisherFactory.setup(a => a.publisherFor(It.isAny())).returns(() => asyncPublisher.object);
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
         dataSubject = new ReplaySubject<[Event, Dictionary<string[]>]>();
@@ -56,7 +59,7 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, asyncPublisher.object, readModelNotifier.object);
+            NullLogger, asyncPublisherFactory.object, readModelNotifier.object);
     });
 
     afterEach(() => clock.uninstall());
