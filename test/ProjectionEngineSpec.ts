@@ -42,7 +42,7 @@ describe("Given a ProjectionEngine", () => {
     beforeEach(() => {
         clock = lolex.install();
         asyncPublisher = Mock.ofType<IAsyncPublisher<any>>();
-        asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
+        asyncPublisher.setup(a => a.items(It.isAny())).returns(() => Observable.empty());
         let asyncPublisherFactory = Mock.ofType<IAsyncPublisherFactory>();
         asyncPublisherFactory.setup(a => a.publisherFor(It.isAny())).returns(() => asyncPublisher.object);
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
@@ -108,9 +108,8 @@ describe("Given a ProjectionEngine", () => {
     context("when some snapshots needs to be processed", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
-            asyncPublisher.setup(a => a.items()).returns(() => Observable.create(observer => {
-                observer.next(["Mock", new Snapshot(66, new Date(5000))]);
-            }));
+            asyncPublisher.setup(a => a.items()).returns(() => Observable.of(["Mock", new Snapshot(66, new Date(5000))]));
+            asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.empty());
             snapshotRepository.setup(s => s.saveSnapshot("Mock", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Promise.resolve());
             await subject.run();
         });
@@ -155,12 +154,11 @@ describe("Given a ProjectionEngine", () => {
         });
 
         it("should notify on all the registered publish points correctly", async () => {
-            pushNotifier.setup(p => p.notify(It.isAny(), It.isAny()));
             publishState(66, new Date(5000), {List: [null], "Detail": ["66"]});
             await subject.run();
 
-            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "List")), null), Times.once());
-            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Detail")), "66"), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66"])), Times.once());
         });
     });
 
@@ -189,8 +187,20 @@ describe("Given a ProjectionEngine", () => {
             await subject.run();
         });
         it("should notify the publish points that depend on it", () => {
-            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Dependency")), "some-client"), Times.once());
-            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "NoDependencies"))), Times.never());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client"])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "NoDependencies"), null])), Times.never());
+        });
+    });
+
+    context("when some notifications needs to be processed", () => {
+        beforeEach(async () => {
+            asyncPublisher.reset();
+            asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([new PushContext("Admin", "Mock"), "testkey"]));
+            asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
+            await subject.run();
+        });
+        it("should save them", () => {
+            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "testkey"), Times.once());
         });
     });
 

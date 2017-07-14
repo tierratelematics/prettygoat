@@ -53,7 +53,7 @@ class ProjectionEngine implements IProjectionEngine {
             }));
 
         let snapshotsPublisher = this.publisherFactory.publisherFor<SnapshotData>(runner);
-        let notificationsPublisher = this.publisherFactory.publisherFor(runner);
+        let notificationsPublisher = this.publisherFactory.publisherFor<NotificationData>(runner);
 
         snapshotsPublisher.items()
             .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
@@ -63,8 +63,14 @@ class ProjectionEngine implements IProjectionEngine {
                 this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
             });
 
+        notificationsPublisher.items(item => item[1]).subscribe(notification => {
+            let [context, notifyKey] = notification;
+            this.pushNotifier.notify(context, notifyKey);
+            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
+        });
+
         let subscription = runner.notifications()
-            .do(notification => {
+                .do(notification => {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
@@ -80,7 +86,7 @@ class ProjectionEngine implements IProjectionEngine {
                     ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
                     : this.projectionChangeKeys(notification[1], area);
 
-                forEach(contexts, context => this.notifyStateChange(context[0], context[1]));
+                forEach(contexts, context => notificationsPublisher.publish([context[0], context[1]]));
             }, error => {
                 subscription.unsubscribe();
                 this.logger.error(error);
@@ -103,11 +109,6 @@ class ProjectionEngine implements IProjectionEngine {
         return reduce(notifications, (result, notificationKeys, point) => {
             return concat(result, map<string, [PushContext, string]>(notificationKeys, key => [new PushContext(area, point), key]));
         }, []);
-    }
-
-    private notifyStateChange(context: PushContext, notifyKey: string) {
-        this.pushNotifier.notify(context, notifyKey);
-        this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
     }
 }
 
