@@ -63,7 +63,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
             let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
                 projection = this.container.resolve(definition).define(tickScheduler);
             this.tickSchedulerHolder[projection.name] = tickScheduler;
-            if (/(:\/)/.test(projection.name))
+            if (/(:\/,;\(\)#)/.test(projection.name))
                 throw new Error(`Projection name not valid on ${projection.name}`);
             if (!this.isNotificationFieldValid(projection))
                 throw new Error(`Notification field is incomplete on ${projection.name}`);
