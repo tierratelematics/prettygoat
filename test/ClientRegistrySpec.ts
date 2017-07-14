@@ -5,7 +5,6 @@ import {IMock, Mock, Times} from "typemoq";
 import {IClientRegistry, ISocketClient} from "../scripts/push/PushComponents";
 import ClientRegistry from "../scripts/push/ClientRegistry";
 import {IProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
-import {RegistryEntry} from "../declarations/prettygoat";
 import ClientRegistryDefinition from "./fixtures/definitions/ClientRegistryDefinition";
 
 describe("ClientRegistry, given a client", () => {
