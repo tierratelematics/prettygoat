@@ -1,12 +1,14 @@
 import {Event} from "../events/Event";
 import {Observable, Subject} from "rxjs";
 import SpecialEvents from "../events/SpecialEvents";
+import {injectable} from "inversify";
 
 export interface IReadModelNotifier {
     changes(name: string): Observable<Event>;
     notifyChanged(name: string, timestamp: Date);
 }
 
+@injectable()
 export class ReadModelNotifier implements IReadModelNotifier {
 
     private subject = new Subject<Event>();

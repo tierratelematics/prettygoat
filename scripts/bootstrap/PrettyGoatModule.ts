@@ -44,6 +44,9 @@ import * as Redis from "ioredis";
 import {isArray} from "lodash";
 import IRedisConfig from "../configs/IRedisConfig";
 import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
+import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
+import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
+import {AsyncPublisherFactory, IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -77,6 +80,9 @@ class PrettyGoatModule implements IModule {
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
         container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
+        container.bind<IReadModelRetriever>("IReadModelRetriever").to(ReadModelRetriever).inSingletonScope();
+        container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
+        container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
         container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
             let config = container.get<IRedisConfig>("IRedisConfig");
             return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
