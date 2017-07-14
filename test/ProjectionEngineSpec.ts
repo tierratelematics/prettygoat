@@ -42,7 +42,8 @@ describe("Given a ProjectionEngine", () => {
     beforeEach(() => {
         clock = lolex.install();
         asyncPublisher = Mock.ofType<IAsyncPublisher<any>>();
-        asyncPublisher.setup(a => a.items(It.isAny())).returns(() => Observable.empty());
+        asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
+        asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.empty());
         let asyncPublisherFactory = Mock.ofType<IAsyncPublisherFactory>();
         asyncPublisherFactory.setup(a => a.publisherFor(It.isAny())).returns(() => asyncPublisher.object);
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
