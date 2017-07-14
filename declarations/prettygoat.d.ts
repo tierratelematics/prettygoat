@@ -1,6 +1,7 @@
 ///<reference types="socket.io" />
 import {interfaces} from "inversify";
-import {Observable, IDisposable} from "rxjs";
+import {Observable} from "rxjs";
+import {ISubscription} from "rxjs/Subscription";
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import {Application} from "express";
@@ -29,6 +30,7 @@ export  interface IServiceLocator {
 
 export interface IObjectContainer extends IServiceLocator {
     set<T>(key: string, object: interfaces.Newable<T> | T, parent?: string);
+    resolve<T>(constructor: interfaces.Newable<T>);
     contains(key: string): boolean;
     remove(key: string): void;
 }
@@ -41,11 +43,11 @@ export class PrettyGoatModule implements IModule {
 }
 
 export interface IProjectionEngine {
-    run(projection?: IProjection<any>, context?: PushContext);
+    run(projection?: IProjection<any>);
 }
 
 export class ProjectionEngine implements IProjectionEngine {
-    run(projection?: IProjection<any>, context?: PushContext);
+    run(projection?: IProjection<any>);
 }
 
 export class PushContext {
@@ -56,52 +58,81 @@ export class PushContext {
     constructor(area: string, projectionName: string, parameters?: any);
 }
 
-export interface IProjection<T> {
+export interface IProjection<T = any> extends IReadModel<T> {
+    publish: Dictionary<PublishPoint<T>>;
+}
+
+export type PublishPoint<T> = {
+    notify?: NotificationBlock<T>;
+    deliver?: IDeliverStrategy<T>;
+    readmodels?: ReadModelBlock<T>;
+}
+
+export interface NotificationBlock<T extends Object> {
+    $key?: (parameters: any) => NotificationKey;
+    $default?: (s: T, payload: Object) => NotificationKey;
+    [name: string]: (s: T, payload: Object) => NotificationKey;
+}
+
+export interface ReadModelBlock<T extends Object> {
+    $list: NotificationKey;
+    $change: (s: T) => NotificationKey;
+}
+
+export type NotificationKey = string | string[];
+
+export interface IReadModel<T = any> {
     name: string;
-    split?: ISplit;
-    definition: IWhen<T>;
-    snapshotStrategy?: ISnapshotStrategy;
-    filterStrategy?: IFilterStrategy<T>;
-    notification?: INotification<T>;
+    definition: WhenBlock<T>;
+    snapshot?: ISnapshotStrategy;
 }
 
-export interface INotification<T extends Object> {
-    $default?: (s: T, payload: Object) => ValueOrPromise<string[]>;
-    [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
-}
-
-export type SplitKey = string | string[];
-
-export interface ISplit {
-    $default?: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
-    [name: string]: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
-}
-
-export interface IWhen<T extends Object> {
+export interface WhenBlock<T extends Object> {
     $init?: () => T;
-    $any?: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
-    [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T | SpecialState<T>>;
+    [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
+}
+
+export enum DeliverAuthorization {
+    CONTENT,
+    UNAUTHORIZED,
+    FORBIDDEN
+}
+
+export type DeliverResult<T> = [T, DeliverAuthorization];
+
+export interface DeliverContext {
+    headers: Dictionary<string>;
+    params: Dictionary<string>;
+}
+
+export interface IDeliverStrategy<TState, TResult = any> {
+    deliver(state: TState, context: DeliverContext, readModels?: Dictionary<any>): ValueOrPromise<DeliverResult<TResult>>;
+}
+
+export interface IProjectionDefinition<T = any> {
+    define(tickScheduler?: ITickScheduler): IProjection<T>;
+}
+
+export interface IReadModelDefinition<T = any> {
+    define(): IReadModel<T>;
 }
 
 export interface Event<T = any> {
     type: string;
     payload: T;
     timestamp: Date;
-    splitKey: string;
 }
 
 export interface IProjectionStreamGenerator {
     generate(projection: IProjection<any>, snapshot: Snapshot<any>, completions: Observable<any>): Observable<Event>;
 }
 
-export type RunnerNotification<T> = [Event<T>, string[]];
-
-export interface IProjectionRunner<T> extends IDisposable {
-    state: T | Dictionary<T>;
+export interface IProjectionRunner<T = any> extends ISubscription {
+    state: T;
     stats: ProjectionStats;
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T>): void;
     stop(): void;
-    notifications(): Observable<RunnerNotification<T>>;
+    notifications(): Observable<[Event<T>, Dictionary<string[]>]>;
 }
 
 export interface IProjectionRunnerFactory {
@@ -119,11 +150,10 @@ export class Matcher implements IMatcher {
     match(name: string): Function;
 }
 
-export var Identity: <T>(value: T) => T;
-
 export class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T | Dictionary<T>;
+    state: T;
     stats: ProjectionStats;
+    closed: boolean;
 
     constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
                 notificationMatcher: IMatcher, readModelFactory: IReadModelFactory);
@@ -134,90 +164,37 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     stop(): void;
 
-    dispose(): void;
-}
-
-export class SplitProjectionRunner<T> extends ProjectionRunner<T> {
-    state: Dictionary<T>;
-
-    constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                splitMatcher: IMatcher, readModelFactory: IReadModelFactory);
-
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
+    unsubscribe(): void;
 }
 
 export class ProjectionStats {
     running: boolean;
     events: number;
-    readModels: number;
+    lastEvent: Date;
+    realtime: boolean;
+    failed: boolean;
 }
 
-declare abstract class SpecialState<T> {
-    state: T;
-}
-
-export class SpecialStates {
-    static stopSignalling<T>(state: T): SpecialState<T>;
-
-    static deleteSplit(): SpecialState<any>;
-}
-
-declare class StopSignallingState<T> extends SpecialState<T> {
-    state: T;
-
-    constructor(state: T);
-}
-
-declare class DeleteSplitState extends SpecialState<any> {
-    state: any;
-
-    constructor();
-}
-
-export interface IProjectionDefinition<T> {
-    define(tickScheduler?: ITickScheduler): IProjection<T>;
-}
+export type RegistryLookup<T = any> = [string, IProjection<T>];
 
 export interface IProjectionRegistry {
-    master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
-    index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): AreaRegistry;
-    add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>, parametersKey?: (parameters: any) => string): IProjectionRegistry;
-    forArea(area: string): AreaRegistry;
-    getAreas(): AreaRegistry[];
-    getArea(areaId: string): AreaRegistry;
-    getEntry<T>(id: string, area?: string): { area: string, data: RegistryEntry<T> };
+    master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
+    index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
+    readmodel<T>(constructor: interfaces.Newable<IReadModelDefinition<T>>);
+    add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): IProjectionRegistry;
+    forArea(area: string);
+    projections(): RegistryLookup[];
+    projectionFor<T>(name: string, area?: string): RegistryLookup<T>;
 }
-
-export class AreaRegistry {
-    area: string;
-    entries: RegistryEntry<any>[];
-
-    constructor(area: string, entries: RegistryEntry<any>[]);
-}
-
-export class RegistryEntry<T> {
-    projection: IProjection<T>;
-    exposedName: string;
-    parametersKey: (parameters: any) => string;
-    construct: interfaces.Newable<IProjectionDefinition<T>>;
-
-    constructor(projection: IProjection<T>, exposedName: string, parametersKey?: (parameters: any) => string, construct?: interfaces.Newable<IProjectionDefinition<T>>);
-}
-
-export function Projection(name: string);
-
-export function Private();
 
 export interface IEventDeserializer {
     toEvent(row): Event;
 }
 
 export interface ISnapshotRepository {
-    initialize(): Observable<void>;
-    getSnapshots(): Observable<Dictionary<Snapshot<any>>>;
-    getSnapshot<T>(streamId: string): Observable<Snapshot<T>>;
-    saveSnapshot<T>(streamId: string, snapshot: Snapshot<T>): Observable<void>;
-    deleteSnapshot(streamId: string): Observable<void>;
+    getSnapshot<T>(name: string): Promise<Snapshot<T>>;
+    saveSnapshot<T>(name: string, snapshot: Snapshot<T>): Promise<void>;
+    deleteSnapshot(name: string): Promise<void>;
 }
 
 export class Snapshot<T> {
@@ -255,7 +232,6 @@ export interface INotificationConfig {
     protocol: string;
     host: string;
     port?: number;
-    path?: string;
 }
 
 export interface IApiKeyConfig {
@@ -276,23 +252,6 @@ export type IRedisConfig = RedisEndpoint | RedisEndpoint[]
 
 export interface Dictionary<T> {
     [index: string]: T;
-}
-
-export type FilterResult<T> = { filteredState: T, type: FilterOutputType };
-
-export interface IFilterStrategy<TState, TResult = any> {
-    filter(state: TState, context: IFilterContext): ValueOrPromise<FilterResult<TResult>>;
-}
-
-export interface IFilterContext {
-    headers: Dictionary<string>;
-    params: Dictionary<string>;
-}
-
-export enum FilterOutputType {
-    CONTENT,
-    UNAUTHORIZED,
-    FORBIDDEN
 }
 
 export enum LogLevel {
@@ -330,11 +289,11 @@ export class ConsoleLogger implements ILogger {
 export var NullLogger: ILogger;
 
 export interface IStreamFactory {
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event>;
+    from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event>;
 }
 
 export interface ITickScheduler extends IStreamFactory {
-    schedule(dueTime: number | Date, state?: string, splitKey?: string);
+    schedule(dueTime: number | Date, state?: string);
 }
 
 export class Tick {
@@ -347,7 +306,7 @@ export class Tick {
 export function FeatureToggle(predicate: CheckPredicate);
 
 export interface CheckPredicate {
-    (): boolean
+    (): boolean;
 }
 
 export interface IFeatureChecker {
@@ -417,12 +376,12 @@ export interface IRequest {
 }
 
 export interface IResponse {
+    originalResponse: ServerResponse;
     header(key: string, value: string);
     setHeader(key: string, value: string);
     status(code: number);
     send(data?: any);
     end();
-    originalResponse: ServerResponse;
 }
 
 export interface IMiddleware {
@@ -458,17 +417,6 @@ export interface ISocketFactory {
     socketForPath(path?: string): SocketIO.Server;
 }
 
-export interface IReadModelFactory extends IStreamFactory {
-    asList(): any[];
-    publish(event: Event): void;
-}
-
-export interface IProjectionSorter {
-    sort(): string[];
-    dependencies(projection: IProjection<any>): string[];
-    dependents(projection: IProjection<any>): string[];
-}
-
 export class PortDiscovery {
     static freePort(initialPort: number, host?: string): Promise<number>;
 }
@@ -478,3 +426,12 @@ export interface IDateRetriever {
 }
 
 export type ValueOrPromise<T> = T | Promise<T>;
+
+export interface IReadModelNotifier {
+    changes(name: string): Observable<Event>;
+    notifyChanged(name: string, timestamp: Date);
+}
+
+export interface IReadModelRetriever {
+    modelFor<T>(name: string): Promise<T>;
+}

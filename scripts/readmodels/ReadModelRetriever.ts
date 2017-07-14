@@ -1,6 +1,7 @@
 import {inject} from "inversify";
 import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
+
 export interface IReadModelRetriever {
     modelFor<T>(name: string): Promise<T>;
 }
