@@ -48,37 +48,6 @@ describe("Given a push notifier", () => {
             });
         });
 
-        context("and a custom path is passed in the config", () => {
-            it("should prepend this path to the endpoint", () => {
-                subject = new PushNotifier(eventEmitter.object, null, {
-                    host: "test",
-                    protocol: "http",
-                    path: "/proj",
-                    port: null
-                });
-                subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "http://test/proj/admin/foo",
-                    notificationKey: null
-                })), Times.once());
-            });
-        });
-
-        context("and no custom path path is passed in the config", () => {
-            it("should append a default projections path", () => {
-                subject = new PushNotifier(eventEmitter.object, null, {
-                    host: "test",
-                    protocol: "http",
-                    port: null
-                });
-                subject.notify(new PushContext("Admin", "Foo"));
-                eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "http://test/projections/admin/foo",
-                    notificationKey: null
-                })), Times.once());
-            });
-        });
-
         context("and a custom port is used for notifications", () => {
             it("should use these settings to construct the notification url", () => {
                 subject = new PushNotifier(eventEmitter.object, {

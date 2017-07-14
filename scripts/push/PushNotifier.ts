@@ -13,8 +13,7 @@ class PushNotifier implements IPushNotifier {
     constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
                 @inject("IEndpointConfig") endpointConfig: IEndpointConfig,
                 @inject("INotificationConfig") notificationConfig: INotificationConfig) {
-        let defaultPath = {path: "/projections"};
-        this.config = {...endpointConfig, ...defaultPath, ...notificationConfig};
+        this.config = {...endpointConfig, ...notificationConfig};
     }
 
     notify(context: PushContext, notificationKey?: string, clientId?: string): void {
@@ -37,7 +36,7 @@ class PushNotifier implements IPushNotifier {
     private buildNotification(context: PushContext, notificationKey: string = null): PushNotification {
         return {
             url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
-                + this.config.port : ""}${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase(),
+                + this.config.port : ""}/projections/${context.area}/${context.projectionName}`.toLowerCase(),
             notificationKey: notificationKey
         };
     }
