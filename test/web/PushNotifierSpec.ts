@@ -25,11 +25,12 @@ describe("Given a push notifier", () => {
         });
     });
 
-    context("when a normal projection emits a new state", () => {
+    context("when a projection emits a new state", () => {
         it("should emit a notification on the corresponding context", () => {
             subject.notify(new PushContext("Admin", "Foo"));
             eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                url: "http://test:80/projections/admin/foo"
+                url: "http://test:80/projections/admin/foo",
+                notificationKey: null
             })), Times.once());
         });
 
@@ -41,7 +42,8 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "http://test/projections/admin/foo"
+                    url: "http://test/projections/admin/foo",
+                    notificationKey: null
                 })), Times.once());
             });
         });
@@ -56,7 +58,8 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "http://test/proj/admin/foo"
+                    url: "http://test/proj/admin/foo",
+                    notificationKey: null
                 })), Times.once());
             });
         });
@@ -70,7 +73,8 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "http://test/projections/admin/foo"
+                    url: "http://test/projections/admin/foo",
+                    notificationKey: null
                 })), Times.once());
             });
         });
@@ -86,18 +90,19 @@ describe("Given a push notifier", () => {
                 });
                 subject.notify(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
-                    url: "https://test/projections/admin/foo"
+                    url: "https://test/projections/admin/foo",
+                    notificationKey: null
                 })), Times.once());
-            })
+            });
         });
-    });
-
-    context("when a split projection emits a new state", () => {
-        it("should append the split key in the notification url", () => {
-            subject.notify(new PushContext("Admin", "Foo"), "7564");
-            eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", It.isValue({
-                url: "http://test:80/projections/admin/foo/7564"
-            })), Times.once());
+        context("and a specific group of clients needs to be notified", () => {
+            it("should populate the notification key", () => {
+                subject.notify(new PushContext("Admin", "Foo"), "7564");
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", It.isValue({
+                    url: "http://test:80/projections/admin/foo",
+                    notificationKey: "7564"
+                })), Times.once());
+            });
         });
     });
 
@@ -105,7 +110,8 @@ describe("Given a push notifier", () => {
         it("should send a notification only to that client", () => {
             subject.notify(new PushContext("Admin", "Foo"), null, "25f");
             eventEmitter.verify(e => e.emitTo("25f", "Admin:Foo", It.isValue({
-                url: "http://test:80/projections/admin/foo"
+                url: "http://test:80/projections/admin/foo",
+                notificationKey: null
             })), Times.once());
         });
     });

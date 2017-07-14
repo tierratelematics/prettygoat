@@ -29,20 +29,16 @@ class PushNotifier implements IPushNotifier {
         }
     }
 
-    private emitToSingleClient(clientId: string, context: PushContext, notificationKey = ""): void {
+    private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {
         let notification = this.buildNotification(context, notificationKey);
         this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 
-    private buildNotification(context: PushContext, notificationKey: string): PushNotification {
-        let url = `${this.config.protocol}://${this.config.host}`;
-        if (this.config.port)
-            url += `:${this.config.port}`;
-        url += `${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase();
-        if (notificationKey)
-            url += `/${notificationKey}`;
+    private buildNotification(context: PushContext, notificationKey: string = null): PushNotification {
         return {
-            url: url
+            url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
+                + this.config.port : ""}${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase(),
+            notificationKey: notificationKey
         };
     }
 }
