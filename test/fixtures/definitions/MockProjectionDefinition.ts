@@ -5,13 +5,13 @@ import {injectable} from "inversify";
 @injectable()
 class MockProjectionDefinition implements IProjectionDefinition<number> {
 
-    constructor(private strategy?: ISnapshotStrategy) {
+    constructor(private strategy?: ISnapshotStrategy, private name?: string) {
 
     }
 
     define(): IProjection<number> {
         return {
-            name: "Mock",
+            name: this.name || "Mock",
             definition: {
                 $init: () => 10,
                 TestEvent: (s, e: number) => s + e

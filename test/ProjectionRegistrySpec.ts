@@ -72,6 +72,17 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
         });
     });
 
+    context("when a projection has illegal characters", () => {
+        beforeEach(() => {
+            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition(null, "Admin:/"));
+        });
+        it("should throw an error", () => {
+            expect(() => {
+                subject.add(MockProjectionDefinition).forArea("Admin");
+            }).to.throwError();
+        });
+    });
+
     context("when a projection with the same publish points has been registered", () => {
         beforeEach(() => {
             objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
