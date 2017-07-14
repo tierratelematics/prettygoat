@@ -1,5 +1,5 @@
 import {injectable, inject} from "inversify";
-import {ISocketFactory} from "./IPushComponents";
+import {ISocketFactory} from "./PushComponents";
 import IServerProvider from "../web/IServerProvider";
 const io = require("socket.io");
 

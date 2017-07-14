@@ -1,5 +1,5 @@
 import {injectable, inject} from "inversify";
-import {IEventEmitter, ISocketFactory} from "./IPushComponents";
+import {IEventEmitter, ISocketFactory} from "./PushComponents";
 import ISocketConfig from "../configs/ISocketConfig";
 
 @injectable()

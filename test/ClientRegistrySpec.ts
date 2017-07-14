@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import PushContext from "../scripts/push/PushContext";
 import {IMock, Mock, Times} from "typemoq";
-import {IClientRegistry, ISocketClient} from "../scripts/push/IPushComponents";
+import {IClientRegistry, ISocketClient} from "../scripts/push/PushComponents";
 import ClientRegistry from "../scripts/push/ClientRegistry";
 import {IProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
 import {RegistryEntry} from "../declarations/prettygoat";

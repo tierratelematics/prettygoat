@@ -4,7 +4,7 @@ import {Mock, IMock, Times, It} from "typemoq";
 import PushContext from "../../scripts/push/PushContext";
 import {Subject} from "rxjs";
 import {Event} from "../../scripts/events/Event";
-import {IPushNotifier, IEventEmitter} from "../../scripts/push/IPushComponents";
+import {IPushNotifier, IEventEmitter} from "../../scripts/push/PushComponents";
 import PushNotifier from "../../scripts/push/PushNotifier";
 
 describe("Given a push notifier", () => {

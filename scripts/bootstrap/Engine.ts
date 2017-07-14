@@ -10,7 +10,7 @@ import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
-import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
+import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/PushComponents";
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser, IMiddlewareTransformer} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";

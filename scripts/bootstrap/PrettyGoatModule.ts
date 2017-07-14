@@ -16,7 +16,7 @@ import ConsoleLogger from "../log/ConsoleLogger";
 import ITickScheduler from "../ticks/ITickScheduler";
 import TickScheduler from "../ticks/TickScheduler";
 import PushNotifier from "../push/PushNotifier";
-import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/IPushComponents";
+import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/PushComponents";
 import ClientRegistry from "../push/ClientRegistry";
 import SocketEventEmitter from "../push/SocketEventEmitter";
 import SocketFactory from "../push/SocketFactory";

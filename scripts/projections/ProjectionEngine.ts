@@ -6,7 +6,7 @@ import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import ILogger from "../log/ILogger";
 import NullLogger from "../log/NullLogger";
 import {IProjection} from "./IProjection";
-import {IPushNotifier} from "../push/IPushComponents";
+import {IPushNotifier} from "../push/PushComponents";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";

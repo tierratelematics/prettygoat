@@ -14,7 +14,7 @@ import {IProjection} from "../scripts/projections/IProjection";
 import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
-import {IPushNotifier} from "../scripts/push/IPushComponents";
+import {IPushNotifier} from "../scripts/push/PushComponents";
 import IAsyncPublisher from "../scripts/common/IAsyncPublisher";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
 import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
