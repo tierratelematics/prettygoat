@@ -155,8 +155,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     stats: ProjectionStats;
     closed: boolean;
 
-    constructor(projection: IProjection<T>, stream: IProjectionStreamGenerator, matcher: IMatcher,
-                notificationMatcher: IMatcher, readModelFactory: IReadModelFactory);
+    constructor(projection: IProjection<T>, streamGenerator: IProjectionStreamGenerator,
+                matcher: IMatcher, notifyMatchers: Dictionary<IMatcher>);
 
     notifications();
 
@@ -434,4 +434,11 @@ export interface IReadModelNotifier {
 
 export interface IReadModelRetriever {
     modelFor<T>(name: string): Promise<T>;
+}
+
+export class SpecialEvents {
+    static TICK: string;
+    static REALTIME: string;
+    static FETCH_EVENTS: string;
+    static READMODEL_CHANGED: string;
 }
