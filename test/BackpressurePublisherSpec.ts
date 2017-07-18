@@ -6,7 +6,6 @@ import * as chai from "chai";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
 import {Subject} from "rxjs/Subject";
 import {ProjectionStats} from "../scripts/projections/ProjectionRunner";
-import {observable} from "rxjs/symbol/observable";
 
 describe("Given a backpressure publisher", () => {
 
