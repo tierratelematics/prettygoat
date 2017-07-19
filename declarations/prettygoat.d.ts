@@ -354,7 +354,7 @@ export class RequestAdapter implements IRequestAdapter {
 }
 
 export interface IRequestHandler {
-    handle(request: IRequest, response: IResponse);
+    handle(request: IRequest, response: IResponse): ValueOrPromise<void>;
     keyFor(request: IRequest): string;
 }
 

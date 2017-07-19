@@ -17,7 +17,7 @@ class ProjectionStateHandler implements IRequestHandler {
                 @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
     }
 
-    async handle(request: IRequest, response: IResponse): Promise<void> {
+    async handle(request: IRequest, response: IResponse) {
         let publishPoint = request.params.publishPoint,
             area = request.params.area,
             projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];

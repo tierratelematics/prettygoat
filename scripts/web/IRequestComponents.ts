@@ -1,6 +1,7 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
 import Dictionary from "../common/Dictionary";
+import {ValueOrPromise} from "../common/TypesUtil";
 
 export interface IRequestAdapter {
     route(request: IRequest, response: IResponse);
@@ -8,7 +9,7 @@ export interface IRequestAdapter {
 }
 
 export interface IRequestHandler {
-    handle<T>(request: IRequest, response: IResponse): Promise<T> | void;
+    handle(request: IRequest, response: IResponse): ValueOrPromise<void>;
     keyFor(request: IRequest): string;
 }
 
