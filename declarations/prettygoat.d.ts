@@ -442,3 +442,12 @@ export class SpecialEvents {
     static FETCH_EVENTS: string;
     static READMODEL_CHANGED: string;
 }
+
+export interface IAsyncPublisher<T> {
+    publish(item: T);
+    items(grouping?: (item: T) => string): Observable<T>;
+}
+
+export interface IAsyncPublisherFactory {
+    publisherFor<T>(runner: IProjectionRunner): IAsyncPublisher<T>;
+}
