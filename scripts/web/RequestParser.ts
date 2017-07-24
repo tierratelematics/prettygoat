@@ -4,7 +4,6 @@ import Dictionary from "../common/Dictionary";
 import * as url from "url";
 import * as qs from "qs";
 import {injectable} from "inversify";
-import * as _ from "lodash";
 import {RequestData, IRequestParser, IRequest, IResponse} from "./IRequestComponents";
 
 @injectable()
@@ -17,7 +16,6 @@ class RequestParser implements IRequestParser {
 
 class Request implements IRequest {
     url: string;
-    channel: string;
     method: string;
     headers: Dictionary<string>;
     query: Dictionary<string>;
@@ -25,9 +23,7 @@ class Request implements IRequest {
     body: any;
 
     constructor(public originalRequest: IncomingMessage) {
-        let isChannel = _.startsWith(originalRequest.url, "pgoat://");
-        this.url = !isChannel ? originalRequest.url.replace(/\/+$/, "") : null; //Remove trailing slash
-        this.channel = isChannel ? originalRequest.url.substr(8) : null; //Remove pgoat://
+        this.url = originalRequest.url.replace(/\/+$/, ""); // Remove trailing slash
         this.method = originalRequest.method;
         this.headers = originalRequest.headers;
         this.query = qs.parse(url.parse(originalRequest.url).query);

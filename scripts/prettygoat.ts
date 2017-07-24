@@ -18,3 +18,4 @@ export {Snapshot} from "./snapshots/ISnapshotRepository";
 export {default as PortDiscovery} from "./common/PortDiscovery";
 export {default as PrettyGoatModule} from "./bootstrap/PrettyGoatModule";
 export {ProjectionRunner, ProjectionStats} from "./projections/ProjectionRunner";
+export {default as SpecialEvents} from "./events/SpecialEvents";

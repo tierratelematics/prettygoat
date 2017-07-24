@@ -366,7 +366,6 @@ export type IRouteContext = [IRequestHandler, any];
 
 export interface IRequest {
     url: string;
-    channel: string;
     method: string;
     headers: Dictionary<string>;
     query: Dictionary<string>;
