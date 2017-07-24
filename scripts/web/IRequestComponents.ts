@@ -19,23 +19,23 @@ export interface IRouteResolver {
 
 export type IRouteContext = [IRequestHandler, any];
 
-export interface IRequest {
+export interface IRequest<T = any> {
     url: string;
     method: string;
     headers: Dictionary<string>;
     query: Dictionary<string>;
     params: any;
-    body: any;
+    body: T;
     originalRequest: IncomingMessage;
 }
 
 export interface IResponse {
+    originalResponse: ServerResponse;
     header(key: string, value: string);
     setHeader(key: string, value: string);
     status(code: number);
     send(data?: any);
     end();
-    originalResponse: ServerResponse;
 }
 
 export type RequestData = [IRequest, IResponse];
