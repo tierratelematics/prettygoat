@@ -70,7 +70,7 @@ class ProjectionEngine implements IProjectionEngine {
         });
 
         let subscription = runner.notifications()
-                .do(notification => {
+            .do(notification => {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {

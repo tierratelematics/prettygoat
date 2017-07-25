@@ -11,7 +11,7 @@ export class ContentDeliverStrategy implements IDeliverStrategy<any> {
 export class AsyncContentDeliverStrategy implements IDeliverStrategy<any> {
 
     deliver(state: any, context: DeliverContext): Promise<DeliverResult<any>> {
-        return Promise.resolve([state, DeliverAuthorization.CONTENT]);
+        return Promise.resolve(<DeliverResult<any>>[state, DeliverAuthorization.CONTENT]);
     }
 
 }

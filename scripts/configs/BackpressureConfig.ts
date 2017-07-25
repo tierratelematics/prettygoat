@@ -4,6 +4,6 @@ export interface IBackpressureConfig {
 }
 
 export class BackpressureConfig implements IBackpressureConfig {
-    replay = 10000;
+    replay = 2000;
     realtime = 100;
 }

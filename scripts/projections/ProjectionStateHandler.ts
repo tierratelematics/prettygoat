@@ -7,7 +7,8 @@ import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./Deliver";
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
-import {map, zipObject} from "lodash";
+import {map, zipObject, keys} from "lodash";
+import {IProjection, PublishPoint} from "./IProjection";
 
 @Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
@@ -18,16 +19,16 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     async handle(request: IRequest, response: IResponse) {
-        let publishPoint = request.params.publishPoint,
+        let pointName = request.params.publishPoint,
             area = request.params.area,
-            projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];
+            projection = this.projectionRegistry.projectionFor(pointName, area)[1];
         if (!projection || !(<any>projection).publish) {
             this.sendNotFound(response);
         } else {
-            let deliverStrategy = projection.publish[publishPoint].deliver || new IdentityDeliverStrategy<any>(),
+            let publishPoint = this.getPublishpoint(projection, pointName),
+                deliverStrategy = publishPoint.deliver || new IdentityDeliverStrategy<any>(),
                 projectionRunner = this.holder[projection.name],
-                readModelsDefinition = projection.publish[publishPoint].readmodels,
-                dependencies = readModelsDefinition ? readModelsDefinition.$list : [];
+                dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
 
             let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
             let deliverContext = {
@@ -38,6 +39,11 @@ class ProjectionStateHandler implements IRequestHandler {
             let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
             this.sendResponse(response, deliverResult);
         }
+    }
+
+    private getPublishpoint(projection: IProjection, point: string): PublishPoint<any> {
+        let match = new RegExp(point, "i").exec(Object.getOwnPropertyNames(projection.publish).toString());
+        return projection.publish[match[0]];
     }
 
     private sendNotFound(response: IResponse) {

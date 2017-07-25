@@ -9,6 +9,7 @@ export interface IMatcher {
 export class Matcher implements IMatcher {
 
     constructor(private definition: Dictionary<any>) {
+        this.definition = definition || {};
     }
 
     match(name: string): Function {

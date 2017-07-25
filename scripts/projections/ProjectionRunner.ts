@@ -9,7 +9,7 @@ import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
-import {keys, map, zipObject, mapValues} from "lodash";
+import {keys, mapValues} from "lodash";
 
 export class ProjectionStats {
     running = false;
@@ -25,10 +25,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     closed: boolean;
     private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
     private subscription: ISubscription;
+    private publishPoints: string[] = [];
 
     constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
-
+        this.publishPoints = keys(this.notifyMatchers);
     }
 
     notifications() {
@@ -74,7 +75,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
-                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.of([event, state]);
+                return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
             }).observeOn(Scheduler.queue), 1)
             .do(data => {
                 if (data[0].type === SpecialEvents.FETCH_EVENTS)
@@ -84,14 +85,12 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
+            .filter(data => data[2])
             .subscribe(data => {
                 let [event, newState] = data;
                 this.state = newState;
 
-                let publishPoints = keys(this.notifyMatchers),
-                    notificationKeys = this.getNotificationKeys(event);
-
-                this.notifyStateChange(event.timestamp, <Dictionary<string[]>>zipObject(publishPoints, notificationKeys));
+                this.notifyStateChange(event.timestamp, this.getNotificationKeys(event));
             }, error => {
                 this.stats.failed = true;
                 this.subject.error(error);
@@ -100,12 +99,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     }
 
     private getNotificationKeys(event: Event) {
-        return map(this.notifyMatchers, matcher => {
-            if (!matcher) return [null];
-            else {
-                let matchFn = matcher.match(event.type);
-                return matchFn ? matchFn(this.state, event.payload) : [null];
-            }
+        return mapValues(this.notifyMatchers, matcher => {
+            let matchFn = matcher.match(event.type);
+            return matchFn ? matchFn(this.state, event.payload) : [null];
         });
     }
 

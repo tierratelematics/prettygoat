@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {Observable, Subject, Scheduler, Subscription} from "rxjs";
+import {Observable, Subject, Subscription} from "rxjs";
 import {IMock, Mock, Times, It} from "typemoq";
 import expect = require("expect.js");
 import {Event} from "../scripts/events/Event";
@@ -23,7 +23,6 @@ describe("Given a ProjectionRunner", () => {
     let subscription: Subscription;
     let projection: IProjection<number>;
     let notificationKeys: Dictionary<string[]>;
-    let detailMatcher: IMock<IMatcher>;
 
     beforeEach(() => {
         projection = new MockProjectionDefinition().define();
@@ -33,10 +32,12 @@ describe("Given a ProjectionRunner", () => {
         failed = false;
         streamGenerator = Mock.ofType<IProjectionStreamGenerator>();
         matcher = Mock.ofType<IMatcher>();
-        detailMatcher = Mock.ofType<IMatcher>();
+        let detailMatcher = Mock.ofType<IMatcher>();
         detailMatcher.setup(d => d.match("increment")).returns(() => (s, e) => e.toString());
+        let testMatcher = Mock.ofType<IMatcher>();
+        testMatcher.setup(d => d.match(It.isAny())).returns(() => null);
         subject = new ProjectionRunner<number>(projection, streamGenerator.object, matcher.object, {
-            "Test": null, "Detail": detailMatcher.object
+            "Test": testMatcher.object, "Detail": detailMatcher.object
         });
         subscription = subject.notifications().subscribe(notification => {
             notifications.push(notification[0].payload);

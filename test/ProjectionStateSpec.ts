@@ -42,12 +42,12 @@ describe("Given a ProjectionStateHandler", () => {
 
         beforeEach(() => {
             projection = new MockProjectionDefinition().define();
-            registry.setup(r => r.projectionFor("Test", "Admin")).returns(() => ["Admin", projection]);
+            registry.setup(r => r.projectionFor("test", "Admin")).returns(() => ["Admin", projection]);
             holder["Mock"] = projectionRunner;
             projectionRunner.state = 42;
             request.params = {
                 area: "Admin",
-                publishPoint: "Test"
+                publishPoint: "test"
             };
         });
         context("and a deliver strategy is applied", () => {
