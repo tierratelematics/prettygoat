@@ -1,7 +1,7 @@
 import Route from "../web/RouteDecorator";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Route("POST", "/api/authorization/check")
+@Route("/api/authorization/check", "POST")
 class AuthorizationHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {

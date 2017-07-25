@@ -22,7 +22,7 @@ abstract class BaseProjectionHandler implements IRequestHandler {
     }
 }
 
-@Route("POST", "/api/projections/stop/:projectionName")
+@Route("/api/projections/stop/:projectionName", "POST")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
@@ -43,7 +43,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
 
 }
 
-@Route("POST", "/api/projections/restart/:projectionName")
+@Route("/api/projections/restart/:projectionName", "POST")
 export class ProjectionRestartHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
@@ -78,7 +78,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
 
 }
 
-@Route("GET", "/api/projections/stats/:projectionName")
+@Route("/api/projections/stats/:projectionName", "GET")
 export class ProjectionStatsHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {

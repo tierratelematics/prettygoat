@@ -6,7 +6,7 @@ import IDateRetriever from "../common/IDateRetriever";
 import Route from "../web/RouteDecorator";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Route("POST", "/api/snapshots/save/:projectionName")
+@Route("/api/snapshots/save/:projectionName", "POST")
 export class SnapshotSaveHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
@@ -34,7 +34,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
 
 }
 
-@Route("POST", "/api/snapshots/delete/:projectionName")
+@Route("/api/snapshots/delete/:projectionName", "POST")
 export class SnapshotDeleteHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,

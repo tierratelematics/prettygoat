@@ -395,7 +395,7 @@ export interface IMiddlewareTransformer {
     transform(request: IRequest, response: IResponse): Promise<RequestData>;
 }
 
-export function Route(method: Methods, path: string);
+export function Route(path: string, method?: Methods);
 
 export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "PATCH";
 

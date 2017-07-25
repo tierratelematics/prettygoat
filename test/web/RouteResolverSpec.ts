@@ -2,8 +2,8 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {IRouteResolver, IRequest, IRequestHandler} from "../../scripts/web/IRequestComponents";
 import {
-    MockRequestHandler, ParamRequestHandler, NoUrlRequestHandler,
-    DuplicatedRequestHandler
+    MockRequestHandler, ParamRequestHandler,
+    DuplicatedRequestHandler, ChannelRequestHandler
 } from "../fixtures/web/MockRequestHandler";
 import MockRequest from "../fixtures/web/MockRequest";
 import RouteResolver from "../../scripts/web/RouteResolver";
@@ -55,12 +55,12 @@ describe("Given a RouteResolver and a new request", () => {
             beforeEach(() => {
                 subject = new RouteResolver([mockRequestHandler, paramRequestHandler, new DuplicatedRequestHandler()]);
             });
-           it("should pick the last", () => {
-               request.url = "/test";
-               let data = subject.resolve(request);
+            it("should pick the last", () => {
+                request.url = "/test";
+                let data = subject.resolve(request);
 
-               expect((<any>data[0]).duplicated).to.be(true);
-           });
+                expect((<any>data[0]).duplicated).to.be(true);
+            });
         });
 
         context("and a specific handler does not exists for the request", () => {
@@ -81,12 +81,14 @@ describe("Given a RouteResolver and a new request", () => {
         });
     });
 
-    context("when an handler has no url", () => {
-        it("should return no handler", () => {
-            subject = new RouteResolver([new NoUrlRequestHandler()]);
-            request.url = "/notfound";
+    context("when the method is not specified", () => {
+        it("should match the full url", () => {
+            let requestHandler = new ChannelRequestHandler();
+            subject = new RouteResolver([requestHandler]);
+            request.url = "pgoat://readmodel/retrieve";
             let data = subject.resolve(request);
-            expect(data[0]).to.be(null);
-        })
+            expect(data[0]).to.be(requestHandler);
+
+        });
     });
 });

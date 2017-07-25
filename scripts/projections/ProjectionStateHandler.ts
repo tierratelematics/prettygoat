@@ -9,7 +9,7 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject} from "lodash";
 
-@Route("GET", "/projections/:area/:publishPoint")
+@Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,

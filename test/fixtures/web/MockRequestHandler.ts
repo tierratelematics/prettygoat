@@ -1,7 +1,7 @@
 import {IRequestHandler, IRequest, IResponse} from "../../../scripts/web/IRequestComponents";
 import Route from "../../../scripts/web/RouteDecorator";
 
-@Route("GET", "/test")
+@Route("/test", "GET")
 export class MockRequestHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
@@ -13,7 +13,7 @@ export class MockRequestHandler implements IRequestHandler {
 
 }
 
-@Route("GET", "/test")
+@Route("/test", "GET")
 export class DuplicatedRequestHandler implements IRequestHandler {
 
     duplicated = true;
@@ -27,7 +27,7 @@ export class DuplicatedRequestHandler implements IRequestHandler {
 
 }
 
-@Route("GET", "/foo/:id")
+@Route("/foo/:id", "GET")
 export class ParamRequestHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
@@ -39,8 +39,8 @@ export class ParamRequestHandler implements IRequestHandler {
 
 }
 
-@Route("GET", undefined)
-export class NoUrlRequestHandler implements IRequestHandler {
+@Route("pgoat://readmodel/retrieve")
+export class ChannelRequestHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
     }
@@ -50,4 +50,3 @@ export class NoUrlRequestHandler implements IRequestHandler {
     }
 
 }
-

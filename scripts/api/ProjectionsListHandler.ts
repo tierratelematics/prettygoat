@@ -4,7 +4,7 @@ import {inject} from "inversify";
 import {map} from "lodash";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
-@Route("GET", "/api/projections/list")
+@Route("/api/projections/list", "GET")
 export class ProjectionsListHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private registry: IProjectionRegistry) {
