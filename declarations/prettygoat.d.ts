@@ -234,10 +234,7 @@ export interface INotificationConfig {
     port?: number;
 }
 
-export interface IApiKeyConfig {
-    [index: number]: string;
-    length: number;
-}
+export type IApiKeyConfig = string[];
 
 export interface ISocketConfig {
     path: string;
