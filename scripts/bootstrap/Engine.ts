@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import {Container} from "inversify";
 import IModule from "./IModule";
 import * as _ from "lodash";
