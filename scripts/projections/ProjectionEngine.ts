@@ -32,18 +32,24 @@ class ProjectionEngine implements IProjectionEngine {
 
     async run(projection?: IProjection<any>) {
         if (projection) {
-            let snapshot = await this.snapshotRepository.getSnapshot(projection.name);
-            this.startProjection(projection, snapshot);
+            await this.startProjection(projection);
         } else {
             let projections = this.registry.projections();
             forEach(projections, async (entry) => {
-                let snapshot = await this.snapshotRepository.getSnapshot(entry[1].name);
-                this.startProjection(entry[1], snapshot);
+                await this.startProjection(entry[1]);
             });
         }
     }
 
-    private startProjection(projection: IProjection, snapshot: Snapshot<any>) {
+    private async startProjection(projection: IProjection) {
+        let snapshot: Snapshot<any> = null;
+        try {
+            snapshot = await this.snapshotRepository.getSnapshot(projection.name);
+        } catch (error) {
+            this.logger.error(`Snapshot loading has failed on projection ${projection.name}`);
+            this.logger.error(error);
+        }
+
         let runner = this.runnerFactory.create(projection),
             area = this.registry.projectionFor(projection.name)[0],
             readModels = !projection.publish ? [] : flatten(map(projection.publish, point => {

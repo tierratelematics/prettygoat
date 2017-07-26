@@ -106,6 +106,16 @@ describe("Given a ProjectionEngine", () => {
         });
     });
 
+    context("when a snapshot fails to load", () => {
+        beforeEach(async () => {
+            snapshotRepository.setup(s => s.getSnapshot("Mock")).returns(a => Promise.reject(new Error()));
+            await subject.run();
+        });
+        it("should start the projection with no snapshot", () => {
+            runner.verify(r => r.run(null), Times.once());
+        });
+    });
+
     context("when some snapshots needs to be processed", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
