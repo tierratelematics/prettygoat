@@ -19,7 +19,7 @@ export interface PushNotification {
 }
 
 export interface IClientRegistry {
-    add(client: ISocketClient, context: PushContext);
+    add(client: ISocketClient, context: PushContext): string;
     remove(client: ISocketClient, context: PushContext);
 }
 

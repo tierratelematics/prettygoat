@@ -20,6 +20,7 @@ describe("ClientRegistry, given a client", () => {
         let projection = new ClientRegistryDefinition().define();
         registry.setup(r => r.projectionFor("Foo", "Admin")).returns(() => ["Admin", projection]);
         registry.setup(r => r.projectionFor("Bar", "Admin")).returns(() => ["Admin", projection]);
+        registry.setup(r => r.projectionFor("KeyUndefined", "Admin")).returns(() => ["Admin", projection]);
     });
 
     context("when push notifications are requested", () => {
@@ -34,9 +35,10 @@ describe("ClientRegistry, given a client", () => {
             context("and there's a $key clause defined", () => {
                 it("should subscribe that client using also those parameters", () => {
                     let context = new PushContext("Admin", "Bar", {id: 25});
-                    subject.add(client.object, context);
+                    let key = subject.add(client.object, context);
 
                     client.verify(c => c.join("/admin/bar/25"), Times.once());
+                    expect(key).to.be("25");
                 });
             });
             context("but there's no $key clause defined", () => {
@@ -45,6 +47,15 @@ describe("ClientRegistry, given a client", () => {
                     subject.add(client.object, context);
 
                     client.verify(c => c.join("/admin/foo"), Times.once());
+                });
+            });
+            context("but there's no notification block", () => {
+                it("should subscribe to the channel without parameters", () => {
+                    let context = new PushContext("Admin", "KeyUndefined", {id: 25});
+                    let key = subject.add(client.object, context);
+
+                    client.verify(c => c.join("/admin/keyundefined"), Times.once());
+                    expect(key).not.to.be.ok();
                 });
             });
         });

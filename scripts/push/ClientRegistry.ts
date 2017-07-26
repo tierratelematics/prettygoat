@@ -11,23 +11,22 @@ class ClientRegistry implements IClientRegistry {
     }
 
     add(client: ISocketClient, context: PushContext) {
-        let entry = this.registry.projectionFor(context.projectionName, context.area),
-            notification = entry[1].publish[context.projectionName].notify.$key;
-        if (!notification) {
-            client.join(ContextOperations.getRoom(context));
-        } else {
-            client.join(ContextOperations.getRoom(context, <string>notification(context.parameters)));
-        }
+        let key = this.getNotificationKey(context);
+        client.join(ContextOperations.getRoom(context, key));
+        return key;
     }
 
     remove(client: ISocketClient, context: PushContext) {
+        client.leave(ContextOperations.getRoom(context, this.getNotificationKey(context)));
+    }
+
+    private getNotificationKey(context: PushContext): string {
         let entry = this.registry.projectionFor(context.projectionName, context.area),
-            notification = entry[1].publish[context.projectionName].notify.$key;
-        if (!notification) {
-            client.leave(ContextOperations.getRoom(context));
-        } else {
-            client.leave(ContextOperations.getRoom(context, <string>notification(context.parameters)));
-        }
+            publishPoint = entry[1].publish[context.projectionName],
+            notification = publishPoint.notify ? publishPoint.notify.$key : null;
+        if (!notification) notification = () => null;
+
+        return <string>notification(context.parameters);
     }
 }
 

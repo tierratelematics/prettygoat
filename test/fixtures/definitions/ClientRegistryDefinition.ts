@@ -16,10 +16,11 @@ class ClientRegistryDefinition implements IProjectionDefinition<number> {
                 },
                 "Bar": {
                     notify: {
-                        $key: (parameters) => parameters.id,
+                        $key: (parameters) => parameters.id.toString(),
                         TestEvent: (s, e) => null
                     }
-                }
+                },
+                "KeyUndefined": {}
             }
         };
     }

@@ -96,15 +96,13 @@ export class Engine {
             let wrappedClient = new SocketClient(client);
             client.on("subscribe", message => {
                 try {
-                    let context = new PushContext(message.area, message.modelId, message.parameters),
-                        entry = registry.projectionFor(context.projectionName, context.area),
-                        notification = entry[1].publish[context.projectionName].notify.$key,
-                        notificationKey = notification ? <string>notification(context.parameters) : null;
-                    clientRegistry.add(wrappedClient, context);
+                    let context = new PushContext(message.area, message.modelId, message.parameters);
+                    let notificationKey = clientRegistry.add(wrappedClient, context);
                     pushNotifier.notify(context, notificationKey, client.id);
                     logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
+                    logger.error(error);
                 }
             });
             client.on("unsubscribe", message => {
@@ -114,6 +112,7 @@ export class Engine {
                     logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
+                    logger.error(error);
                 }
             });
         });

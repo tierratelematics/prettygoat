@@ -1,5 +1,4 @@
 import PushContext from "./PushContext";
-import {isUndefined} from "lodash";
 
 class ContextOperations {
     // Determinate the event name to communicate with the frontend
@@ -10,7 +9,7 @@ class ContextOperations {
     // Group connected clients in notifications groups so I can broadcast to a room when a projection changes
     static getRoom(context: PushContext, notificationKey?: string): string {
         let channel = `/${context.area}/${context.projectionName}`.toLowerCase();
-        if (!isUndefined(notificationKey) && notificationKey !== null)
+        if (notificationKey)
             channel += `/${notificationKey}`;
         return channel;
     }
