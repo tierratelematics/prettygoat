@@ -11,6 +11,7 @@ import {IMatcher} from "../scripts/projections/Matcher";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import Dictionary from "../scripts/common/Dictionary";
+import {isArray} from "lodash";
 
 describe("Given a ProjectionRunner", () => {
     let streamGenerator: IMock<IProjectionStreamGenerator>;
@@ -169,6 +170,7 @@ describe("Given a ProjectionRunner", () => {
                         "Test": [null],
                         "Detail": ["5"]
                     });
+                    expect(isArray(notificationKeys.Detail)).to.be(true);
                 });
             });
 

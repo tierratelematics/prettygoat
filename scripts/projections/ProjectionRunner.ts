@@ -2,7 +2,7 @@ import {Subject, Observable, Scheduler} from "rxjs";
 import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../common/Dictionary";
-import {isPromise} from "../common/TypesUtil";
+import {isPromise, toArray} from "../common/TypesUtil";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
@@ -101,7 +101,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private getNotificationKeys(event: Event) {
         return mapValues(this.notifyMatchers, matcher => {
             let matchFn = matcher.match(event.type);
-            return matchFn ? matchFn(this.state, event.payload) : [null];
+            return matchFn ? toArray<string>(matchFn(this.state, event.payload)) : [null];
         });
     }
 
