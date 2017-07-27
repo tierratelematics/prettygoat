@@ -1,15 +1,14 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import Dictionary from "../../scripts/util/Dictionary";
+import Dictionary from "../../scripts/common/Dictionary";
 import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import IDateRetriever from "../../scripts/util/IDateRetriever";
+import IDateRetriever from "../../scripts/common/IDateRetriever";
 import {IRequestHandler, IRequest, IResponse} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "../../scripts/api/SnapshotHandlers";
-import {Observable} from "rx";
 
 describe("Given a SnapshotController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
@@ -30,8 +29,8 @@ describe("Given a SnapshotController and a projection name", () => {
         response = Mock.ofType<IResponse>();
         response.setup(s => s.status(It.isAny())).returns(a => response.object);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
-        snapshotRepository.setup(s => s.saveSnapshot(It.isAny(), It.isAny())).returns(() => Observable.empty<void>());
-        snapshotRepository.setup(s => s.deleteSnapshot(It.isAny())).returns(() => Observable.empty<void>());
+        snapshotRepository.setup(s => s.saveSnapshot(It.isAny(), It.isAny())).returns(() => Promise.resolve());
+        snapshotRepository.setup(s => s.deleteSnapshot(It.isAny())).returns(() => Promise.resolve());
     });
 
     context("when there isn't a projection with that name", () => {

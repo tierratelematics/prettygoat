@@ -1,14 +1,14 @@
 import {ISnapshotStrategy} from "./ISnapshotStrategy";
-import {Event} from "../streams/Event";
+import {Event} from "../events/Event";
 import * as moment from "moment";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 
 class TimeSnapshotStrategy implements ISnapshotStrategy {
 
-    private threshold = 1000 * 60 * 5; //5 minutes
-    private snapshots:Dictionary<number> = {};
+    private threshold = 1000 * 60 * 5; // 5 minutes
+    private snapshots: Dictionary<number> = {};
 
-    needsSnapshot(event:Event):boolean {
+    needsSnapshot(event: Event): boolean {
         let snapshot = this.snapshots[event.type];
         if (!snapshot)
             snapshot = this.snapshots[event.type] = this.toUnixTimestamp(event.timestamp);
@@ -17,13 +17,13 @@ class TimeSnapshotStrategy implements ISnapshotStrategy {
         return needsSnapshot;
     }
 
-    private toUnixTimestamp(date:Date):number {
+    private toUnixTimestamp(date: Date): number {
         return Math.round(+date / 1000);
     }
 
-    saveThreshold(ms:number) {
+    saveThreshold(ms: number) {
         this.threshold = ms;
     }
 }
 
-export default TimeSnapshotStrategy;
+export default TimeSnapshotStrategy

@@ -1,8 +1,7 @@
-import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
-import {IProjection} from "../../../scripts/projections/IProjection";
-import Projection from "../../../scripts/registry/ProjectionDecorator";
+import {IProjection, IProjectionDefinition} from "../../../scripts/projections/IProjection";
+import {injectable} from "inversify";
 
-@Projection("Mock")
+@injectable()
 class MockNotificationProjection implements IProjectionDefinition<number> {
 
     constructor() {
@@ -11,14 +10,22 @@ class MockNotificationProjection implements IProjectionDefinition<number> {
 
     define(): IProjection<number> {
         return {
-            name: "test",
+            name: "Mock",
             definition: {
                 $init: () => 10,
-                $any: (s, e) => 50,
                 TestEvent: (s, e: number) => s + e
             },
-            notification: {
-                TestEvent: (s, e) => null
+            publish: {
+                "List": {
+                    notify: {
+                        TestEvent: (s, e) => null
+                    }
+                },
+                "Detail": {
+                    notify: {
+                        TestEvent: (s, e) => null
+                    }
+                }
             }
         };
     }

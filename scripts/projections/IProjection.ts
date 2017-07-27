@@ -1,32 +1,31 @@
-import {ISnapshotStrategy} from "../snapshots/ISnapshotStrategy";
-import {Event} from "../streams/Event";
-import {SpecialState} from "./SpecialState";
-import {IFilterStrategy} from "../filters/IFilterStrategy";
-import {ValueOrPromise} from "../util/TypesUtil";
+import Dictionary from "../common/Dictionary";
+import {IDeliverStrategy} from "./Deliver";
+import {IReadModel} from "../readmodels/IReadModel";
+import ITickScheduler from "../ticks/ITickScheduler";
 
-export interface IWhen<T extends Object> {
-    $init?: () => T;
-    $any?: (s: T, payload: Object, event?: Event) => ValueOrPromise<T>;
-    [name: string]: (s: T, payload: Object, event?: Event) => ValueOrPromise<T | SpecialState<T>>;
+export interface IProjectionDefinition<T = any> {
+    define(tickScheduler?: ITickScheduler): IProjection<T>;
 }
 
-export type SplitKey = string | string[];
-
-export interface ISplit {
-    $default?: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
-    [name: string]: (e: Object, event?: Event) => ValueOrPromise<SplitKey>;
+export interface IProjection<T = any> extends IReadModel<T> {
+    publish: Dictionary<PublishPoint<T>>;
 }
 
-export interface IProjection<T> {
-    name: string;
-    split?: ISplit;
-    definition: IWhen<T>;
-    snapshotStrategy?: ISnapshotStrategy;
-    filterStrategy?: IFilterStrategy<T>;
-    notification?: INotification<T>;
+export type PublishPoint<T> = {
+    notify?: NotificationBlock<T>;
+    deliver?: IDeliverStrategy<T>;
+    readmodels?: ReadModelBlock<T>;
 }
 
-export interface INotification<T extends Object> {
-    $default?: (s: T, payload: Object) => ValueOrPromise<string[]>;
-    [name: string]: (s: T, payload: Object) => ValueOrPromise<string[]>;
+export interface NotificationBlock<T extends Object> {
+    $key?: (parameters: any) => NotificationKey;
+    $default?: (s: T, payload: Object) => NotificationKey;
+    [name: string]: (s: T, payload: Object) => NotificationKey;
 }
+
+export interface ReadModelBlock<T extends Object> {
+    $list: NotificationKey;
+    $change: (s: T) => NotificationKey;
+}
+
+export type NotificationKey = string | string[];

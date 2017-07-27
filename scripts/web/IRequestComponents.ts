@@ -1,6 +1,7 @@
 import {IncomingMessage} from "http";
 import {ServerResponse} from "http";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
+import {ValueOrPromise} from "../common/TypesUtil";
 
 export interface IRequestAdapter {
     route(request: IRequest, response: IResponse);
@@ -8,7 +9,7 @@ export interface IRequestAdapter {
 }
 
 export interface IRequestHandler {
-    handle<T>(request: IRequest, response: IResponse): Promise<T> | void;
+    handle(request: IRequest, response: IResponse): ValueOrPromise<void>;
     keyFor(request: IRequest): string;
 }
 
@@ -18,24 +19,23 @@ export interface IRouteResolver {
 
 export type IRouteContext = [IRequestHandler, any];
 
-export interface IRequest {
+export interface IRequest<T = any> {
     url: string;
-    channel: string;
     method: string;
     headers: Dictionary<string>;
     query: Dictionary<string>;
     params: any;
-    body: any;
+    body: T;
     originalRequest: IncomingMessage;
 }
 
 export interface IResponse {
+    originalResponse: ServerResponse;
     header(key: string, value: string);
     setHeader(key: string, value: string);
     status(code: number);
     send(data?: any);
     end();
-    originalResponse: ServerResponse;
 }
 
 export type RequestData = [IRequest, IResponse];

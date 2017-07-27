@@ -1,7 +1,5 @@
-import "reflect-metadata";
 import {Container} from "inversify";
 import IModule from "./IModule";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
@@ -11,16 +9,16 @@ import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
-import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/IPushComponents";
+import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/PushComponents";
 import SocketClient from "../push/SocketClient";
 import {IRequestAdapter, IRequestParser, IMiddlewareTransformer} from "../web/IRequestComponents";
 import {IReplicationManager} from "./ReplicationManager";
-import PortDiscovery from "../util/PortDiscovery";
+import PortDiscovery from "../common/PortDiscovery";
 import PushContext from "../push/PushContext";
 import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
-import {ModelContext} from "chupacabras";
 import getDecorators from "inversify-inject-decorators";
+import {IProjectionRegistry} from "./ProjectionRegistry";
 
 let container = new Container();
 export let {lazyInject} = getDecorators(container);
@@ -95,25 +93,25 @@ export class Engine {
 
         socketFactory.socketForPath(socketConfig.path).on("connection", client => {
             let wrappedClient = new SocketClient(client);
-            client.on("subscribe", (message: ModelContext) => {
+            client.on("subscribe", message => {
                 try {
-                    let context = new PushContext(message.area, message.modelId, message.parameters),
-                        entry = registry.getEntry(context.projectionName, context.area).data,
-                        splitKey = entry.parametersKey ? entry.parametersKey(context.parameters) : null;
-                    clientRegistry.add(wrappedClient, context);
-                    pushNotifier.notify(context, splitKey, client.id);
-                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, splitKey)} with id ${client.id}`);
+                    let context = new PushContext(message.area, message.modelId, message.parameters);
+                    let notificationKey = clientRegistry.add(wrappedClient, context);
+                    pushNotifier.notify(context, notificationKey, client.id);
+                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
+                    logger.error(error);
                 }
             });
-            client.on("unsubscribe", (message: ModelContext) => {
+            client.on("unsubscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     clientRegistry.remove(wrappedClient, context);
                     logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
+                    logger.error(error);
                 }
             });
         });

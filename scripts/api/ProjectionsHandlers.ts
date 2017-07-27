@@ -1,16 +1,14 @@
 import {inject, injectable} from "inversify";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
 const sizeof = require("object-sizeof");
 const humanize = require("humanize");
-import * as _ from "lodash";
-import SplitProjectionRunner from "../projections/SplitProjectionRunner";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import {ISnapshotRepository} from "../snapshots/ISnapshotRepository";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import PushContext from "../push/PushContext";
+import {assign} from "lodash";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 @injectable()
 abstract class BaseProjectionHandler implements IRequestHandler {
@@ -24,7 +22,7 @@ abstract class BaseProjectionHandler implements IRequestHandler {
     }
 }
 
-@Route("POST", "/api/projections/stop/:projectionName")
+@Route("/api/projections/stop/:projectionName", "POST")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
@@ -45,7 +43,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
 
 }
 
-@Route("POST", "/api/projections/restart/:projectionName")
+@Route("/api/projections/restart/:projectionName", "POST")
 export class ProjectionRestartHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
@@ -55,20 +53,19 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
         super();
     }
 
-    handle(request: IRequest, response: IResponse) {
+    async handle(request: IRequest, response: IResponse) {
         try {
             let projectionName = request.params.projectionName,
-                entry = this.registry.getEntry(projectionName),
+                entry = this.registry.projectionFor(projectionName),
                 runner = this.holders[projectionName];
 
             if (runner.stats.running)
                 runner.stop();
 
-            this.snapshotRepository.deleteSnapshot(projectionName).subscribe(() => {
-                this.projectionEngine.run(entry.data.projection, new PushContext(entry.area, entry.data.exposedName));
-                response.status(204);
-                response.send();
-            }, () => this.writeError(response));
+            await this.snapshotRepository.deleteSnapshot(projectionName);
+            this.projectionEngine.run(entry[1]);
+            response.status(204);
+            response.send();
         } catch (error) {
             this.writeError(response);
         }
@@ -81,7 +78,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
 
 }
 
-@Route("GET", "/api/projections/stats/:projectionName")
+@Route("/api/projections/stats/:projectionName", "GET")
 export class ProjectionStatsHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
@@ -92,21 +89,14 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
         try {
             let runner = this.holders[request.params.projectionName];
             let size = sizeof(runner.state);
-            let data: any = {
+            response.send(assign({}, runner.stats, {
                 name: request.params.projectionName,
                 size: size,
-                humanizedSize: humanize.filesize(size),
-                events: runner.stats.events,
-                readModels: runner.stats.readModels,
-                running: runner.stats.running
-            };
-            if (runner instanceof SplitProjectionRunner) {
-                data.splits = _.keys(runner.state).length;
-            }
-            response.send(data);
+                humanizedSize: humanize.filesize(size)
+            }));
         } catch (e) {
             response.status(404);
-            response.send({error: "Projection not found or already in this state"});
+            response.send({error: "Projection not found"});
         }
     }
 }

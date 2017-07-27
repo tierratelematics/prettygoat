@@ -1,48 +1,49 @@
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 import Route from "../web/RouteDecorator";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {inject, interfaces} from "inversify";
-import Dictionary from "../util/Dictionary";
+import {inject} from "inversify";
+import Dictionary from "../common/Dictionary";
 import {IProjectionRunner} from "./IProjectionRunner";
-import IdentityFilterStrategy from "../filters/IdentityFilterStrategy";
 import {STATUS_CODES} from "http";
-import {IFilterStrategy} from "../filters/IFilterStrategy";
-import {FilterOutputType} from "../filters/FilterComponents";
-import {IProjection} from "./IProjection";
-import IProjectionDefinition from "../registry/IProjectionDefinition";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
+import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./Deliver";
+import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
+import {map, zipObject, keys} from "lodash";
+import {IProjection, PublishPoint} from "./IProjection";
 
-@Route("GET", "/projections/:area/:projectionName(/:splitKey)")
+@Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
-                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
+                @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>,
+                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
     }
 
-    handle(request: IRequest, response: IResponse): Promise<void> {
-        let projectionName = request.params.projectionName,
+    async handle(request: IRequest, response: IResponse) {
+        let pointName = request.params.publishPoint,
             area = request.params.area,
-            splitKey = request.params.splitKey,
-            entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        if (!entry || this.isPrivate(entry.construct)) {
+            projection = this.projectionRegistry.projectionFor(pointName, area)[1];
+        if (!projection || !(<any>projection).publish) {
             this.sendNotFound(response);
         } else {
-            let filterStrategy = entry.projection.filterStrategy || new IdentityFilterStrategy<any>(),
-                projectionRunner = this.holder[entry.projection.name],
-                state;
-            if (entry.projection.split) {
-                state = projectionRunner.state[splitKey];
-            } else {
-                state = projectionRunner.state;
-            }
-            if (state)
-                return this.sendResponse(request, response, state, filterStrategy);
-            else
-                this.sendNotFound(response);
+            let publishPoint = this.getPublishpoint(projection, pointName),
+                deliverStrategy = publishPoint.deliver || new IdentityDeliverStrategy<any>(),
+                projectionRunner = this.holder[projection.name],
+                dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
+
+            let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
+            let deliverContext = {
+                headers: request.headers,
+                params: request.query,
+            };
+
+            let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
+            this.sendResponse(response, deliverResult);
         }
     }
 
-    private isPrivate(construct: interfaces.Newable<IProjectionDefinition<any>>): boolean {
-        return construct ? Reflect.getMetadata("prettygoat:private", construct) : false;
+    private getPublishpoint(projection: IProjection, point: string): PublishPoint<any> {
+        let match = new RegExp(point, "i").exec(Object.getOwnPropertyNames(projection.publish).toString());
+        return projection.publish[match[0]];
     }
 
     private sendNotFound(response: IResponse) {
@@ -50,20 +51,17 @@ class ProjectionStateHandler implements IRequestHandler {
         response.send({error: "Projection not found"});
     }
 
-    private async sendResponse<T>(request: IRequest, response: IResponse, state: T,
-                                  filterStrategy: IFilterStrategy<T>) {
-        let filterContext = {headers: request.headers, params: request.query};
-        let filteredProjection = await filterStrategy.filter(state, filterContext);
-        switch (filteredProjection.type) {
-            case FilterOutputType.CONTENT:
+    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>) {
+        switch (deliverResult[1]) {
+            case DeliverAuthorization.CONTENT:
                 response.status(200);
-                response.send(filteredProjection.filteredState);
+                response.send(deliverResult[0]);
                 break;
-            case FilterOutputType.UNAUTHORIZED:
+            case DeliverAuthorization.UNAUTHORIZED:
                 response.status(401);
                 response.send({error: STATUS_CODES[401]});
                 break;
-            case FilterOutputType.FORBIDDEN:
+            case DeliverAuthorization.FORBIDDEN:
                 response.status(403);
                 response.send({error: STATUS_CODES[403]});
                 break;
@@ -73,10 +71,10 @@ class ProjectionStateHandler implements IRequestHandler {
     }
 
     keyFor(request: IRequest): string {
-        let projectionName = request.params.projectionName,
+        let publishPoint = request.params.publishPoint,
             area = request.params.area;
-        let entry = this.projectionRegistry.getEntry(projectionName, area).data;
-        return !entry ? null : entry.projection.name;
+        let projection = this.projectionRegistry.projectionFor(publishPoint, area)[1];
+        return !projection ? null : projection.name;
     }
 
 }

@@ -3,7 +3,7 @@ import CountSnapshotStrategy from "../../scripts/snapshots/CountSnapshotStrategy
 
 describe("Given a count based snapshots strategy", () => {
 
-    let subject:CountSnapshotStrategy;
+    let subject: CountSnapshotStrategy;
 
     beforeEach(() => {
         subject = new CountSnapshotStrategy();
@@ -16,21 +16,21 @@ describe("Given a count based snapshots strategy", () => {
                 subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: null, splitKey: null
+                    timestamp: null
                 });
                 subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: null, splitKey: null
+                    timestamp: null
                 });
                 expect(subject.needsSnapshot({
                     type: "test2",
                     payload: null,
-                    timestamp: null, splitKey: null
+                    timestamp: null
                 })).to.be(false);
                 expect(subject.needsSnapshot({
                     type: "test",
-                    payload: null, timestamp: null, splitKey: null
+                    payload: null, timestamp: null
                 })).to.be(true);
             });
         });
@@ -40,12 +40,12 @@ describe("Given a count based snapshots strategy", () => {
                 subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: null, splitKey: null
+                    timestamp: null
                 });
                 expect(subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: null, splitKey: null
+                    timestamp: null
                 })).to.be(false);
             });
         });

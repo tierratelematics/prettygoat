@@ -1,15 +1,13 @@
-import {Observable, IDisposable} from "rx";
-import {Event} from "../streams/Event";
-import Dictionary from "../util/Dictionary";
+import {Observable} from "rxjs";
+import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import ProjectionStats from "./ProjectionStats";
+import {Event} from "../events/Event";
+import {ProjectionStats} from "./ProjectionRunner";
 
-export type RunnerNotification<T> = [Event<T>, string[]];
-
-export interface IProjectionRunner<T> extends IDisposable {
-    state: T | Dictionary<T>;
+export interface IProjectionRunner<T = any> extends ISubscription {
+    state: T;
     stats: ProjectionStats;
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void;
+    run(snapshot?: Snapshot<T>): void;
     stop(): void;
-    notifications(): Observable<RunnerNotification<T>>;
+    notifications(): Observable<[Event<T>, Dictionary<string[]>]>;
 }
