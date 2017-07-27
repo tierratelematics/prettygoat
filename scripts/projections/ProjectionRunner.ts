@@ -25,11 +25,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     closed: boolean;
     private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
     private subscription: ISubscription;
-    private publishPoints: string[] = [];
 
     constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
-        this.publishPoints = keys(this.notifyMatchers);
+
     }
 
     notifications() {
