@@ -1,3 +1,19 @@
+# 3.6.2
+
+Fix memory growth with lots of events
+
+# 3.6.1
+
+Fix stackoverflow on async handlers
+
+# 3.6.0
+
+Add redis client
+
+# 3.5.1
+
+Use portscanner instead of tcp-port-used
+
 # 3.5.0
 
 Add IRedisConfig

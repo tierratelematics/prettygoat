@@ -1,12 +1,12 @@
 import {inject} from "inversify";
-import Dictionary from "../util/Dictionary";
-import IProjectionRunner from "../projections/IProjectionRunner";
+import Dictionary from "../common/Dictionary";
+import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import IDateRetriever from "../util/IDateRetriever";
+import IDateRetriever from "../common/IDateRetriever";
 import Route from "../web/RouteDecorator";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Route("POST", "/api/snapshots/save/:projectionName")
+@Route("/api/snapshots/save/:projectionName", "POST")
 export class SnapshotSaveHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
@@ -24,7 +24,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate())).subscribeOnCompleted(() => {});
+        this.snapshotRepository.saveSnapshot(name, new Snapshot(projection.state, this.dateRetriever.getDate()));
         response.send({name: name});
     }
 
@@ -34,7 +34,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
 
 }
 
-@Route("POST", "/api/snapshots/delete/:projectionName")
+@Route("/api/snapshots/delete/:projectionName", "POST")
 export class SnapshotDeleteHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
@@ -51,7 +51,7 @@ export class SnapshotDeleteHandler implements IRequestHandler {
             return;
         }
 
-        this.snapshotRepository.deleteSnapshot(name).subscribe(() => {});
+        this.snapshotRepository.deleteSnapshot(name);
         response.send({name: name});
     }
 

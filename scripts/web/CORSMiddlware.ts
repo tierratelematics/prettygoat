@@ -6,10 +6,7 @@ const cors = require("cors")();
 class CORSMiddleware implements IMiddleware {
 
     transform(request: IRequest, response: IResponse, next: Function) {
-        if (request.channel)
-            next();
-        else
-            cors(request, response, next);
+        cors(request, response, next);
     }
 
 }

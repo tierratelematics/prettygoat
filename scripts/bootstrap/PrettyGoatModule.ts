@@ -1,30 +1,22 @@
 import IModule from "./IModule";
 import {interfaces} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import IServiceLocator from "../ioc/IServiceLocator";
-import ProjectionRegistry from "../registry/ProjectionRegistry";
+import IServiceLocator from "./IServiceLocator";
 import IProjectionEngine from "../projections/IProjectionEngine";
 import ProjectionEngine from "../projections/ProjectionEngine";
-import IObjectContainer from "../ioc/IObjectContainer";
-import ObjectContainer from "../ioc/ObjectContainer";
-import ReadModelFactory from "../streams/ReadModelFactory";
-import IReadModelFactory from "../streams/IReadModelFactory";
-import IDateRetriever from "../util/IDateRetriever";
-import DateRetriever from "../util/DateRetriever";
+import IObjectContainer from "./IObjectContainer";
+import ObjectContainer from "./ObjectContainer";
+import IDateRetriever from "../common/IDateRetriever";
+import DateRetriever from "../common/DateRetriever";
 import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
 import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
-import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import IProjectionRunner from "../projections/IProjectionRunner";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
 import ITickScheduler from "../ticks/ITickScheduler";
 import TickScheduler from "../ticks/TickScheduler";
-import IProjectionSorter from "../projections/IProjectionSorter";
-import ProjectionSorter from "../projections/ProjectionSorter";
 import PushNotifier from "../push/PushNotifier";
-import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/IPushComponents";
+import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/PushComponents";
 import ClientRegistry from "../push/ClientRegistry";
 import SocketEventEmitter from "../push/SocketEventEmitter";
 import SocketFactory from "../push/SocketFactory";
@@ -38,25 +30,29 @@ import ProjectionStateHandler from "../projections/ProjectionStateHandler";
 import CORSMiddleware from "../web/CORSMiddlware";
 import BodyMiddleware from "../web/BodyMiddleware";
 import RequestParser from "../web/RequestParser";
-import MemoizingProjectionRegistry from "../registry/MemoizingProjectionRegistry";
-import MemoizingProjectionSorter from "../projections/MemoizingProjectionSorter";
 import {IReplicationManager, ReplicationManager} from "./ReplicationManager";
 import MiddlewareTransformer from "../web/MiddlewareTransformer";
-import DebouncePublisher from "../util/DebouncePublisher";
-import IAsyncPublisher from "../util/IAsyncPublisher";
+import DebouncePublisher from "../common/BackpressurePublisher";
+import IAsyncPublisher from "../common/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
-import LookupFactory from "../lookup/LookupFactory";
-import ILookupFactory from "../lookup/ILookupFactory";
 import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
+import {IProjectionRunner} from "../projections/IProjectionRunner";
+import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
+import * as Redis from "ioredis";
+import {isArray} from "lodash";
+import IRedisConfig from "../configs/IRedisConfig";
+import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
+import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
+import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
+import {AsyncPublisherFactory, IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 
 class PrettyGoatModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
-        container.bind<IProjectionRegistry>("ProjectionRegistry").to(ProjectionRegistry).whenInjectedInto(MemoizingProjectionRegistry);
-        container.bind<IProjectionRegistry>("IProjectionRegistry").to(MemoizingProjectionRegistry).inSingletonScope();
+        container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
@@ -64,10 +60,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IProjectionEngine>("IProjectionEngine").to(ProjectionEngine).inSingletonScope();
         container.bind<IObjectContainer>("IObjectContainer").to(ObjectContainer).inSingletonScope();
         container.bind<ISocketFactory>("ISocketFactory").to(SocketFactory).inSingletonScope();
-        container.bind<IReadModelFactory>("IReadModelFactory").to(ReadModelFactory).inSingletonScope();
         container.bind<IDateRetriever>("IDateRetriever").to(DateRetriever).inSingletonScope();
-        container.bind<IProjectionSorter>("IProjectionSorter").to(MemoizingProjectionSorter).inSingletonScope();
-        container.bind<IProjectionSorter>("ProjectionSorter").to(ProjectionSorter).whenInjectedInto(MemoizingProjectionSorter);
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
         container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
@@ -86,8 +79,14 @@ class PrettyGoatModule implements IModule {
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
-        container.bind<ILookupFactory>("ILookupFactory").to(LookupFactory).inSingletonScope();
         container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
+        container.bind<IReadModelRetriever>("IReadModelRetriever").to(ReadModelRetriever).inSingletonScope();
+        container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
+        container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
+        container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
+            let config = container.get<IRedisConfig>("IRedisConfig");
+            return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
+        });
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

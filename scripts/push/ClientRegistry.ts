@@ -1,8 +1,8 @@
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
-import IProjectionRegistry from "../registry/IProjectionRegistry";
-import {IClientRegistry, ISocketClient} from "./IPushComponents";
+import {IClientRegistry, ISocketClient} from "./PushComponents";
+import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 @injectable()
 class ClientRegistry implements IClientRegistry {
@@ -11,21 +11,22 @@ class ClientRegistry implements IClientRegistry {
     }
 
     add(client: ISocketClient, context: PushContext) {
-        let entry = this.registry.getEntry(context.projectionName, context.area);
-        if (!entry.data.parametersKey) {
-            client.join(ContextOperations.getRoom(context));
-        } else {
-            client.join(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
-        }
+        let key = this.getNotificationKey(context);
+        client.join(ContextOperations.getRoom(context, key));
+        return key;
     }
 
     remove(client: ISocketClient, context: PushContext) {
-        let entry = this.registry.getEntry(context.projectionName, context.area);
-        if (!entry.data.parametersKey) {
-            client.leave(ContextOperations.getRoom(context));
-        } else {
-            client.leave(ContextOperations.getRoom(context, entry.data.parametersKey(context.parameters)));
-        }
+        client.leave(ContextOperations.getRoom(context, this.getNotificationKey(context)));
+    }
+
+    private getNotificationKey(context: PushContext): string {
+        let entry = this.registry.projectionFor(context.projectionName, context.area),
+            publishPoint = entry[1].publish[context.projectionName],
+            notification = publishPoint.notify ? publishPoint.notify.$key : null;
+        if (!notification) notification = () => null;
+
+        return <string>notification(context.parameters);
     }
 }
 

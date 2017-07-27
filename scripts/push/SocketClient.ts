@@ -1,4 +1,4 @@
-import {ISocketClient} from "./IPushComponents";
+import {ISocketClient} from "./PushComponents";
 
 class SocketClient implements ISocketClient {
 

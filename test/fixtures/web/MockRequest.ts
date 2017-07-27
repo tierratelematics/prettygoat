@@ -1,7 +1,6 @@
 import {IRequest} from "../../../scripts/web/IRequestComponents";
 
 export default class MockRequest implements IRequest {
-    channel = "";
     url = "";
     method = "";
     headers = {};
@@ -10,12 +9,10 @@ export default class MockRequest implements IRequest {
     body = {};
     originalRequest = null;
 
-    constructor(url?: string, body?: any, channel?: string) {
+    constructor(url?: string, body?: any) {
         if (url)
             this.url = url;
         if (body)
             this.body = body;
-        if (channel)
-            this.channel = channel;
     }
 }

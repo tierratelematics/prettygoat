@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["es5", "es6"],
+    "lib": ["es5", "es6", "dom"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
     "types": ["mocha", "node", "reflect-metadata", "socket.io"]
-  },
-  "include": [
-    "node_modules/rx/ts/rx.all.d.ts"
-  ]
+  }
 }

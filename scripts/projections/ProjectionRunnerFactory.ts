@@ -1,32 +1,24 @@
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
-import IProjectionRunner from "./IProjectionRunner";
-import ProjectionRunner from "./ProjectionRunner";
 import {injectable, inject} from "inversify";
 import {IProjection} from "./IProjection";
-import {Matcher} from "../matcher/Matcher";
-import IReadModelFactory from "../streams/IReadModelFactory";
-import SplitProjectionRunner from "./SplitProjectionRunner";
-import {MemoizingMatcher} from "../matcher/MemoizingMatcher";
-import Dictionary from "../util/Dictionary";
+import Dictionary from "../common/Dictionary";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
+import {IProjectionRunner} from "./IProjectionRunner";
+import {Matcher} from "./Matcher";
+import {ProjectionRunner} from "./ProjectionRunner";
+import {mapValues} from "lodash";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     constructor(@inject("IProjectionStreamGenerator") private streamGenerator: IProjectionStreamGenerator,
-                @inject("IReadModelFactory") private readModelFactory: IReadModelFactory,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>) {
 
     }
 
     create<T>(projection: IProjection<T>): IProjectionRunner<T> {
-        let definitionMatcher = new MemoizingMatcher(new Matcher(projection.definition));
-        let projectionRunner: IProjectionRunner<T>;
-        if (!projection.split)
-            projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher, this.readModelFactory);
-        else
-            projectionRunner = new SplitProjectionRunner<T>(projection, this.streamGenerator, definitionMatcher,
-                new MemoizingMatcher(new Matcher(projection.split)), this.readModelFactory);
+        let notifyMatchers = mapValues(projection.publish, point => new Matcher(point.notify));
+        let projectionRunner = new ProjectionRunner<T>(projection, this.streamGenerator, new Matcher(projection.definition), notifyMatchers);
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }

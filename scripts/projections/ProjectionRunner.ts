@@ -1,32 +1,33 @@
-import {Subject, IDisposable, Observable, ISubject} from "rx";
-import {SpecialNames} from "../matcher/SpecialNames";
-import {IMatcher} from "../matcher/IMatcher";
-import {IStreamFactory} from "../streams/IStreamFactory";
-import IProjectionRunner from "./IProjectionRunner";
-import {IProjection} from "./IProjection";
-import IReadModelFactory from "../streams/IReadModelFactory";
-import {Event} from "../streams/Event";
+import {Subject, Observable, Scheduler} from "rxjs";
+import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
-import Dictionary from "../util/Dictionary";
-import IDateRetriever from "../util/IDateRetriever";
-import {SpecialState, StopSignallingState} from "./SpecialState";
-import ProjectionStats from "./ProjectionStats";
-import ReservedEvents from "../streams/ReservedEvents";
-import Identity from "../matcher/Identity";
-import {isPromise} from "../util/TypesUtil";
-import {untypedFlatMapSeries} from "../util/RxOperators";
+import Dictionary from "../common/Dictionary";
+import {isPromise, toArray} from "../common/TypesUtil";
 import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
+import {IProjectionRunner} from "./IProjectionRunner";
+import {IProjection} from "./IProjection";
+import {IMatcher} from "./Matcher";
+import {Event} from "../events/Event";
+import SpecialEvents from "../events/SpecialEvents";
+import {keys, mapValues} from "lodash";
 
-class ProjectionRunner<T> implements IProjectionRunner<T> {
-    state: T | Dictionary<T>;
+export class ProjectionStats {
+    running = false;
+    events = 0;
+    lastEvent: Date;
+    realtime = false;
+    failed = false;
+}
+
+export class ProjectionRunner<T> implements IProjectionRunner<T> {
+    state: T;
     stats = new ProjectionStats();
-    protected subject: Subject<Event> = new Subject<Event>();
-    protected subscription: IDisposable;
-    protected isDisposed: boolean;
-    protected isFailed: boolean;
+    closed: boolean;
+    private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
+    private subscription: ISubscription;
 
-    constructor(protected projection: IProjection<T>, protected streamGenerator: IProjectionStreamGenerator, protected matcher: IMatcher,
-                protected readModelFactory: IReadModelFactory) {
+    constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
+                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
 
     }
 
@@ -34,97 +35,88 @@ class ProjectionRunner<T> implements IProjectionRunner<T> {
         return this.subject;
     }
 
-    run(snapshot?: Snapshot<T | Dictionary<T>>): void {
-        if (this.isDisposed)
+    run(snapshot?: Snapshot<T>): void {
+        if (this.closed)
             throw new Error(`${this.projection.name}: cannot run a disposed projection`);
 
         if (this.subscription !== undefined)
             return;
 
-        this.stats.running = true;
-        this.subscribeToStateChanges();
-        this.state = snapshot ? snapshot.memento : this.matcher.match(SpecialNames.Init)();
-        this.notifyStateChange(new Date(1));
+        if (snapshot) {
+            this.state = snapshot.memento;
+            this.notifyStateChange(snapshot.lastEvent, mapValues(this.notifyMatchers, matcher => [null]));
+        }
         this.startStream(snapshot);
+        this.stats.running = true;
     }
 
-    private subscribeToStateChanges() {
-        this.subject.sample(100).subscribe(readModel => {
-            this.readModelFactory.publish({
-                payload: readModel.payload,
-                type: readModel.type,
-                timestamp: null,
-                splitKey: null
-            });
-        }, error => null);
+    private notifyStateChange(timestamp: Date, notificationKeys: Dictionary<string[]>) {
+        this.subject.next([{
+            payload: this.state,
+            type: this.projection.name,
+            timestamp: timestamp
+        }, notificationKeys]);
     }
 
-    protected startStream(snapshot: Snapshot<Dictionary<T> | T>) {
-        let completions = new Subject<string>();
+    private startStream(snapshot: Snapshot<Dictionary<T> | T>) {
+        let completions = new Subject<string>(),
+            initEvent = {
+                type: "$init",
+                payload: null,
+                timestamp: new Date(1)
+            };
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
-            .map<[Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .do(data => {
-                if (data[0].type === ReservedEvents.FETCH_EVENTS)
-                    completions.onNext(data[0].payload.event);
-            })
-            .filter(data => data[1] !== Identity)
-            .do(data => this.updateStats(data[0]))
-            .let(untypedFlatMapSeries(data => {
+            .startWith(!snapshot && initEvent)
+            .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
+            .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
-                let state = matchFn(this.state, event.payload, event);
+                let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
-                return isPromise(state) ? state.then(newState => [event, newState]) : Observable.just([event, state]);
-            }))
-            .map<[Event, boolean]>(data => {
-                let [event, newState] = data;
-                if (newState instanceof SpecialState)
-                    this.state = (<SpecialState<T>>newState).state;
-                else
-                    this.state = newState;
-                return [event, !(newState instanceof StopSignallingState)];
+                return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
+            }).observeOn(Scheduler.queue), 1)
+            .do(data => {
+                if (data[0].type === SpecialEvents.FETCH_EVENTS)
+                    completions.next(data[0].payload.event);
+                if (data[0].type === SpecialEvents.REALTIME)
+                    this.stats.realtime = true;
+                this.stats.events++;
+                if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
+            .filter(data => data[2])
             .subscribe(data => {
-                let [event, notify] = data;
-                if (notify) this.notifyStateChange(event.timestamp);
+                let [event, newState] = data;
+                this.state = newState;
+
+                this.notifyStateChange(event.timestamp, this.getNotificationKeys(event));
             }, error => {
-                this.isFailed = true;
-                this.subject.onError(error);
+                this.stats.failed = true;
+                this.subject.error(error);
                 this.stop();
-            }, () => this.subject.onCompleted());
+            }, () => this.subject.complete());
     }
 
-    protected updateStats(event: Event) {
-        if (event.timestamp)
-            this.stats.events++;
-        else
-            this.stats.readModels++;
+    private getNotificationKeys(event: Event) {
+        return mapValues(this.notifyMatchers, matcher => {
+            let matchFn = matcher.match(event.type);
+            return matchFn ? toArray<string>(matchFn(this.state, event.payload)) : [null];
+        });
     }
 
     stop(): void {
-        if (this.isDisposed)
-            throw Error("Projection already stopped");
+        if (this.closed) throw Error("Projection already stopped");
 
-        this.isDisposed = true;
+        this.closed = true;
         this.stats.running = false;
 
-        if (this.subscription)
-            this.subscription.dispose();
-        if (!this.isFailed)
-            this.subject.onCompleted();
+        if (this.subscription) this.subscription.unsubscribe();
+        if (!this.stats.failed) this.subject.complete();
     }
 
-    dispose(): void {
+    unsubscribe(): void {
         this.stop();
 
-        if (!this.subject.isDisposed)
-            this.subject.dispose();
-    }
-
-    protected notifyStateChange(timestamp: Date, splitKey?: string) {
-        this.subject.onNext({payload: this.state, type: this.projection.name, timestamp: timestamp, splitKey: null});
+        if (!this.subject.closed) this.subject.unsubscribe();
     }
 }
-
-export default ProjectionRunner

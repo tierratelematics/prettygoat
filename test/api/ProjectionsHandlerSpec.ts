@@ -1,20 +1,17 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import Dictionary from "../../scripts/util/Dictionary";
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
+import Dictionary from "../../scripts/common/Dictionary";
+import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Mock, IMock, Times, It} from "typemoq";
 import MockProjectionRunner from "../fixtures/MockProjectionRunner";
 import {IRequest, IResponse, IRequestHandler} from "../../scripts/web/IRequestComponents";
 import MockRequest from "../fixtures/web/MockRequest";
 import IProjectionEngine from "../../scripts/projections/IProjectionEngine";
 import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
-import {Observable} from "rx";
-import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
 import {IProjection} from "../../scripts/projections/IProjection";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
-import RegistryEntry from "../../scripts/registry/RegistryEntry";
-import PushContext from "../../scripts/push/PushContext";
 import {ProjectionStopHandler, ProjectionRestartHandler} from "../../scripts/api/ProjectionsHandlers";
+import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
@@ -26,7 +23,7 @@ describe("Given a ProjectionsController and a projection name", () => {
     beforeEach(() => {
         holder = {};
         projectionRunner = Mock.ofType(MockProjectionRunner);
-        holder["projection"] = projectionRunner.object;
+        holder["Mock"] = projectionRunner.object;
         request = new MockRequest();
         response = Mock.ofType<IResponse>();
     });
@@ -46,7 +43,7 @@ describe("Given a ProjectionsController and a projection name", () => {
     });
 
     context("when there is a projection with that name ", () => {
-        beforeEach(() => request.params = {projectionName: "projection"});
+        beforeEach(() => request.params = {projectionName: "Mock"});
 
         context("and a stop command is sent", () => {
             beforeEach(() => subject = new ProjectionStopHandler(holder));
@@ -82,27 +79,27 @@ describe("Given a ProjectionsController and a projection name", () => {
                 registry = Mock.ofType<IProjectionRegistry>();
                 projectionEngine = Mock.ofType<IProjectionEngine>();
                 snapshotRepository = Mock.ofType<ISnapshotRepository>();
-                registry.setup(r => r.getEntry("projection")).returns(() => {
-                    return {area: "Admin", data: new RegistryEntry(projection, "Mock")};
-                });
-                snapshotRepository.setup(s => s.deleteSnapshot("projection")).returns(() => Observable.just(null));
+                registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
+                snapshotRepository.setup(s => s.deleteSnapshot("Mock")).returns(() => Promise.resolve());
                 subject = new ProjectionRestartHandler(holder, registry.object, projectionEngine.object, snapshotRepository.object);
             });
             context("when the projection is already stopped", () => {
-                it("should simply restart the projection", () => {
-                    subject.handle(request, response.object);
-                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), Times.once());
-                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
+                it("should simply restart the projection", async () => {
+                    await subject.handle(request, response.object);
+
+                    snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection)), Times.once());
                 });
             });
 
             context("when the projection is running", () => {
-                beforeEach(() => holder["projection"].stats.running = true);
-                it("should stop and restart the projection", () => {
-                    subject.handle(request, response.object);
+                beforeEach(() => holder["Mock"].stats.running = true);
+                it("should stop and restart the projection", async () => {
+                    await subject.handle(request, response.object);
+
                     projectionRunner.verify(p => p.stop(), Times.once());
-                    snapshotRepository.verify(s => s.deleteSnapshot("projection"), Times.once());
-                    projectionEngine.verify(p => p.run(It.isValue(projection), It.isValue(new PushContext("Admin", "Mock"))), Times.once());
+                    snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
+                    projectionEngine.verify(p => p.run(It.isValue(projection)), Times.once());
                 });
             });
         });

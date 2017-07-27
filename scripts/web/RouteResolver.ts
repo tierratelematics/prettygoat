@@ -16,26 +16,29 @@ class RouteResolver implements IRouteResolver {
 
     private mapRoutes(requestHandlers: IRequestHandler[]): Route[] {
         return _.map<IRequestHandler, Route>(requestHandlers, requestHandler => {
-            let path = Reflect.getMetadata("prettygoat:path", requestHandler.constructor),
-                route: Route = {
-                    method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
-                    handler: requestHandler
-                };
-            if (path)
-                route.matcher = new UrlPattern(path);
+            let route: Route = {
+                method: Reflect.getMetadata("prettygoat:method", requestHandler.constructor),
+                handler: requestHandler,
+                path: Reflect.getMetadata("prettygoat:path", requestHandler.constructor)
+            };
+            if (route.method)
+                route.matcher = new UrlPattern(route.path);
 
             return route;
         });
     }
 
     resolve(request: IRequest): IRouteContext {
-        let pathname = url.parse(request.url).pathname;
+        let pathname = url.parse(request.url).pathname,
+            completeUrl = url.parse(request.url).href;
         let context = <IRouteContext>_(this.routes)
-            .filter(route => route.method === request.method)
-            .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : false])
+            .filter(route =>  route.method === request.method || !route.method)
+            .map(route => [route.handler, route.matcher ? route.matcher.match(pathname) : route.path === completeUrl])
             .filter(route => route[1])
+            .takeRight(1)
             .flatten()
             .valueOf();
+
         return !context[0] ? [null, null] : context;
     }
 
@@ -44,6 +47,7 @@ class RouteResolver implements IRouteResolver {
 interface Route {
     handler: IRequestHandler;
     method: Methods;
+    path: string;
     matcher?: UrlPattern;
 }
 

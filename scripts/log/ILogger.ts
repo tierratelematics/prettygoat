@@ -1,15 +1,15 @@
 import LogLevel from "./LogLevel";
 
 interface ILogger {
-    debug(message:string);
+    debug(message: string);
 
-    info(message:string);
+    info(message: string);
 
-    warning(message:string);
+    warning(message: string);
 
-    error(error:string|Error);
+    error(error: string | Error);
 
-    setLogLevel(level:LogLevel);
+    setLogLevel(level: LogLevel);
 }
 
 export default ILogger

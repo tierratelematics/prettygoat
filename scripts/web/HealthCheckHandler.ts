@@ -1,7 +1,7 @@
 import {IRequestHandler, IRequest, IResponse} from "./IRequestComponents";
 import Route from "./RouteDecorator";
 
-@Route("GET", "/health")
+@Route("/health", "GET")
 class HealthCheckHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {

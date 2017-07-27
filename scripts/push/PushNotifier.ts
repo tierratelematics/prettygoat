@@ -2,7 +2,7 @@ import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
 import IEndpointConfig from "../configs/IEndpointConfig";
-import {PushNotification, IPushNotifier, IEventEmitter} from "./IPushComponents";
+import {PushNotification, IPushNotifier, IEventEmitter} from "./PushComponents";
 import INotificationConfig from "../configs/INotificationConfig";
 
 @injectable()
@@ -13,37 +13,32 @@ class PushNotifier implements IPushNotifier {
     constructor(@inject("IEventEmitter") private eventEmitter: IEventEmitter,
                 @inject("IEndpointConfig") endpointConfig: IEndpointConfig,
                 @inject("INotificationConfig") notificationConfig: INotificationConfig) {
-        let defaultPath = {path: "/projections"};
-        this.config = {...endpointConfig, ...defaultPath, ...notificationConfig};
+        this.config = {...endpointConfig, ...notificationConfig};
     }
 
-    notify(context: PushContext, splitKey?: string, clientId?: string): void {
+    notify(context: PushContext, notificationKey?: string, clientId?: string): void {
         if (clientId) {
-            this.emitToSingleClient(clientId, context, splitKey);
+            this.emitToSingleClient(clientId, context, notificationKey);
         } else {
             this.eventEmitter.broadcastTo(
-                ContextOperations.getRoom(context, splitKey),
+                ContextOperations.getRoom(context, notificationKey),
                 ContextOperations.getChannel(context),
-                this.buildNotification(context, splitKey)
+                this.buildNotification(context, notificationKey)
             );
         }
     }
 
-    private buildNotification(context: PushContext, splitKey: string): PushNotification {
-        let url = `${this.config.protocol}://${this.config.host}`;
-        if (this.config.port)
-            url += `:${this.config.port}`;
-        url += `${this.config.path}/${context.area}/${context.projectionName}`.toLowerCase();
-        if (splitKey)
-            url += `/${splitKey}`;
-        return {
-            url: url
-        };
+    private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {
+        let notification = this.buildNotification(context, notificationKey);
+        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 
-    private emitToSingleClient(clientId: string, context: PushContext, splitKey: string = ""): void {
-        let notification = this.buildNotification(context, splitKey);
-        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
+    private buildNotification(context: PushContext, notificationKey: string = null): PushNotification {
+        return {
+            url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
+                + this.config.port : ""}/projections/${context.area}/${context.projectionName}`.toLowerCase(),
+            notificationKey: notificationKey
+        };
     }
 }
 

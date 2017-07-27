@@ -3,7 +3,7 @@ import TimeSnapshotStrategy from "../../scripts/snapshots/TimeSnapshotStrategy";
 
 describe("Given a time based snapshots strategy", () => {
 
-    let subject:TimeSnapshotStrategy;
+    let subject: TimeSnapshotStrategy;
 
     beforeEach(() => {
         subject = new TimeSnapshotStrategy();
@@ -16,20 +16,17 @@ describe("Given a time based snapshots strategy", () => {
                 expect(subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: new Date(1467281712000),
-                    splitKey: null
+                    timestamp: new Date(1467281712000)
                 })).to.be(false);
                 expect(subject.needsSnapshot({
                     type: "test2",
                     payload: null,
-                    timestamp: new Date(1467282072000),
-                    splitKey: null
+                    timestamp: new Date(1467282072000)
                 })).to.be(false);
                 expect(subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: new Date(1467282072000),
-                    splitKey: null
+                    timestamp: new Date(1467282072000)
                 })).to.be(true);
             });
         });
@@ -39,14 +36,12 @@ describe("Given a time based snapshots strategy", () => {
                 subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: new Date(1467281712000),
-                    splitKey: null
+                    timestamp: new Date(1467281712000)
                 });
                 expect(subject.needsSnapshot({
                     type: "test",
                     payload: null,
-                    timestamp: new Date(1467281772000),
-                    splitKey: null
+                    timestamp: new Date(1467281772000)
                 })).to.be(false);
             });
         });

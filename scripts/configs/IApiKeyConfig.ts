@@ -1,6 +1,3 @@
-interface IApiKeyConfig {
-    [index: number]: string;
-    length: number;
-}
+type IApiKeyConfig = string[];
 
 export default IApiKeyConfig

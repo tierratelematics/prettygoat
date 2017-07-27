@@ -1,37 +1,30 @@
-import IProjectionRunner from "../../scripts/projections/IProjectionRunner";
-import {Subject, IObserver} from "rx";
-import {Event} from "../../scripts/streams/Event";
-import ProjectionStats from "../../scripts/projections/ProjectionStats";
+import {IProjectionRunner} from "../../scripts/projections/IProjectionRunner";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import Dictionary from "../../scripts/util/Dictionary";
+import {ProjectionStats} from "../../scripts/projections/ProjectionRunner";
 
 class MockProjectionRunner<T> implements IProjectionRunner<T> {
-    state:T;
+    state: T;
+    closed = false;
     stats = new ProjectionStats();
-    private subject:Subject<Event>;
-
-    constructor(data?:Subject<Event>) {
-        this.subject = data;
-    }
 
     notifications() {
-        return this.subject;
+        return null;
     }
 
-    run(snapshot?:Snapshot<T|Dictionary<T>>):void {
+    run(snapshot?: Snapshot<T>): void {
 
     }
 
-    stop():void {
+    stop(): void {
     }
 
-    pause():void {
+    pause(): void {
     }
 
-    resume():void {
+    resume(): void {
     }
 
-    dispose():void {
+    unsubscribe(): void {
 
     }
 

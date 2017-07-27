@@ -1,24 +1,25 @@
-import IProjectionDefinition from "../../../scripts/registry/IProjectionDefinition";
-import {IProjection} from "../../../scripts/projections/IProjection";
-import Projection from "../../../scripts/registry/ProjectionDecorator";
+import {IProjection, IProjectionDefinition} from "../../../scripts/projections/IProjection";
 import {ISnapshotStrategy} from "../../../scripts/snapshots/ISnapshotStrategy";
-import {FilterOutputType} from "../../../scripts/filters/FilterComponents";
+import {injectable} from "inversify";
 
-@Projection("Mock")
+@injectable()
 class MockProjectionDefinition implements IProjectionDefinition<number> {
 
-    constructor(private strategy?:ISnapshotStrategy) {
+    constructor(private strategy?: ISnapshotStrategy, private name?: string) {
 
     }
 
-    define():IProjection<number> {
+    define(): IProjection<number> {
         return {
-            name: "test",
+            name: this.name || "Mock",
             definition: {
                 $init: () => 10,
-                TestEvent: (s, e:number) => s + e
+                TestEvent: (s, e: number) => s + e
             },
-            snapshotStrategy: this.strategy
+            snapshot: this.strategy,
+            publish: {
+                "Test": {}
+            }
         };
     }
 
