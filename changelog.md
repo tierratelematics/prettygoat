@@ -1,3 +1,12 @@
+# 4.0.0
+
+* Remove split projections
+* Remove wildcards
+* Add notify fields
+* Change readmodels access to filter strategy
+* rxjs 5
+* Many other little things
+
 # 3.6.2
 
 Fix memory growth with lots of events

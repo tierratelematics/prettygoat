@@ -6,7 +6,7 @@ import IDateRetriever from "../common/IDateRetriever";
 import Route from "../web/RouteDecorator";
 import {IRequestHandler, IRequest, IResponse} from "../web/IRequestComponents";
 
-@Route("/api/snapshots/save/:projectionName", "POST")
+@Route("/api/snapshots/save", "POST")
 export class SnapshotSaveHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
@@ -15,7 +15,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
     }
 
     handle(request: IRequest, response: IResponse) {
-        let name = request.params.projectionName;
+        let name = request.body.payload.projectionName;
         let projection = this.holder[name];
 
         if (!projection) {
@@ -34,7 +34,7 @@ export class SnapshotSaveHandler implements IRequestHandler {
 
 }
 
-@Route("/api/snapshots/delete/:projectionName", "POST")
+@Route("/api/snapshots/delete", "POST")
 export class SnapshotDeleteHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner<any>>,
@@ -42,7 +42,7 @@ export class SnapshotDeleteHandler implements IRequestHandler {
     }
 
     handle(request: IRequest, response: IResponse) {
-        let name = request.params.projectionName;
+        let name = request.body.payload.projectionName;
         let projection = this.holder[name];
 
         if (!projection) {

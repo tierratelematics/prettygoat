@@ -22,7 +22,7 @@ abstract class BaseProjectionHandler implements IRequestHandler {
     }
 }
 
-@Route("/api/projections/stop/:projectionName", "POST")
+@Route("/api/projections/stop", "POST")
 export class ProjectionStopHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
@@ -31,7 +31,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
 
     handle(request: IRequest, response: IResponse) {
         try {
-            let runner = this.holders[request.params.projectionName];
+            let runner = this.holders[request.body.payload.projectionName];
             runner.stop();
             response.status(204);
             response.end();
@@ -43,7 +43,7 @@ export class ProjectionStopHandler extends BaseProjectionHandler {
 
 }
 
-@Route("/api/projections/restart/:projectionName", "POST")
+@Route("/api/projections/restart", "POST")
 export class ProjectionRestartHandler extends BaseProjectionHandler {
 
     constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>,
@@ -55,7 +55,7 @@ export class ProjectionRestartHandler extends BaseProjectionHandler {
 
     async handle(request: IRequest, response: IResponse) {
         try {
-            let projectionName = request.params.projectionName,
+            let projectionName = request.body.payload.projectionName,
                 entry = this.registry.projectionFor(projectionName),
                 runner = this.holders[projectionName];
 

@@ -46,6 +46,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             this.state = snapshot.memento;
             this.notifyStateChange(snapshot.lastEvent, mapValues(this.notifyMatchers, matcher => [null]));
         }
+        this.stats = new ProjectionStats();
         this.startStream(snapshot);
         this.stats.running = true;
     }
