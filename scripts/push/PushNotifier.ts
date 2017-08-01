@@ -2,8 +2,8 @@ import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
 import {PushNotification, IPushNotifier, IEventEmitter} from "./PushComponents";
-import INotificationConfig from "../configs/INotificationConfig";
 import {IEndpointConfig} from "../configs/EndpointConfig";
+import {INotificationConfig} from "../configs/NotificationConfig";
 
 @injectable()
 class PushNotifier implements IPushNotifier {

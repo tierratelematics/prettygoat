@@ -49,6 +49,7 @@ import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNoti
 import {AsyncPublisherFactory, IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig";
 import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
+import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
 
 class PrettyGoatModule implements IModule {
 
@@ -56,6 +57,7 @@ class PrettyGoatModule implements IModule {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
         container.bind<IEndpointConfig>("IEndpointConfig").to(DefaultEndpointConfig).inSingletonScope();
         container.bind<ISocketConfig>("ISocketConfig").to(DefaultSocketConfig).inSingletonScope();
+        container.bind<INotificationConfig>("INotificationConfig").to(DefaultNotificationConfig).inSingletonScope();
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
