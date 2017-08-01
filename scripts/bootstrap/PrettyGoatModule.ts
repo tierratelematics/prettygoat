@@ -47,11 +47,15 @@ import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import {AsyncPublisherFactory, IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
+import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig";
+import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
 
 class PrettyGoatModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
+        container.bind<IEndpointConfig>("IEndpointConfig").to(DefaultEndpointConfig).inSingletonScope();
+        container.bind<ISocketConfig>("ISocketConfig").to(DefaultSocketConfig).inSingletonScope();
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
