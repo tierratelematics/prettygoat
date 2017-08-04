@@ -1,3 +1,5 @@
+import {injectable} from "inversify";
+
 export interface INotificationConfig {
     protocol: string;
     host: string;
@@ -5,6 +7,7 @@ export interface INotificationConfig {
     path?: string;
 }
 
+@injectable()
 export class DefaultNotificationConfig implements INotificationConfig {
     protocol = "http";
     host = "localhost";
