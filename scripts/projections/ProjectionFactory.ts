@@ -9,7 +9,7 @@ export interface IProjectionFactory {
 }
 
 export interface IProjectionFactoryExtender {
-    extend(definition: any);
+    extend(name: string, definition: any);
 }
 
 export class ProjectionFactory implements IProjectionFactory {
@@ -20,9 +20,10 @@ export class ProjectionFactory implements IProjectionFactory {
     }
 
     create<T>(constructor: interfaces.Newable<IProjectionDefinition<T> | IReadModelDefinition<T>>): IProjection<T> {
-        let definition = this.objectContainer.resolve<IProjectionDefinition<T> | IReadModelDefinition<T>>(constructor);
-        forEach(this.extenders, extender => extender.extend(definition));
-        return definition.define();
+        let definition = this.objectContainer.resolve<IProjectionDefinition<T> | IReadModelDefinition<T>>(constructor),
+            projection = definition.define();
+        forEach(this.extenders, extender => extender.extend(projection.name, definition));
+        return projection;
     }
 
 }

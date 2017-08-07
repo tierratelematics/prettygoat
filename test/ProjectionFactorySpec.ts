@@ -37,7 +37,7 @@ describe("Given a projection factory", () => {
             it("should apply those extensions", () => {
                 subject.create(MockProjectionDefinition);
 
-                extender.verify(e => e.extend(It.isValue(new MockProjectionDefinition())), Times.once());
+                extender.verify(e => e.extend("Mock", It.isValue(new MockProjectionDefinition())), Times.once());
             });
         });
     });
