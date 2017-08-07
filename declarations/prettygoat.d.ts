@@ -177,6 +177,10 @@ export class ProjectionStats {
 
 export type RegistryLookup<T = any> = [string, IProjection<T>];
 
+export interface IProjectionFactoryExtender {
+    extend(definition: any);
+}
+
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);

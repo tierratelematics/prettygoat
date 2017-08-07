@@ -2,68 +2,39 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {IMock, Mock, Times, It} from "typemoq";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import IObjectContainer from "../scripts/bootstrap/IObjectContainer";
-import ITickScheduler from "../scripts/ticks/ITickScheduler";
-import TickScheduler from "../scripts/ticks/TickScheduler";
-import Dictionary from "../scripts/common/Dictionary";
 import MockNotificationProjection from "./fixtures/definitions/MockNotificationProjection";
 import BadNotificationProjection from "./fixtures/definitions/BadNotificationProjection";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
 import MockPublishPointDefinition from "./fixtures/definitions/MockPublishPointDefinition";
-import {IProjectionDefinition} from "../scripts/projections/IProjection";
 import {IProjectionRegistry, ProjectionRegistry} from "../scripts/bootstrap/ProjectionRegistry";
+import {IProjectionFactory} from "../scripts/projections/ProjectionFactory";
+import {IProjection} from "../scripts/projections/IProjection";
 
 describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     let subject: IProjectionRegistry,
-        objectContainer: IMock<IObjectContainer>,
-        tickScheduler: ITickScheduler,
-        holder: Dictionary<ITickScheduler>;
+        projectionFactory: IMock<IProjectionFactory>;
 
     beforeEach(() => {
-        objectContainer = Mock.ofType<IObjectContainer>();
-        tickScheduler = new TickScheduler(null);
-        holder = {};
-        subject = new ProjectionRegistry(objectContainer.object, () => tickScheduler, holder);
+        projectionFactory = Mock.ofType<IProjectionFactory>();
+        subject = new ProjectionRegistry(projectionFactory.object);
     });
 
     context("when they are registered under a specific area", () => {
 
         it("should register the projection handler with the right contexts", () => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
 
             subject.add(MockProjectionDefinition).forArea("Admin");
             let areas = subject.projections();
 
             expect(areas[0][0]).to.be("Admin");
         });
-
-        it("should pass a tick scheduler to the definition", () => {
-            let projectionDefinition = setUpTickScheduler();
-
-            projectionDefinition.verify(p => p.define(It.isValue(tickScheduler)), Times.once());
-        });
-
-        it("should cache the tick scheduler passed to the definition", () => {
-            setUpTickScheduler();
-
-            expect(holder["Mock"]).to.be(tickScheduler);
-        });
-
-        function setUpTickScheduler(): IMock<IProjectionDefinition<number>> {
-            let projectionDefinition = Mock.ofType<IProjectionDefinition<number>>();
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => projectionDefinition.object);
-            projectionDefinition.setup(p => p.define(It.isValue(tickScheduler))).returns(() => {
-                return {name: "Mock", definition: {}, publish: {}};
-            });
-            subject.add(MockProjectionDefinition).forArea("Admin");
-            return projectionDefinition;
-        }
     });
 
     context("when a projection with that name already exists", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
         });
         it("should throw an error", () => {
             expect(() => {
@@ -74,7 +45,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection has illegal characters", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition(null, "Admin:/"));
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition(null, "Admin:/").define());
         });
         it("should throw an error", () => {
             expect(() => {
@@ -85,8 +56,8 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection with the same publish points has been registered", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
-            objectContainer.setup(o => o.resolve(MockPublishPointDefinition)).returns(a => new MockPublishPointDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
+            projectionFactory.setup(o => o.create(MockPublishPointDefinition)).returns(a => new MockPublishPointDefinition().define());
         });
         it("should throw an error", () => {
             expect(() => {
@@ -98,7 +69,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
     context("when a projection has a notification field", () => {
         context("and not all the events of the definition are present", () => {
             beforeEach(() => {
-                objectContainer.setup(o => o.resolve(BadNotificationProjection)).returns(a => new BadNotificationProjection());
+                projectionFactory.setup(o => o.create(BadNotificationProjection)).returns(a => new BadNotificationProjection().define());
             });
             it("should throw an error", () => {
                 expect(() => {
@@ -109,7 +80,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
         context("and all the events of the definition are present", () => {
             beforeEach(() => {
-                objectContainer.setup(o => o.resolve(MockNotificationProjection)).returns(a => new MockNotificationProjection());
+                projectionFactory.setup(o => o.create(MockNotificationProjection)).returns(a => new MockNotificationProjection().define());
             });
             it("should not raise an error", () => {
                 expect(() => {
@@ -121,7 +92,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when the projection corresponding to the index page has to be registered", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
         });
         it("should be registered with a default area name", () => {
             subject.index(MockProjectionDefinition);
@@ -133,7 +104,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when the projection corresponding to the master page has to be registered", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
         });
         it("should be registered with a default area name", () => {
             subject.master(MockProjectionDefinition);
@@ -145,7 +116,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a readmodel has to be registered", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockReadModel)).returns(a => new MockReadModel());
+            projectionFactory.setup(o => o.create(MockReadModel)).returns(a => <IProjection>new MockReadModel().define());
         });
         it("should be added to a specific area", () => {
             subject.readmodel(MockReadModel);
@@ -157,7 +128,7 @@ describe("ProjectionRegistry, given a list of projection definitions", () => {
 
     context("when a projection needs to be retrieved", () => {
         beforeEach(() => {
-            objectContainer.setup(o => o.resolve(MockProjectionDefinition)).returns(a => new MockProjectionDefinition());
+            projectionFactory.setup(o => o.create(MockProjectionDefinition)).returns(a => new MockProjectionDefinition().define());
             subject.add(MockProjectionDefinition).forArea("Admin");
         });
 
