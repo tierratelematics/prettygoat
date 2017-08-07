@@ -110,7 +110,7 @@ export interface IDeliverStrategy<TState, TResult = any> {
 }
 
 export interface IProjectionDefinition<T = any> {
-    define(tickScheduler?: ITickScheduler): IProjection<T>;
+    define(): IProjection<T>;
 }
 
 export interface IReadModelDefinition<T = any> {
@@ -293,17 +293,6 @@ export interface IStreamFactory {
     from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event>;
 }
 
-export interface ITickScheduler extends IStreamFactory {
-    schedule(dueTime: number | Date, state?: string);
-}
-
-export class Tick {
-    state: string;
-    clock: Date | number;
-
-    constructor(clock: Date, state?: string);
-}
-
 export function FeatureToggle(predicate: CheckPredicate);
 
 export interface CheckPredicate {
@@ -437,7 +426,6 @@ export interface IReadModelRetriever {
 }
 
 export class SpecialEvents {
-    static TICK: string;
     static REALTIME: string;
     static FETCH_EVENTS: string;
     static READMODEL_CHANGED: string;
