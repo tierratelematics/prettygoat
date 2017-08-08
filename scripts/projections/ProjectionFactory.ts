@@ -1,5 +1,5 @@
 import {IProjection, IProjectionDefinition} from "./IProjection";
-import {inject, interfaces, multiInject} from "inversify";
+import {inject, interfaces, multiInject, injectable, optional} from "inversify";
 import IObjectContainer from "../bootstrap/IObjectContainer";
 import {forEach} from "lodash";
 import {IReadModelDefinition} from "../readmodels/IReadModel";
@@ -12,10 +12,11 @@ export interface IProjectionFactoryExtender {
     extend(name: string, definition: any);
 }
 
+@injectable()
 export class ProjectionFactory implements IProjectionFactory {
 
     constructor(@inject("IObjectContainer") private objectContainer: IObjectContainer,
-                @multiInject("IProjectionFactoryExtender") private extenders: IProjectionFactoryExtender[]) {
+                @multiInject("IProjectionFactoryExtender") @optional() private extenders: IProjectionFactoryExtender[] = []) {
 
     }
 
