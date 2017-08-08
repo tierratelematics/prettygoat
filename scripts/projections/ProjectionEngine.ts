@@ -71,7 +71,7 @@ class ProjectionEngine implements IProjectionEngine {
 
         notificationsPublisher.items(item => item[1]).subscribe(notification => {
             let [context, notifyKey] = notification;
-            this.pushNotifier.notify(context, notifyKey);
+            this.pushNotifier.notifyAll(context, notifyKey);
             this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
         });
 

@@ -16,16 +16,16 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...notificationConfig};
     }
 
-    notify(context: PushContext, notificationKey?: string, clientId?: string): void {
-        if (clientId) {
-            this.emitToSingleClient(clientId, context, notificationKey);
-        } else {
-            this.eventEmitter.broadcastTo(
-                ContextOperations.getRoom(context, notificationKey),
-                ContextOperations.getChannel(context),
-                this.buildNotification(context, notificationKey)
-            );
-        }
+    notifyAll(context: PushContext, notificationKey?: string) {
+        this.eventEmitter.broadcastTo(
+            ContextOperations.getRoom(context, notificationKey),
+            ContextOperations.getChannel(context),
+            this.buildNotification(context, notificationKey)
+        );
+    }
+
+    notifyClient(context: PushContext, clientId: string, notificationKey?: string) {
+        this.emitToSingleClient(clientId, context, notificationKey);
     }
 
     private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {

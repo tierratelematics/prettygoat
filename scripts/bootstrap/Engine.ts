@@ -97,7 +97,7 @@ export class Engine {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.add(wrappedClient, context);
-                    pushNotifier.notify(context, notificationKey, client.id);
+                    pushNotifier.notifyClient(context, client.id, notificationKey);
                     logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
