@@ -22,10 +22,10 @@ export interface PushNotification {
 
 export interface IClientRegistry {
     add(client: ISocketClient, context: PushContext): string;
-    remove(client: ISocketClient, context: PushContext);
+    remove(client: ISocketClient, context: PushContext): string;
 }
 
 export interface IEventEmitter {
-    broadcastTo(room: string, event: string, data: any);
-    emitTo(clientId: string, event: string, data: any);
+    broadcastTo(room: string, data: any);
+    emitTo(clientId: string, room: string, data: any);
 }

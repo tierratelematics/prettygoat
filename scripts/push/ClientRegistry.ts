@@ -17,7 +17,9 @@ class ClientRegistry implements IClientRegistry {
     }
 
     remove(client: ISocketClient, context: PushContext) {
-        client.leave(ContextOperations.getRoom(context, this.getNotificationKey(context)));
+        let key = this.getNotificationKey(context);
+        client.leave(ContextOperations.getRoom(context, key));
+        return key;
     }
 
     private getNotificationKey(context: PushContext): string {

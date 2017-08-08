@@ -107,8 +107,8 @@ export class Engine {
             client.on("unsubscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
-                    clientRegistry.remove(wrappedClient, context);
-                    logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                    let notificationKey = clientRegistry.remove(wrappedClient, context);
+                    logger.info(`Client unsubscribed from ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                     logger.error(error);

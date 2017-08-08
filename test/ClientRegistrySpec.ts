@@ -71,13 +71,15 @@ describe("ClientRegistry, given a client", () => {
     });
 
     context("when push notifications are no longer needed for a viewmodel", () => {
+        let context = new PushContext("Admin", "Bar", {id: 25});
         beforeEach(() => {
-            let context = new PushContext("Admin", "Foo");
             subject.add(client.object, context);
-            subject.remove(client.object, context);
         });
         it("should unregister that client from the notifications", () => {
-            client.verify(c => c.leave("/admin/foo"), Times.once());
+            let key = subject.remove(client.object, context);
+
+            client.verify(c => c.leave("/admin/bar/25"), Times.once());
+            expect(key).to.be("25");
         });
     });
 });

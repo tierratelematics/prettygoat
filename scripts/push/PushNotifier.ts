@@ -19,7 +19,6 @@ class PushNotifier implements IPushNotifier {
     notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date) {
         this.eventEmitter.broadcastTo(
             ContextOperations.getRoom(context, notificationKey),
-            ContextOperations.getChannel(context),
             this.buildNotification(context, notificationKey, timestamp)
         );
     }
@@ -30,7 +29,7 @@ class PushNotifier implements IPushNotifier {
 
     private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {
         let notification = this.buildNotification(context, notificationKey);
-        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
+        this.eventEmitter.emitTo(clientId, ContextOperations.getRoom(context), notification);
     }
 
     private buildNotification(context: PushContext, notificationKey: string = null, timestamp: Date = null): PushNotification {
