@@ -16,11 +16,11 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...notificationConfig};
     }
 
-    notifyAll(context: PushContext, notificationKey?: string) {
+    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date) {
         this.eventEmitter.broadcastTo(
             ContextOperations.getRoom(context, notificationKey),
             ContextOperations.getChannel(context),
-            this.buildNotification(context, notificationKey)
+            this.buildNotification(context, notificationKey, timestamp)
         );
     }
 
@@ -33,11 +33,12 @@ class PushNotifier implements IPushNotifier {
         this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
     }
 
-    private buildNotification(context: PushContext, notificationKey: string = null): PushNotification {
+    private buildNotification(context: PushContext, notificationKey: string = null, timestamp: Date = null): PushNotification {
         return {
             url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
                 + this.config.port : ""}/projections/${context.area}/${context.projectionName}`.toLowerCase(),
-            notificationKey: notificationKey
+            notificationKey: notificationKey,
+            timestamp: timestamp
         };
     }
 }

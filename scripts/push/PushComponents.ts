@@ -1,7 +1,7 @@
 import PushContext from "./PushContext";
 
 export interface IPushNotifier {
-    notifyAll(context: PushContext, notificationKey?: string);
+    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date);
     notifyClient(context: PushContext, clientId: string, notificationKey?: string);
 }
 
@@ -17,6 +17,7 @@ export interface ISocketFactory {
 export interface PushNotification {
     url: string;
     notificationKey: string;
+    timestamp: Date;
 }
 
 export interface IClientRegistry {

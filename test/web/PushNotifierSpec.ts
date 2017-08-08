@@ -30,7 +30,8 @@ describe("Given a push notifier", () => {
             subject.notifyAll(new PushContext("Admin", "Foo"));
             eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                 url: "http://test:80/projections/admin/foo",
-                notificationKey: null
+                notificationKey: null,
+                timestamp: null
             })), Times.once());
         });
 
@@ -43,7 +44,8 @@ describe("Given a push notifier", () => {
                 subject.notifyAll(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: "http://test/projections/admin/foo",
-                    notificationKey: null
+                    notificationKey: null,
+                    timestamp: null
                 })), Times.once());
             });
         });
@@ -60,7 +62,8 @@ describe("Given a push notifier", () => {
                 subject.notifyAll(new PushContext("Admin", "Foo"));
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", "Admin:Foo", It.isValue({
                     url: "https://test/projections/admin/foo",
-                    notificationKey: null
+                    notificationKey: null,
+                    timestamp: null
                 })), Times.once());
             });
         });
@@ -69,9 +72,21 @@ describe("Given a push notifier", () => {
                 subject.notifyAll(new PushContext("Admin", "Foo"), "7564");
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", It.isValue({
                     url: "http://test:80/projections/admin/foo",
-                    notificationKey: "7564"
+                    notificationKey: "7564",
+                    timestamp: null
                 })), Times.once());
             });
+        });
+
+        context("when a timestamp is provided", () => {
+             it("should add the timestamp to the notification", () => {
+                 subject.notifyAll(new PushContext("Admin", "Foo"), "7564", new Date(1000));
+                 eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", "Admin:Foo", It.isValue({
+                     url: "http://test:80/projections/admin/foo",
+                     notificationKey: "7564",
+                     timestamp: new Date(1000)
+                 })), Times.once());
+             });
         });
     });
 
@@ -80,7 +95,8 @@ describe("Given a push notifier", () => {
             subject.notifyClient(new PushContext("Admin", "Foo"), "25f", null);
             eventEmitter.verify(e => e.emitTo("25f", "Admin:Foo", It.isValue({
                 url: "http://test:80/projections/admin/foo",
-                notificationKey: null
+                notificationKey: null,
+                timestamp: null
             })), Times.once());
         });
     });

@@ -168,8 +168,8 @@ describe("Given a ProjectionEngine", () => {
             publishState(66, new Date(5000), {List: [null], "Detail": ["66"]});
             await subject.run();
 
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null])), Times.once());
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66"])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, new Date(5000)])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", new Date(5000)])), Times.once());
         });
     });
 
@@ -198,7 +198,7 @@ describe("Given a ProjectionEngine", () => {
             await subject.run();
         });
         it("should notify the publish points that depend on it", () => {
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client"])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client", new Date(10000)])), Times.once());
             asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "NoDependencies"), null])), Times.never());
         });
     });
@@ -206,12 +206,15 @@ describe("Given a ProjectionEngine", () => {
     context("when some notifications needs to be processed", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
-            asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([new PushContext("Admin", "Mock"), "testkey"]));
+            asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([
+                new PushContext("Admin", "Mock"),
+                "testkey",
+                new Date(1000)]));
             asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
             await subject.run();
         });
         it("should save them", () => {
-            pushNotifier.verify(p => p.notify(It.isValue(new PushContext("Admin", "Mock")), "testkey"), Times.once());
+            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), "testkey", It.isValue(new Date(1000))), Times.once());
         });
     });
 
