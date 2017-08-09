@@ -64,7 +64,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             initEvent = {
                 type: "$init",
                 payload: null,
-                timestamp: new Date(1)
+                timestamp: new Date(0)
             };
 
         this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)

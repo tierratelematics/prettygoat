@@ -100,7 +100,7 @@ describe("Given a ProjectionRunner", () => {
                 expect(notifications).to.eql([42]);
             });
             it("should notify with an initial timestamp", () => {
-                expect(timestamps[0]).to.eql(new Date(1));
+                expect(timestamps[0]).to.eql(new Date(0));
             });
         });
     });
