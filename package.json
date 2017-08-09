@@ -1,6 +1,6 @@
 {
   "name": "prettygoat",
-  "version": "4.0.0-2",
+  "version": "4.0.0-3",
   "devDependencies": {
     "@types/chai": "~4.0.1",
     "@types/expect.js": "~0.3.29",
