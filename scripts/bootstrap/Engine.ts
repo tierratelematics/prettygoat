@@ -3,11 +3,9 @@ import IModule from "./IModule";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
-import IEndpointConfig from "../configs/IEndpointConfig";
 import ILogger from "../log/ILogger";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
-import ISocketConfig from "../configs/ISocketConfig";
 import APIModule from "../api/APIModule";
 import {IClientRegistry, IPushNotifier, ISocketFactory} from "../push/PushComponents";
 import SocketClient from "../push/SocketClient";
@@ -19,6 +17,8 @@ import ContextOperations from "../push/ContextOperations";
 import IServerProvider from "../web/IServerProvider";
 import getDecorators from "inversify-inject-decorators";
 import {IProjectionRegistry} from "./ProjectionRegistry";
+import {ISocketConfig} from "../configs/SocketConfig";
+import {IEndpointConfig} from "../configs/EndpointConfig";
 
 let container = new Container();
 export let {lazyInject} = getDecorators(container);
@@ -97,8 +97,8 @@ export class Engine {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.add(wrappedClient, context);
-                    pushNotifier.notify(context, notificationKey, client.id);
-                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
+                    pushNotifier.notifyClient(context, client.id, notificationKey);
+                    logger.info(`Client subscribed on ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                     logger.error(error);
@@ -107,8 +107,8 @@ export class Engine {
             client.on("unsubscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
-                    clientRegistry.remove(wrappedClient, context);
-                    logger.info(`Client unsubscribed from ${ContextOperations.getChannel(context)} with id ${client.id}`);
+                    let notificationKey = clientRegistry.remove(wrappedClient, context);
+                    logger.info(`Client unsubscribed from ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                     logger.error(error);

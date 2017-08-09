@@ -110,7 +110,7 @@ export interface IDeliverStrategy<TState, TResult = any> {
 }
 
 export interface IProjectionDefinition<T = any> {
-    define(tickScheduler?: ITickScheduler): IProjection<T>;
+    define(): IProjection<T>;
 }
 
 export interface IReadModelDefinition<T = any> {
@@ -176,6 +176,10 @@ export class ProjectionStats {
 }
 
 export type RegistryLookup<T = any> = [string, IProjection<T>];
+
+export interface IProjectionFactoryExtender {
+    extend(name: string, definition: any);
+}
 
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
@@ -287,17 +291,6 @@ export var NullLogger: ILogger;
 
 export interface IStreamFactory {
     from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event>;
-}
-
-export interface ITickScheduler extends IStreamFactory {
-    schedule(dueTime: number | Date, state?: string);
-}
-
-export class Tick {
-    state: string;
-    clock: Date | number;
-
-    constructor(clock: Date, state?: string);
 }
 
 export function FeatureToggle(predicate: CheckPredicate);
@@ -433,7 +426,6 @@ export interface IReadModelRetriever {
 }
 
 export class SpecialEvents {
-    static TICK: string;
     static REALTIME: string;
     static FETCH_EVENTS: string;
     static READMODEL_CHANGED: string;

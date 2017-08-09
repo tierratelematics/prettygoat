@@ -13,8 +13,6 @@ import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import Dictionary from "../common/Dictionary";
 import ILogger from "../log/ILogger";
 import ConsoleLogger from "../log/ConsoleLogger";
-import ITickScheduler from "../ticks/ITickScheduler";
-import TickScheduler from "../ticks/TickScheduler";
 import PushNotifier from "../push/PushNotifier";
 import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/PushComponents";
 import ClientRegistry from "../push/ClientRegistry";
@@ -47,12 +45,20 @@ import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import {AsyncPublisherFactory, IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
+import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig";
+import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
+import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
+import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
 
 class PrettyGoatModule implements IModule {
 
     modules = (container: interfaces.Container) => {
         container.bind<interfaces.Container>("Container").toConstantValue(container);
+        container.bind<IEndpointConfig>("IEndpointConfig").to(DefaultEndpointConfig).inSingletonScope();
+        container.bind<ISocketConfig>("ISocketConfig").to(DefaultSocketConfig).inSingletonScope();
+        container.bind<INotificationConfig>("INotificationConfig").to(DefaultNotificationConfig).inSingletonScope();
         container.bind<IProjectionRegistry>("IProjectionRegistry").to(ProjectionRegistry).inSingletonScope();
+        container.bind<IProjectionFactory>("IProjectionFactory").to(ProjectionFactory).inSingletonScope();
         container.bind<IProjectionRunnerFactory>("IProjectionRunnerFactory").to(ProjectionRunnerFactory).inSingletonScope();
         container.bind<IEventEmitter>("IEventEmitter").to(SocketEventEmitter).inSingletonScope();
         container.bind<IClientRegistry>("IClientRegistry").to(ClientRegistry).inSingletonScope();
@@ -64,10 +70,7 @@ class PrettyGoatModule implements IModule {
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
         container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
-        container.bind<Dictionary<ITickScheduler>>("ITickSchedulerHolder").toConstantValue({});
         container.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
-        container.bind<ITickScheduler>("ITickScheduler").to(TickScheduler);
-        container.bind<interfaces.Factory<ITickScheduler>>("Factory<ITickScheduler>").toAutoFactory<ITickScheduler>("ITickScheduler");
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IMiddlewareTransformer>("IMiddlewareTransformer").to(MiddlewareTransformer).inSingletonScope();
         container.bind<IRouteResolver>("IRouteResolver").to(RouteResolver).inSingletonScope();

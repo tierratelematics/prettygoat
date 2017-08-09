@@ -1,6 +1,6 @@
 import {injectable, inject} from "inversify";
 import {IEventEmitter, ISocketFactory} from "./PushComponents";
-import ISocketConfig from "../configs/ISocketConfig";
+import {ISocketConfig} from "../configs/SocketConfig";
 
 @injectable()
 class SocketEventEmitter implements IEventEmitter {
@@ -16,14 +16,14 @@ class SocketEventEmitter implements IEventEmitter {
             this.socket = this.factory.socketForPath(this.config.path);
     }
 
-    broadcastTo(room: string, event: string, data: any) {
+    broadcastTo(room: string, data: any) {
         this.initializeSocket();
-        this.socket.to(room).emit(event, data);
+        this.socket.to(room).emit(room, data);
     }
 
-    emitTo(clientId: string, event: string, data: any): void {
+    emitTo(clientId: string, room: string, data: any): void {
         this.initializeSocket();
-        this.socket.to(clientId).emit(event, data);
+        this.socket.to(clientId).emit(room, data);
     }
 }
 

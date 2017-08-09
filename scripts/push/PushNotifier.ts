@@ -1,9 +1,9 @@
 import PushContext from "./PushContext";
 import ContextOperations from "./ContextOperations";
 import {injectable, inject} from "inversify";
-import IEndpointConfig from "../configs/IEndpointConfig";
 import {PushNotification, IPushNotifier, IEventEmitter} from "./PushComponents";
-import INotificationConfig from "../configs/INotificationConfig";
+import {IEndpointConfig} from "../configs/EndpointConfig";
+import {INotificationConfig} from "../configs/NotificationConfig";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
@@ -16,28 +16,28 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...notificationConfig};
     }
 
-    notify(context: PushContext, notificationKey?: string, clientId?: string): void {
-        if (clientId) {
-            this.emitToSingleClient(clientId, context, notificationKey);
-        } else {
-            this.eventEmitter.broadcastTo(
-                ContextOperations.getRoom(context, notificationKey),
-                ContextOperations.getChannel(context),
-                this.buildNotification(context, notificationKey)
-            );
-        }
+    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date) {
+        this.eventEmitter.broadcastTo(
+            ContextOperations.keyFor(context, notificationKey),
+            this.buildNotification(context, notificationKey, timestamp)
+        );
+    }
+
+    notifyClient(context: PushContext, clientId: string, notificationKey?: string) {
+        this.emitToSingleClient(clientId, context, notificationKey);
     }
 
     private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {
         let notification = this.buildNotification(context, notificationKey);
-        this.eventEmitter.emitTo(clientId, ContextOperations.getChannel(context), notification);
+        this.eventEmitter.emitTo(clientId, ContextOperations.keyFor(context, notificationKey), notification);
     }
 
-    private buildNotification(context: PushContext, notificationKey: string = null): PushNotification {
+    private buildNotification(context: PushContext, notificationKey: string = null, timestamp: Date = null): PushNotification {
         return {
             url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
                 + this.config.port : ""}/projections/${context.area}/${context.projectionName}`.toLowerCase(),
-            notificationKey: notificationKey
+            notificationKey: notificationKey,
+            timestamp: timestamp
         };
     }
 }

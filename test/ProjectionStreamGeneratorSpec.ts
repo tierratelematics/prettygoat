@@ -4,10 +4,8 @@ import {IMock, Mock, Times, It} from "typemoq";
 import {ProjectionStreamGenerator} from "../scripts/projections/ProjectionStreamGenerator";
 import {Observable, Subject} from "rxjs";
 import {ISubscription} from "rxjs/Subscription";
-import MockDateRetriever from "./fixtures/MockDateRetriever";
 import {IProjection} from "../scripts/projections/IProjection";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
-import ITickScheduler from "../scripts/ticks/ITickScheduler";
 import {Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import {IStreamFactory} from "../scripts/events/IStreamFactory";
 import {Event} from "../scripts/events/Event";
@@ -29,11 +27,7 @@ describe("Given a projection stream generator", () => {
         stopped = false;
         failed = false;
         stream = Mock.ofType<IStreamFactory>();
-        let tickScheduler = Mock.ofType<ITickScheduler>();
-        tickScheduler.setup(t => t.from(null)).returns(() => Observable.empty<Event>());
-        subject = new ProjectionStreamGenerator(stream.object, {
-            "Mock": tickScheduler.object
-        }, new MockDateRetriever(new Date(100000)));
+        subject = new ProjectionStreamGenerator(stream.object);
     });
 
     afterEach(() => {

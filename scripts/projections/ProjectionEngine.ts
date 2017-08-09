@@ -16,7 +16,7 @@ import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 
 type SnapshotData = [string, Snapshot<any>];
 
-type NotificationData = [PushContext, string];
+type NotificationData = [PushContext, string, Date];
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -70,8 +70,8 @@ class ProjectionEngine implements IProjectionEngine {
             });
 
         notificationsPublisher.items(item => item[1]).subscribe(notification => {
-            let [context, notifyKey] = notification;
-            this.pushNotifier.notify(context, notifyKey);
+            let [context, notifyKey, timestamp] = notification;
+            this.pushNotifier.notifyAll(context, notifyKey, timestamp);
             this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
         });
 
@@ -92,7 +92,7 @@ class ProjectionEngine implements IProjectionEngine {
                     ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
                     : this.projectionChangeKeys(notification[1], area);
 
-                forEach(contexts, context => notificationsPublisher.publish([context[0], context[1]]));
+                forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0].timestamp]));
             }, error => {
                 subscription.unsubscribe();
                 this.logger.error(error);

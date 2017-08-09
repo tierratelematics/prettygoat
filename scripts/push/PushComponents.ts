@@ -1,7 +1,8 @@
 import PushContext from "./PushContext";
 
 export interface IPushNotifier {
-    notify(context: PushContext, notificationKey?: string, clientId?: string): void;
+    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date);
+    notifyClient(context: PushContext, clientId: string, notificationKey?: string);
 }
 
 export interface ISocketClient {
@@ -16,14 +17,15 @@ export interface ISocketFactory {
 export interface PushNotification {
     url: string;
     notificationKey: string;
+    timestamp: Date;
 }
 
 export interface IClientRegistry {
     add(client: ISocketClient, context: PushContext): string;
-    remove(client: ISocketClient, context: PushContext);
+    remove(client: ISocketClient, context: PushContext): string;
 }
 
 export interface IEventEmitter {
-    broadcastTo(room: string, event: string, data: any);
-    emitTo(clientId: string, event: string, data: any);
+    broadcastTo(room: string, data: any);
+    emitTo(clientId: string, room: string, data: any);
 }

@@ -1,22 +1,27 @@
 import {injectable, inject} from "inversify";
 import {interfaces} from "inversify";
-import IObjectContainer from "./IObjectContainer";
 import * as _ from "lodash";
-import ITickScheduler from "../ticks/ITickScheduler";
 import Dictionary from "../common/Dictionary";
 import {IProjection, IProjectionDefinition} from "../projections/IProjection";
 import {IReadModelDefinition} from "../readmodels/IReadModel";
 import {Matcher} from "../projections/Matcher";
+import {IProjectionFactory} from "../projections/ProjectionFactory";
 
 export type RegistryLookup<T = any> = [string, IProjection<T>];
 
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
+
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
+
     readmodel<T>(constructor: interfaces.Newable<IReadModelDefinition<T>>);
+
     add<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>): IProjectionRegistry;
+
     forArea(area: string);
+
     projections(): RegistryLookup[];
+
     projectionFor<T>(name: string, area?: string): RegistryLookup<T>;
 }
 
@@ -34,9 +39,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
     private areaLookup: Dictionary<RegistryLookup> = {};
     private unregisteredProjections: interfaces.Newable<IProjectionDefinition>[] = [];
 
-    constructor(@inject("IObjectContainer") private container: IObjectContainer,
-                @inject("Factory<ITickScheduler>") private tickSchedulerFactory: interfaces.Factory<ITickScheduler>,
-                @inject("ITickSchedulerHolder") private tickSchedulerHolder: Dictionary<ITickScheduler>) {
+    constructor(@inject("IProjectionFactory") private factory: IProjectionFactory) {
 
     }
 
@@ -49,7 +52,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
     }
 
     readmodel<T>(constructor: interfaces.Newable<IReadModelDefinition<T>>) {
-        this.registry.push([SpecialAreas.Readmodel, this.container.resolve(constructor).define()]);
+        this.registry.push([SpecialAreas.Readmodel, this.factory.create(constructor)]);
         this.buildLookups();
     }
 
@@ -60,9 +63,7 @@ export class ProjectionRegistry implements IProjectionRegistry {
 
     forArea(area: string) {
         _.forEach(this.unregisteredProjections, definition => {
-            let tickScheduler = <ITickScheduler>this.tickSchedulerFactory(),
-                projection = this.container.resolve(definition).define(tickScheduler);
-            this.tickSchedulerHolder[projection.name] = tickScheduler;
+            let projection = this.factory.create(definition);
             if (/[:,/\\;()#]/.test(projection.name))
                 throw new Error(`Projection name not valid on ${projection.name}`);
             if (!this.isNotificationFieldValid(projection))

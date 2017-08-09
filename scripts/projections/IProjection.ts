@@ -1,10 +1,9 @@
 import Dictionary from "../common/Dictionary";
 import {IDeliverStrategy} from "./Deliver";
 import {IReadModel} from "../readmodels/IReadModel";
-import ITickScheduler from "../ticks/ITickScheduler";
 
 export interface IProjectionDefinition<T = any> {
-    define(tickScheduler?: ITickScheduler): IProjection<T>;
+    define(): IProjection<T>;
 }
 
 export interface IProjection<T = any> extends IReadModel<T> {
