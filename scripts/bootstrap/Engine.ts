@@ -98,7 +98,7 @@ export class Engine {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.add(wrappedClient, context);
                     pushNotifier.notifyClient(context, client.id, notificationKey);
-                    logger.info(`Client subscribed on ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
+                    logger.info(`Client subscribed on ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                     logger.error(error);
@@ -108,7 +108,7 @@ export class Engine {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.remove(wrappedClient, context);
-                    logger.info(`Client unsubscribed from ${ContextOperations.getRoom(context, notificationKey)} with id ${client.id}`);
+                    logger.info(`Client unsubscribed from ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
                 } catch (error) {
                     logger.info(`Client ${client.id} subscribed with wrong channel`);
                     logger.error(error);

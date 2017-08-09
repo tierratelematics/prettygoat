@@ -12,13 +12,13 @@ class ClientRegistry implements IClientRegistry {
 
     add(client: ISocketClient, context: PushContext) {
         let key = this.getNotificationKey(context);
-        client.join(ContextOperations.getRoom(context, key));
+        client.join(ContextOperations.keyFor(context, key));
         return key;
     }
 
     remove(client: ISocketClient, context: PushContext) {
         let key = this.getNotificationKey(context);
-        client.leave(ContextOperations.getRoom(context, key));
+        client.leave(ContextOperations.keyFor(context, key));
         return key;
     }
 
