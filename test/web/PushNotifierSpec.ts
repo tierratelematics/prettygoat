@@ -79,25 +79,37 @@ describe("Given a push notifier", () => {
         });
 
         context("when a timestamp is provided", () => {
-             it("should add the timestamp to the notification", () => {
-                 subject.notifyAll(new PushContext("Admin", "Foo"), "7564", new Date(1000));
-                 eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", It.isValue({
-                     url: "http://test:80/projections/admin/foo",
-                     notificationKey: "7564",
-                     timestamp: new Date(1000)
-                 })), Times.once());
-             });
+            it("should add the timestamp to the notification", () => {
+                subject.notifyAll(new PushContext("Admin", "Foo"), "7564", new Date(1000));
+                eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", It.isValue({
+                    url: "http://test:80/projections/admin/foo",
+                    notificationKey: "7564",
+                    timestamp: new Date(1000)
+                })), Times.once());
+            });
         });
     });
 
     context("when a single client needs to be notified", () => {
-        it("should send a notification only to that client", () => {
-            subject.notifyClient(new PushContext("Admin", "Foo"), "25f", null);
-            eventEmitter.verify(e => e.emitTo("25f", "/admin/foo", It.isValue({
-                url: "http://test:80/projections/admin/foo",
-                notificationKey: null,
-                timestamp: null
-            })), Times.once());
+        context("when no notification key is used", () => {
+            it("should send a notification only to that client", () => {
+                subject.notifyClient(new PushContext("Admin", "Foo"), "25f", null);
+                eventEmitter.verify(e => e.emitTo("25f", "/admin/foo", It.isValue({
+                    url: "http://test:80/projections/admin/foo",
+                    notificationKey: null,
+                    timestamp: null
+                })), Times.once());
+            });
+        });
+        context("when a notification key is used", () => {
+            it("should send a notification only to that client", () => {
+                subject.notifyClient(new PushContext("Admin", "Foo"), "25f", "id-1");
+                eventEmitter.verify(e => e.emitTo("25f", "/admin/foo/id-1", It.isValue({
+                    url: "http://test:80/projections/admin/foo",
+                    notificationKey: "id-1",
+                    timestamp: null
+                })), Times.once());
+            });
         });
     });
 });
