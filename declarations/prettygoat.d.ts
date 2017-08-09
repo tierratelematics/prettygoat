@@ -181,6 +181,10 @@ export interface IProjectionFactoryExtender {
     extend(name: string, definition: any);
 }
 
+export interface IProjectionFactory {
+    create<T>(constructor: interfaces.Newable<IProjectionDefinition<T> | IReadModelDefinition<T>>): IProjection<T>;
+}
+
 export interface IProjectionRegistry {
     master<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
     index<T>(constructor: interfaces.Newable<IProjectionDefinition<T>>);
