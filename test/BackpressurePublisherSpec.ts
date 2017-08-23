@@ -47,7 +47,7 @@ describe("Given a backpressure publisher", () => {
             }), scheduler.createHotObservable("------c", {c: "item3"}));
         });
         it("should process those events after the past events", () => {
-            scheduler.expectObservable(subject.items()).toBe("--b-----c", {b: "item2", c: "item3"});
+            scheduler.expectObservable(subject.items()).toBe("--b------c", {b: "item2", c: "item3"});
 
             scheduler.flush();
         });
@@ -56,25 +56,51 @@ describe("Given a backpressure publisher", () => {
     context("when some messages are grouped", () => {
         let subject: BackpressurePublisher<any>;
 
-        beforeEach(() => {
-            subject = new BackpressurePublisher(null, {
-                replay: 50,
-                realtime: 20
-            }, scheduler, scheduler.createHotObservable("(abcd)", {
-                a: "item1",
-                b: "item2",
-                c: "item1",
-                d: "item2"
-            }), scheduler.createHotObservable("|"));
-        });
-        it("should process those items respecting the grouping", () => {
-            scheduler.expectObservable(subject.items(item => item)).toBe("-----(cd)", {
-                c: "item1",
-                d: "item2"
+        context("when replaying the events", () => {
+            beforeEach(() => {
+                subject = new BackpressurePublisher(null, {
+                    replay: 50,
+                    realtime: 20
+                }, scheduler, scheduler.createHotObservable("(abcd)", {
+                    a: "item1",
+                    b: "item2",
+                    c: "item1",
+                    d: "item2"
+                }), scheduler.createHotObservable("|"));
             });
+            it("should process those items respecting the grouping", () => {
+                scheduler.expectObservable(subject.items(item => item)).toBe("-----(cd)", {
+                    c: "item1",
+                    d: "item2"
+                });
 
-            scheduler.flush();
+                scheduler.flush();
+            });
         });
+
+        context("when it's realtime", () => {
+            beforeEach(() => {
+                subject = new BackpressurePublisher(null, {
+                        replay: 50,
+                        realtime: 20
+                    }, scheduler, scheduler.createHotObservable("|"),
+                    scheduler.createHotObservable("(abcd)", {
+                        a: "item1",
+                        b: "item2",
+                        c: "item1",
+                        d: "item2"
+                    }));
+            });
+            it("should process those items respecting the grouping", () => {
+                scheduler.expectObservable(subject.items(item => item)).toBe("--(cd)", {
+                    c: "item1",
+                    d: "item2"
+                });
+
+                scheduler.flush();
+            });
+        });
+
     });
 
     context("when a message needs to be scheduled", () => {

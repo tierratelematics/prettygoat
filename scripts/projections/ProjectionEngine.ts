@@ -69,7 +69,7 @@ class ProjectionEngine implements IProjectionEngine {
                 this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
             });
 
-        notificationsPublisher.items(item => item[1]).subscribe(notification => {
+        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
             let [context, notifyKey, timestamp] = notification;
             this.pushNotifier.notifyAll(context, notifyKey, timestamp);
             this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
