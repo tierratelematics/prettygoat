@@ -30,7 +30,9 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
         return this.historical
             .groupBy(grouping)
             .flatMap(group => group.debounceTime(this.backpressureConfig.replay, this.scheduler))
-            .concat(this.realtime.sampleTime(this.backpressureConfig.realtime, this.scheduler));
+            .concat(this.realtime
+                        .groupBy(grouping)
+                        .flatMap(group => group.sampleTime(this.backpressureConfig.realtime, this.scheduler)));
     }
 
 }

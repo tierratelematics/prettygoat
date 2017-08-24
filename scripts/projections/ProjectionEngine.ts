@@ -69,10 +69,10 @@ class ProjectionEngine implements IProjectionEngine {
                 this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
             });
 
-        notificationsPublisher.items(item => item[1]).subscribe(notification => {
+        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
             let [context, notifyKey, timestamp] = notification;
             this.pushNotifier.notifyAll(context, notifyKey, timestamp);
-            this.logger.info(`Notifying state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
+            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
         });
 
         let subscription = runner.notifications()
@@ -87,12 +87,13 @@ class ProjectionEngine implements IProjectionEngine {
             .subscribe(notification => {
                 if (!projection.publish) {
                     this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp);
-                }
-                let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
-                    ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
-                    : this.projectionChangeKeys(notification[1], area);
+                } else {
+                    let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
+                        ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
+                        : this.projectionChangeKeys(notification[1], area);
 
-                forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0].timestamp]));
+                    forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0].timestamp]));
+                }
             }, error => {
                 subscription.unsubscribe();
                 this.logger.error(error);

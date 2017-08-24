@@ -37,6 +37,22 @@ describe("Given a ProjectionStateHandler", () => {
         subject = new ProjectionStateHandler(registry.object, holder, readModelRetriever.object);
     });
 
+    context("when an inexistent projection is requested", () => {
+        beforeEach(() => {
+            holder["Mock"] = projectionRunner;
+            projectionRunner.state = 42;
+            request.params = {
+                area: "Admin",
+                publishPoint: "test"
+            };
+        });
+        it("should respond with a 404", () => {
+            subject.handle(request, response.object);
+
+            response.verify(r => r.status(404), Times.once());
+        });
+    });
+
     context("when the state of a projection is needed", () => {
         let projection: IProjection<any>;
 

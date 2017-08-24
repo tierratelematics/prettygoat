@@ -21,7 +21,8 @@ class ProjectionStateHandler implements IRequestHandler {
     async handle(request: IRequest, response: IResponse) {
         let pointName = request.params.publishPoint,
             area = request.params.area,
-            projection = this.projectionRegistry.projectionFor(pointName, area)[1];
+            lookup = this.projectionRegistry.projectionFor(pointName, area),
+            projection = lookup ? lookup[1] : null;
         if (!projection || !(<any>projection).publish) {
             this.sendNotFound(response);
         } else {
