@@ -1,6 +1,6 @@
 {
   "name": "prettygoat",
-  "version": "4.0.0-4",
+  "version": "4.0.0-5",
   "dependencies": {
     "async": "~2.1.4",
     "bivio": "^0.3.2",
