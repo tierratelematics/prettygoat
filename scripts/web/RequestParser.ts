@@ -25,7 +25,7 @@ class Request implements IRequest {
     constructor(public originalRequest: IncomingMessage) {
         this.url = originalRequest.url.replace(/\/+$/, ""); // Remove trailing slash
         this.method = originalRequest.method;
-        this.headers = originalRequest.headers;
+        this.headers = <Dictionary<string>>originalRequest.headers;
         this.query = qs.parse(url.parse(originalRequest.url).query);
         this.params = null;
     }
