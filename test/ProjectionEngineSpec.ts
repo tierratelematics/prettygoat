@@ -171,6 +171,13 @@ describe("Given a ProjectionEngine", () => {
             asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, new Date(5000)])), Times.once());
             asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", new Date(5000)])), Times.once());
         });
+
+        it("should not notify the publish points with an undefined key", async () => {
+            publishState(66, new Date(5000), {List: [undefined]});
+            await subject.run();
+
+            asyncPublisher.verify(a => a.publish(It.isAny()), Times.never());
+        });
     });
 
     context("when a readmodel triggers a new state", () => {
