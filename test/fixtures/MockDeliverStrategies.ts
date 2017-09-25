@@ -39,3 +39,11 @@ export class DependenciesDeliverStrategy implements IDeliverStrategy<any> {
     }
 
 }
+
+export class ThrowDeliverStrategy implements IDeliverStrategy<any> {
+
+    deliver(state: any, context: DeliverContext, readModels: { a: string, b: number }): DeliverResult<any> {
+        throw new Error();
+    }
+
+}

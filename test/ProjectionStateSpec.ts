@@ -12,7 +12,7 @@ import {IProjection} from "../scripts/projections/IProjection";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
 import {
     AsyncContentDeliverStrategy, ContentDeliverStrategy, DependenciesDeliverStrategy,
-    ForbiddenDeliverStrategy,
+    ForbiddenDeliverStrategy, ThrowDeliverStrategy,
     UnauthorizedDeliverStrategy
 } from "./fixtures/MockDeliverStrategies";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
@@ -67,7 +67,7 @@ describe("Given a ProjectionStateHandler", () => {
             };
         });
         context("and a deliver strategy is applied", () => {
-            context("when a content filter is returned", () => {
+            context("when a content deliver is returned", () => {
                 beforeEach(() => projection.publish["Test"].deliver = new ContentDeliverStrategy());
                 it("should send the filtered state", async () => {
                     await subject.handle(request, response.object);
@@ -76,7 +76,7 @@ describe("Given a ProjectionStateHandler", () => {
                     response.verify(r => r.send(42), Times.once());
                 });
             });
-            context("when an async content filter is returned", () => {
+            context("when an async content deliver is returned", () => {
                 beforeEach(() => projection.publish["Test"].deliver = new AsyncContentDeliverStrategy());
                 it("should send the filtered state", async () => {
                     await subject.handle(request, response.object);
@@ -85,7 +85,7 @@ describe("Given a ProjectionStateHandler", () => {
                     response.verify(r => r.send(42), Times.once());
                 });
             });
-            context("when an authorized filter is returned", () => {
+            context("when an authorized deliver is returned", () => {
                 beforeEach(() => projection.publish["Test"].deliver = new UnauthorizedDeliverStrategy());
                 it("should return a 401 error code", async () => {
                     await subject.handle(request, response.object);
@@ -93,12 +93,21 @@ describe("Given a ProjectionStateHandler", () => {
                     response.verify(r => r.status(401), Times.once());
                 });
             });
-            context("when a forbidden filter is returned", () => {
+            context("when a forbidden deliver is returned", () => {
                 beforeEach(() => projection.publish["Test"].deliver = new ForbiddenDeliverStrategy());
                 it("should return a 403 error code", async () => {
                     await subject.handle(request, response.object);
 
                     response.verify(r => r.status(403), Times.once());
+                });
+            });
+
+            context("when a throw deliver is returned", () => {
+                beforeEach(() => projection.publish["Test"].deliver = new ThrowDeliverStrategy());
+                it("should return a 500 error code", async () => {
+                    await subject.handle(request, response.object);
+
+                    response.verify(r => r.status(500), Times.once());
                 });
             });
 

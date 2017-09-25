@@ -9,13 +9,16 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject, keys} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
+import ILogger from "../log/ILogger";
+import NullLogger from "../log/NullLogger";
 
 @Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
 
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>,
-                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
+                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever,
+                @inject("ILogger") private logger: ILogger = NullLogger) {
     }
 
     async handle(request: IRequest, response: IResponse) {
@@ -31,14 +34,21 @@ class ProjectionStateHandler implements IRequestHandler {
                 projectionRunner = this.holder[projection.name],
                 dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
 
-            let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
-            let deliverContext = {
-                headers: request.headers,
-                params: request.query,
-            };
+            try {
+                let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
+                let deliverContext = {
+                    headers: request.headers,
+                    params: request.query,
+                };
 
-            let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
-            this.sendResponse(response, deliverResult);
+                let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
+                this.sendResponse(response, deliverResult);
+            } catch (error) {
+                this.logger.error(`Projection ${area}:${pointName} delivery failed`);
+                this.logger.error(error);
+                response.status(500);
+                response.send({error: STATUS_CODES[500]});
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, concat, reduce} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import ILogger from "../log/ILogger";
@@ -114,7 +114,9 @@ class ProjectionEngine implements IProjectionEngine {
 
     private projectionChangeKeys(notifications: Dictionary<string[]>, area: string): NotificationData[] {
         return reduce(notifications, (result, notificationKeys, point) => {
-            return concat(result, map<string, [PushContext, string]>(notificationKeys, key => [new PushContext(area, point), key]));
+            return concat(result, compact(map<string, [PushContext, string]>(notificationKeys, key => {
+                return !isUndefined(key) ? [new PushContext(area, point), key] : key;
+            })));
         }, []);
     }
 }
