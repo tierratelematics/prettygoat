@@ -3,7 +3,7 @@ export interface Event<T = any> {
     type: string;
     payload: T;
     timestamp: Date;
-    envelope?: any;
+    metadata?: any;
 }
 
-export const NullEvent = { timestamp: null, id: null, payload: null, type: null }
+export const NullEvent = { timestamp: null, id: null, payload: null, type: null };
