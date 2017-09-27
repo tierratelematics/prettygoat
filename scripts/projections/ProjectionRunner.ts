@@ -44,15 +44,16 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
         if (snapshot) {
             this.state = snapshot.memento;
-            this.notifyStateChange(snapshot.lastEvent, mapValues(this.notifyMatchers, matcher => [null]));
+            this.notifyStateChange(snapshot.lastEvent, null, mapValues(this.notifyMatchers, matcher => [null]));
         }
         this.stats = new ProjectionStats();
         this.startStream(snapshot);
         this.stats.running = true;
     }
 
-    private notifyStateChange(timestamp: Date, notificationKeys: Dictionary<string[]>) {
+    private notifyStateChange(timestamp: Date, eventId: string, notificationKeys: Dictionary<string[]>) {
         this.subject.next([{
+            id: eventId,
             payload: this.state,
             type: this.projection.name,
             timestamp: timestamp
@@ -90,7 +91,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 let [event, newState] = data;
                 this.state = newState;
 
-                this.notifyStateChange(event.timestamp, this.getNotificationKeys(event));
+                this.notifyStateChange(event.timestamp, event.id, this.getNotificationKeys(event));
             }, error => {
                 this.stats.failed = true;
                 this.subject.error(error);

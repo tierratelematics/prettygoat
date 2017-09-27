@@ -24,6 +24,7 @@ describe("Given a ProjectionRunner", () => {
     let subscription: Subscription;
     let projection: IProjection<number>;
     let notificationKeys: Dictionary<string[]>;
+    let lastId: string;
 
     beforeEach(() => {
         projection = new MockProjectionDefinition().define();
@@ -44,6 +45,7 @@ describe("Given a ProjectionRunner", () => {
             notifications.push(notification[0].payload);
             timestamps.push(notification[0].timestamp);
             notificationKeys = notification[1];
+            lastId = notification[0].id;
         }, e => failed = true, () => stopped = true);
     });
 
@@ -130,7 +132,7 @@ describe("Given a ProjectionRunner", () => {
             beforeEach(() => {
                 let date = new Date(5000);
                 streamGenerator.setup(s => s.generate(It.isAny(), It.isAny(), It.isAny())).returns(_ => Observable.range(1, 5).map(n => {
-                    return {type: "increment", payload: n, timestamp: new Date(+date + n)};
+                    return {type: "increment", payload: n, timestamp: new Date(+date + n), id: "unique-" + n};
                 }));
             });
 
@@ -171,6 +173,10 @@ describe("Given a ProjectionRunner", () => {
                         "Detail": ["5"]
                     });
                     expect(isArray(notificationKeys.Detail)).to.be(true);
+                });
+
+                it("should set the id of the last event", () => {
+                    expect(lastId).to.be("unique-5");
                 });
             });
 
