@@ -9,7 +9,7 @@ export {IEndpointConfig} from "./configs/EndpointConfig";
 export {INotificationConfig} from "./configs/NotificationConfig";
 export {default as IApiKeyConfig} from "./configs/IApiKeyConfig";
 export {ISocketConfig} from "./configs/SocketConfig";
-export {default as IRedisConfig} from "./configs/IRedisConfig";
+export {IRedisConfig} from "./configs/IRedisConfig";
 export {default as Dictionary} from "./common/Dictionary";
 export {default as ILogger} from "./log/ILogger";
 export {IStreamFactory} from "./events/IStreamFactory";
