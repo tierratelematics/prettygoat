@@ -13,10 +13,11 @@ import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
 import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
+import {Event} from "../events/Event";
 
 type SnapshotData = [string, Snapshot<any>];
 
-type NotificationData = [PushContext, string, Date];
+type NotificationData = [PushContext, string, Event];
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -70,8 +71,8 @@ class ProjectionEngine implements IProjectionEngine {
             });
 
         notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
-            let [context, notifyKey, timestamp] = notification;
-            this.pushNotifier.notifyAll(context, notifyKey, timestamp);
+            let [context, notifyKey, event] = notification;
+            this.pushNotifier.notifyAll(context, event, notifyKey);
             this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
         });
 
@@ -92,7 +93,7 @@ class ProjectionEngine implements IProjectionEngine {
                         ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
                         : this.projectionChangeKeys(notification[1], area);
 
-                    forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0].timestamp]));
+                    forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0]]));
                 }
             }, error => {
                 subscription.unsubscribe();
