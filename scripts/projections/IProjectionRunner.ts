@@ -3,6 +3,7 @@ import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import {Event} from "../events/Event";
 import {ProjectionStats} from "./ProjectionRunner";
+import Dictionary from "../common/Dictionary";
 
 export interface IProjectionRunner<T = any> extends ISubscription {
     state: T;
