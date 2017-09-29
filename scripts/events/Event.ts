@@ -6,4 +6,4 @@ export interface Event<T = any> {
     metadata?: any;
 }
 
-export const NullEvent = { timestamp: null, id: null, payload: null, type: null };
+export const NullEvent = {timestamp: null, id: null, payload: null, type: null};
