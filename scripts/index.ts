@@ -12,7 +12,7 @@ export {ISocketConfig} from "./configs/SocketConfig";
 export {IRedisConfig} from "./configs/IRedisConfig";
 export {default as Dictionary} from "./common/Dictionary";
 export {default as ILogger} from "./log/ILogger";
-export {IStreamFactory} from "./events/IStreamFactory";
+export {IStreamFactory, ProjectionQuery} from "./events/IStreamFactory";
 export {IReplicationManager} from "./bootstrap/ReplicationManager";
 export {
     IDateRetriever,
@@ -59,4 +59,3 @@ export {IReadModel, IReadModelDefinition} from "./readmodels/IReadModel";
 export {default as SpecialEvents} from "./events/SpecialEvents";
 export {IDeliverStrategy, DeliverAuthorization, DeliverContext, DeliverResult} from "./projections/Deliver";
 export {Event, NullEvent} from "./events/Event";
-export {IProjectionStreamGenerator} from "./projections/ProjectionStreamGenerator";

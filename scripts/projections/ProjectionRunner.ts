@@ -3,13 +3,13 @@ import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../common/Dictionary";
 import {isPromise, toArray} from "../common/TypesUtil";
-import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
-import {keys, mapValues} from "lodash";
+import {mapValues} from "lodash";
+import {IStreamFactory} from "../events/IStreamFactory";
 
 export class ProjectionStats {
     running = false;
@@ -26,7 +26,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
     private subscription: ISubscription;
 
-    constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
+    constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
 
     }
@@ -60,7 +60,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         }, notificationKeys]);
     }
 
-    private startStream(snapshot: Snapshot<Dictionary<T> | T>) {
+    private startStream(snapshot: Snapshot<T>) {
         let completions = new Subject<string>(),
             initEvent = {
                 type: "$init",
@@ -68,7 +68,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 timestamp: new Date(0)
             };
 
-        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
+        this.subscription = this.streamFactory.from(null,  null,  null)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {

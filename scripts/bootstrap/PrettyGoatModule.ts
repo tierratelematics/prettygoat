@@ -35,7 +35,7 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
-import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
+import {ProjectionStreamFactory} from "../projections/ProjectionStreamFactory";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import * as Redis from "ioredis";
@@ -49,6 +49,7 @@ import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
 import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
 import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
 import {IRedisConfig} from "../configs/IRedisConfig";
+import {IStreamFactory} from "../events/IStreamFactory";
 
 class PrettyGoatModule implements IModule {
 
@@ -82,7 +83,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
-        container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
+        container.bind<IStreamFactory>("IProjectionStreamFactory").to(ProjectionStreamFactory).inSingletonScope();
         container.bind<IReadModelRetriever>("IReadModelRetriever").to(ReadModelRetriever).inSingletonScope();
         container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
