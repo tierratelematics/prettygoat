@@ -168,8 +168,16 @@ describe("Given a ProjectionEngine", () => {
             publishState(66, new Date(5000), {List: [null], "Detail": ["66"]});
             await subject.run();
 
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, new Date(5000)])), Times.once());
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", new Date(5000)])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, {
+                type: "Mock",
+                payload: 66,
+                timestamp: new Date(5000)
+            }])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", {
+                type: "Mock",
+                payload: 66,
+                timestamp: new Date(5000)
+            }])), Times.once());
         });
 
         it("should not notify the publish points with an undefined key", async () => {
@@ -205,7 +213,11 @@ describe("Given a ProjectionEngine", () => {
             await subject.run();
         });
         it("should notify the publish points that depend on it", () => {
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client", new Date(10000)])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client", {
+                type: SpecialEvents.READMODEL_CHANGED,
+                payload: "a",
+                timestamp: new Date(10000)
+            }])), Times.once());
             asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "NoDependencies"), null])), Times.never());
         });
     });
@@ -214,14 +226,22 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([
-                new PushContext("Admin", "Mock"),
-                "testkey",
-                new Date(1000)]));
+                new PushContext("Admin", "Mock"), "testkey", {
+                    timestamp: new Date(1000),
+                    id: null,
+                    type: null,
+                    payload: null
+                }]));
             asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
             await subject.run();
         });
         it("should save them", () => {
-            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), "testkey", It.isValue(new Date(1000))), Times.once());
+            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), It.isValue({
+                timestamp: new Date(1000),
+                id: null,
+                type: null,
+                payload: null
+            }), "testkey"), Times.once());
         });
     });
 

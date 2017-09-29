@@ -1,7 +1,7 @@
 import ILogger from "./ILogger";
 import LogLevel from "./LogLevel";
 
-class NullLogger implements ILogger {
+export class NullLogger implements ILogger {
 
 
     debug(message: string) {

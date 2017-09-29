@@ -1,4 +1,4 @@
-import {Container} from "inversify";
+import {Container, interfaces} from "inversify";
 import IModule from "./IModule";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
@@ -21,7 +21,13 @@ import {ISocketConfig} from "../configs/SocketConfig";
 import {IEndpointConfig} from "../configs/EndpointConfig";
 
 let container = new Container();
-export let {lazyInject} = getDecorators(container);
+
+export type lazyInjectType = (serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
+export type lazyMultiInjectType = (serviceIdentifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) => (proto: any, key: string) => void;
+
+let decorators = getDecorators(container);
+export let lazyInject: lazyInjectType = decorators.lazyInject;
+export let lazyMultiInject: lazyMultiInjectType = decorators.lazyMultiInject;
 
 export class Engine {
 

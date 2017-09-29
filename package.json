@@ -42,6 +42,6 @@
     "lolex": "~1.5.2",
     "typemoq": "~1.2.1"
   },
-  "main": "dist/prettygoat.js",
-  "typings": "declarations/prettygoat.d.ts"
+  "main": "dist",
+  "typings": "dist"
 }

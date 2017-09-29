@@ -40,7 +40,6 @@ import {IProjectionRunner} from "../projections/IProjectionRunner";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import * as Redis from "ioredis";
 import {isArray} from "lodash";
-import IRedisConfig from "../configs/IRedisConfig";
 import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
@@ -49,6 +48,7 @@ import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig"
 import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
 import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
 import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
+import {IRedisConfig} from "../configs/IRedisConfig";
 
 class PrettyGoatModule implements IModule {
 
