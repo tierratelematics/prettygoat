@@ -2,6 +2,7 @@ import {Event} from "./Event";
 
 const cbuffer = require("CBuffer");
 import {forEach} from "lodash";
+import SpecialEvents from "./SpecialEvents";
 
 export interface IIdempotenceFilter {
     setItems(items: RingBufferItem[]);
@@ -20,6 +21,8 @@ export class IdempotenceFilter implements IIdempotenceFilter {
     }
 
     filter(event: Event): boolean {
+        if (event.type === SpecialEvents.FETCH_EVENTS) return true;
+
         let filtered = this.ringBuffer.every(item => item.id !== event.id, this);
         if (filtered) this.ringBuffer.push(event);
         return filtered;

@@ -13,6 +13,7 @@ export {IRedisConfig} from "./configs/IRedisConfig";
 export {default as Dictionary} from "./common/Dictionary";
 export {default as ILogger} from "./log/ILogger";
 export {IStreamFactory, ProjectionQuery} from "./events/IStreamFactory";
+export {IIdempotenceFilter} from "./events/IdempotenceFilter";
 export {IReplicationManager} from "./bootstrap/ReplicationManager";
 export {
     IDateRetriever,

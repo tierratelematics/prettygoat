@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {IdempotenceFilter} from "../scripts/events/IdempotenceFilter";
+import SpecialEvents from "../scripts/events/SpecialEvents";
 
 describe("Given an idempotence filter", () => {
 
@@ -18,6 +19,19 @@ describe("Given an idempotence filter", () => {
             expect(subject.filter({
                 id: "event1", payload: null, timestamp: null, type: null
             })).to.be(false);
+        });
+    });
+
+    context("when a special event has to be processed", () => {
+        it("should not be filtered", () => {
+            subject = new IdempotenceFilter([]);
+
+            expect(subject.filter({
+                type: SpecialEvents.FETCH_EVENTS, timestamp: null, payload: null
+            })).to.be(true);
+            expect(subject.filter({
+                type: SpecialEvents.FETCH_EVENTS, timestamp: null, payload: null
+            })).to.be(true);
         });
     });
 
