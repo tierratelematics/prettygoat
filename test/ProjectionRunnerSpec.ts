@@ -70,10 +70,10 @@ describe("Given a ProjectionRunner", () => {
                 {id: "5", timestamp: new Date(5)}
             ])));
             it("should construct an idempotence filter from a ringbuffer", () => {
-                idempotenceFactory.verify(i => i.for("Mock", It.isValue([{
-                    id: "10",
-                    timestamp: new Date(10)
-                }])), Times.once());
+                idempotenceFactory.verify(i => i.for("Mock", It.isValue([
+                    {id: "10", timestamp: new Date(10)},
+                    {id: "5", timestamp: new Date(5)}
+                ])), Times.once());
             });
 
             it("should set a starting date for events", () => {
@@ -88,13 +88,14 @@ describe("Given a ProjectionRunner", () => {
         context("when a snapshot is not available", () => {
             beforeEach(() => subject.run());
             it("should construct an empty idempotence filter", () => {
-                idempotenceFactory.verify(i => i.for("Mock", undefined), Times.once());
+                idempotenceFactory.verify(i => i.for("Mock", It.isValue([])), Times.once());
             });
 
             it("should not set a starting date for events", () => {
                 streamFactory.verify(s => s.from(It.isValue({
                     name: "Mock",
-                    manifests: ["TestEvent"]
+                    manifests: ["TestEvent"],
+                    from: undefined
                 }), It.isAny(), It.isAny()), Times.once());
             });
         });
