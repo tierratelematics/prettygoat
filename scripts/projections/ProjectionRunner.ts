@@ -10,6 +10,7 @@ import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
 import {mapValues} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
+import {IIdempotenceFilterFactory} from "../events/IdempotenceFilterFactory";
 
 export class ProjectionStats {
     running = false;
@@ -27,7 +28,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subscription: ISubscription;
 
     constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
-                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
+                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>,
+                private idempotenceFactory: IIdempotenceFilterFactory) {
 
     }
 
@@ -68,7 +70,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 timestamp: new Date(0)
             };
 
-        this.subscription = this.streamFactory.from(null,  null,  null)
+        this.subscription = this.streamFactory.from(null, null, null)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {

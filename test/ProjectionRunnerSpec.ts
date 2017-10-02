@@ -12,6 +12,7 @@ import {ProjectionRunner} from "../scripts/projections/ProjectionRunner";
 import Dictionary from "../scripts/common/Dictionary";
 import {isArray} from "lodash";
 import {IStreamFactory} from "../scripts/events/IStreamFactory";
+import {IIdempotenceFilterFactory} from "../scripts/events/IdempotenceFilterFactory";
 
 describe("Given a ProjectionRunner", () => {
     let streamFactory: IMock<IStreamFactory>;
@@ -25,6 +26,7 @@ describe("Given a ProjectionRunner", () => {
     let projection: IProjection<number>;
     let notificationKeys: Dictionary<string[]>;
     let lastId: string;
+    let idempotenceFactory: IMock<IIdempotenceFilterFactory>;
 
     beforeEach(() => {
         projection = new MockProjectionDefinition().define();
@@ -33,6 +35,7 @@ describe("Given a ProjectionRunner", () => {
         stopped = false;
         failed = false;
         streamFactory = Mock.ofType<IStreamFactory>();
+        idempotenceFactory = Mock.ofType<IIdempotenceFilterFactory>();
         matcher = Mock.ofType<IMatcher>();
         let detailMatcher = Mock.ofType<IMatcher>();
         detailMatcher.setup(d => d.match("increment")).returns(() => (s, e) => e.toString());
@@ -40,7 +43,7 @@ describe("Given a ProjectionRunner", () => {
         testMatcher.setup(d => d.match(It.isAny())).returns(() => null);
         subject = new ProjectionRunner<number>(projection, streamFactory.object, matcher.object, {
             "Test": testMatcher.object, "Detail": detailMatcher.object
-        });
+        }, idempotenceFactory.object);
         subscription = subject.notifications().subscribe(notification => {
             notifications.push(notification[0].payload);
             timestamps.push(notification[0].timestamp);
@@ -58,6 +61,44 @@ describe("Given a ProjectionRunner", () => {
             subject.notifications().subscribe(() => null, reject, resolve);
         });
     }
+
+    context("when attaching to the stream of events", () => {
+        beforeEach(() => streamFactory.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(() => Observable.empty()));
+        context("when a snapshot is available", () => {
+            beforeEach(() => subject.run(new Snapshot(null, null, [
+                {id: "10", timestamp: new Date(10)},
+                {id: "5", timestamp: new Date(5)}
+            ])));
+            it("should construct an idempotence filter from a ringbuffer", () => {
+                idempotenceFactory.verify(i => i.for("Mock", It.isValue([{
+                    id: "10",
+                    timestamp: new Date(10)
+                }])), Times.once());
+            });
+
+            it("should set a starting date for events", () => {
+                streamFactory.verify(s => s.from(It.isValue({
+                    name: "Mock",
+                    manifests: ["TestEvent"],
+                    from: new Date(5)
+                }), It.isAny(), It.isAny()), Times.once());
+            });
+        });
+
+        context("when a snapshot is not available", () => {
+            beforeEach(() => subject.run());
+            it("should construct an empty idempotence filter", () => {
+                idempotenceFactory.verify(i => i.for("Mock", undefined), Times.once());
+            });
+
+            it("should not set a starting date for events", () => {
+                streamFactory.verify(s => s.from(It.isValue({
+                    name: "Mock",
+                    manifests: ["TestEvent"]
+                }), It.isAny(), It.isAny()), Times.once());
+            });
+        });
+    });
 
     context("when initializing a projection", () => {
         beforeEach(() => {
