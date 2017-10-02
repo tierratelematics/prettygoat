@@ -21,6 +21,9 @@ export class IdempotenceFilter implements IIdempotenceFilter {
         return filtered;
     }
 
+    serialize(): RingBufferItem[] {
+        return this.ringBuffer.toArray();
+    }
 }
 
 export type RingBufferItem = {
