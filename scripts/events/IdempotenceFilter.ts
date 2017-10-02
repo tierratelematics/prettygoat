@@ -4,15 +4,19 @@ const cbuffer = require("CBuffer");
 import {forEach} from "lodash";
 
 export interface IIdempotenceFilter {
+    setItems(items: RingBufferItem[]);
     filter(event: Event): boolean;
 }
 
 export class IdempotenceFilter implements IIdempotenceFilter {
-
     private ringBuffer = new cbuffer(100);
 
-    constructor(buffer: RingBufferItem[] = []) {
-        forEach(buffer, item => this.ringBuffer.push(item));
+    constructor(items: RingBufferItem[] = []) {
+        this.setItems(items);
+    }
+
+    setItems(items: RingBufferItem[]) {
+        forEach(items, item => this.ringBuffer.push(item));
     }
 
     filter(event: Event): boolean {

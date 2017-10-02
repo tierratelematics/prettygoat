@@ -7,6 +7,7 @@ import {Matcher} from "./Matcher";
 import {ProjectionRunner} from "./ProjectionRunner";
 import {mapValues} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
+import {IdempotenceFilter} from "../events/IdempotenceFilter";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -18,7 +19,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
 
     create<T>(projection: IProjection<T>): IProjectionRunner<T> {
         let notifyMatchers = mapValues(projection.publish, point => new Matcher(point.notify));
-        let projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, new Matcher(projection.definition), notifyMatchers);
+        let projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, new Matcher(projection.definition),
+            notifyMatchers, new IdempotenceFilter());
         this.holder[projection.name] = projectionRunner;
         return projectionRunner;
     }

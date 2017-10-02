@@ -10,9 +10,8 @@ import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
 import {mapValues, sortBy} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
-import {IIdempotenceFilterFactory} from "../events/IdempotenceFilterFactory";
 import DefinitionUtil from "../common/DefinitionUtil";
-import {RingBufferItem} from "../events/IdempotenceFilter";
+import {IIdempotenceFilter, RingBufferItem} from "../events/IdempotenceFilter";
 
 export class ProjectionStats {
     running = false;
@@ -31,7 +30,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>,
-                private idempotenceFactory: IIdempotenceFilterFactory) {
+                private idempotenceFilter: IIdempotenceFilter) {
 
     }
 
@@ -77,10 +76,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 name: this.projection.name,
                 manifests: DefinitionUtil.getManifests(this.projection.definition),
                 from: this.bufferStartingPoint(ringBuffer)
-            },
-            idempotenceFilter = this.idempotenceFactory.for(this.projection.name, ringBuffer);
+            };
 
-        this.subscription = this.streamFactory.from(query, idempotenceFilter, completions)
+        this.idempotenceFilter.setItems(ringBuffer);
+
+        this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
