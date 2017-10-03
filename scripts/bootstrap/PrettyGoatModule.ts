@@ -50,6 +50,7 @@ import {DefaultNotificationConfig, INotificationConfig} from "../configs/Notific
 import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
 import {IRedisConfig} from "../configs/IRedisConfig";
 import {IStreamFactory} from "../events/IStreamFactory";
+import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 
 class PrettyGoatModule implements IModule {
 
@@ -71,6 +72,7 @@ class PrettyGoatModule implements IModule {
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
         container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
+        container.bind<Dictionary<IIdempotenceFilter>>("IdempotenceFilterHolder").toConstantValue({});
         container.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IMiddlewareTransformer>("IMiddlewareTransformer").to(MiddlewareTransformer).inSingletonScope();

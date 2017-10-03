@@ -6,7 +6,10 @@ import SpecialEvents from "./SpecialEvents";
 
 export interface IIdempotenceFilter {
     setItems(items: RingBufferItem[]);
+
     filter(event: Event): boolean;
+
+    serialize(): RingBufferItem[];
 }
 
 export class IdempotenceFilter implements IIdempotenceFilter {

@@ -1,7 +1,7 @@
 import {RingBufferItem} from "../events/IdempotenceFilter";
 
 export class Snapshot<T> {
-    public static Empty: Snapshot<any> = new Snapshot<any>(undefined, undefined);
+    public static Empty: Snapshot<any> = new Snapshot<any>(undefined, undefined, []);
 
     constructor(public memento: T, public lastEvent: Date, public ringBuffer: RingBufferItem[] = []) {
     }
