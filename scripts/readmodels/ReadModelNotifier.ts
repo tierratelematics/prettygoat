@@ -5,7 +5,8 @@ import {injectable} from "inversify";
 
 export interface IReadModelNotifier {
     changes(name: string): Observable<Event>;
-    notifyChanged(name: string, timestamp: Date);
+
+    notifyChanged(name: string, timestamp: Date, eventId?: string);
 }
 
 @injectable()
@@ -17,11 +18,12 @@ export class ReadModelNotifier implements IReadModelNotifier {
         return this.subject.filter(event => event.payload === name).sampleTime(100);
     }
 
-    notifyChanged(name: string, timestamp: Date) {
+    notifyChanged(name: string, timestamp: Date, eventId?: string) {
         this.subject.next({
             type: SpecialEvents.READMODEL_CHANGED,
             payload: name,
-            timestamp: timestamp
+            timestamp: timestamp,
+            id: eventId
         });
     }
 }
