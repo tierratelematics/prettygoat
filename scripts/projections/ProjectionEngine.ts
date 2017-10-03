@@ -14,6 +14,7 @@ import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
 import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {Event} from "../events/Event";
+import IAsyncPublisher from "../common/IAsyncPublisher";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -62,19 +63,8 @@ class ProjectionEngine implements IProjectionEngine {
         let snapshotsPublisher = this.publisherFactory.publisherFor<SnapshotData>(runner);
         let notificationsPublisher = this.publisherFactory.publisherFor<NotificationData>(runner);
 
-        snapshotsPublisher.items()
-            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
-            .subscribe(snapshotData => {
-                let streamId = snapshotData[0],
-                    snapshotPayload = snapshotData[1];
-                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
-            });
-
-        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
-            let [context, notifyKey, event] = notification;
-            this.pushNotifier.notifyAll(context, event, notifyKey);
-            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
-        });
+        this.saveSnapshots(snapshotsPublisher);
+        this.publishNotifications(notificationsPublisher);
 
         let subscription = runner.notifications()
             .do(notification => {
@@ -101,6 +91,24 @@ class ProjectionEngine implements IProjectionEngine {
             });
 
         runner.run(snapshot);
+    }
+
+    private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>) {
+        snapshotsPublisher.items()
+            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+            .subscribe(snapshotData => {
+                let streamId = snapshotData[0],
+                    snapshotPayload = snapshotData[1];
+                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
+            });
+    }
+
+    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>) {
+        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
+            let [context, notifyKey, event] = notification;
+            this.pushNotifier.notifyAll(context, event, notifyKey);
+            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
+        });
     }
 
     private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string): NotificationData[] {
