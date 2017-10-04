@@ -1,7 +1,7 @@
 import {Event} from "./Event";
 
 const cbuffer = require("CBuffer");
-import {forEach} from "lodash";
+import {forEach, map, omit} from "lodash";
 import SpecialEvents from "./SpecialEvents";
 
 export interface IIdempotenceFilter {
@@ -27,7 +27,7 @@ export class IdempotenceFilter implements IIdempotenceFilter {
         if (event.type === SpecialEvents.FETCH_EVENTS) return true;
 
         let filtered = this.ringBuffer.every(item => item.id !== event.id, this);
-        if (filtered) this.ringBuffer.push(event);
+        if (filtered) this.ringBuffer.push(omit(event, ["payload", "type", "metadata"]));
         return filtered;
     }
 
