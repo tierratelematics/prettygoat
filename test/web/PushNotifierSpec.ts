@@ -3,7 +3,7 @@ import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import PushContext from "../../scripts/push/PushContext";
 import {Subject} from "rxjs";
-import {Event} from "../../scripts/events/Event";
+import {Event, NullEvent} from "../../scripts/events/Event";
 import {IPushNotifier, IEventEmitter} from "../../scripts/push/PushComponents";
 import PushNotifier from "../../scripts/push/PushNotifier";
 
@@ -27,11 +27,12 @@ describe("Given a push notifier", () => {
 
     context("when a projection emits a new state", () => {
         it("should emit a notification on the corresponding context", () => {
-            subject.notifyAll(new PushContext("Admin", "Foo"));
+            subject.notifyAll(new PushContext("Admin", "Foo"), NullEvent);
             eventEmitter.verify(e => e.broadcastTo("/admin/foo", It.isValue({
                 url: "http://test:80/projections/admin/foo",
                 notificationKey: null,
-                timestamp: null
+                timestamp: null,
+                eventId: null
             })), Times.once());
         });
 
@@ -41,11 +42,12 @@ describe("Given a push notifier", () => {
                     host: "test",
                     protocol: "http"
                 });
-                subject.notifyAll(new PushContext("Admin", "Foo"));
+                subject.notifyAll(new PushContext("Admin", "Foo"), NullEvent);
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", It.isValue({
                     url: "http://test/projections/admin/foo",
                     notificationKey: null,
-                    timestamp: null
+                    timestamp: null,
+                    eventId: null
                 })), Times.once());
             });
         });
@@ -59,32 +61,40 @@ describe("Given a push notifier", () => {
                     port: null,
                     protocol: "https"
                 });
-                subject.notifyAll(new PushContext("Admin", "Foo"));
+                subject.notifyAll(new PushContext("Admin", "Foo"), NullEvent);
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo", It.isValue({
                     url: "https://test/projections/admin/foo",
                     notificationKey: null,
-                    timestamp: null
+                    timestamp: null,
+                    eventId: null
                 })), Times.once());
             });
         });
         context("and a specific group of clients needs to be notified", () => {
             it("should populate the notification key", () => {
-                subject.notifyAll(new PushContext("Admin", "Foo"), "7564");
+                subject.notifyAll(new PushContext("Admin", "Foo"), NullEvent, "7564");
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", It.isValue({
                     url: "http://test:80/projections/admin/foo",
                     notificationKey: "7564",
-                    timestamp: null
+                    timestamp: null,
+                    eventId: null
                 })), Times.once());
             });
         });
 
         context("when a timestamp is provided", () => {
             it("should add the timestamp to the notification", () => {
-                subject.notifyAll(new PushContext("Admin", "Foo"), "7564", new Date(1000));
+                subject.notifyAll(new PushContext("Admin", "Foo"), {
+                    timestamp: new Date(1000),
+                    id: null,
+                    type: null,
+                    payload: null
+                }, "7564");
                 eventEmitter.verify(e => e.broadcastTo("/admin/foo/7564", It.isValue({
                     url: "http://test:80/projections/admin/foo",
                     notificationKey: "7564",
-                    timestamp: new Date(1000)
+                    timestamp: new Date(1000),
+                    eventId: null
                 })), Times.once());
             });
         });
@@ -97,7 +107,8 @@ describe("Given a push notifier", () => {
                 eventEmitter.verify(e => e.emitTo("25f", "/admin/foo", It.isValue({
                     url: "http://test:80/projections/admin/foo",
                     notificationKey: null,
-                    timestamp: null
+                    timestamp: null,
+                    eventId: null
                 })), Times.once());
             });
         });
@@ -107,7 +118,8 @@ describe("Given a push notifier", () => {
                 eventEmitter.verify(e => e.emitTo("25f", "/admin/foo/id-1", It.isValue({
                     url: "http://test:80/projections/admin/foo",
                     notificationKey: "id-1",
-                    timestamp: null
+                    timestamp: null,
+                    eventId: null
                 })), Times.once());
             });
         });

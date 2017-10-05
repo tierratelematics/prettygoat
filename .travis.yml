@@ -10,7 +10,7 @@ node_js:
 install:
   - export CXX=g++-4.8
   - $CXX --version
-  - npm install smild@4.7.1 -g
+  - npm install smild@4.8.1 -g
   - npm install
 script:
   - smild test

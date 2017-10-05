@@ -13,10 +13,13 @@ import {IReadModelNotifier} from "../readmodels/ReadModelNotifier";
 import SpecialEvents from "../events/SpecialEvents";
 import Dictionary from "../common/Dictionary";
 import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
+import {Event} from "../events/Event";
+import IAsyncPublisher from "../common/IAsyncPublisher";
+import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 
 type SnapshotData = [string, Snapshot<any>];
 
-type NotificationData = [PushContext, string, Date];
+type NotificationData = [PushContext, string, Event];
 
 @injectable()
 class ProjectionEngine implements IProjectionEngine {
@@ -27,7 +30,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IAsyncPublisherFactory") private publisherFactory: IAsyncPublisherFactory,
-                @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier) {
+                @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier,
+                @inject("IdempotenceFilterHolder") private filterHolder: Dictionary<IIdempotenceFilter>) {
     }
 
     async run(projection?: IProjection<any>) {
@@ -61,26 +65,16 @@ class ProjectionEngine implements IProjectionEngine {
         let snapshotsPublisher = this.publisherFactory.publisherFor<SnapshotData>(runner);
         let notificationsPublisher = this.publisherFactory.publisherFor<NotificationData>(runner);
 
-        snapshotsPublisher.items()
-            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
-            .subscribe(snapshotData => {
-                let streamId = snapshotData[0],
-                    snapshotPayload = snapshotData[1];
-                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
-            });
-
-        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
-            let [context, notifyKey, timestamp] = notification;
-            this.pushNotifier.notifyAll(context, notifyKey, timestamp);
-            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
-        });
+        this.saveSnapshots(snapshotsPublisher);
+        this.publishNotifications(notificationsPublisher);
 
         let subscription = runner.notifications()
             .do(notification => {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    snapshotsPublisher.publish([state.type, new Snapshot(state.payload, state.timestamp)]);
+                    snapshotsPublisher.publish([state.type, new Snapshot(state.payload, state.timestamp,
+                        this.filterHolder[projection.name].serialize())]);
                 }
             })
             .merge(...readModels)
@@ -92,7 +86,7 @@ class ProjectionEngine implements IProjectionEngine {
                         ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)
                         : this.projectionChangeKeys(notification[1], area);
 
-                    forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0].timestamp]));
+                    forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0]]));
                 }
             }, error => {
                 subscription.unsubscribe();
@@ -100,6 +94,24 @@ class ProjectionEngine implements IProjectionEngine {
             });
 
         runner.run(snapshot);
+    }
+
+    private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>) {
+        snapshotsPublisher.items()
+            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+            .subscribe(snapshotData => {
+                let streamId = snapshotData[0],
+                    snapshotPayload = snapshotData[1];
+                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
+            });
+    }
+
+    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>) {
+        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
+            let [context, notifyKey, event] = notification;
+            this.pushNotifier.notifyAll(context, event, notifyKey);
+            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
+        });
     }
 
     private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string): NotificationData[] {

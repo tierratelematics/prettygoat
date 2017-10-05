@@ -23,6 +23,7 @@ import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
 import Dictionary from "../scripts/common/Dictionary";
 import {IAsyncPublisherFactory} from "../scripts/common/AsyncPublisherFactory";
+import {IIdempotenceFilter} from "../scripts/events/IdempotenceFilter";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -37,7 +38,8 @@ describe("Given a ProjectionEngine", () => {
         projection: IProjection<number>,
         asyncPublisher: IMock<IAsyncPublisher<any>>,
         clock: lolex.Clock,
-        readModelNotifier: IMock<IReadModelNotifier>;
+        readModelNotifier: IMock<IReadModelNotifier>,
+        filterHolder: Dictionary<IIdempotenceFilter>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -59,8 +61,13 @@ describe("Given a ProjectionEngine", () => {
         registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
+        let filter = Mock.ofType<IIdempotenceFilter>();
+        filter.setup(f => f.serialize()).returns(() => [{id: "test", timestamp: new Date(10)}]);
+        filterHolder = {
+            "Mock": filter.object
+        };
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, asyncPublisherFactory.object, readModelNotifier.object);
+            NullLogger, asyncPublisherFactory.object, readModelNotifier.object, filterHolder);
     });
 
     afterEach(() => clock.uninstall());
@@ -145,7 +152,9 @@ describe("Given a ProjectionEngine", () => {
                 await subject.run();
             });
             it("should save the snapshot", () => {
-                asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000))])), Times.once());
+                asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000), [
+                    {id: "test", timestamp: new Date(10)}
+                ])])), Times.once());
             });
         });
 
@@ -160,7 +169,7 @@ describe("Given a ProjectionEngine", () => {
                 await subject.run();
             });
             it("should not save the snapshot", () => {
-                asyncPublisher.verify(a => a.publish(It.isValue(["Mock", new Snapshot(66, new Date(5000))])), Times.never());
+                asyncPublisher.verify(a => a.publish(It.isAny()), Times.never());
             });
         });
 
@@ -168,8 +177,16 @@ describe("Given a ProjectionEngine", () => {
             publishState(66, new Date(5000), {List: [null], "Detail": ["66"]});
             await subject.run();
 
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, new Date(5000)])), Times.once());
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", new Date(5000)])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "List"), null, {
+                type: "Mock",
+                payload: 66,
+                timestamp: new Date(5000)
+            }])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Detail"), "66", {
+                type: "Mock",
+                payload: 66,
+                timestamp: new Date(5000)
+            }])), Times.once());
         });
 
         it("should not notify the publish points with an undefined key", async () => {
@@ -205,7 +222,11 @@ describe("Given a ProjectionEngine", () => {
             await subject.run();
         });
         it("should notify the publish points that depend on it", () => {
-            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client", new Date(10000)])), Times.once());
+            asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "Dependency"), "some-client", {
+                type: SpecialEvents.READMODEL_CHANGED,
+                payload: "a",
+                timestamp: new Date(10000)
+            }])), Times.once());
             asyncPublisher.verify(a => a.publish(It.isValue([new PushContext("Admin", "NoDependencies"), null])), Times.never());
         });
     });
@@ -214,14 +235,22 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([
-                new PushContext("Admin", "Mock"),
-                "testkey",
-                new Date(1000)]));
+                new PushContext("Admin", "Mock"), "testkey", {
+                    timestamp: new Date(1000),
+                    id: null,
+                    type: null,
+                    payload: null
+                }]));
             asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
             await subject.run();
         });
         it("should save them", () => {
-            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), "testkey", It.isValue(new Date(1000))), Times.once());
+            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), It.isValue({
+                timestamp: new Date(1000),
+                id: null,
+                type: null,
+                payload: null
+            }), "testkey"), Times.once());
         });
     });
 

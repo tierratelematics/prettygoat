@@ -4,6 +4,7 @@ import {injectable, inject} from "inversify";
 import {PushNotification, IPushNotifier, IEventEmitter} from "./PushComponents";
 import {IEndpointConfig} from "../configs/EndpointConfig";
 import {INotificationConfig} from "../configs/NotificationConfig";
+import {Event, NullEvent} from "../events/Event";
 
 @injectable()
 class PushNotifier implements IPushNotifier {
@@ -16,10 +17,10 @@ class PushNotifier implements IPushNotifier {
         this.config = {...endpointConfig, ...notificationConfig};
     }
 
-    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date) {
+    notifyAll(context: PushContext, event: Event, notificationKey?: string) {
         this.eventEmitter.broadcastTo(
             ContextOperations.keyFor(context, notificationKey),
-            this.buildNotification(context, notificationKey, timestamp)
+            this.buildNotification(context, event, notificationKey)
         );
     }
 
@@ -28,16 +29,18 @@ class PushNotifier implements IPushNotifier {
     }
 
     private emitToSingleClient(clientId: string, context: PushContext, notificationKey: string): void {
-        let notification = this.buildNotification(context, notificationKey);
+        let notification = this.buildNotification(context, null, notificationKey);
         this.eventEmitter.emitTo(clientId, ContextOperations.keyFor(context, notificationKey), notification);
     }
 
-    private buildNotification(context: PushContext, notificationKey: string = null, timestamp: Date = null): PushNotification {
+    private buildNotification(context: PushContext, event: Event, notificationKey: string = null): PushNotification {
+        event = event || NullEvent;
         return {
             url: `${this.config.protocol}://${this.config.host}${this.config.port ? ":"
                 + this.config.port : ""}/projections/${context.area}/${context.projectionName}`.toLowerCase(),
             notificationKey: notificationKey,
-            timestamp: timestamp
+            timestamp: event.timestamp,
+            eventId: event.id
         };
     }
 }

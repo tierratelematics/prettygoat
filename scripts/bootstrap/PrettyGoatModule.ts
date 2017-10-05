@@ -35,12 +35,11 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import IServerProvider from "../web/IServerProvider";
 import ServerProvider from "../web/ServerProvider";
 import HealthCheckHandler from "../web/HealthCheckHandler";
-import {IProjectionStreamGenerator, ProjectionStreamGenerator} from "../projections/ProjectionStreamGenerator";
+import {ProjectionStreamFactory} from "../projections/ProjectionStreamFactory";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
 import * as Redis from "ioredis";
 import {isArray} from "lodash";
-import IRedisConfig from "../configs/IRedisConfig";
 import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {IReadModelNotifier, ReadModelNotifier} from "../readmodels/ReadModelNotifier";
@@ -49,6 +48,9 @@ import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig"
 import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
 import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
 import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
+import {IRedisConfig} from "../configs/IRedisConfig";
+import {IStreamFactory} from "../events/IStreamFactory";
+import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 
 class PrettyGoatModule implements IModule {
 
@@ -70,6 +72,7 @@ class PrettyGoatModule implements IModule {
         container.bind<CountSnapshotStrategy>("CountSnapshotStrategy").to(CountSnapshotStrategy);
         container.bind<TimeSnapshotStrategy>("TimeSnapshotStrategy").to(TimeSnapshotStrategy);
         container.bind<Dictionary<IProjectionRunner<any>>>("IProjectionRunnerHolder").toConstantValue({});
+        container.bind<Dictionary<IIdempotenceFilter>>("IdempotenceFilterHolder").toConstantValue({});
         container.bind<ILogger>("ILogger").to(ConsoleLogger).inSingletonScope();
         container.bind<IRequestAdapter>("IRequestAdapter").to(RequestAdapter).inSingletonScope();
         container.bind<IMiddlewareTransformer>("IMiddlewareTransformer").to(MiddlewareTransformer).inSingletonScope();
@@ -82,7 +85,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
-        container.bind<IProjectionStreamGenerator>("IProjectionStreamGenerator").to(ProjectionStreamGenerator).inSingletonScope();
+        container.bind<IStreamFactory>("IProjectionStreamFactory").to(ProjectionStreamFactory).inSingletonScope();
         container.bind<IReadModelRetriever>("IReadModelRetriever").to(ReadModelRetriever).inSingletonScope();
         container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();

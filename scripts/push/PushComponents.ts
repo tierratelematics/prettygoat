@@ -1,7 +1,8 @@
 import PushContext from "./PushContext";
+import {Event} from "../events/Event";
 
 export interface IPushNotifier {
-    notifyAll(context: PushContext, notificationKey?: string, timestamp?: Date);
+    notifyAll(context: PushContext, event: Event, notificationKey?: string);
     notifyClient(context: PushContext, clientId: string, notificationKey?: string);
 }
 
@@ -18,6 +19,7 @@ export interface PushNotification {
     url: string;
     notificationKey: string;
     timestamp: Date;
+    eventId: string;
 }
 
 export interface IClientRegistry {

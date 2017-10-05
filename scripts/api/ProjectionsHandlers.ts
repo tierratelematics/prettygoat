@@ -11,7 +11,7 @@ import {assign} from "lodash";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
 @injectable()
-abstract class BaseProjectionHandler implements IRequestHandler {
+export abstract class BaseProjectionHandler implements IRequestHandler {
 
     handle(request: IRequest, response: IResponse) {
 

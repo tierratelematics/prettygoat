@@ -16,7 +16,8 @@ describe("Given a readmodel notifier", () => {
                 expect(notification).to.eql({
                     type: SpecialEvents.READMODEL_CHANGED,
                     payload: "readmodel1",
-                    timestamp: new Date(6000)
+                    timestamp: new Date(6000),
+                    id: undefined
                 });
                 done();
             });
@@ -24,6 +25,20 @@ describe("Given a readmodel notifier", () => {
             subject.notifyChanged("readmodel1", new Date(5000));
             subject.notifyChanged("readmodel2", new Date(5000));
             subject.notifyChanged("readmodel1", new Date(6000));
+        });
+
+        it("should append the event id", (done) => {
+            subject.changes("readmodel1").take(1).subscribe(notification => {
+                expect(notification).to.eql({
+                    type: SpecialEvents.READMODEL_CHANGED,
+                    payload: "readmodel1",
+                    timestamp: new Date(5000),
+                    id: "uniq-id-1"
+                });
+                done();
+            });
+
+            subject.notifyChanged("readmodel1", new Date(5000), "uniq-id-1");
         });
     });
 });
