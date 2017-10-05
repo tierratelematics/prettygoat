@@ -1,3 +1,8 @@
+# 5.0.0
+
+* Add id to events
+* Refactor streams in order to allow more control
+
 # 4.0.0
 
 * Remove split projections
