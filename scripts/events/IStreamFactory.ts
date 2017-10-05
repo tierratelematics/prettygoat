@@ -1,7 +1,14 @@
 import {Observable} from "rxjs";
 import {Event} from "./Event";
-import {WhenBlock} from "../projections/Matcher";
+import {IIdempotenceFilter} from "./IdempotenceFilter";
+
+export type ProjectionQuery = {
+    name: string;
+    manifests: string[];
+    from?: Date;
+    to?: Date;
+}
 
 export interface IStreamFactory {
-    from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event>;
+    from(query?: ProjectionQuery, idempotence?: IIdempotenceFilter, backpressureGate?: Observable<string>): Observable<Event>;
 }

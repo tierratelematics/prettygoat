@@ -3,13 +3,15 @@ import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../common/Dictionary";
 import {isPromise, toArray} from "../common/TypesUtil";
-import {IProjectionStreamGenerator} from "./ProjectionStreamGenerator";
 import {IProjectionRunner} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
-import {keys, mapValues} from "lodash";
+import {mapValues, sortBy} from "lodash";
+import {IStreamFactory} from "../events/IStreamFactory";
+import DefinitionUtil from "../common/DefinitionUtil";
+import {IIdempotenceFilter, RingBufferItem} from "../events/IdempotenceFilter";
 
 export class ProjectionStats {
     running = false;
@@ -26,8 +28,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
     private subscription: ISubscription;
 
-    constructor(private projection: IProjection<T>, private streamGenerator: IProjectionStreamGenerator,
-                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>) {
+    constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
+                private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>,
+                private idempotenceFilter: IIdempotenceFilter) {
 
     }
 
@@ -60,7 +63,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         }, notificationKeys]);
     }
 
-    private startStream(snapshot: Snapshot<Dictionary<T> | T>) {
+    private startStream(snapshot: Snapshot<T>) {
         let completions = new Subject<string>(),
             initEvent = {
                 type: "$init",
@@ -68,7 +71,16 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 timestamp: new Date(0)
             };
 
-        this.subscription = this.streamGenerator.generate(this.projection, snapshot, completions)
+        let ringBuffer = snapshot ? snapshot.ringBuffer : [],
+            query = {
+                name: this.projection.name,
+                manifests: DefinitionUtil.getManifests(this.projection.definition),
+                from: this.bufferStartingPoint(ringBuffer)
+            };
+
+        this.idempotenceFilter.setItems(ringBuffer);
+
+        this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
@@ -97,6 +109,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.error(error);
                 this.stop();
             }, () => this.subject.complete());
+    }
+
+    private bufferStartingPoint(ringBuffer: RingBufferItem[] = []): Date {
+        let startingPoint = sortBy<RingBufferItem>(ringBuffer, item => +item.timestamp)[0];
+        return startingPoint ? startingPoint.timestamp : undefined;
     }
 
     private getNotificationKeys(event: Event) {

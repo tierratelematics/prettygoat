@@ -2,6 +2,7 @@
   "name": "prettygoat",
   "version": "4.0.0",
   "dependencies": {
+    "CBuffer": "~2.0.0",
     "async": "~2.1.4",
     "bivio": "^0.3.2",
     "body": "~5.1.0",
