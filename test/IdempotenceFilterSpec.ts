@@ -61,15 +61,15 @@ describe("Given an idempotence filter", () => {
         it("should return an array of entries", () => {
             subject = new IdempotenceFilter();
             subject.filter({
-                id: "event1", payload: null, timestamp: null, type: null
+                id: "event1", payload: null, timestamp: new Date(10), type: null
             });
             subject.filter({
-                id: "event2", payload: null, timestamp: null, type: null
+                id: "event2", payload: null, timestamp: new Date(5), type: null
             });
 
             expect(subject.serialize()).to.eql([
-                {id: "event1", timestamp: null},
-                {id: "event2", timestamp: null},
+                {id: "event2", timestamp: new Date(5)},
+                {id: "event1", timestamp: new Date(10)},
             ]);
         });
     });

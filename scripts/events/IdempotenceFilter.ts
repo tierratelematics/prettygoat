@@ -1,7 +1,7 @@
 import {Event} from "./Event";
 
 const cbuffer = require("CBuffer");
-import {forEach, map, omit} from "lodash";
+import {forEach, omit} from "lodash";
 import SpecialEvents from "./SpecialEvents";
 
 export interface IIdempotenceFilter {
@@ -32,7 +32,7 @@ export class IdempotenceFilter implements IIdempotenceFilter {
     }
 
     serialize(): RingBufferItem[] {
-        return this.ringBuffer.toArray();
+        return this.ringBuffer.toArray().sort((first, second) => first.timestamp - second.timestamp);
     }
 }
 

@@ -1,3 +1,7 @@
+# 5.0.1
+
+Improve ring buffer serialization
+
 # 5.0.0
 
 * Add id to events
