@@ -66,13 +66,13 @@ describe("Given a ProjectionRunner", () => {
         beforeEach(() => streamFactory.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(() => Observable.empty()));
         context("when a snapshot is available", () => {
             beforeEach(() => subject.run(new Snapshot(null, null, [
-                {id: "10", timestamp: new Date(10)},
-                {id: "5", timestamp: new Date(5)}
+                {id: "5", timestamp: new Date(5)},
+                {id: "10", timestamp: new Date(10)}
             ])));
             it("should construct an idempotence filter from a ringbuffer", () => {
                 idempotenceFilter.verify(i => i.setItems(It.isValue([
-                    {id: "10", timestamp: new Date(10)},
-                    {id: "5", timestamp: new Date(5)}
+                    {id: "5", timestamp: new Date(5)},
+                    {id: "10", timestamp: new Date(10)}
                 ])), Times.once());
             });
 
@@ -95,7 +95,7 @@ describe("Given a ProjectionRunner", () => {
                 streamFactory.verify(s => s.from(It.isValue({
                     name: "Mock",
                     manifests: ["TestEvent"],
-                    from: undefined
+                    from: null
                 }), It.isAny(), It.isAny()), Times.once());
             });
         });

@@ -75,7 +75,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             query = {
                 name: this.projection.name,
                 manifests: DefinitionUtil.getManifests(this.projection.definition),
-                from: this.bufferStartingPoint(ringBuffer)
+                from: ringBuffer[0] ? ringBuffer[0].timestamp : null
             };
 
         this.idempotenceFilter.setItems(ringBuffer);
@@ -109,11 +109,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 this.subject.error(error);
                 this.stop();
             }, () => this.subject.complete());
-    }
-
-    private bufferStartingPoint(ringBuffer: RingBufferItem[] = []): Date {
-        let startingPoint = sortBy<RingBufferItem>(ringBuffer, item => +item.timestamp)[0];
-        return startingPoint ? startingPoint.timestamp : undefined;
     }
 
     private getNotificationKeys(event: Event) {
