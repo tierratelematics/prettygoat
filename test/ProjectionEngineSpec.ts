@@ -23,7 +23,7 @@ import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
 import Dictionary from "../scripts/common/Dictionary";
 import {IAsyncPublisherFactory} from "../scripts/common/AsyncPublisherFactory";
-import {IIdempotenceFilter} from "../scripts/events/IdempotenceFilter";
+import {ISnapshotProducer} from "../scripts/snapshots/SnapshotProducer";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -39,7 +39,7 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisher: IMock<IAsyncPublisher<any>>,
         clock: lolex.Clock,
         readModelNotifier: IMock<IReadModelNotifier>,
-        filterHolder: Dictionary<IIdempotenceFilter>;
+        snapshotProducer: IMock<ISnapshotProducer>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -61,13 +61,9 @@ describe("Given a ProjectionEngine", () => {
         registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
-        let filter = Mock.ofType<IIdempotenceFilter>();
-        filter.setup(f => f.serialize()).returns(() => [{id: "test", timestamp: new Date(10)}]);
-        filterHolder = {
-            "Mock": filter.object
-        };
+        snapshotProducer = Mock.ofType<ISnapshotProducer>();
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, asyncPublisherFactory.object, readModelNotifier.object, filterHolder);
+            NullLogger, asyncPublisherFactory.object, readModelNotifier.object, snapshotProducer.object);
     });
 
     afterEach(() => clock.uninstall());
@@ -139,6 +135,11 @@ describe("Given a ProjectionEngine", () => {
     context("when a projections triggers a new state", () => {
         beforeEach(() => {
             snapshotRepository.setup(s => s.getSnapshot("Mock")).returns(a => Promise.resolve(null));
+            snapshotProducer.setup(s => s.produce(It.isAny())).returns(() => {
+                return new Snapshot(66, new Date(5000), [
+                    {id: "test", timestamp: new Date(10)}
+                ]);
+            });
         });
 
         context("and a snapshot is needed", () => {

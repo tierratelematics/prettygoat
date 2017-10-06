@@ -15,7 +15,7 @@ import Dictionary from "../common/Dictionary";
 import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {Event} from "../events/Event";
 import IAsyncPublisher from "../common/IAsyncPublisher";
-import {IIdempotenceFilter} from "../events/IdempotenceFilter";
+import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -30,7 +30,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IAsyncPublisherFactory") private publisherFactory: IAsyncPublisherFactory,
-                @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier) {
+                @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier,
+                @inject("ISnapshotProducer") private snapshotProducer: ISnapshotProducer) {
     }
 
     async run(projection?: IProjection<any>) {
@@ -72,7 +73,7 @@ class ProjectionEngine implements IProjectionEngine {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    snapshotsPublisher.publish([state.type, ]);
+                    snapshotsPublisher.publish([state.type, this.snapshotProducer.produce(state)]);
                 }
             })
             .merge(...readModels)
