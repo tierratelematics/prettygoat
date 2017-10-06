@@ -51,6 +51,7 @@ import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFa
 import {IRedisConfig} from "../configs/IRedisConfig";
 import {IStreamFactory} from "../events/IStreamFactory";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
+import {ISnapshotProducer, SnapshotProducer} from "../snapshots/SnapshotProducer";
 
 class PrettyGoatModule implements IModule {
 
@@ -89,6 +90,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReadModelRetriever>("IReadModelRetriever").to(ReadModelRetriever).inSingletonScope();
         container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
+        container.bind<ISnapshotProducer>("ISnapshotProducer").to(SnapshotProducer).inSingletonScope();
         container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
             let config = container.get<IRedisConfig>("IRedisConfig");
             return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
