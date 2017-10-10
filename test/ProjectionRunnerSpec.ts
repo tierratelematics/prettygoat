@@ -65,23 +65,40 @@ describe("Given a ProjectionRunner", () => {
     context("when attaching to the stream of events", () => {
         beforeEach(() => streamFactory.setup(s => s.from(It.isAny(), It.isAny(), It.isAny())).returns(() => Observable.empty()));
         context("when a snapshot is available", () => {
-            beforeEach(() => subject.run(new Snapshot(null, null, [
-                {id: "5", timestamp: new Date(5)},
-                {id: "10", timestamp: new Date(10)}
-            ])));
             it("should construct an idempotence filter from a ringbuffer", () => {
+                subject.run(new Snapshot(null, null, [
+                    {id: "5", timestamp: new Date(5)},
+                    {id: "10", timestamp: new Date(10)}
+                ]));
                 idempotenceFilter.verify(i => i.setItems(It.isValue([
                     {id: "5", timestamp: new Date(5)},
                     {id: "10", timestamp: new Date(10)}
                 ])), Times.once());
             });
 
-            it("should set a starting date for events", () => {
-                streamFactory.verify(s => s.from(It.isValue({
-                    name: "Mock",
-                    manifests: ["TestEvent"],
-                    from: new Date(5)
-                }), It.isAny(), It.isAny()), Times.once());
+            context("when a ringbuffer is not available", () => {
+                beforeEach(() => subject.run(new Snapshot(null, new Date(1000))));
+                it("should start from the last event", () => {
+                    streamFactory.verify(s => s.from(It.isValue({
+                        name: "Mock",
+                        manifests: ["TestEvent"],
+                        from: new Date(1000)
+                    }), It.isAny(), It.isAny()), Times.once());
+                });
+            });
+
+            context("when a ringbuffer is available", () => {
+                beforeEach(() => subject.run(new Snapshot(null, null, [
+                    {id: "5", timestamp: new Date(5)},
+                    {id: "10", timestamp: new Date(10)}
+                ])));
+                it("should start from the ringbuffer first event", () => {
+                    streamFactory.verify(s => s.from(It.isValue({
+                        name: "Mock",
+                        manifests: ["TestEvent"],
+                        from: new Date(5)
+                    }), It.isAny(), It.isAny()), Times.once());
+                });
             });
         });
 
