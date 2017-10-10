@@ -1,3 +1,7 @@
+# 5.0.2
+
+Start from the last event of a snapshot if the ringbuffer is not available
+
 # 5.0.1
 
 Improve ring buffer serialization
