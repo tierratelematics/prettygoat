@@ -72,10 +72,11 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             };
 
         let ringBuffer = snapshot ? snapshot.ringBuffer : [],
+            lastEvent = snapshot ? snapshot.lastEvent : null,
             query = {
                 name: this.projection.name,
                 manifests: DefinitionUtil.getManifests(this.projection.definition),
-                from: ringBuffer[0] ? ringBuffer[0].timestamp : null
+                from: ringBuffer[0] ? ringBuffer[0].timestamp : lastEvent
             };
 
         this.idempotenceFilter.setItems(ringBuffer);
