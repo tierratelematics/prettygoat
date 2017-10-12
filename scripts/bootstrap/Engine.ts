@@ -3,7 +3,7 @@ import IModule from "./IModule";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
-import ILogger from "../log/ILogger";
+import {ILogger} from "inversify-logging";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import APIModule from "../api/APIModule";

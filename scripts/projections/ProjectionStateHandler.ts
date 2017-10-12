@@ -7,10 +7,9 @@ import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./Deliver";
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
-import {map, zipObject, keys} from "lodash";
+import {map, zipObject} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
-import ILogger from "../log/ILogger";
-import NullLogger from "../log/NullLogger";
+import {ILogger, NullLogger} from "inversify-logging";
 
 @Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
