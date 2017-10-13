@@ -67,12 +67,15 @@ export class Engine {
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
-            logger = this.container.get<ILogger>("ILogger"),
+            logger = this.container.get<() => ILogger>("ILoggerFactory")(),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
             requestParser = this.container.get<IRequestParser>("IRequestParser"),
             middlewareTransformer = this.container.get<IMiddlewareTransformer>("IMiddlewareTransformer"),
             serverProvider = this.container.get<IServerProvider>("IServerProvider");
+
+        if (logger.createChildLogger)
+            logger = logger.createChildLogger("Engine");
 
         let app = serverProvider.provideApplication(),
             server = serverProvider.provideServer();

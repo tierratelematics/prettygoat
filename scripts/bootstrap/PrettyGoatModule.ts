@@ -11,7 +11,6 @@ import CountSnapshotStrategy from "../snapshots/CountSnapshotStrategy";
 import TimeSnapshotStrategy from "../snapshots/TimeSnapshotStrategy";
 import ProjectionRunnerFactory from "../projections/ProjectionRunnerFactory";
 import Dictionary from "../common/Dictionary";
-import ConsoleLogger from "../log/ConsoleLogger";
 import PushNotifier from "../push/PushNotifier";
 import {IPushNotifier, IClientRegistry, IEventEmitter, ISocketFactory} from "../push/PushComponents";
 import ClientRegistry from "../push/ClientRegistry";
@@ -51,7 +50,7 @@ import {IRedisConfig} from "../configs/IRedisConfig";
 import {IStreamFactory} from "../events/IStreamFactory";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {ISnapshotProducer, SnapshotProducer} from "../snapshots/SnapshotProducer";
-import {bindLoggingInto} from "inversify-logging";
+import {activateLogging} from "inversify-logging";
 
 class PrettyGoatModule implements IModule {
 
@@ -94,7 +93,9 @@ class PrettyGoatModule implements IModule {
             let config = container.get<IRedisConfig>("IRedisConfig");
             return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
         });
-        bindLoggingInto(container);
+        activateLogging(container)
+            .to(ProjectionEngine)
+            .to(ProjectionStateHandler);
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

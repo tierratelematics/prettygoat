@@ -13,7 +13,7 @@ export {default as IApiKeyConfig} from "./configs/IApiKeyConfig";
 export {ISocketConfig} from "./configs/SocketConfig";
 export {IRedisConfig} from "./configs/IRedisConfig";
 export {default as Dictionary} from "./common/Dictionary";
-export {ILogger, ConsoleLogger, NullLogger, LoggingContext, LogLevel} from "inversify-logging";
+export {ILogger, ConsoleLogger, NullLogger, LoggingContext, LogLevel, activateLogging} from "inversify-logging";
 export {IStreamFactory, ProjectionQuery} from "./events/IStreamFactory";
 export {IIdempotenceFilter} from "./events/IdempotenceFilter";
 export {IReplicationManager} from "./bootstrap/ReplicationManager";
