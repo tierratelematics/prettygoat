@@ -67,7 +67,7 @@ export class Engine {
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
-            logger = this.container.get<() => ILogger>("ILoggerFactory")(),
+            logger = this.container.get<ILogger>("ILogger"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
             requestParser = this.container.get<IRequestParser>("IRequestParser"),

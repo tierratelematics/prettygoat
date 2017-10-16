@@ -93,9 +93,7 @@ class PrettyGoatModule implements IModule {
             let config = container.get<IRedisConfig>("IRedisConfig");
             return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
         });
-        activateLogging(container)
-            .to(ProjectionEngine)
-            .to(ProjectionStateHandler);
+        activateLogging(container);
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

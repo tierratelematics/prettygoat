@@ -14,10 +14,11 @@ import {ILogger, NullLogger} from "inversify-logging";
 @Route("/projections/:area/:publishPoint", "GET")
 class ProjectionStateHandler implements IRequestHandler {
 
+    @inject("ILogger") private logger: ILogger = NullLogger;
+
     constructor(@inject("IProjectionRegistry") private projectionRegistry: IProjectionRegistry,
                 @inject("IProjectionRunnerHolder") private holder: Dictionary<IProjectionRunner>,
-                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever,
-                @inject("ILogger") private logger: ILogger = NullLogger) {
+                @inject("IReadModelRetriever") private readModelRetriever: IReadModelRetriever) {
     }
 
     async handle(request: IRequest, response: IResponse) {

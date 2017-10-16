@@ -3,7 +3,7 @@ import {injectable, inject} from "inversify";
 import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import {ILogger, NullLogger} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/PushComponents";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
@@ -21,13 +21,15 @@ type SnapshotData = [string, Snapshot<any>];
 type NotificationData = [PushContext, string, Event];
 
 @injectable()
+@LoggingContext("ProjectionEngine")
 class ProjectionEngine implements IProjectionEngine {
+
+    @inject("ILogger") private logger: ILogger = NullLogger;
 
     constructor(@inject("IProjectionRunnerFactory") private runnerFactory: IProjectionRunnerFactory,
                 @inject("IPushNotifier") private pushNotifier: IPushNotifier,
                 @inject("IProjectionRegistry") private registry: IProjectionRegistry,
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
-                @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IAsyncPublisherFactory") private publisherFactory: IAsyncPublisherFactory,
                 @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier,
                 @inject("ISnapshotProducer") private snapshotProducer: ISnapshotProducer) {
