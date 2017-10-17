@@ -1,5 +1,5 @@
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
-import {injectable, inject, optional} from 'inversify';
+import {injectable, inject, optional} from "inversify";
 import * as _ from "lodash";
 import IApiKeyConfig from "../configs/IApiKeyConfig";
 import {IRequest} from "../web/IRequestComponents";
