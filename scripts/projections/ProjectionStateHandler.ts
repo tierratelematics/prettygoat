@@ -42,7 +42,7 @@ class ProjectionStateHandler implements IRequestHandler {
                     headers: request.headers,
                     params: request.query,
                 };
-                childLogger.debug(`Delivering projection state with context ${JSON.stringify(deliverContext)}`);
+                childLogger.info(`Delivering projection state with context ${JSON.stringify(deliverContext)}`);
                 let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
                 let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
@@ -69,17 +69,17 @@ class ProjectionStateHandler implements IRequestHandler {
     private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>, logger: ILogger) {
         switch (deliverResult[1]) {
             case DeliverAuthorization.CONTENT:
-                logger.debug(`Projection state delivered with 200`);
+                logger.info(`Projection state delivered with code 200`);
                 response.status(200);
                 response.send(deliverResult[0]);
                 break;
             case DeliverAuthorization.UNAUTHORIZED:
-                logger.debug(`Projection state delivered with 401`);
+                logger.info(`Projection state delivered with code 401`);
                 response.status(401);
                 response.send({error: STATUS_CODES[401]});
                 break;
             case DeliverAuthorization.FORBIDDEN:
-                logger.debug(`Projection state delivered with 403`);
+                logger.info(`Projection state delivered with code 403`);
                 response.status(403);
                 response.send({error: STATUS_CODES[403]});
                 break;

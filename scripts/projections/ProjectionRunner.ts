@@ -49,6 +49,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (snapshot) {
             this.state = snapshot.memento;
             this.notifyStateChange(snapshot.lastEvent, null, mapValues(this.notifyMatchers, matcher => [null]));
+            this.logger.info("Restoring projection from a snapshot");
+        } else {
+            this.logger.info("Starting the projection without a snapshot");
         }
         this.stats = new ProjectionStats();
         this.startStream(snapshot);
@@ -81,6 +84,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             };
 
         this.idempotenceFilter.setItems(ringBuffer);
+        this.logger.info(`Start getting events from ${query.from}`);
 
         this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
