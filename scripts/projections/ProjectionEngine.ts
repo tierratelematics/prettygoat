@@ -15,7 +15,6 @@ import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {Event} from "../events/Event";
 import IAsyncPublisher from "../common/IAsyncPublisher";
 import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
-import {create} from "domain";
 
 type SnapshotData = [string, Snapshot<any>];
 

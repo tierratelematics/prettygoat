@@ -100,10 +100,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
             }).observeOn(Scheduler.queue), 1)
             .do(data => {
-                if (data[0].type === SpecialEvents.FETCH_EVENTS)
+                if (data[0].type === SpecialEvents.FETCH_EVENTS) {
                     completions.next(data[0].payload.event);
-                if (data[0].type === SpecialEvents.REALTIME)
+                }
+                if (data[0].type === SpecialEvents.REALTIME) {
                     this.stats.realtime = true;
+                    this.logger.info("Switching from replay to realtime");
+                }
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
