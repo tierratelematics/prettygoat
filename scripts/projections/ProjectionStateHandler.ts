@@ -9,9 +9,10 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
-import {ILogger, NullLogger} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
 
 @Route("/projections/:area/:publishPoint", "GET")
+@LoggingContext("ProjectionStateHandler")
 class ProjectionStateHandler implements IRequestHandler {
 
     @inject("ILogger") private logger: ILogger = NullLogger;

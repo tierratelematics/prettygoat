@@ -8,10 +8,11 @@ import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
-import {mapValues, sortBy} from "lodash";
+import {mapValues} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
 import DefinitionUtil from "../common/DefinitionUtil";
-import {IIdempotenceFilter, RingBufferItem} from "../events/IdempotenceFilter";
+import {IIdempotenceFilter} from "../events/IdempotenceFilter";
+import {NullLogger, ILogger} from "inversify-logging";
 
 export class ProjectionStats {
     running = false;
@@ -30,7 +31,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>,
-                private idempotenceFilter: IIdempotenceFilter) {
+                private idempotenceFilter: IIdempotenceFilter, private logger: ILogger = NullLogger) {
 
     }
 
@@ -84,6 +85,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
+            .do(([event]) => {
+                this.logger.debug(`Processing event ${JSON.stringify(event)}`);
+            })
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;

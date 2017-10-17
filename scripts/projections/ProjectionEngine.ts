@@ -1,9 +1,9 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext, createChildLogger} from "inversify-logging";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/PushComponents";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
@@ -15,6 +15,7 @@ import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {Event} from "../events/Event";
 import IAsyncPublisher from "../common/IAsyncPublisher";
 import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
+import {create} from "domain";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -47,12 +48,13 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     private async startProjection(projection: IProjection) {
+        let logger = createChildLogger(this.logger, projection.name);
         let snapshot: Snapshot<any> = null;
         try {
             snapshot = await this.snapshotRepository.getSnapshot(projection.name);
         } catch (error) {
-            this.logger.error(`Snapshot loading has failed on projection ${projection.name}`);
-            this.logger.error(error);
+            logger.error(`Snapshot loading has failed`);
+            logger.error(error);
         }
 
         let runner = this.runnerFactory.create(projection),
@@ -66,8 +68,8 @@ class ProjectionEngine implements IProjectionEngine {
         let snapshotsPublisher = this.publisherFactory.publisherFor<SnapshotData>(runner);
         let notificationsPublisher = this.publisherFactory.publisherFor<NotificationData>(runner);
 
-        this.saveSnapshots(snapshotsPublisher);
-        this.publishNotifications(notificationsPublisher);
+        this.saveSnapshots(snapshotsPublisher, logger);
+        this.publishNotifications(notificationsPublisher, projection, logger);
 
         let subscription = runner.notifications()
             .do(notification => {
@@ -90,35 +92,41 @@ class ProjectionEngine implements IProjectionEngine {
                 }
             }, error => {
                 subscription.unsubscribe();
-                this.logger.error(error);
+                logger.error(error);
             });
 
         runner.run(snapshot);
     }
 
-    private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>) {
+    private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>, logger: ILogger) {
         snapshotsPublisher.items()
             .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
             .subscribe(snapshotData => {
-                let streamId = snapshotData[0],
-                    snapshotPayload = snapshotData[1];
-                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshotPayload.lastEvent.toISOString()}`);
+                let snapshotPayload = snapshotData[1];
+                logger.info(`Snapshot saved at time ${snapshotPayload.lastEvent.toISOString()}`);
+            }, error => {
+                logger.error(`Snapshot save failed`);
+                logger.error(error);
             });
     }
 
-    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>) {
-        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`).subscribe(notification => {
-            let [context, notifyKey, event] = notification;
-            this.pushNotifier.notifyAll(context, event, notifyKey);
-            this.logger.info(`Notify state change on ${context.area}:${context.projectionName} ${notifyKey ? "with key " + notifyKey : ""}`);
-        });
+    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>, projection: IProjection, logger: ILogger) {
+        let loggers = mapValues(projection.publish, (point, name) => createChildLogger(logger, name));
+        
+        notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`)
+            .subscribe(notification => {
+                let [context, notifyKey, event] = notification;
+                this.pushNotifier.notifyAll(context, event, notifyKey);
+                loggers[context.projectionName].debug(`Notify clients under notification key: ${notifyKey}`);
+            });
     }
 
     private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string): NotificationData[] {
         return reduce(projection.publish, (result, publishBlock, point) => {
+            let context = new PushContext(area, point);
             if (publishBlock.readmodels && includes(publishBlock.readmodels.$list, readModel)) {
                 let notificationKeys = publishBlock.readmodels.$change(state);
-                result = concat(result, map<string, [PushContext, string]>(notificationKeys, key => [new PushContext(area, point), key]));
+                result = concat(result, map<string, [PushContext, string]>(notificationKeys, key => [context, key]));
             }
             return result;
         }, []);
@@ -126,8 +134,9 @@ class ProjectionEngine implements IProjectionEngine {
 
     private projectionChangeKeys(notifications: Dictionary<string[]>, area: string): NotificationData[] {
         return reduce(notifications, (result, notificationKeys, point) => {
+            let context = new PushContext(area, point);
             return concat(result, compact(map<string, [PushContext, string]>(notificationKeys, key => {
-                return !isUndefined(key) ? [new PushContext(area, point), key] : key;
+                return !isUndefined(key) ? [context, key] : key;
             })));
         }, []);
     }
