@@ -100,3 +100,21 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
         }
     }
 }
+
+@Route("/api/projections/state/:projectionName", "GET")
+export class ProjectionStateApiHandler extends BaseProjectionHandler {
+
+    constructor(@inject("IProjectionRunnerHolder") private holders: Dictionary<IProjectionRunner<any>>) {
+        super();
+    }
+
+    handle(request: IRequest, response: IResponse) {
+        try {
+            let runner = this.holders[request.params.projectionName];
+            response.send(runner.state);
+        } catch (e) {
+            response.status(404);
+            response.send({error: "Projection not found"});
+        }
+    }
+}
