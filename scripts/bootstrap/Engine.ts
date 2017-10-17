@@ -81,6 +81,7 @@ export class Engine {
 
         app.all("*", (request, response) => {
             let requestData = requestParser.parse(request, response);
+            logger.debug(`New request for url ${request.url}`);
             if (requestAdapter.canHandle(requestData[0], requestData[1])) {
                 middlewareTransformer.transform(requestData[0], requestData[1]).then(data => {
                     requestAdapter.route(data[0], data[1]);

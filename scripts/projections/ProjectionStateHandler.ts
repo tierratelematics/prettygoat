@@ -9,7 +9,7 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
-import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext, createChildLogger} from "inversify-logging";
 
 @Route("/projections/:area/:publishPoint", "GET")
 @LoggingContext("ProjectionStateHandler")
@@ -28,6 +28,7 @@ class ProjectionStateHandler implements IRequestHandler {
             lookup = this.projectionRegistry.projectionFor(pointName, area),
             projection = lookup ? lookup[1] : null;
         if (!projection || !(<any>projection).publish) {
+            this.logger.warning(`An invalid projection (or a readmodel) has been requested, returning a not found`);
             this.sendNotFound(response);
         } else {
             let publishPoint = this.getPublishpoint(projection, pointName),
@@ -35,18 +36,20 @@ class ProjectionStateHandler implements IRequestHandler {
                 projectionRunner = this.holder[projection.name],
                 dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
 
+            let childLogger = createChildLogger(createChildLogger(this.logger, projection.name), pointName);
             try {
-                let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
                 let deliverContext = {
                     headers: request.headers,
                     params: request.query,
                 };
+                childLogger.debug(`Delivering projection state with context ${JSON.stringify(deliverContext)}`);
+                let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
                 let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
-                this.sendResponse(response, deliverResult);
+                this.sendResponse(response, deliverResult, childLogger);
             } catch (error) {
-                this.logger.error(`Projection ${area}:${pointName} delivery failed`);
-                this.logger.error(error);
+                childLogger.error(`Projection delivery failed`);
+                childLogger.error(error);
                 response.status(500);
                 response.send({error: STATUS_CODES[500]});
             }
@@ -63,17 +66,20 @@ class ProjectionStateHandler implements IRequestHandler {
         response.send({error: "Projection not found"});
     }
 
-    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>) {
+    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>, logger: ILogger) {
         switch (deliverResult[1]) {
             case DeliverAuthorization.CONTENT:
+                logger.debug(`Projection state delivered with 200`);
                 response.status(200);
                 response.send(deliverResult[0]);
                 break;
             case DeliverAuthorization.UNAUTHORIZED:
+                logger.debug(`Projection state delivered with 401`);
                 response.status(401);
                 response.send({error: STATUS_CODES[401]});
                 break;
             case DeliverAuthorization.FORBIDDEN:
+                logger.debug(`Projection state delivered with 403`);
                 response.status(403);
                 response.send({error: STATUS_CODES[403]});
                 break;
