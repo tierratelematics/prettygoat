@@ -3,7 +3,7 @@ import IModule from "./IModule";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
-import {ILogger, createChildLogger} from "inversify-logging";
+import {ILogger} from "inversify-logging";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import APIModule from "../api/APIModule";
@@ -67,7 +67,7 @@ export class Engine {
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
-            logger = createChildLogger(this.container.get<ILogger>("ILogger"), "Engine"),
+            logger = this.container.get<ILogger>("ILogger").createChildLogger("Engine"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
             requestParser = this.container.get<IRequestParser>("IRequestParser"),

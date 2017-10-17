@@ -9,7 +9,7 @@ import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./De
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
 import {map, zipObject} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
-import {ILogger, NullLogger, LoggingContext, createChildLogger} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
 
 @Route("/projections/:area/:publishPoint", "GET")
 @LoggingContext("ProjectionStateHandler")
@@ -36,7 +36,7 @@ class ProjectionStateHandler implements IRequestHandler {
                 projectionRunner = this.holder[projection.name],
                 dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
 
-            let childLogger = createChildLogger(createChildLogger(this.logger, projection.name), pointName);
+            let childLogger = this.logger.createChildLogger(projection.name).createChildLogger(pointName);
             try {
                 let deliverContext = {
                     headers: request.headers,

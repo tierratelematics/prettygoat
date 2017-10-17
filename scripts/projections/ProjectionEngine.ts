@@ -3,7 +3,7 @@ import {injectable, inject} from "inversify";
 import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
-import {ILogger, NullLogger, LoggingContext, createChildLogger} from "inversify-logging";
+import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
 import {IProjection} from "./IProjection";
 import {IPushNotifier} from "../push/PushComponents";
 import IProjectionRunnerFactory from "./IProjectionRunnerFactory";
@@ -47,7 +47,7 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     private async startProjection(projection: IProjection) {
-        let logger = createChildLogger(this.logger, projection.name);
+        let logger = this.logger.createChildLogger(projection.name);
         let snapshot: Snapshot<any> = null;
         try {
             snapshot = await this.snapshotRepository.getSnapshot(projection.name);
@@ -110,7 +110,7 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>, projection: IProjection, logger: ILogger) {
-        let loggers = mapValues(projection.publish, (point, name) => createChildLogger(logger, name));
+        let loggers = mapValues(projection.publish, (point, name) => logger.createChildLogger(name));
         
         notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`)
             .subscribe(notification => {
