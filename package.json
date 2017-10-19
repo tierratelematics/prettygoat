@@ -1,6 +1,6 @@
 {
   "name": "prettygoat",
-  "version": "5.0.2",
+  "version": "5.1.0",
   "dependencies": {
     "CBuffer": "~2.0.0",
     "async": "~2.1.4",
