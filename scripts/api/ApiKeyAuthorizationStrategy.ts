@@ -10,7 +10,7 @@ class ApiKeyAuthorizationStrategy implements IAuthorizationStrategy {
     }
 
     authorize(request: IRequest): Promise<boolean> {
-        return Promise.resolve(_.includes(this.config, request.headers["authorization"]));
+        return Promise.resolve(_.includes(this.config, request.headers["authorization"] || request.query["authorization"]));
     }
 }
 
