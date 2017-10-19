@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandler";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";

@@ -8,10 +8,11 @@ import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
 import SpecialEvents from "../events/SpecialEvents";
-import {mapValues, sortBy} from "lodash";
+import {mapValues} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
 import DefinitionUtil from "../common/DefinitionUtil";
-import {IIdempotenceFilter, RingBufferItem} from "../events/IdempotenceFilter";
+import {IIdempotenceFilter} from "../events/IdempotenceFilter";
+import {NullLogger, ILogger} from "inversify-logging";
 
 export class ProjectionStats {
     running = false;
@@ -30,7 +31,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
                 private matcher: IMatcher, private notifyMatchers: Dictionary<IMatcher>,
-                private idempotenceFilter: IIdempotenceFilter) {
+                private idempotenceFilter: IIdempotenceFilter, private logger: ILogger = NullLogger) {
 
     }
 
@@ -48,6 +49,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (snapshot) {
             this.state = snapshot.memento;
             this.notifyStateChange(snapshot.lastEvent, null, mapValues(this.notifyMatchers, matcher => [null]));
+            this.logger.info("Restoring projection from a snapshot");
+        } else {
+            this.logger.info("Starting the projection without a snapshot");
         }
         this.stats = new ProjectionStats();
         this.startStream(snapshot);
@@ -80,10 +84,14 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             };
 
         this.idempotenceFilter.setItems(ringBuffer);
+        this.logger.info(`Start getting events from ${query.from}`);
 
         this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
+            .do(([event]) => {
+                this.logger.debug(`Processing event ${JSON.stringify(event)}`);
+            })
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
@@ -92,10 +100,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
             }).observeOn(Scheduler.queue), 1)
             .do(data => {
-                if (data[0].type === SpecialEvents.FETCH_EVENTS)
+                if (data[0].type === SpecialEvents.FETCH_EVENTS) {
                     completions.next(data[0].payload.event);
-                if (data[0].type === SpecialEvents.REALTIME)
+                }
+                if (data[0].type === SpecialEvents.REALTIME) {
                     this.stats.realtime = true;
+                    this.logger.info("Switching from replay to realtime");
+                }
                 this.stats.events++;
                 if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
             })
