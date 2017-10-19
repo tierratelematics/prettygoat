@@ -30,14 +30,25 @@ describe("Given an Authorization Strategy", () => {
         });
     });
 
-    context("when the api key is matched", () => {
-        beforeEach(() => {
-            request.headers["authorization"] = "6RSL11DR1OCFJ7P";
+    context("when the api key is valid", () => {
+        context("when it's present in the headers", () => {
+            beforeEach(() => {
+                request.headers["authorization"] = "6RSL11DR1OCFJ7P";
+            });
+            it("should authorize it", () => {
+                return subject.authorize(request).then(authorized => {
+                    expect(authorized).to.be(true);
+                });
+            });
         });
-
-        it("should authorize it", () => {
-            return subject.authorize(request).then(authorized => {
-                expect(authorized).to.be(true);
+        context("when it's present in the query string", () => {
+            beforeEach(() => {
+                request.query["authorization"] = "6RSL11DR1OCFJ7P";
+            });
+            it("should authorize it", () => {
+                return subject.authorize(request).then(authorized => {
+                    expect(authorized).to.be(true);
+                });
             });
         });
     });

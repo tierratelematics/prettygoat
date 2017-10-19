@@ -1,5 +1,5 @@
 import IAuthorizationStrategy from "./IAuthorizationStrategy";
-import {injectable, inject, optional} from 'inversify';
+import {injectable, inject, optional} from "inversify";
 import * as _ from "lodash";
 import IApiKeyConfig from "../configs/IApiKeyConfig";
 import {IRequest} from "../web/IRequestComponents";
@@ -10,7 +10,7 @@ class ApiKeyAuthorizationStrategy implements IAuthorizationStrategy {
     }
 
     authorize(request: IRequest): Promise<boolean> {
-        return Promise.resolve(_.includes(this.config, request.headers["authorization"]));
+        return Promise.resolve(_.includes(this.config, request.headers["authorization"] || request.query["authorization"]));
     }
 }
 

@@ -7,7 +7,10 @@ import AuthMiddleware from "./AuthMiddleware";
 import {SnapshotSaveHandler, SnapshotDeleteHandler} from "./SnapshotHandlers";
 import AuthorizationHandler from "./AuthorizationHandler";
 import ApiKeyAuthorizationStrategy from "./ApiKeyAuthorizationStrategy";
-import {ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler} from "./ProjectionsHandlers";
+import {
+    ProjectionStopHandler, ProjectionStatsHandler, ProjectionRestartHandler,
+    ProjectionStateApiHandler
+} from "./ProjectionsHandlers";
 import {ProjectionsListHandler} from "./ProjectionsListHandler";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 
@@ -22,6 +25,7 @@ class APIModule implements IModule {
         container.bind<IRequestHandler>("IRequestHandler").to(SnapshotDeleteHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(AuthorizationHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStatsHandler).inSingletonScope();
+        container.bind<IRequestHandler>("IRequestHandler").to(ProjectionStateApiHandler).inSingletonScope();
         container.bind<IRequestHandler>("IRequestHandler").to(ProjectionsListHandler).inSingletonScope();
     };
 

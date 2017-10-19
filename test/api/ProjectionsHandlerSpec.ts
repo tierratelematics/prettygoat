@@ -10,7 +10,10 @@ import IProjectionEngine from "../../scripts/projections/IProjectionEngine";
 import {ISnapshotRepository} from "../../scripts/snapshots/ISnapshotRepository";
 import {IProjection} from "../../scripts/projections/IProjection";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
-import {ProjectionStopHandler, ProjectionRestartHandler} from "../../scripts/api/ProjectionsHandlers";
+import {
+    ProjectionStopHandler, ProjectionRestartHandler,
+    ProjectionStateApiHandler
+} from "../../scripts/api/ProjectionsHandlers";
 import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
 
 describe("Given a ProjectionsController and a projection name", () => {
@@ -101,6 +104,23 @@ describe("Given a ProjectionsController and a projection name", () => {
                     snapshotRepository.verify(s => s.deleteSnapshot("Mock"), Times.once());
                     projectionEngine.verify(p => p.run(It.isValue(projection)), Times.once());
                 });
+            });
+        });
+
+        context("when the state of the projection is needed", () => {
+            beforeEach(() => {
+                projectionRunner.object.state = {
+                    "test": 20
+                };
+                subject = new ProjectionStateApiHandler(holder);
+                request.params = {projectionName: "Mock"};
+            });
+            it("should be printed", async () => {
+                await subject.handle(request, response.object);
+
+                response.verify(s => s.send(It.isValue({
+                    "test": 20
+                })), Times.once());
             });
         });
     });

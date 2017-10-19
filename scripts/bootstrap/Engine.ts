@@ -3,7 +3,7 @@ import IModule from "./IModule";
 import * as _ from "lodash";
 import PrettyGoatModule from "./PrettyGoatModule";
 import IProjectionEngine from "../projections/IProjectionEngine";
-import ILogger from "../log/ILogger";
+import {ILogger} from "inversify-logging";
 import {FeatureChecker} from "bivio";
 import {IFeatureChecker} from "bivio";
 import APIModule from "../api/APIModule";
@@ -67,7 +67,7 @@ export class Engine {
             pushNotifier = this.container.get<IPushNotifier>("IPushNotifier"),
             config = this.container.get<IEndpointConfig>("IEndpointConfig"),
             socketFactory = this.container.get<ISocketFactory>("ISocketFactory"),
-            logger = this.container.get<ILogger>("ILogger"),
+            logger = this.container.get<ILogger>("ILogger").createChildLogger("Engine"),
             socketConfig = this.container.get<ISocketConfig>("ISocketConfig"),
             requestAdapter = this.container.get<IRequestAdapter>("IRequestAdapter"),
             requestParser = this.container.get<IRequestParser>("IRequestParser"),
@@ -81,6 +81,7 @@ export class Engine {
 
         app.all("*", (request, response) => {
             let requestData = requestParser.parse(request, response);
+            logger.debug(`New request for url ${request.url}`);
             if (requestAdapter.canHandle(requestData[0], requestData[1])) {
                 middlewareTransformer.transform(requestData[0], requestData[1]).then(data => {
                     requestAdapter.route(data[0], data[1]);
@@ -104,20 +105,18 @@ export class Engine {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.add(wrappedClient, context);
                     pushNotifier.notifyClient(context, client.id, notificationKey);
-                    logger.info(`Client subscribed on ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
+                    logger.debug(`Client ${client.id} subscribed on ${ContextOperations.keyFor(context, notificationKey)}`);
                 } catch (error) {
-                    logger.info(`Client ${client.id} subscribed with wrong channel`);
-                    logger.error(error);
+                    logger.warning(`Client ${client.id} subscribed with bad model context ${JSON.stringify(message)}`);
                 }
             });
             client.on("unsubscribe", message => {
                 try {
                     let context = new PushContext(message.area, message.modelId, message.parameters);
                     let notificationKey = clientRegistry.remove(wrappedClient, context);
-                    logger.info(`Client unsubscribed from ${ContextOperations.keyFor(context, notificationKey)} with id ${client.id}`);
+                    logger.debug(`Client ${client.id} unsubscribed from ${ContextOperations.keyFor(context, notificationKey)}`);
                 } catch (error) {
-                    logger.info(`Client ${client.id} subscribed with wrong channel`);
-                    logger.error(error);
+                    logger.warning(`Client ${client.id} unsubscribed with bad model context ${JSON.stringify(message)}`);
                 }
             });
         });

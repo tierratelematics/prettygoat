@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
@@ -11,7 +10,6 @@ import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepos
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
 import {IProjection} from "../scripts/projections/IProjection";
-import NullLogger from "../scripts/log/NullLogger";
 import * as lolex from "lolex";
 import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/PushComponents";
@@ -63,7 +61,7 @@ describe("Given a ProjectionEngine", () => {
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
         snapshotProducer = Mock.ofType<ISnapshotProducer>();
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, asyncPublisherFactory.object, readModelNotifier.object, snapshotProducer.object);
+            asyncPublisherFactory.object, readModelNotifier.object, snapshotProducer.object);
     });
 
     afterEach(() => clock.uninstall());
