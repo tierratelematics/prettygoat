@@ -18,7 +18,7 @@ export function retrySequence(callback: (error: Error) => void = () => null,
             return Observable
                 .zip(Observable.range(1, backoffRetries), errors, (i, e) => [i, e])
                 .do(data => callback(data[1]))
-                .flatMap(data => Observable.timer(data[0] ** 2 * backoffInterval))
+                .flatMap(data => Observable.timer(data[0] * data[0] * backoffInterval))
                 .concat(Observable
                     .timer(pollingInterval, pollingInterval)
                     .combineLatest(errors, (timer, error) => error)
