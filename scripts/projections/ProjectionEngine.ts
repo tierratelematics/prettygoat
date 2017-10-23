@@ -106,9 +106,6 @@ class ProjectionEngine implements IProjectionEngine {
             .subscribe(snapshotData => {
                 let snapshotPayload = snapshotData[1];
                 logger.info(`Snapshot saved at time ${snapshotPayload.lastEvent.toISOString()}`);
-            }, error => {
-                logger.error(`Snapshot save failed`);
-                logger.error(error);
             });
     }
 
