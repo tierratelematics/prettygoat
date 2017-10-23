@@ -15,6 +15,8 @@ import {IAsyncPublisherFactory} from "../common/AsyncPublisherFactory";
 import {Event} from "../events/Event";
 import IAsyncPublisher from "../common/IAsyncPublisher";
 import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
+import {Observable} from "rxjs";
+import {retrySequence} from "../common/TypesUtil";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -99,7 +101,8 @@ class ProjectionEngine implements IProjectionEngine {
 
     private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>, logger: ILogger) {
         snapshotsPublisher.items()
-            .flatMap(snapshotData => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+            .flatMap(snapshotData => Observable.from(this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+                .let(retrySequence(error => logger.error(error))))
             .subscribe(snapshotData => {
                 let snapshotPayload = snapshotData[1];
                 logger.info(`Snapshot saved at time ${snapshotPayload.lastEvent.toISOString()}`);
