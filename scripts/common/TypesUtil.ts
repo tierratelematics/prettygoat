@@ -21,7 +21,7 @@ export function retrySequence(callback: (error: Error) => void = () => null,
                 .flatMap(data => Observable.timer(data[0] * data[0] * backoffInterval))
                 .concat(Observable
                     .timer(pollingInterval, pollingInterval)
-                    .combineLatest(errors, (timer, error) => error)
+                    .zip(errors, (timer, error) => error)
                     .do(error => callback(error)));
         });
     };
