@@ -1,3 +1,7 @@
+# 5.2.0
+
+Add retry management
+
 # 5.1.0
 
 * Add contextual logging
