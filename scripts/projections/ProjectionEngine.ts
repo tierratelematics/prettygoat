@@ -101,7 +101,7 @@ class ProjectionEngine implements IProjectionEngine {
 
     private saveSnapshots(snapshotsPublisher: IAsyncPublisher<SnapshotData>, logger: ILogger) {
         snapshotsPublisher.items()
-            .flatMap(snapshotData => Observable.from(this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
+            .flatMap(snapshotData => Observable.defer(() => this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).then(() => snapshotData))
                 .let(retrySequence(error => logger.error(error))))
             .subscribe(snapshotData => {
                 let snapshotPayload = snapshotData[1];
@@ -111,7 +111,7 @@ class ProjectionEngine implements IProjectionEngine {
 
     private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>, projection: IProjection, logger: ILogger) {
         let loggers = mapValues(projection.publish, (point, name) => logger.createChildLogger(name));
-        
+
         notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`)
             .subscribe(notification => {
                 let [context, notifyKey, event] = notification;
