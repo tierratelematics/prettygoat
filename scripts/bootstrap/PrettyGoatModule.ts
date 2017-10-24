@@ -50,7 +50,7 @@ import {IRedisConfig} from "../configs/IRedisConfig";
 import {IStreamFactory} from "../events/IStreamFactory";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {ISnapshotProducer, SnapshotProducer} from "../snapshots/SnapshotProducer";
-import {activateLogging} from "inversify-logging";
+import {activateLogging, ILogger} from "inversify-logging";
 
 class PrettyGoatModule implements IModule {
 
@@ -90,13 +90,18 @@ class PrettyGoatModule implements IModule {
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
         container.bind<ISnapshotProducer>("ISnapshotProducer").to(SnapshotProducer).inSingletonScope();
         container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
-            let config = container.get<IRedisConfig>("IRedisConfig");
-            return isArray(config) ? new Redis.Cluster(config) : new Redis(config);
+            let logger = container.get<ILogger>("ILogger").createChildLogger("RedisClient"),
+                config = container.get<IRedisConfig>("IRedisConfig"),
+                instance = isArray(config) ? new Redis.Cluster(config) : new Redis(config);
+            instance.on("error", logger.error.bind(logger));
+
+            return instance;
         });
         activateLogging(container);
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {
+
     }
 }
 
