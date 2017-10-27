@@ -125,22 +125,33 @@ describe("Given a ProjectionRunner", () => {
         });
 
         context("if a snapshot is present", () => {
-            beforeEach(() => {
-                subject.run(new Snapshot(56, new Date(5000)));
+            context("when it does not contain other info", () => {
+                beforeEach(() => {
+                    subject.run(new Snapshot(56, new Date(5000)));
+                });
+    
+                it("should create an initial state based on snapshot memento", () => {
+                    expect(subject.state).to.be(56);
+                });
+    
+                it("should notify with the snapshot timestamp", () => {
+                    expect(timestamps[0]).to.eql(new Date(5000));
+                });
+    
+                it("should notify the main channel of every publish point", () => {
+                    expect(notificationKeys).to.eql({
+                        "Test": [null],
+                        "Detail": [null]
+                    });
+                });
             });
-
-            it("should create an initial state based on snapshot memento", () => {
-                expect(subject.state).to.be(56);
-            });
-
-            it("should notify with the snapshot timestamp", () => {
-                expect(timestamps[0]).to.eql(new Date(5000));
-            });
-
-            it("should notify the main channel of every publish point", () => {
-                expect(notificationKeys).to.eql({
-                    "Test": [null],
-                    "Detail": [null]
+            context("when it contains other info", () => {
+                beforeEach(() => {
+                    subject.run(new Snapshot({ state: 56} , new Date(5000)));
+                });
+    
+                it("should create an initial state based on snapshot memento state", () => {
+                    expect(subject.state).to.be(56);
                 });
             });
         });

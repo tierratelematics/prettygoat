@@ -46,8 +46,8 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        if (snapshot) {
-            this.state = snapshot.memento;
+        if (snapshot && snapshot.memento) {
+            this.state = (<any>snapshot.memento).state ? (<any>snapshot.memento).state: snapshot.memento;
             this.notifyStateChange(snapshot.lastEvent, null, mapValues(this.notifyMatchers, matcher => [null]));
             this.logger.info("Restoring projection from a snapshot");
         } else {

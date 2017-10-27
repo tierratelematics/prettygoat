@@ -24,7 +24,7 @@ describe("Given a snapshot producer", () => {
         it("should produce the correct snapshot", () => {
             expect(subject.produce({
                 type: "Mock", payload: {count: 10}, timestamp: new Date(20)
-            })).to.eql(new Snapshot({count: 10}, new Date(20), [{id: "test", timestamp: new Date(2)}]));
+            })).to.eql(new Snapshot({ state: {count: 10}}, new Date(20), [{id: "test", timestamp: new Date(2)}]));
         });
     });
 });
