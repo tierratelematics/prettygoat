@@ -103,6 +103,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IMiddleware>("IMiddleware").to(BodyMiddleware).inSingletonScope();
         container.bind<IReplicationManager>("IReplicationManager").to(ReplicationManager).inSingletonScope();
         container.bind<IAsyncPublisher<any>>("IAsyncPublisher").to(DebouncePublisher);
+        container.bind<interfaces.Factory<IAsyncPublisher<any>>>("Factory<IAsyncPublisher>").toAutoFactory<IAsyncPublisher<any>>("IAsyncPublisher");
         container.bind<IServerProvider>("IServerProvider").to(ServerProvider).inSingletonScope();
     };
 

@@ -27,8 +27,8 @@ class CassandraSnapshotRepository implements ISnapshotRepository {
     getSnapshots(): Observable<Dictionary<Snapshot<any>>> {
         return this.client.execute(['select blobAsText(memento) as memento, streamid, lastEvent, split from projections_snapshots', null])
             .map(snapshots => _<CassandraSnapshot>(snapshots.rows)
-                .groupBy(snapshot => snapshot.streamid)
-                .mapValues(snapshots => {
+                .groupBy((snapshot: any) => snapshot.streamid)
+                .mapValues((snapshots: any) => {
                     if (snapshots[0].split) {
                         let memento = _(snapshots)
                             .keyBy(snapshot => snapshot.split)

@@ -1,5 +1,5 @@
 import IProjectionEngine from "./IProjectionEngine";
-import {injectable, inject} from "inversify";
+import {injectable, inject, interfaces} from "inversify";
 import IProjectionRegistry from "../registry/IProjectionRegistry";
 import * as _ from "lodash";
 import AreaRegistry from "../registry/AreaRegistry";
@@ -25,16 +25,7 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("ILogger") private logger: ILogger = NullLogger,
                 @inject("IProjectionSorter") private sorter: IProjectionSorter,
-                @inject("IAsyncPublisher") private publisher: IAsyncPublisher<SnapshotData>) {
-        publisher.items()
-            .flatMap(snapshotData => {
-                return this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).map(() => snapshotData);
-            })
-            .subscribe(snapshotData => {
-                let streamId = snapshotData[0],
-                    snapshot = snapshotData[1];
-                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshot.lastEvent.toISOString()}`);
-            });
+                @inject("Factory<IAsyncPublisher>") private publisherFactory: interfaces.Factory<IAsyncPublisher<SnapshotData>>) {
     }
 
     run(projection?: IProjection<any>, context?: PushContext) {
@@ -60,14 +51,25 @@ class ProjectionEngine implements IProjectionEngine {
     }
 
     private runSingleProjection(projection: IProjection<any>, context: PushContext, snapshot?: Snapshot<any>) {
-        let runner = this.runnerFactory.create(projection);
+        let runner = this.runnerFactory.create(projection),
+            publisher = <IAsyncPublisher<SnapshotData>>this.publisherFactory();
+
+        publisher.items()
+            .flatMap(snapshotData => {
+                return this.snapshotRepository.saveSnapshot(snapshotData[0], snapshotData[1]).map(() => snapshotData);
+            })
+            .subscribe(snapshotData => {
+                let streamId = snapshotData[0],
+                    snapshot = snapshotData[1];
+                this.logger.info(`Snapshot saved for ${streamId} at time ${snapshot.lastEvent.toISOString()}`);
+            });
 
         let sequence = runner
             .notifications()
             .do(state => {
                 let snapshotStrategy = projection.snapshotStrategy;
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    this.publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
+                    publisher.publish([state.type, new Snapshot(runner.state, state.timestamp)]);
                 }
             });
 
