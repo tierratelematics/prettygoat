@@ -28,7 +28,7 @@ describe("Given a ProjectionEngine", () => {
         registry: IMock<IProjectionRegistry>,
         pushNotifier: IMock<IPushNotifier>,
         snapshotStrategy: IMock<ISnapshotStrategy>,
-        runner: IMock<IProjectionRunner<number>>,
+        runner: IMock<IProjectionRunner<any>>,
         runnerFactory: IMock<IProjectionRunnerFactory>,
         projectionSorter: IMock<IProjectionSorter>,
         snapshotRepository: IMock<ISnapshotRepository>,
@@ -63,7 +63,7 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         snapshotRepository.setup(s => s.initialize()).returns(a => Observable.just(null));
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            NullLogger, projectionSorter.object, asyncPublisher.object);
+            NullLogger, projectionSorter.object, () => asyncPublisher.object);
     });
 
     afterEach(() => clock.uninstall());
@@ -116,13 +116,13 @@ describe("Given a ProjectionEngine", () => {
 
     context("when some snapshots needs to be processed", () => {
         beforeEach(() => {
+            snapshotRepository.setup(s => s.getSnapshots()).returns(a => Observable.just<Dictionary<Snapshot<any>>>({}));
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items()).returns(() => Observable.create(observer => {
                 observer.onNext(["test", new Snapshot(66, new Date(5000))]);
             }));
             snapshotRepository.setup(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, new Date(5000))))).returns(a => Observable.empty<void>());
-            subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-                NullLogger, projectionSorter.object, asyncPublisher.object);
+            subject.run();
         });
         it("should save them", () => {
             snapshotRepository.verify(s => s.saveSnapshot("test", It.isValue(new Snapshot(66, new Date(5000)))), Times.once());
