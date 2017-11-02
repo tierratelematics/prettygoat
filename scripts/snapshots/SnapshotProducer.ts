@@ -3,10 +3,9 @@ import {Event} from "../events/Event";
 import {inject, injectable} from "inversify";
 import Dictionary from "../common/Dictionary";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
-import {ValueOrPromise} from "../common/TypesUtil";
 
 export interface ISnapshotProducer {
-    produce<T>(event: Event): ValueOrPromise<Snapshot<T>>;
+    produce<T>(event: Event): Snapshot<T>;
 }
 
 @injectable()

@@ -75,15 +75,12 @@ class ProjectionEngine implements IProjectionEngine {
         this.publishNotifications(notificationsPublisher, projection, logger);
 
         let subscription = runner.notifications()
-            .flatMap(notification => {
+            .do(notification => {
                 let snapshotStrategy = projection.snapshot,
                     state = notification[0];
                 if (state.timestamp && snapshotStrategy && snapshotStrategy.needsSnapshot(state)) {
-                    return Observable.from(Promise.resolve(this.snapshotProducer.produce(state)))
-                        .map(newSnapshot => snapshotsPublisher.publish([state.type, newSnapshot]))
-                        .map(() => notification);
+                    snapshotsPublisher.publish([state.type, this.snapshotProducer.produce(state)]);
                 }
-                return Observable.of(notification);
             })
             .merge(...readModels)
             .subscribe(notification => {
