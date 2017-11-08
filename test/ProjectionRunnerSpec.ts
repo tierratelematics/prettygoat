@@ -147,7 +147,7 @@ describe("Given a ProjectionRunner", () => {
             });
             context("when it contains other info", () => {
                 beforeEach(() => {
-                    subject.run(new Snapshot<any>({ state: 56} , new Date(5000)));
+                    subject.run(new Snapshot<any>({ projectionState: 56} , new Date(5000)));
                 });
     
                 it("should create an initial state based on snapshot memento state", () => {
