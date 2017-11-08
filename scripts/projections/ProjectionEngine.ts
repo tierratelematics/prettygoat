@@ -34,7 +34,8 @@ class ProjectionEngine implements IProjectionEngine {
                 @inject("ISnapshotRepository") private snapshotRepository: ISnapshotRepository,
                 @inject("IAsyncPublisherFactory") private publisherFactory: IAsyncPublisherFactory,
                 @inject("IReadModelNotifier") private readModelNotifier: IReadModelNotifier,
-                @inject("ISnapshotProducer") private snapshotProducer: ISnapshotProducer) {
+                @inject("ISnapshotProducer") private snapshotProducer: ISnapshotProducer,
+                @inject("SnapshotsHolder") private snapshotsHolder: Dictionary<Snapshot>) {
     }
 
     async run(projection?: IProjection<any>) {
@@ -53,6 +54,7 @@ class ProjectionEngine implements IProjectionEngine {
         let snapshot: Snapshot<any> = null;
         try {
             snapshot = await this.snapshotRepository.getSnapshot(projection.name);
+            this.snapshotsHolder[projection.name] = snapshot;
         } catch (error) {
             logger.error(`Snapshot loading has failed`);
             logger.error(error);

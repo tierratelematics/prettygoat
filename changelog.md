@@ -1,3 +1,8 @@
+# 5.3.0
+
+* Cache snapshots
+* Fix some bugs
+
 # 5.2.0
 
 Add retry management

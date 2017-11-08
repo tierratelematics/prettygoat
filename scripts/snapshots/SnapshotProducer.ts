@@ -16,6 +16,6 @@ export class SnapshotProducer implements ISnapshotProducer {
     }
 
     produce<T>(event: Event): Snapshot<T> {
-        return new Snapshot(event.payload, event.timestamp, this.filterHolder[event.type].serialize());
+        return new Snapshot<any>({ projectionState: event.payload }, event.timestamp, this.filterHolder[event.type].serialize());
     }
 }

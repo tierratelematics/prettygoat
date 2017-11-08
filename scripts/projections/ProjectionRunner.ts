@@ -46,8 +46,9 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         if (this.subscription !== undefined)
             return;
 
-        if (snapshot) {
-            this.state = snapshot.memento;
+        if (snapshot && snapshot.memento) {
+            // TODO: Remove this check when migrating all the snapshot
+            this.state = (<any>snapshot.memento).projectionState ? (<any>snapshot.memento).projectionState : snapshot.memento;
             this.notifyStateChange(snapshot.lastEvent, null, mapValues(this.notifyMatchers, matcher => [null]));
             this.logger.info("Restoring projection from a snapshot");
         } else {
@@ -89,9 +90,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
             .startWith(!snapshot && initEvent)
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
-            .do(([event]) => {
-                this.logger.debug(`Processing event ${JSON.stringify(event)}`);
-            })
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
@@ -100,6 +98,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                 return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
             }).observeOn(Scheduler.queue), 1)
             .do(data => {
+                this.logger.debug(`Processed event ${JSON.stringify(data[0])}`);
                 if (data[0].type === SpecialEvents.FETCH_EVENTS) {
                     completions.next(data[0].payload.event);
                 }

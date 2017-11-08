@@ -1,3 +1,4 @@
+import {Snapshot} from "./../snapshots/ISnapshotRepository";
 import IModule from "./IModule";
 import {interfaces} from "inversify";
 import IServiceLocator from "./IServiceLocator";
@@ -89,6 +90,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
         container.bind<ISnapshotProducer>("ISnapshotProducer").to(SnapshotProducer).inSingletonScope();
+        container.bind<Dictionary<Snapshot>>("SnapshotsHolder").toConstantValue({});
         container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
             let logger = container.get<ILogger>("ILogger").createChildLogger("RedisClient"),
                 config = container.get<IRedisConfig>("IRedisConfig"),
