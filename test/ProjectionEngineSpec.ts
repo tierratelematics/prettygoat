@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
@@ -29,7 +30,7 @@ describe("Given a ProjectionEngine", () => {
         registry: IMock<IProjectionRegistry>,
         pushNotifier: IMock<IPushNotifier>,
         snapshotStrategy: IMock<ISnapshotStrategy>,
-        runner: IMock<IProjectionRunner<number>>,
+        runner: IMock<IProjectionRunner<any>>,
         runnerFactory: IMock<IProjectionRunnerFactory>,
         snapshotRepository: IMock<ISnapshotRepository>,
         dataSubject: ReplaySubject<[Event, Dictionary<string[]>]>,
@@ -37,7 +38,8 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisher: IMock<IAsyncPublisher<any>>,
         clock: lolex.Clock,
         readModelNotifier: IMock<IReadModelNotifier>,
-        snapshotProducer: IMock<ISnapshotProducer>;
+        snapshotProducer: IMock<ISnapshotProducer>,
+        snapshotsHolder: Dictionary<Snapshot>;
 
     beforeEach(() => {
         clock = lolex.install();
@@ -60,8 +62,9 @@ describe("Given a ProjectionEngine", () => {
         snapshotRepository = Mock.ofType<ISnapshotRepository>();
         readModelNotifier = Mock.ofType<IReadModelNotifier>();
         snapshotProducer = Mock.ofType<ISnapshotProducer>();
+        snapshotsHolder = {};
         subject = new ProjectionEngine(runnerFactory.object, pushNotifier.object, registry.object, snapshotRepository.object,
-            asyncPublisherFactory.object, readModelNotifier.object, snapshotProducer.object);
+            asyncPublisherFactory.object, readModelNotifier.object, snapshotProducer.object, snapshotsHolder);
     });
 
     afterEach(() => clock.uninstall());
@@ -94,6 +97,10 @@ describe("Given a ProjectionEngine", () => {
 
         it("should init a projection runner with that snapshot", () => {
             runner.verify(r => r.run(It.isValue(snapshot)), Times.once());
+        });
+
+        it("should cache the snapshot", () => {
+            expect(snapshotsHolder["Mock"]).to.be(snapshot);
         });
     });
 

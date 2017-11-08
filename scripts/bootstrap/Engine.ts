@@ -31,7 +31,7 @@ export let lazyMultiInject: lazyMultiInjectType = decorators.lazyMultiInject;
 
 export class Engine {
 
-    protected container = new Container();
+    protected container = container;
     private modules: IModule[] = [];
     private featureChecker = new FeatureChecker();
 
