@@ -5,12 +5,13 @@ import {Mock, IMock, Times, It} from "typemoq";
 import {IIdempotenceFilter} from "../../scripts/events/IdempotenceFilter";
 import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
 import { IMementoProducer } from "../../scripts/snapshots/MementoProducer";
+import { Event } from "../../scripts/events/Event";
 
 describe("Given a snapshot producer", () => {
 
     let subject: SnapshotProducer;
     let mementoProducer: IMock<IMementoProducer<any>>;
-    let event = {
+    let event: Event = {
         type: "Mock", payload: {count: 10}, timestamp: new Date(20)
     };
 
@@ -33,6 +34,10 @@ describe("Given a snapshot producer", () => {
         });
         it("should produce the correct snapshot", () => {
             expect(subject.produce(event)).to.eql(new Snapshot({ projectionState: {count: 10}}, new Date(20), [{id: "test", timestamp: new Date(2)}]));
+        });
+        it("should snapshot also the metadata", () => {
+            event.metadata = { bucket: "first-bucket" };
+            expect(subject.produce(event)).to.eql(new Snapshot({ projectionState: {count: 10}}, new Date(20), [{id: "test", timestamp: new Date(2)}], { bucket: "first-bucket" }));
         });
     });
 });

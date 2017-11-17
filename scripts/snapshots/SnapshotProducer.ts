@@ -18,6 +18,6 @@ export class SnapshotProducer implements ISnapshotProducer {
     }
 
     produce<T>(event: Event): Snapshot<T> {
-        return new Snapshot<any>(this.mementoProducer.produce(event), event.timestamp, this.filterHolder[event.type].serialize());
+        return new Snapshot<any>(this.mementoProducer.produce(event), event.timestamp, this.filterHolder[event.type].serialize(), event.metadata);
     }
 }
