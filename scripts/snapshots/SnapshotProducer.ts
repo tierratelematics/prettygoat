@@ -3,6 +3,7 @@ import {Event} from "../events/Event";
 import {inject, injectable} from "inversify";
 import Dictionary from "../common/Dictionary";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
+import { IMementoProducer } from "./MementoProducer";
 
 export interface ISnapshotProducer {
     produce<T>(event: Event): Snapshot<T>;
@@ -11,11 +12,12 @@ export interface ISnapshotProducer {
 @injectable()
 export class SnapshotProducer implements ISnapshotProducer {
 
-    constructor(@inject("IdempotenceFilterHolder") private filterHolder: Dictionary<IIdempotenceFilter>) {
+    constructor(@inject("IdempotenceFilterHolder") private filterHolder: Dictionary<IIdempotenceFilter>,
+                @inject("IMementoProducer") private mementoProducer: IMementoProducer<any>) {
 
     }
 
     produce<T>(event: Event): Snapshot<T> {
-        return new Snapshot<any>({ projectionState: event.payload }, event.timestamp, this.filterHolder[event.type].serialize());
+        return new Snapshot<any>(this.mementoProducer.produce(event), event.timestamp, this.filterHolder[event.type].serialize(), event.metadata);
     }
 }
