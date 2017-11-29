@@ -1,3 +1,8 @@
+# 5.4.0
+
+* Add memento producer
+* Snapshot event metadata
+
 # 5.3.0
 
 * Cache snapshots
