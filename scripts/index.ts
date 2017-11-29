@@ -1,4 +1,5 @@
 export {ISnapshotProducer} from "./snapshots/SnapshotProducer";
+export {IMementoProducer} from "./snapshots/MementoProducer";
 export {ProjectionStats} from "./projections/ProjectionRunner";
 export {IProjectionRunner} from "./projections/IProjectionRunner";
 export {default as IProjectionRunnerFactory} from "./projections/IProjectionRunnerFactory";

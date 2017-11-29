@@ -52,6 +52,7 @@ import {IStreamFactory} from "../events/IStreamFactory";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {ISnapshotProducer, SnapshotProducer} from "../snapshots/SnapshotProducer";
 import {activateLogging, ILogger} from "inversify-logging";
+import { IMementoProducer, MementoProducer } from "../snapshots/MementoProducer";
 
 class PrettyGoatModule implements IModule {
 
@@ -90,6 +91,7 @@ class PrettyGoatModule implements IModule {
         container.bind<IReadModelNotifier>("IReadModelNotifier").to(ReadModelNotifier).inSingletonScope();
         container.bind<IAsyncPublisherFactory>("IAsyncPublisherFactory").to(AsyncPublisherFactory).inSingletonScope();
         container.bind<ISnapshotProducer>("ISnapshotProducer").to(SnapshotProducer).inSingletonScope();
+        container.bind<IMementoProducer<any>>("IMementoProducer").to(MementoProducer).inSingletonScope();
         container.bind<Dictionary<Snapshot>>("SnapshotsHolder").toConstantValue({});
         container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
             let logger = container.get<ILogger>("ILogger").createChildLogger("RedisClient"),
