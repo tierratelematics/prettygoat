@@ -37,7 +37,6 @@ import HealthCheckHandler from "../web/HealthCheckHandler";
 import {ProjectionStreamFactory} from "../projections/ProjectionStreamFactory";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import IProjectionRunnerFactory from "../projections/IProjectionRunnerFactory";
-import * as Redis from "ioredis";
 import {isArray} from "lodash";
 import {IProjectionRegistry, ProjectionRegistry} from "./ProjectionRegistry";
 import {IReadModelRetriever, ReadModelRetriever} from "../readmodels/ReadModelRetriever";
@@ -47,7 +46,6 @@ import {DefaultEndpointConfig, IEndpointConfig} from "../configs/EndpointConfig"
 import {DefaultSocketConfig, ISocketConfig} from "../configs/SocketConfig";
 import {DefaultNotificationConfig, INotificationConfig} from "../configs/NotificationConfig";
 import {IProjectionFactory, ProjectionFactory} from "../projections/ProjectionFactory";
-import {IRedisConfig} from "../configs/IRedisConfig";
 import {IStreamFactory} from "../events/IStreamFactory";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {ISnapshotProducer, SnapshotProducer} from "../snapshots/SnapshotProducer";
@@ -93,14 +91,6 @@ class PrettyGoatModule implements IModule {
         container.bind<ISnapshotProducer>("ISnapshotProducer").to(SnapshotProducer).inSingletonScope();
         container.bind<IMementoProducer<any>>("IMementoProducer").to(MementoProducer).inSingletonScope();
         container.bind<Dictionary<Snapshot>>("SnapshotsHolder").toConstantValue({});
-        container.bind<Redis.Redis>("RedisClient").toDynamicValue(() => {
-            let logger = container.get<ILogger>("ILogger").createChildLogger("RedisClient"),
-                config = container.get<IRedisConfig>("IRedisConfig"),
-                instance = isArray(config) ? new Redis.Cluster(config) : new Redis(config);
-            instance.on("error", logger.error.bind(logger));
-
-            return instance;
-        });
         activateLogging(container);
     };
 
