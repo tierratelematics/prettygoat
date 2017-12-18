@@ -9,4 +9,8 @@ export interface IReadModel<T = any> {
     name: string;
     definition: WhenBlock<T>;
     snapshot?: ISnapshotStrategy;
+    notify?: {
+        $default?: (s: T, payload: Object) => string;
+        [name: string]: (s: T, payload: Object) => string;
+    };
 }
