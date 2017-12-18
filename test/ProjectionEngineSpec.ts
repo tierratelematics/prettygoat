@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
-import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner, NotificationTuple} from "../scripts/projections/IProjectionRunner";
 import {ReplaySubject, Observable} from "rxjs";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/events/Event";
@@ -50,7 +50,7 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisherFactory.setup(a => a.publisherFor(It.isAny())).returns(() => asyncPublisher.object);
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
-        dataSubject = new ReplaySubject<[Event, Dictionary<string[]>]>();
+        dataSubject = new ReplaySubject<NotificationTuple>();
         runner = Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = Mock.ofType<IPushNotifier>();

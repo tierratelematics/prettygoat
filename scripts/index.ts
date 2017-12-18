@@ -1,7 +1,7 @@
 export {ISnapshotProducer} from "./snapshots/SnapshotProducer";
 export {IMementoProducer} from "./snapshots/MementoProducer";
 export {ProjectionStats} from "./projections/ProjectionRunner";
-export {IProjectionRunner} from "./projections/IProjectionRunner";
+export {IProjectionRunner, NotificationTuple} from "./projections/IProjectionRunner";
 export {default as IProjectionRunnerFactory} from "./projections/IProjectionRunnerFactory";
 export {IMatcher, Matcher, WhenBlock} from "./projections/Matcher";
 export {IProjectionFactory, IProjectionFactoryExtender} from "./projections/ProjectionFactory";
