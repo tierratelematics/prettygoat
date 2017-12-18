@@ -85,7 +85,7 @@ class ProjectionEngine implements IProjectionEngine {
             .merge(...readModels)
             .subscribe(notification => {
                 if (!projection.publish) {
-                    this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp);
+                    this.readModelNotifier.notifyChanged(projection.name, notification[0].timestamp, notification[0].id);
                 } else {
                     let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
                         ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload)

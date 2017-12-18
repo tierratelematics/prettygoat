@@ -83,7 +83,8 @@ describe("Given a ProjectionEngine", () => {
         dataSubject.next([{
             type: "ReadModel",
             payload: state,
-            timestamp: timestamp
+            timestamp: timestamp,
+            id: "test-readmodel"
         }, notificationKeys]);
     }
 
@@ -270,7 +271,7 @@ describe("Given a ProjectionEngine", () => {
             await subject.run();
         });
         it("should notify that the model has changed", () => {
-            readModelNotifier.verify(r => r.notifyChanged("ReadModel", It.isValue(new Date(5000))), Times.once());
+            readModelNotifier.verify(r => r.notifyChanged("ReadModel", It.isValue(new Date(5000)), "test-readmodel"), Times.once());
         });
     });
 });
