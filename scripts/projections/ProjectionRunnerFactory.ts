@@ -9,6 +9,7 @@ import {mapValues} from "lodash";
 import {IStreamFactory} from "../events/IStreamFactory";
 import {IdempotenceFilter, IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {NullLogger, ILogger} from "inversify-logging";
+import { READMODEL_DEFAULT_NOTIFY } from "../readmodels/IReadModel";
 
 @injectable()
 class ProjectionRunnerFactory implements IProjectionRunnerFactory {
@@ -25,7 +26,8 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         if (projection.publish) {
             notifyMatchers = mapValues(projection.publish, point => new Matcher(point.notify));
         } else if (projection.notify) {
-            notifyMatchers = { "Main": new Matcher(projection.notify) };
+             // Dirty trick to transform a readmodel into a "published" projection
+            notifyMatchers[READMODEL_DEFAULT_NOTIFY] = new Matcher(projection.notify);
         }
         let idempotenceFilter = new IdempotenceFilter();
         let projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, new Matcher(projection.definition),

@@ -8,6 +8,7 @@ import Dictionary from "../scripts/common/Dictionary";
 import {IIdempotenceFilter} from "../scripts/events/IdempotenceFilter";
 import NotifyReadModel from "./fixtures/definitions/NotifyReadModel";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
+import { READMODEL_DEFAULT_NOTIFY } from "../scripts/readmodels/IReadModel";
 
 describe("ProjectionRunnerFactory, given a projection definition", () => {
 
@@ -40,7 +41,7 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
             it("should build a notification dictionary", () => {
                 let projectionRunner: any = subject.create(<any>new NotifyReadModel().define());
 
-                expect(projectionRunner.notifyMatchers.Main).to.be.ok();
+                expect(projectionRunner.notifyMatchers[READMODEL_DEFAULT_NOTIFY]).to.be.ok();
             });
         });
 
@@ -48,7 +49,7 @@ describe("ProjectionRunnerFactory, given a projection definition", () => {
             it("should not build a notification dictionary", () => {
                 let projectionRunner: any = subject.create(<any>new MockReadModel().define());
 
-                expect(projectionRunner.notifyMatchers.Main).not.to.be.ok();
+                expect(projectionRunner.notifyMatchers[READMODEL_DEFAULT_NOTIFY]).not.to.be.ok();
             });
         });
     });
