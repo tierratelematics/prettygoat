@@ -29,7 +29,7 @@ export class ReadModelNotifier implements IReadModelNotifier {
     }
 
     notifyChanged(event: Event, context: string) {
-        let publisher = this.publisherFor(name);
+        let publisher = this.publisherFor(event.type);
         publisher.publish([{
             type: SpecialEvents.READMODEL_CHANGED,
             payload: event.type,
