@@ -16,7 +16,7 @@ import {Event} from "../events/Event";
 import IAsyncPublisher from "../common/IAsyncPublisher";
 import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
 import {Observable} from "rxjs";
-import {retrySequence} from "../common/TypesUtil";
+import {retrySequence, toArray} from "../common/TypesUtil";
 import { READMODEL_DEFAULT_NOTIFY } from "../readmodels/IReadModel";
 
 type SnapshotData = [string, Snapshot<any>];
@@ -131,7 +131,7 @@ class ProjectionEngine implements IProjectionEngine {
         return reduce(projection.publish, (result, publishBlock, point) => {
             let context = new PushContext(area, point);
             if (publishBlock.readmodels && includes(publishBlock.readmodels.$list, readModel)) {
-                let notificationKeys = publishBlock.readmodels.$change(state, notify);
+                let notificationKeys = toArray<string>(publishBlock.readmodels.$change(state, notify));
                 result = concat(result, map<string, [PushContext, string]>(notificationKeys, key => [context, key]));
             }
             return result;
