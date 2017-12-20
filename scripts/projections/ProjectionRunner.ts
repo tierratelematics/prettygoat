@@ -3,7 +3,7 @@ import {ISubscription} from "rxjs/Subscription";
 import {Snapshot} from "../snapshots/ISnapshotRepository";
 import Dictionary from "../common/Dictionary";
 import {isPromise, toArray} from "../common/TypesUtil";
-import {IProjectionRunner} from "./IProjectionRunner";
+import {IProjectionRunner, NotificationTuple} from "./IProjectionRunner";
 import {IProjection} from "./IProjection";
 import {IMatcher} from "./Matcher";
 import {Event} from "../events/Event";
@@ -26,7 +26,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
     state: T;
     stats = new ProjectionStats();
     closed: boolean;
-    private subject = new Subject<[Event<T>, Dictionary<string[]>]>();
+    private subject = new Subject<NotificationTuple<T>>();
     private subscription: ISubscription;
 
     constructor(private projection: IProjection<T>, private streamFactory: IStreamFactory,
@@ -35,7 +35,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
 
     }
 
-    notifications() {
+    notifications(): Observable<NotificationTuple<T>> {
         return this.subject;
     }
 
