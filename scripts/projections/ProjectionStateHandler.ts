@@ -7,7 +7,7 @@ import {STATUS_CODES} from "http";
 import {IProjectionRegistry} from "../bootstrap/ProjectionRegistry";
 import {DeliverAuthorization, DeliverResult, IdentityDeliverStrategy} from "./Deliver";
 import {IReadModelRetriever} from "../readmodels/ReadModelRetriever";
-import {map, zipObject} from "lodash";
+import {map, zipObject, cloneDeep} from "lodash";
 import {IProjection, PublishPoint} from "./IProjection";
 import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
 
@@ -50,7 +50,7 @@ class ProjectionStateHandler implements IRequestHandler {
                     response.status(500);
                     response.send({error: STATUS_CODES[500]});
                 } else {
-                    let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
+                    let deliverResult = await deliverStrategy.deliver(cloneDeep(projectionRunner.state), deliverContext, zipObject(dependencies, readModels));
                     this.sendResponse(response, deliverResult, childLogger);
                 }
             } catch (error) {
