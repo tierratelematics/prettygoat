@@ -23,6 +23,7 @@ import PushContext from "../scripts/push/PushContext";
 import Dictionary from "../scripts/common/Dictionary";
 import {IAsyncPublisherFactory} from "../scripts/common/AsyncPublisherFactory";
 import {ISnapshotProducer} from "../scripts/snapshots/SnapshotProducer";
+import { READMODEL_DEFAULT_NOTIFY } from "../scripts/readmodels/IReadModel";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -215,16 +216,16 @@ describe("Given a ProjectionEngine", () => {
                 },
                 "NoDependencies": {}
             };
-            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of({
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<[Event, string]>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "a",
                 timestamp: new Date(10000)
-            }));
-            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of({
+            }, null]));
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<[Event, string]>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "b",
                 timestamp: new Date(11000)
-            }));
+            }, null]));
             publishState(66, new Date(5000));
             await subject.run();
         });
@@ -267,11 +268,18 @@ describe("Given a ProjectionEngine", () => {
             registry.reset();
             registry.setup(r => r.projections()).returns(() => [[SpecialAreas.Readmodel, readModel]]);
             registry.setup(r => r.projectionFor("ReadModel")).returns(() => [SpecialAreas.Readmodel, readModel]);
-            publishReadModel(66, new Date(5000));
+            let notificationKeys = {};
+            notificationKeys[READMODEL_DEFAULT_NOTIFY] = ["test-key"];
+            publishReadModel(66, new Date(5000), notificationKeys);
             await subject.run();
         });
         it("should notify that the model has changed", () => {
-            readModelNotifier.verify(r => r.notifyChanged("ReadModel", It.isValue(new Date(5000)), "test-readmodel"), Times.once());
+            readModelNotifier.verify(r => r.notifyChanged(It.isValue({
+                type: "ReadModel",
+                payload: 66,
+                timestamp: new Date(5000),
+                id: "test-readmodel"
+            }), "test-key"), Times.once());
         });
     });
 });

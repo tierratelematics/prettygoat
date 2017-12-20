@@ -1,44 +1,49 @@
 import "reflect-metadata";
-import expect = require("expect.js");
+import {IMock, Mock, Times, It} from "typemoq";
 import {IReadModelNotifier, ReadModelNotifier} from "../../scripts/readmodels/ReadModelNotifier";
 import SpecialEvents from "../../scripts/events/SpecialEvents";
+import { IAsyncPublisherFactory } from "../../scripts/common/AsyncPublisherFactory";
+import { IProjectionRunner } from "../../scripts/projections/IProjectionRunner";
+import IAsyncPublisher from "../../scripts/common/IAsyncPublisher";
+import { Observable } from "rxjs";
 
 describe("Given a readmodel notifier", () => {
     let subject: IReadModelNotifier;
+    let asyncPublisherFactory: IMock<IAsyncPublisherFactory>;
+    let asyncPublisher: IMock<IAsyncPublisher<any>>;
+    let runner: IMock<IProjectionRunner>;
 
     beforeEach(() => {
-        subject = new ReadModelNotifier();
+        runner = Mock.ofType<IProjectionRunner>();
+        asyncPublisherFactory = Mock.ofType<IAsyncPublisherFactory>();
+        asyncPublisher = Mock.ofType<IAsyncPublisher<any>>();
+        asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.empty());
+        asyncPublisherFactory.setup(a => a.publisherFor(It.isValue(runner.object))).returns(() => asyncPublisher.object);
+        subject = new ReadModelNotifier(asyncPublisherFactory.object, {
+            "readmodel1": runner.object
+        });
     });
 
     context("when a readmodel is published", () => {
-        it("should notify those changes", (done) => {
-            subject.changes("readmodel1").take(1).subscribe(notification => {
-                expect(notification).to.eql({
-                    type: SpecialEvents.READMODEL_CHANGED,
-                    payload: "readmodel1",
-                    timestamp: new Date(6000),
-                    id: undefined
-                });
-                done();
-            });
+        it("should notify those changes", () => {
+            subject.notifyChanged({
+                type: "readmodel1",
+                payload: "projection_state",
+                timestamp: new Date(5000),
+                id: "test",
+                metadata: {}
+            }, "notification-key");
 
-            subject.notifyChanged("readmodel1", new Date(5000));
-            subject.notifyChanged("readmodel2", new Date(5000));
-            subject.notifyChanged("readmodel1", new Date(6000));
-        });
-
-        it("should append the event id", (done) => {
-            subject.changes("readmodel1").take(1).subscribe(notification => {
-                expect(notification).to.eql({
+            asyncPublisher.verify(a => a.publish(It.isValue([
+                {
                     type: SpecialEvents.READMODEL_CHANGED,
                     payload: "readmodel1",
                     timestamp: new Date(5000),
-                    id: "uniq-id-1"
-                });
-                done();
-            });
-
-            subject.notifyChanged("readmodel1", new Date(5000), "uniq-id-1");
+                    id: "test",
+                    metadata: {}
+                },
+                "notification-key"
+            ])), Times.once());
         });
     });
 });
