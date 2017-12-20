@@ -45,8 +45,14 @@ class ProjectionStateHandler implements IRequestHandler {
                 childLogger.info(`Delivering projection state with context ${JSON.stringify(deliverContext)}`);
                 let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
-                let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
-                this.sendResponse(response, deliverResult, childLogger);
+                if (!projectionRunner) {
+                    childLogger.warning("The projection is not running, maybe it's on another node?");
+                    response.status(500);
+                    response.send({error: STATUS_CODES[500]});
+                } else {
+                    let deliverResult = await deliverStrategy.deliver(projectionRunner.state, deliverContext, zipObject(dependencies, readModels));
+                    this.sendResponse(response, deliverResult, childLogger);
+                }
             } catch (error) {
                 childLogger.error(`Projection delivery failed`);
                 childLogger.error(error);
