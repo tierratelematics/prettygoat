@@ -2,7 +2,7 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import IProjectionEngine from "../scripts/projections/IProjectionEngine";
 import ProjectionEngine from "../scripts/projections/ProjectionEngine";
-import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
+import {IProjectionRunner, NotificationTuple} from "../scripts/projections/IProjectionRunner";
 import {ReplaySubject, Observable} from "rxjs";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/events/Event";
@@ -23,6 +23,7 @@ import PushContext from "../scripts/push/PushContext";
 import Dictionary from "../scripts/common/Dictionary";
 import {IAsyncPublisherFactory} from "../scripts/common/AsyncPublisherFactory";
 import {ISnapshotProducer} from "../scripts/snapshots/SnapshotProducer";
+import { READMODEL_DEFAULT_NOTIFY } from "../scripts/readmodels/IReadModel";
 
 describe("Given a ProjectionEngine", () => {
 
@@ -50,7 +51,7 @@ describe("Given a ProjectionEngine", () => {
         asyncPublisherFactory.setup(a => a.publisherFor(It.isAny())).returns(() => asyncPublisher.object);
         snapshotStrategy = Mock.ofType<ISnapshotStrategy>();
         projection = new MockProjectionDefinition(snapshotStrategy.object).define();
-        dataSubject = new ReplaySubject<[Event, Dictionary<string[]>]>();
+        dataSubject = new ReplaySubject<NotificationTuple>();
         runner = Mock.ofType(MockProjectionRunner);
         runner.setup(r => r.notifications()).returns(a => dataSubject);
         pushNotifier = Mock.ofType<IPushNotifier>();
@@ -83,7 +84,8 @@ describe("Given a ProjectionEngine", () => {
         dataSubject.next([{
             type: "ReadModel",
             payload: state,
-            timestamp: timestamp
+            timestamp: timestamp,
+            id: "test-readmodel"
         }, notificationKeys]);
     }
 
@@ -214,16 +216,16 @@ describe("Given a ProjectionEngine", () => {
                 },
                 "NoDependencies": {}
             };
-            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of({
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<[Event, string]>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "a",
                 timestamp: new Date(10000)
-            }));
-            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of({
+            }, null]));
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<[Event, string]>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "b",
                 timestamp: new Date(11000)
-            }));
+            }, null]));
             publishState(66, new Date(5000));
             await subject.run();
         });
@@ -266,11 +268,18 @@ describe("Given a ProjectionEngine", () => {
             registry.reset();
             registry.setup(r => r.projections()).returns(() => [[SpecialAreas.Readmodel, readModel]]);
             registry.setup(r => r.projectionFor("ReadModel")).returns(() => [SpecialAreas.Readmodel, readModel]);
-            publishReadModel(66, new Date(5000));
+            let notificationKeys = {};
+            notificationKeys[READMODEL_DEFAULT_NOTIFY] = ["test-key"];
+            publishReadModel(66, new Date(5000), notificationKeys);
             await subject.run();
         });
         it("should notify that the model has changed", () => {
-            readModelNotifier.verify(r => r.notifyChanged("ReadModel", It.isValue(new Date(5000))), Times.once());
+            readModelNotifier.verify(r => r.notifyChanged(It.isValue({
+                type: "ReadModel",
+                payload: 66,
+                timestamp: new Date(5000),
+                id: "test-readmodel"
+            }), "test-key"), Times.once());
         });
     });
 });

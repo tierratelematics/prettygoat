@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import ProjectionStateHandler from "../scripts/projections/ProjectionStateHandler";
 import {IProjectionRunner} from "../scripts/projections/IProjectionRunner";
@@ -59,7 +60,9 @@ describe("Given a ProjectionStateHandler", () => {
             projection = new MockProjectionDefinition().define();
             registry.setup(r => r.projectionFor("test", "Admin")).returns(() => ["Admin", projection]);
             holder["Mock"] = projectionRunner;
-            projectionRunner.state = 42;
+            projectionRunner.state = {
+                count: 42
+            };
             request.params = {
                 area: "Admin",
                 publishPoint: "test"
@@ -72,7 +75,17 @@ describe("Given a ProjectionStateHandler", () => {
                     await subject.handle(request, response.object);
 
                     response.verify(r => r.status(200), Times.once());
-                    response.verify(r => r.send(42), Times.once());
+                    response.verify(r => r.send(It.isValue({
+                        count: 43
+                    })), Times.once());
+                });
+                it("should keep the projection state intact", async () => {
+                    await subject.handle(request, response.object);
+
+                    response.verify(r => r.send(It.isValue({
+                        count: 43
+                    })), Times.once());
+                    expect(projectionRunner.state).to.eql({ count: 42 });
                 });
             });
             context("when an async content deliver is returned", () => {
@@ -81,7 +94,9 @@ describe("Given a ProjectionStateHandler", () => {
                     await subject.handle(request, response.object);
 
                     response.verify(r => r.status(200), Times.once());
-                    response.verify(r => r.send(42), Times.once());
+                    response.verify(r => r.send(It.isValue({
+                        count: 42
+                    })), Times.once());
                 });
             });
             context("when an authorized deliver is returned", () => {
@@ -150,7 +165,9 @@ describe("Given a ProjectionStateHandler", () => {
                 await subject.handle(request, response.object);
 
                 response.verify(r => r.status(200), Times.once());
-                response.verify(r => r.send(42), Times.once());
+                response.verify(r => r.send(It.isValue({
+                    count: 42
+                })), Times.once());
             });
         });
     });

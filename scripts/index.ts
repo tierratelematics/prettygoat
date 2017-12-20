@@ -1,7 +1,7 @@
 export {ISnapshotProducer} from "./snapshots/SnapshotProducer";
 export {IMementoProducer} from "./snapshots/MementoProducer";
 export {ProjectionStats} from "./projections/ProjectionRunner";
-export {IProjectionRunner} from "./projections/IProjectionRunner";
+export {IProjectionRunner, NotificationTuple} from "./projections/IProjectionRunner";
 export {default as IProjectionRunnerFactory} from "./projections/IProjectionRunnerFactory";
 export {IMatcher, Matcher, WhenBlock} from "./projections/Matcher";
 export {IProjectionFactory, IProjectionFactoryExtender} from "./projections/ProjectionFactory";
@@ -12,7 +12,6 @@ export {IEndpointConfig} from "./configs/EndpointConfig";
 export {INotificationConfig} from "./configs/NotificationConfig";
 export {default as IApiKeyConfig} from "./configs/IApiKeyConfig";
 export {ISocketConfig} from "./configs/SocketConfig";
-export {IRedisConfig} from "./configs/IRedisConfig";
 export {default as Dictionary} from "./common/Dictionary";
 export {ILogger, ConsoleLogger, NullLogger, LoggingContext, LogLevel} from "inversify-logging";
 export {IStreamFactory, ProjectionQuery} from "./events/IStreamFactory";

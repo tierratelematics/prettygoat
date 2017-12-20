@@ -10,5 +10,7 @@ export interface IProjectionRunner<T = any> extends ISubscription {
     stats: ProjectionStats;
     run(snapshot?: Snapshot<T>): void;
     stop(): void;
-    notifications(): Observable<[Event<T>, Dictionary<string[]>]>;
+    notifications(): Observable<NotificationTuple<T>>;
 }
+
+export type NotificationTuple<T = any> = [Event<T>, Dictionary<string[]>];

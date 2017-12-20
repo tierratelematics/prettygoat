@@ -3,6 +3,7 @@ import {DeliverAuthorization, DeliverContext, DeliverResult, IDeliverStrategy} f
 export class ContentDeliverStrategy implements IDeliverStrategy<any> {
 
     deliver(state: any, context: DeliverContext): DeliverResult<any> {
+        state.count++;
         return [state, DeliverAuthorization.CONTENT];
     }
 

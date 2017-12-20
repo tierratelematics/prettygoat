@@ -1,3 +1,9 @@
+# 6.0.0
+
+* Remove Redis
+* Add notify to readmodels
+* Minor bugfixes
+
 # 5.4.0
 
 * Add memento producer
