@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues, filter} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
@@ -43,8 +43,9 @@ class ProjectionEngine implements IProjectionEngine {
         if (projection) {
             await this.startProjection(projection);
         } else {
-            let projections = this.registry.projections();
-            forEach(projections, async (entry) => {
+            let projections = filter(this.registry.projections(), entry => !!entry[1].publish),
+                readmodels = filter(this.registry.projections(), entry => !entry[1].publish);
+            forEach(concat(readmodels, projections), async (entry) => {
                 await this.startProjection(entry[1]);
             });
         }
