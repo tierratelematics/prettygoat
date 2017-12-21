@@ -25,9 +25,9 @@ class ProjectionRunnerFactory implements IProjectionRunnerFactory {
         let notifyMatchers: Dictionary<IMatcher> = {};
         if (projection.publish) {
             notifyMatchers = mapValues(projection.publish, point => new Matcher(point.notify));
-        } else {
+        } else if (projection.notify) {
              // Dirty trick to transform a readmodel into a "published" projection
-            notifyMatchers[READMODEL_DEFAULT_NOTIFY] = new Matcher(projection.notify || {});
+            notifyMatchers[READMODEL_DEFAULT_NOTIFY] = new Matcher(projection.notify);
         }
         let idempotenceFilter = new IdempotenceFilter();
         let projectionRunner = new ProjectionRunner<T>(projection, this.streamFactory, new Matcher(projection.definition),
