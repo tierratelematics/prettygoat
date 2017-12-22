@@ -18,7 +18,7 @@ import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
 import {Observable} from "rxjs";
 import {retrySequence, toArray} from "../common/TypesUtil";
 import { READMODEL_DEFAULT_NOTIFY } from "../readmodels/IReadModel";
-import { ReadModelNotification } from "../../dist/readmodels/ReadModelNotifier";
+import { ReadModelNotification } from "../readmodels/ReadModelNotifier";
 
 type SnapshotData = [string, Snapshot<any>];
 
