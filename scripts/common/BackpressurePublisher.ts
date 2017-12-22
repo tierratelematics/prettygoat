@@ -4,6 +4,8 @@ import {injectable} from "inversify";
 import {IScheduler} from "rxjs/Scheduler";
 import {IProjectionRunner} from "../projections/IProjectionRunner";
 import {BackpressureConfig} from "../configs/BackpressureConfig";
+import { toArray } from "./TypesUtil";
+import {last, map, uniq, union} from "lodash";
 
 @injectable()
 class BackpressurePublisher<T> implements IAsyncPublisher<T> {
@@ -26,13 +28,37 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
             this.historical.next(item);
     }
 
-    items(grouping: (item: T) => string = (item => null)): Observable<T> {
+    items(grouping: (item: T) => string | string[] = (item => null)): Observable<T> {
+        return this.sampleItems(grouping).map(value => value[0]);
+    }
+
+    private sampleItems(grouping: (item: T) => string | string[]): Observable<[T, string]> {
         return this.historical
-            .groupBy(grouping)
+            .flatMap(value => Observable.from(this.groupsFromValue(value, grouping)))
+            .groupBy(value => value[1])
             .flatMap(group => group.debounceTime(this.backpressureConfig.replay, this.scheduler))
             .concat(this.realtime
-                        .groupBy(grouping)
+                        .flatMap(value => Observable.from(this.groupsFromValue(value, grouping)))
+                        .groupBy(value => value[1])
                         .flatMap(group => group.sampleTime(this.backpressureConfig.realtime, this.scheduler)));
+    }
+
+    private groupsFromValue(value: T, grouping: (item: T) => string | string[]): [T, string][] {
+        return map<string, [T, string]>(toArray<string>(grouping(value)), group => [value, group]);
+    }
+
+    bufferedItems(grouping: (item: T) => string | string[] = (item => null)): Observable<[T, string[]]> {
+        return this.sampleItems(grouping)
+            .bufferTime(50)
+            .map(notifications => {
+                if (notifications.length) {
+                    let value = last(notifications)[0];
+                    let keys = uniq(union(map(notifications, notification => notification[1])));
+                    return <[T, string[]]>[value, keys];
+                }
+                return null;
+            })
+            .filter(notification => !!notification);
     }
 
 }

@@ -24,7 +24,7 @@ export interface NotificationBlock<T extends Object> {
 
 export interface ReadModelBlock<T extends Object> {
     $list: NotificationKey;
-    $change: (s: T, context?: string) => NotificationKey;
+    $change: (s: T, context?: string[]) => NotificationKey;
 }
 
 export type NotificationKey = string | string[];

@@ -1,3 +1,7 @@
+# 6.1.0
+
+Add multiple notification keys to readmodels
+
 # 6.0.0
 
 * Remove Redis

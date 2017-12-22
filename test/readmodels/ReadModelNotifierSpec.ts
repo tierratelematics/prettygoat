@@ -32,7 +32,7 @@ describe("Given a readmodel notifier", () => {
                 timestamp: new Date(5000),
                 id: "test",
                 metadata: {}
-            }, "notification-key");
+            }, ["notification-key"]);
 
             asyncPublisher.verify(a => a.publish(It.isValue([
                 {
@@ -42,7 +42,7 @@ describe("Given a readmodel notifier", () => {
                     id: "test",
                     metadata: {}
                 },
-                "notification-key"
+                ["notification-key"]
             ])), Times.once());
         });
     });
