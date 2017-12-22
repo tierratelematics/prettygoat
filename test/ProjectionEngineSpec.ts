@@ -16,7 +16,7 @@ import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/PushComponents";
 import IAsyncPublisher from "../scripts/common/IAsyncPublisher";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
-import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
+import {IReadModelNotifier, ReadModelNotification} from "../scripts/readmodels/ReadModelNotifier";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
@@ -235,12 +235,12 @@ describe("Given a ProjectionEngine", () => {
                 },
                 "NoDependencies": {}
             };
-            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<[Event, string]>([{
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<ReadModelNotification>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "a",
                 timestamp: new Date(10000)
             }, null]));
-            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<[Event, string]>([{
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<ReadModelNotification>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "b",
                 timestamp: new Date(11000)
@@ -298,7 +298,7 @@ describe("Given a ProjectionEngine", () => {
                 payload: 66,
                 timestamp: new Date(5000),
                 id: "test-readmodel"
-            }), "test-key"), Times.once());
+            }), It.isValue(["test-key"])), Times.once());
         });
     });
 });

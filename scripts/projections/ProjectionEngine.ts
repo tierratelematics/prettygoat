@@ -18,6 +18,7 @@ import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
 import {Observable} from "rxjs";
 import {retrySequence, toArray} from "../common/TypesUtil";
 import { READMODEL_DEFAULT_NOTIFY } from "../readmodels/IReadModel";
+import { ReadModelNotification } from "../../dist/readmodels/ReadModelNotifier";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -66,10 +67,10 @@ class ProjectionEngine implements IProjectionEngine {
             area = this.registry.projectionFor(projection.name)[0],
             readModels = !projection.publish ? [] : flatten(map(projection.publish, point => {
                 return !point.readmodels ? [] : map(point.readmodels.$list, readmodel => {
-                    return this.readModelNotifier.changes(readmodel).map(value => {
+                    return this.readModelNotifier.changes(readmodel).map<ReadModelNotification, [Event, Dictionary<string[]>]>(value => {
                         let notify = {};
                         notify[READMODEL_DEFAULT_NOTIFY] = value[1];
-                        return [value[0], notify] as [Event, string];
+                        return [value[0], notify];
                     });
                 });
             }));
