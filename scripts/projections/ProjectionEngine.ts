@@ -66,10 +66,10 @@ class ProjectionEngine implements IProjectionEngine {
             area = this.registry.projectionFor(projection.name)[0],
             readModels = !projection.publish ? [] : flatten(map(projection.publish, point => {
                 return !point.readmodels ? [] : map(point.readmodels.$list, readmodel => {
-                    return this.readModelNotifier.changes(readmodel).map(event => {
+                    return this.readModelNotifier.changes(readmodel).map(value => {
                         let notify = {};
-                        notify[READMODEL_DEFAULT_NOTIFY] = [event[1]];
-                        return [event[0], notify] as [Event, string];
+                        notify[READMODEL_DEFAULT_NOTIFY] = value[1];
+                        return [value[0], notify] as [Event, string];
                     });
                 });
             }));
@@ -91,10 +91,10 @@ class ProjectionEngine implements IProjectionEngine {
             .merge(...readModels)
             .subscribe(notification => {
                 if (!projection.publish) {
-                    this.readModelNotifier.notifyChanged(notification[0], notification[1][READMODEL_DEFAULT_NOTIFY][0]);
+                    this.readModelNotifier.notifyChanged(notification[0], notification[1][READMODEL_DEFAULT_NOTIFY]);
                 } else {
                     let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
-                        ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload, notification[1][READMODEL_DEFAULT_NOTIFY][0])
+                        ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload, notification[1][READMODEL_DEFAULT_NOTIFY])
                         : this.projectionChangeKeys(notification[1], area);
 
                     forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0]]));
@@ -128,7 +128,7 @@ class ProjectionEngine implements IProjectionEngine {
             });
     }
 
-    private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string, notify: string): NotificationData[] {
+    private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string, notify: string[]): NotificationData[] {
         return reduce(projection.publish, (result, publishBlock, point) => {
             let context = new PushContext(area, point);
             if (publishBlock.readmodels && includes(publishBlock.readmodels.$list, readModel)) {
