@@ -46,9 +46,10 @@ class ProjectionEngine implements IProjectionEngine {
         } else {
             let projections = filter(this.registry.projections(), entry => !!entry[1].publish),
                 readmodels = filter(this.registry.projections(), entry => !entry[1].publish);
-            forEach(concat(readmodels, projections), async (entry) => {
+
+            for (const entry of concat(readmodels, projections)) {
                 await this.startProjection(entry[1]);
-            });
+            }
         }
     }
 
