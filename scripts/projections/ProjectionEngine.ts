@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues, filter} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
@@ -18,6 +18,7 @@ import {ISnapshotProducer} from "../snapshots/SnapshotProducer";
 import {Observable} from "rxjs";
 import {retrySequence, toArray} from "../common/TypesUtil";
 import { READMODEL_DEFAULT_NOTIFY } from "../readmodels/IReadModel";
+import { ReadModelNotification } from "../readmodels/ReadModelNotifier";
 
 type SnapshotData = [string, Snapshot<any>];
 
@@ -43,10 +44,12 @@ class ProjectionEngine implements IProjectionEngine {
         if (projection) {
             await this.startProjection(projection);
         } else {
-            let projections = this.registry.projections();
-            forEach(projections, async (entry) => {
+            let projections = filter(this.registry.projections(), entry => !!entry[1].publish),
+                readmodels = filter(this.registry.projections(), entry => !entry[1].publish);
+
+            for (const entry of concat(readmodels, projections)) {
                 await this.startProjection(entry[1]);
-            });
+            }
         }
     }
 
@@ -65,10 +68,10 @@ class ProjectionEngine implements IProjectionEngine {
             area = this.registry.projectionFor(projection.name)[0],
             readModels = !projection.publish ? [] : flatten(map(projection.publish, point => {
                 return !point.readmodels ? [] : map(point.readmodels.$list, readmodel => {
-                    return this.readModelNotifier.changes(readmodel).map(event => {
+                    return this.readModelNotifier.changes(readmodel).map<ReadModelNotification, [Event, Dictionary<string[]>]>(value => {
                         let notify = {};
-                        notify[READMODEL_DEFAULT_NOTIFY] = [event[1]];
-                        return [event[0], notify] as [Event, string];
+                        notify[READMODEL_DEFAULT_NOTIFY] = value[1];
+                        return [value[0], notify];
                     });
                 });
             }));
@@ -90,10 +93,10 @@ class ProjectionEngine implements IProjectionEngine {
             .merge(...readModels)
             .subscribe(notification => {
                 if (!projection.publish) {
-                    this.readModelNotifier.notifyChanged(notification[0], notification[1][READMODEL_DEFAULT_NOTIFY][0]);
+                    this.readModelNotifier.notifyChanged(notification[0], notification[1][READMODEL_DEFAULT_NOTIFY]);
                 } else {
                     let contexts = notification[0].type === SpecialEvents.READMODEL_CHANGED
-                        ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload, notification[1][READMODEL_DEFAULT_NOTIFY][0])
+                        ? this.readmodelChangeKeys(projection, area, runner.state, notification[0].payload, notification[1][READMODEL_DEFAULT_NOTIFY])
                         : this.projectionChangeKeys(notification[1], area);
 
                     forEach(contexts, context => notificationsPublisher.publish([context[0], context[1], notification[0]]));
@@ -127,7 +130,7 @@ class ProjectionEngine implements IProjectionEngine {
             });
     }
 
-    private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string, notify: string): NotificationData[] {
+    private readmodelChangeKeys(projection: IProjection, area: string, state: any, readModel: string, notify: string[]): NotificationData[] {
         return reduce(projection.publish, (result, publishBlock, point) => {
             let context = new PushContext(area, point);
             if (publishBlock.readmodels && includes(publishBlock.readmodels.$list, readModel)) {

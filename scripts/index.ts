@@ -27,7 +27,7 @@ export {default as Methods} from "./web/Methods";
 export {default as IServerProvider} from "./web/IServerProvider";
 export {ISocketFactory} from "./push/PushComponents";
 export {ValueOrPromise, retrySequence} from "./common/TypesUtil";
-export {IReadModelNotifier} from "./readmodels/ReadModelNotifier";
+export {IReadModelNotifier, ReadModelNotification} from "./readmodels/ReadModelNotifier";
 export {IReadModelRetriever} from "./readmodels/ReadModelRetriever";
 export {default as IAsyncPublisher} from "./common/IAsyncPublisher";
 export {IAsyncPublisherFactory} from "./common/AsyncPublisherFactory";

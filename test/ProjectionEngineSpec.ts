@@ -6,7 +6,7 @@ import {IProjectionRunner, NotificationTuple} from "../scripts/projections/IProj
 import {ReplaySubject, Observable} from "rxjs";
 import IProjectionRunnerFactory from "../scripts/projections/IProjectionRunnerFactory";
 import {Event} from "../scripts/events/Event";
-import {IMock, Mock, Times, It} from "typemoq";
+import {IMock, Mock, Times, It, ExpectedCallType} from "typemoq";
 import {ISnapshotRepository, Snapshot} from "../scripts/snapshots/ISnapshotRepository";
 import MockProjectionDefinition from "./fixtures/definitions/MockProjectionDefinition";
 import {ISnapshotStrategy} from "../scripts/snapshots/ISnapshotStrategy";
@@ -16,7 +16,7 @@ import MockProjectionRunner from "./fixtures/MockProjectionRunner";
 import {IPushNotifier} from "../scripts/push/PushComponents";
 import IAsyncPublisher from "../scripts/common/IAsyncPublisher";
 import {IProjectionRegistry, SpecialAreas} from "../scripts/bootstrap/ProjectionRegistry";
-import {IReadModelNotifier} from "../scripts/readmodels/ReadModelNotifier";
+import {IReadModelNotifier, ReadModelNotification} from "../scripts/readmodels/ReadModelNotifier";
 import MockReadModel from "./fixtures/definitions/MockReadModel";
 import SpecialEvents from "../scripts/events/SpecialEvents";
 import PushContext from "../scripts/push/PushContext";
@@ -88,6 +88,25 @@ describe("Given a ProjectionEngine", () => {
             id: "test-readmodel"
         }, notificationKeys]);
     }
+
+    context("when starting the projections", () => {
+        beforeEach(async () => {
+            snapshotRepository.setup(s => s.getSnapshot(It.isAny())).returns(a => Promise.resolve(null));
+            let readmodel = new MockReadModel().define();
+            registry.reset();
+            registry.setup(r => r.projections()).returns(() => [["Admin", projection], ["Readmodel", <IProjection>readmodel]]);
+            registry.setup(r => r.projectionFor("Mock")).returns(() => ["Admin", projection]);
+            registry.setup(r => r.projectionFor("ReadModel")).returns(() => ["Readmodel", <IProjection>readmodel]);
+            // Cast to suppress a typing typemoq bug
+            (<any>runnerFactory.setup(r => r.create(It.isValue(<IProjection>readmodel))).returns(() => runner.object)).verifiable(Times.once(), ExpectedCallType.InSequence);
+            (<any>runnerFactory.setup(r => r.create(It.isValue(projection))).returns(() => runner.object)).verifiable(Times.once(), ExpectedCallType.InSequence);
+
+            await subject.run();
+        });
+        it("should run the reamodels first", () => {
+            runnerFactory.verifyAll();
+        });
+    });
 
     context("when a snapshot is present", () => {
         let snapshot = new Snapshot(42, new Date(5000));
@@ -216,12 +235,12 @@ describe("Given a ProjectionEngine", () => {
                 },
                 "NoDependencies": {}
             };
-            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<[Event, string]>([{
+            readModelNotifier.setup(r => r.changes("a")).returns(() => Observable.of<ReadModelNotification>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "a",
                 timestamp: new Date(10000)
             }, null]));
-            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<[Event, string]>([{
+            readModelNotifier.setup(r => r.changes("b")).returns(() => Observable.of<ReadModelNotification>([{
                 type: SpecialEvents.READMODEL_CHANGED,
                 payload: "b",
                 timestamp: new Date(11000)
@@ -243,7 +262,7 @@ describe("Given a ProjectionEngine", () => {
         beforeEach(async () => {
             asyncPublisher.reset();
             asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.of([
-                new PushContext("Admin", "Mock"), "testkey", {
+                new PushContext("Admin", "Test"), "testkey", {
                     timestamp: new Date(1000),
                     id: null,
                     type: null,
@@ -252,8 +271,8 @@ describe("Given a ProjectionEngine", () => {
             asyncPublisher.setup(a => a.items()).returns(() => Observable.empty());
             await subject.run();
         });
-        it("should save them", () => {
-            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Mock")), It.isValue({
+        it("should process them", () => {
+            pushNotifier.verify(p => p.notifyAll(It.isValue(new PushContext("Admin", "Test")), It.isValue({
                 timestamp: new Date(1000),
                 id: null,
                 type: null,
@@ -279,7 +298,7 @@ describe("Given a ProjectionEngine", () => {
                 payload: 66,
                 timestamp: new Date(5000),
                 id: "test-readmodel"
-            }), "test-key"), Times.once());
+            }), It.isValue(["test-key"])), Times.once());
         });
     });
 });

@@ -7,28 +7,30 @@ import IAsyncPublisher from "../common/IAsyncPublisher";
 import Dictionary from "../common/Dictionary";
 import { IProjectionRunner } from "../projections/IProjectionRunner";
 
-export interface IReadModelNotifier {
-    changes(name: string): Observable<[Event, string]>;
+export type ReadModelNotification = [Event, string[]];
 
-    notifyChanged(event: Event, context: string);
+export interface IReadModelNotifier {
+    changes(name: string): Observable<ReadModelNotification>;
+
+    notifyChanged(event: Event, contexts: string[]);
 }
 
 @injectable()
 export class ReadModelNotifier implements IReadModelNotifier {
 
-    private publishers: Dictionary<IAsyncPublisher<any>> = {};
+    private publishers: Dictionary<IAsyncPublisher<ReadModelNotification>> = {};
 
     constructor(@inject("IAsyncPublisherFactory") private asyncPublisherFactory: IAsyncPublisherFactory,
                 @inject("IProjectionRunnerHolder") private runners: Dictionary<IProjectionRunner>) {
         
     }
 
-    changes(name: string): Observable<[Event, string]> {
+    changes(name: string): Observable<ReadModelNotification> {
         let publisher = this.publisherFor(name);
-        return publisher.items(item => item[1]);
+        return publisher.bufferedItems(item => item[1]).map(notification => <ReadModelNotification>[notification[0][0], notification[1]]);
     }
 
-    notifyChanged(event: Event, context: string) {
+    notifyChanged(event: Event, contexts: string[]) {
         let publisher = this.publisherFor(event.type);
         publisher.publish([{
             type: SpecialEvents.READMODEL_CHANGED,
@@ -36,10 +38,10 @@ export class ReadModelNotifier implements IReadModelNotifier {
             timestamp: event.timestamp,
             id: event.id,
             metadata: event.metadata
-        }, context]);
+        }, contexts]);
     }
 
-    private publisherFor(readmodel: string): IAsyncPublisher<[Event, string]> {
+    private publisherFor(readmodel: string): IAsyncPublisher<ReadModelNotification> {
         let publisher = this.publishers[readmodel];
         if (!publisher) {
             let runner = this.runners[readmodel];
