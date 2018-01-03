@@ -36,26 +36,25 @@ class ProjectionStateHandler implements IRequestHandler {
                 projectionRunner = this.holder[projection.name],
                 dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
 
-            let childLogger = this.logger.createChildLogger(projection.name).createChildLogger(pointName);
             try {
                 let deliverContext = {
                     headers: request.headers,
                     params: request.query,
                 };
-                childLogger.info(`Delivering projection state with context ${JSON.stringify(deliverContext)}`);
+                this.logger.info(`Delivering ${projection.name} state with context ${JSON.stringify(deliverContext)}`);
                 let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
                 if (!projectionRunner) {
-                    childLogger.warning("The projection is not running, maybe it's on another node?");
+                    this.logger.warning(`${projection.name} is not running, maybe it's on another node?`);
                     response.status(500);
                     response.send({error: STATUS_CODES[500]});
                 } else {
                     let deliverResult = await deliverStrategy.deliver(cloneDeep(projectionRunner.state), deliverContext, zipObject(dependencies, readModels));
-                    this.sendResponse(response, deliverResult, childLogger);
+                    this.sendResponse(response, deliverResult);
                 }
             } catch (error) {
-                childLogger.error(`Projection delivery failed`);
-                childLogger.error(error);
+                this.logger.error(`${projection.name} delivery failed`);
+                this.logger.error(error);
                 response.status(500);
                 response.send({error: STATUS_CODES[500]});
             }
@@ -72,20 +71,17 @@ class ProjectionStateHandler implements IRequestHandler {
         response.send({error: "Projection not found"});
     }
 
-    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>, logger: ILogger) {
+    private sendResponse<T>(response: IResponse, deliverResult: DeliverResult<T>) {
         switch (deliverResult[1]) {
             case DeliverAuthorization.CONTENT:
-                logger.info(`Projection state delivered with code 200`);
                 response.status(200);
                 response.send(deliverResult[0]);
                 break;
             case DeliverAuthorization.UNAUTHORIZED:
-                logger.info(`Projection state delivered with code 401`);
                 response.status(401);
                 response.send({error: STATUS_CODES[401]});
                 break;
             case DeliverAuthorization.FORBIDDEN:
-                logger.info(`Projection state delivered with code 403`);
                 response.status(403);
                 response.send({error: STATUS_CODES[403]});
                 break;
