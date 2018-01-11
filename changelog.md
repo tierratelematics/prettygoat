@@ -1,3 +1,6 @@
+# 6.1.2
+
+Add some logs to the APIs
 # 6.1.0
 
 Add multiple notification keys to readmodels
