@@ -33,7 +33,7 @@ describe("Given a ProjectionsController and a projection name", () => {
 
     context("when there isn't a projection with that name", () => {
         beforeEach(() => {
-            beforeEach(() => request.body = {payload: {projectionName: "errorProjection"}});
+            request.body = {payload: {projectionName: "errorProjection"}};
             subject = new ProjectionStopHandler(holder);
         });
 
