@@ -105,7 +105,7 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
             let runner = this.holders[projectionName];
             let size = sizeof(runner.state);
             response.send(assign({}, runner.stats, {
-                name: request.params.projectionName,
+                name: projectionName,
                 size: size,
                 humanizedSize: humanize.filesize(size)
             }));
@@ -126,7 +126,7 @@ export class ProjectionStateApiHandler extends BaseProjectionHandler {
     }
 
     handle(request: IRequest, response: IResponse) {
-        let projectionName = request.body.payload.projectionName;
+        let projectionName = request.params.projectionName;
         let logger = this.logger.createChildLogger(projectionName);
         try {
             let runner = this.holders[projectionName];
