@@ -1,3 +1,7 @@
+# 6.1.3
+
+Fix a regression for the state retrieve API
+
 # 6.1.2
 
 Add some logs to the APIs
