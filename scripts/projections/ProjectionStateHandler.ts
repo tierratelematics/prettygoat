@@ -41,7 +41,7 @@ class ProjectionStateHandler implements IRequestHandler {
                     headers: request.headers,
                     params: request.query,
                 };
-                this.logger.info(`Delivering ${projection.name} state with context ${JSON.stringify(deliverContext)}`);
+                this.logger.debug(`Delivering ${projection.name} state with context ${JSON.stringify(deliverContext)}`);
                 let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
                 if (!projectionRunner) {
