@@ -1,3 +1,7 @@
+# 6.1.4
+
+Fix an error with the authorization middleware
+
 # 6.1.3
 
 Fix a regression for the state retrieve API
