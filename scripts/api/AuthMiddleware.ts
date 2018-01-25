@@ -18,7 +18,6 @@ class AuthMiddleware implements IMiddleware {
         if (startsWith(request.url, "/api")) {
             this.authStrategy.authorize(request).then(authorized => {
                 if (!authorized) {
-                    this.logger.warning(`An API request has not been authorized: ${JSON.stringify(request)}`);
                     response.status(401);
                     response.send({"error": "Not Authorized"});
                 } else {
