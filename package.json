@@ -1,9 +1,10 @@
 {
   "name": "prettygoat",
-  "version": "6.1.4",
+  "version": "6.2.0",
   "dependencies": {
     "CBuffer": "~2.0.0",
     "async": "~2.1.4",
+    "async-exit-hook": "~2.0.1",
     "bivio": "^0.3.2",
     "body": "~5.1.0",
     "cors": "~2.7.1",
