@@ -1,3 +1,7 @@
+# 6.2.0
+
+Logs uncaught exceptions
+
 # 6.1.4
 
 Fix an error with the authorization middleware
