@@ -19,6 +19,7 @@ import getDecorators from "inversify-inject-decorators";
 import {IProjectionRegistry} from "./ProjectionRegistry";
 import {ISocketConfig} from "../configs/SocketConfig";
 import {IEndpointConfig} from "../configs/EndpointConfig";
+const exitHook = require('async-exit-hook');
 
 let container = new Container();
 
@@ -121,6 +122,16 @@ export class Engine {
                 }
             });
         });
+
+        this.catchUncaughtException(logger);
+    }
+
+    private catchUncaughtException(logger: ILogger) {
+        exitHook.uncaughtExceptionHandler((error, callback) => {
+            logger.error(error);
+            setTimeout(callback, 5000); //Wait for log to be delivered to cloud
+        });
+        
     }
 
     run(overrides?: any) {
