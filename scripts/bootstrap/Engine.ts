@@ -129,7 +129,6 @@ export class Engine {
     private catchUncaughtException(logger: ILogger) {
         exitHook.uncaughtExceptionHandler((error, callback) => {
             logger.error(error);
-            setTimeout(callback, 5000); //Wait for log to be delivered to cloud
         });
     }
 
