@@ -131,7 +131,6 @@ export class Engine {
             logger.error(error);
             setTimeout(callback, 5000); //Wait for log to be delivered to cloud
         });
-        
     }
 
     run(overrides?: any) {
