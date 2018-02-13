@@ -29,24 +29,20 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
     }
 
     items(grouping: (item: T) => string | string[] = (item => null)): Observable<T> {
-        return this.sampleItems(grouping).map(value => value[0]);
-    }
-
-    private sampleItems(grouping: (item: T) => string | string[]): Observable<[T, string]> {
         return this.historical
             .flatMap(value => Observable.from(this.groupsFromValue(value, grouping)))
             .groupBy(value => value[1])
             .flatMap(group => group.debounceTime(this.backpressureConfig.replay, this.scheduler))
             .concat(this.realtime
-                        .flatMap(value => Observable.from(this.groupsFromValue(value, grouping)))
-                        .groupBy(value => value[1])
-                        .flatMap(group => group.sampleTime(this.backpressureConfig.realtime, this.scheduler)));
+                .flatMap(value => Observable.from(this.groupsFromValue(value, grouping)))
+                .groupBy(value => value[1])
+                .flatMap(group => group.sampleTime(this.backpressureConfig.realtime, this.scheduler)))
+            .map(value => value[0]);
     }
 
     private groupsFromValue(value: T, grouping: (item: T) => string | string[]): [T, string][] {
         return map<string, [T, string]>(toArray<string>(grouping(value)), group => [value, group]);
     }
-
 }
 
 export default BackpressurePublisher
