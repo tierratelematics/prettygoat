@@ -47,20 +47,6 @@ class BackpressurePublisher<T> implements IAsyncPublisher<T> {
         return map<string, [T, string]>(toArray<string>(grouping(value)), group => [value, group]);
     }
 
-    bufferedItems(grouping: (item: T) => string | string[] = (item => null)): Observable<[T, string[]]> {
-        return this.sampleItems(grouping)
-            .bufferTime(50)
-            .map(notifications => {
-                if (notifications.length) {
-                    let value = last(notifications)[0];
-                    let keys = uniq(union(map(notifications, notification => notification[1])));
-                    return <[T, string[]]>[value, keys];
-                }
-                return null;
-            })
-            .filter(notification => !!notification);
-    }
-
 }
 
 export default BackpressurePublisher
