@@ -1,3 +1,7 @@
+# 6.2.1
+
+Rewrite readmodels notify using buffers
+
 # 6.2.0
 
 Logs uncaught exceptions
