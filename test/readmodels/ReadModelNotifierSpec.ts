@@ -1,31 +1,24 @@
 import "reflect-metadata";
-import {IMock, Mock, Times, It} from "typemoq";
-import {IReadModelNotifier, ReadModelNotifier} from "../../scripts/readmodels/ReadModelNotifier";
+import expect = require("expect.js");
+import {IReadModelNotifier, ReadModelNotifier, ReadModelNotification} from "../../scripts/readmodels/ReadModelNotifier";
 import SpecialEvents from "../../scripts/events/SpecialEvents";
-import { IAsyncPublisherFactory } from "../../scripts/common/AsyncPublisherFactory";
-import { IProjectionRunner } from "../../scripts/projections/IProjectionRunner";
-import IAsyncPublisher from "../../scripts/common/IAsyncPublisher";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 
 describe("Given a readmodel notifier", () => {
     let subject: IReadModelNotifier;
-    let asyncPublisherFactory: IMock<IAsyncPublisherFactory>;
-    let asyncPublisher: IMock<IAsyncPublisher<any>>;
-    let runner: IMock<IProjectionRunner>;
+    let notifications: ReadModelNotification[];
+    let subscription: Subscription;
 
     beforeEach(() => {
-        runner = Mock.ofType<IProjectionRunner>();
-        asyncPublisherFactory = Mock.ofType<IAsyncPublisherFactory>();
-        asyncPublisher = Mock.ofType<IAsyncPublisher<any>>();
-        asyncPublisher.setup(a => a.items(It.is<any>(value => !!value))).returns(() => Observable.empty());
-        asyncPublisherFactory.setup(a => a.publisherFor(It.isValue(runner.object))).returns(() => asyncPublisher.object);
-        subject = new ReadModelNotifier(asyncPublisherFactory.object, {
-            "readmodel1": runner.object
-        });
+        notifications = [];
+        subject = new ReadModelNotifier();
+        subscription = subject.changes("readmodel1").subscribe(event => notifications.push(event));
     });
 
+    afterEach(() => subscription.unsubscribe());
+
     context("when a readmodel is published", () => {
-        it("should notify those changes", () => {
+        it("should notify those changes", async () => {
             subject.notifyChanged({
                 type: "readmodel1",
                 payload: "projection_state",
@@ -34,7 +27,10 @@ describe("Given a readmodel notifier", () => {
                 metadata: {}
             }, ["notification-key"]);
 
-            asyncPublisher.verify(a => a.publish(It.isValue([
+            await sleep(100);
+
+            expect(notifications).to.have.length(1);
+            expect(notifications[0]).to.eql([
                 {
                     type: SpecialEvents.READMODEL_CHANGED,
                     payload: "readmodel1",
@@ -43,7 +39,44 @@ describe("Given a readmodel notifier", () => {
                     metadata: {}
                 },
                 ["notification-key"]
-            ])), Times.once());
+            ]);
+        });
+
+        it("should aggregate all the notifications keys for the same readmodel", async () => {
+            subject.notifyChanged({
+                type: "readmodel1",
+                payload: "projection_state",
+                timestamp: new Date(5000),
+                id: "test",
+                metadata: {}
+            }, ["notification-key"]);
+            subject.notifyChanged({
+                type: "readmodel1",
+                payload: "projection_state",
+                timestamp: new Date(5001),
+                id: "test-1",
+                metadata: {}
+            }, ["notification-key-2", "notification-key"]);
+
+            await sleep(100);
+
+            expect(notifications).to.have.length(1);
+            expect(notifications[0]).to.eql([
+                {
+                    type: SpecialEvents.READMODEL_CHANGED,
+                    payload: "readmodel1",
+                    timestamp: new Date(5001),
+                    id: "test-1",
+                    metadata: {}
+                },
+                ["notification-key", "notification-key-2"]
+            ]);
         });
     });
+
+    async function sleep(ms: number) {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(), ms);
+        });
+    }
 });

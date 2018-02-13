@@ -14,6 +14,6 @@ export class ReadModelRetriever implements IReadModelRetriever {
     }
 
     modelFor<T>(name: string): Promise<T> {
-        return Promise.resolve(this.runners[name].state);
+        return Promise.resolve(this.runners[name] ? this.runners[name].state : null);
     }
 }
