@@ -26,6 +26,7 @@ describe("Given a readmodel notifier", () => {
                 id: "test",
                 metadata: {}
             }, ["notification-key"]);
+
             await sleep(100);
 
             expect(notifications).to.have.length(1);
@@ -38,6 +39,37 @@ describe("Given a readmodel notifier", () => {
                     metadata: {}
                 },
                 ["notification-key"]
+            ]);
+        });
+
+        it("should aggregate all the notifications keys for the same readmodel", async () => {
+            subject.notifyChanged({
+                type: "readmodel1",
+                payload: "projection_state",
+                timestamp: new Date(5000),
+                id: "test",
+                metadata: {}
+            }, ["notification-key"]);
+            subject.notifyChanged({
+                type: "readmodel1",
+                payload: "projection_state",
+                timestamp: new Date(5001),
+                id: "test-1",
+                metadata: {}
+            }, ["notification-key-2", "notification-key"]);
+
+            await sleep(100);
+
+            expect(notifications).to.have.length(1);
+            expect(notifications[0]).to.eql([
+                {
+                    type: SpecialEvents.READMODEL_CHANGED,
+                    payload: "readmodel1",
+                    timestamp: new Date(5001),
+                    id: "test-1",
+                    metadata: {}
+                },
+                ["notification-key", "notification-key-2"]
             ]);
         });
     });
