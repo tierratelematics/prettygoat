@@ -19,6 +19,7 @@ export class IdempotenceFilter implements IIdempotenceFilter {
     constructor(items: RingBufferItem[] = [], bufferSize = 100) {
         this.dictionaryReplica = zipObject(map(items, item => item.id), items);
         this.ringBuffer = new cbuffer(bufferSize);
+        this.ringBuffer.overflow = (event) => delete this.dictionaryReplica[event.id];
         this.setItems(items);
     }
 

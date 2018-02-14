@@ -79,4 +79,20 @@ describe("Given an idempotence filter", () => {
             ]);
         });
     });
+
+    context("when the buffer is full", () => {
+        it("should process a past event", () => {
+            subject = new IdempotenceFilter([], 1);
+            subject.filter({
+                id: "event1", payload: null, timestamp: new Date(10), type: null
+            });
+            subject.filter({
+                id: "event2", payload: null, timestamp: new Date(5), type: null
+            });
+
+            expect(subject.filter({
+                id: "event1", payload: null, timestamp: new Date(10), type: null
+            })).to.be(true);
+        });
+    });
 });
