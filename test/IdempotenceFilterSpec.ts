@@ -32,6 +32,12 @@ describe("Given an idempotence filter", () => {
             expect(subject.filter({
                 type: SpecialEvents.FETCH_EVENTS, timestamp: null, payload: null
             })).to.be(true);
+            expect(subject.filter({
+                type: SpecialEvents.REALTIME, timestamp: null, payload: null
+            })).to.be(true);
+            expect(subject.filter({
+                type: SpecialEvents.REALTIME, timestamp: null, payload: null
+            })).to.be(true);
         });
     });
 
@@ -71,6 +77,22 @@ describe("Given an idempotence filter", () => {
                 {id: "event2", timestamp: new Date(5)},
                 {id: "event1", timestamp: new Date(10)},
             ]);
+        });
+    });
+
+    context("when the buffer is full", () => {
+        it("should process a past event", () => {
+            subject = new IdempotenceFilter([], 1);
+            subject.filter({
+                id: "event1", payload: null, timestamp: new Date(10), type: null
+            });
+            subject.filter({
+                id: "event2", payload: null, timestamp: new Date(5), type: null
+            });
+
+            expect(subject.filter({
+                id: "event1", payload: null, timestamp: new Date(10), type: null
+            })).to.be(true);
         });
     });
 });
