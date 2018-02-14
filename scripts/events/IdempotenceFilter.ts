@@ -1,7 +1,7 @@
 import {Event} from "./Event";
-
+import Dictionary from "../common/Dictionary";
 const cbuffer = require("CBuffer");
-import {forEach, omit} from "lodash";
+import {forEach, omit, zipObject, map, includes} from "lodash";
 import SpecialEvents from "./SpecialEvents";
 
 export interface IIdempotenceFilter {
@@ -13,9 +13,12 @@ export interface IIdempotenceFilter {
 }
 
 export class IdempotenceFilter implements IIdempotenceFilter {
-    private ringBuffer = new cbuffer(100);
+    private ringBuffer: any;
+    private dictionaryReplica: Dictionary<Event>;
 
-    constructor(items: RingBufferItem[] = []) {
+    constructor(items: RingBufferItem[] = [], bufferSize = 100) {
+        this.dictionaryReplica = zipObject(map(items, item => item.id), items);
+        this.ringBuffer = new cbuffer(bufferSize);
         this.setItems(items);
     }
 
@@ -24,10 +27,13 @@ export class IdempotenceFilter implements IIdempotenceFilter {
     }
 
     filter(event: Event): boolean {
-        if (event.type === SpecialEvents.FETCH_EVENTS) return true;
+        if (includes([SpecialEvents.FETCH_EVENTS, SpecialEvents.REALTIME], event.type)) return true;
 
-        let filtered = this.ringBuffer.every(item => item.id !== event.id, this);
-        if (filtered) this.ringBuffer.push(omit(event, ["payload", "type", "metadata"]));
+        let filtered = !this.dictionaryReplica[event.id];
+        if (filtered) {
+            this.dictionaryReplica[event.id] = event;
+            this.ringBuffer.push(omit(event, ["payload", "type", "metadata"]));
+        }
         return filtered;
     }
 

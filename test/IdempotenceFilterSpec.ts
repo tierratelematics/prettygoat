@@ -32,6 +32,12 @@ describe("Given an idempotence filter", () => {
             expect(subject.filter({
                 type: SpecialEvents.FETCH_EVENTS, timestamp: null, payload: null
             })).to.be(true);
+            expect(subject.filter({
+                type: SpecialEvents.REALTIME, timestamp: null, payload: null
+            })).to.be(true);
+            expect(subject.filter({
+                type: SpecialEvents.REALTIME, timestamp: null, payload: null
+            })).to.be(true);
         });
     });
 
