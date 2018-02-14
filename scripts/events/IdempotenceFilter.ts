@@ -17,13 +17,13 @@ export class IdempotenceFilter implements IIdempotenceFilter {
     private dictionaryReplica: Dictionary<Event>;
 
     constructor(items: RingBufferItem[] = [], bufferSize = 100) {
-        this.dictionaryReplica = zipObject(map(items, item => item.id), items);
         this.ringBuffer = new cbuffer(bufferSize);
         this.ringBuffer.overflow = (event) => delete this.dictionaryReplica[event.id];
         this.setItems(items);
     }
 
     setItems(items: RingBufferItem[]) {
+        this.dictionaryReplica = zipObject(map(items, item => item.id), items);
         forEach(items, item => this.ringBuffer.push(item));
     }
 
