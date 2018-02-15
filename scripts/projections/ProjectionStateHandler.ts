@@ -34,18 +34,19 @@ class ProjectionStateHandler implements IRequestHandler {
             let publishPoint = this.getPublishpoint(projection, pointName),
                 deliverStrategy = publishPoint.deliver || new IdentityDeliverStrategy<any>(),
                 projectionRunner = this.holder[projection.name],
-                dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [];
+                dependencies = publishPoint.readmodels ? publishPoint.readmodels.$list : [],
+                logger = this.logger.createChildLogger(projection.name).createChildLogger(pointName);
 
             try {
                 let deliverContext = {
                     headers: request.headers,
                     params: request.query,
                 };
-                this.logger.debug(`Delivering ${projection.name} state with context ${JSON.stringify(deliverContext)}`);
+                logger.debug(`Delivering with parameters ${JSON.stringify(deliverContext.params)}`);
                 let readModels = await Promise.all(map(dependencies, name => this.readModelRetriever.modelFor(name)));
 
                 if (!projectionRunner) {
-                    this.logger.warning(`${projection.name} is not running, maybe it's on another node?`);
+                    logger.warning(`Not running, maybe it's on another node?`);
                     response.status(500);
                     response.send({error: STATUS_CODES[500]});
                 } else {
@@ -53,8 +54,8 @@ class ProjectionStateHandler implements IRequestHandler {
                     this.sendResponse(response, deliverResult);
                 }
             } catch (error) {
-                this.logger.error(`${projection.name} delivery failed`);
-                this.logger.error(error);
+                logger.error(`Delivery failed`);
+                logger.error(error);
                 response.status(500);
                 response.send({error: STATUS_CODES[500]});
             }
