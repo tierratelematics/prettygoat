@@ -1,3 +1,8 @@
+# 6.3.0
+
+* Bump to inversify-logging 0.2.0
+* Improve ringbuffer performances
+
 # 6.2.1
 
 Rewrite readmodels notify using buffers
