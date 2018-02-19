@@ -92,13 +92,13 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
+                this.logger.debug(`Processing event ${JSON.stringify(event)}`);
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
                 return isPromise(state) ? state.then(newState => [event, newState, matchFn]) : Observable.of([event, state, matchFn]);
             }).observeOn(Scheduler.queue), 1)
             .do(data => {
-                this.logger.debug(`Processed event ${JSON.stringify(data[0])}`);
                 if (data[0].type === SpecialEvents.FETCH_EVENTS) {
                     completions.next(data[0].payload.event);
                 }
