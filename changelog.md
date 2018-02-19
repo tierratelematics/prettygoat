@@ -1,3 +1,7 @@
+# 6.3.1
+
+Improve projection runner logs 
+
 # 6.3.0
 
 * Bump to inversify-logging 0.2.0
