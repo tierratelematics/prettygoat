@@ -87,8 +87,10 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
         this.idempotenceFilter.setItems(ringBuffer);
         this.logger.info(`Start getting events from ${query.from}`);
 
-        this.subscription = this.streamFactory.from(query, this.idempotenceFilter, completions)
-            .startWith(!snapshot && initEvent)
+        let eventsStream = this.streamFactory.from(query, this.idempotenceFilter, completions);
+        if (!snapshot) eventsStream = eventsStream.startWith(initEvent);
+
+        this.subscription = eventsStream
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
