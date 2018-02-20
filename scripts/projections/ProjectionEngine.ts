@@ -1,6 +1,6 @@
 import IProjectionEngine from "./IProjectionEngine";
 import {injectable, inject} from "inversify";
-import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, mapValues, filter} from "lodash";
+import {forEach, map, flatten, includes, concat, reduce, compact, isUndefined, filter, uniq} from "lodash";
 import PushContext from "../push/PushContext";
 import {ISnapshotRepository, Snapshot} from "../snapshots/ISnapshotRepository";
 import {ILogger, NullLogger, LoggingContext} from "inversify-logging";
@@ -80,7 +80,7 @@ class ProjectionEngine implements IProjectionEngine {
         let notificationsPublisher = this.publisherFactory.publisherFor<NotificationData>(runner);
 
         this.saveSnapshots(snapshotsPublisher, logger);
-        this.publishNotifications(notificationsPublisher, projection, logger);
+        this.publishNotifications(notificationsPublisher, logger);
 
         let subscription = runner.notifications()
             .do(notification => {
@@ -119,14 +119,20 @@ class ProjectionEngine implements IProjectionEngine {
             });
     }
 
-    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>, projection: IProjection, logger: ILogger) {
-        let loggers = mapValues(projection.publish, (point, name) => logger.createChildLogger(name));
-
+    private publishNotifications(notificationsPublisher: IAsyncPublisher<NotificationData>, logger: ILogger) {
         notificationsPublisher.items(item => `${item[0].area}:${item[0].projectionName}:${item[1]}`)
-            .subscribe(notification => {
+            .do(notification => {
                 let [context, notifyKey, event] = notification;
                 this.pushNotifier.notifyAll(context, event, notifyKey);
-                loggers[context.projectionName].debug(`Notify clients under notification key: ${notifyKey}`);
+            })
+            .groupBy(notification => `${notification[0].area}:${notification[0].projectionName}`)
+            .flatMap(group => group.bufferTime(50))
+            .filter(buffer => !!buffer.length)
+            .subscribe(buffer => {
+                let notificationKeys = uniq(map(buffer, item => item[1])),
+                    childLogger = logger.createChildLogger(buffer[0][0].projectionName);
+                
+                childLogger.debug("Notify clients registered with keys", JSON.stringify(notificationKeys));
             });
     }
 

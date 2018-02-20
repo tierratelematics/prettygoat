@@ -1,6 +1,6 @@
-# 6.3.1
+# 6.3.1/6.3.2
 
-Improve projection runner logs 
+Improve logs 
 
 # 6.3.0
 
