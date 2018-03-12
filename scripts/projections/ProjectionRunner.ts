@@ -13,11 +13,12 @@ import {IStreamFactory} from "../events/IStreamFactory";
 import DefinitionUtil from "../common/DefinitionUtil";
 import {IIdempotenceFilter} from "../events/IdempotenceFilter";
 import {NullLogger, ILogger} from "inversify-logging";
+const cbuffer = require("CBuffer");
 
 export class ProjectionStats {
     running = false;
     events = 0;
-    lastEvent: Date;
+    lastEvents: any = new cbuffer(50);
     realtime = false;
     failed = false;
 }
@@ -94,7 +95,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
-                this.logger.debug(`Processing event ${JSON.stringify(event)}`);
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
@@ -109,7 +109,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.logger.info("Switching from replay to realtime");
                 }
                 this.stats.events++;
-                if (data[0].timestamp) this.stats.lastEvent = data[0].timestamp;
+                this.stats.lastEvents.push(data[0]);
             })
             .filter(data => data[2])
             .subscribe(data => {
