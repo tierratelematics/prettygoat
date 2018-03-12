@@ -108,7 +108,7 @@ export class ProjectionStatsHandler extends BaseProjectionHandler {
                 name: projectionName,
                 size: size,
                 humanizedSize: humanize.filesize(size)
-            }));
+            }, { lastEvents: runner.stats.lastEvents.toArray() }));
         } catch (error) {
             logger.error(error);
             response.status(404);

@@ -12,9 +12,11 @@ import {IProjection} from "../../scripts/projections/IProjection";
 import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
 import {
     ProjectionStopHandler, ProjectionRestartHandler,
-    ProjectionStateApiHandler
+    ProjectionStateApiHandler,
+    ProjectionStatsHandler
 } from "../../scripts/api/ProjectionsHandlers";
 import {IProjectionRegistry} from "../../scripts/bootstrap/ProjectionRegistry";
+const cbuffer = require("CBuffer");
 
 describe("Given a ProjectionsController and a projection name", () => {
     let holder: Dictionary<IProjectionRunner<any>>,
@@ -45,7 +47,7 @@ describe("Given a ProjectionsController and a projection name", () => {
         });
     });
 
-    context("when there is a projection with that name ", () => {
+    context("when there is a projection with that name", () => {
         beforeEach(() => request.body = {payload: {projectionName: "Mock"}});
 
         context("and a stop command is sent", () => {
@@ -120,6 +122,51 @@ describe("Given a ProjectionsController and a projection name", () => {
 
             response.verify(s => s.send(It.isValue({
                 "test": 20
+            })), Times.once());
+        });
+    });
+
+    context("when the stats of a projection are needed", () => {
+        beforeEach(() => {
+            projectionRunner.object.state = "test";
+            let eventsBuffer = new cbuffer(50);
+            eventsBuffer.push({
+                type: "test",
+                payload: "payload-test"
+            });
+            eventsBuffer.push({
+                type: "test2",
+                payload: "payload-test2"
+            });
+            projectionRunner.object.stats.events = 2;
+            projectionRunner.object.stats.failed = false;
+            projectionRunner.object.stats.realtime = true;
+            projectionRunner.object.stats.running = true;
+            projectionRunner.object.stats.lastEvents = eventsBuffer;
+            subject = new ProjectionStatsHandler(holder);
+            request.params = {projectionName: "Mock"};
+        });
+        it("should return them", async () => {
+            await subject.handle(request, response.object);
+
+            response.verify(s => s.send(It.isValue({
+                name: "Mock",
+                size: 8,
+                humanizedSize: "8 bytes",
+                events: 2,
+                failed: false,
+                realtime: true,
+                running: true,
+                lastEvents: [
+                    {
+                        type: "test",
+                        payload: "payload-test"
+                    },
+                    {
+                        type: "test2",
+                        payload: "payload-test2"
+                    }
+                ]
             })), Times.once());
         });
     });
