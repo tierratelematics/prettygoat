@@ -95,6 +95,7 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
             .map<Event, [Event, Function]>(event => [event, this.matcher.match(event.type)])
             .flatMap<any, any>(data => Observable.defer(() => {
                 let [event, matchFn] = data;
+                this.stats.lastEvents.push(data[0]);
                 let state = matchFn ? matchFn(this.state, event.payload, event) : this.state;
                 // I'm not resolving every state directly with a Promise since this messes up with the
                 // synchronicity of the TickScheduler
@@ -109,7 +110,6 @@ export class ProjectionRunner<T> implements IProjectionRunner<T> {
                     this.logger.info("Switching from replay to realtime");
                 }
                 this.stats.events++;
-                this.stats.lastEvents.push(data[0]);
             })
             .filter(data => data[2])
             .subscribe(data => {
