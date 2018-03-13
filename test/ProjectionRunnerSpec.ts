@@ -232,8 +232,8 @@ describe("Given a ProjectionRunner", () => {
                     expect(subject.stats.events).to.be(6);
                 });
 
-                it("should set the latest timestamp", () => {
-                    expect(subject.stats.lastEvent).to.eql(new Date(5005));
+                it("should add the event to the ringbuffer of latest events", () => {
+                    expect(subject.stats.lastEvents.last().timestamp).to.eql(new Date(5005));
                 });
 
                 it("should produce the correct notification keys", () => {
