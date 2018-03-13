@@ -1,3 +1,8 @@
+# 6.4.0
+
+* remove events processed logs
+* expose a ringbuffer of latest events
+
 # 6.3.1/6.3.2
 
 Improve logs 
